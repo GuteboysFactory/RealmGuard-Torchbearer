@@ -1,17 +1,23 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.0.1 - World Info Hotfix  
+**Version:** 1.0.2 - Sidebar Manual UI Hotfix  
 **Target:** Foundry VTT 13.351  
 **Status:** Stable public release  
-**Release baseline:** v1.0.1
+**Release baseline:** v1.0.2
+
+## v1.0.2 sidebar manual UI hotfix
+
+The old floating **RG/TB** pill button has been replaced by an icon-only manual button integrated with Foundry's sidebar controls. The button still opens the Realm Guard / Torchbearer Manual & Rules Reference, but now follows the visual language of the native sidebar instead of floating above it.
+
+No gameplay rules, Actor data, World data, roll logic, conditions, advancement, inventory, conflicts, recruitment or other core system mechanics were changed in this patch.
 
 ## v1.0.1 World Info hotfix
 
-Foundry's native **Edit World > World Description** field is now the single source for text shown in the Join Page World Description panel. The system no longer injects a hard-coded description with CSS. The themed background remains presentation-only and no World description data is created or overwritten.
+Foundry's native **Edit World > World Description** field is the single source for text shown in the Join Page World Description panel. The system does not inject, create, overwrite or restore World Description text. For the native World Description panel to be visible, use **Join Page Theme: Default**.
 
 ## v1.0 identity
 
-The visible system name is now **Realm Guard / Torchbearer**. The internal Foundry package id remains `realm-guard` so existing Worlds continue to identify the same game system after upgrading from the verified 0.x line.
+The visible system name is **Realm Guard / Torchbearer**. The internal Foundry package id remains `realm-guard` so existing Worlds continue to identify the same game system after upgrading from the verified 0.x line.
 
 This fan-made game system deliberately combines:
 
@@ -24,13 +30,11 @@ The release is not presented as a one-to-one digital edition of any single sourc
 
 ## Join page presentation
 
-v1.0.1 keeps the dedicated **Realm Guard / Torchbearer** world/login background and uses Foundry's native **World Description** as the authoritative Join Page text. The system manifest still declares the same artwork as the default background for new Realm Guard / Torchbearer Worlds. Existing Worlds keep their World data; the join-page theme is presentation-only and does not move, rewrite or auto-fill campaign content.
+The system keeps the dedicated **Realm Guard / Torchbearer** world/login background and uses Foundry's native **World Description** as the authoritative Join Page text. Existing Worlds keep their World data; the join-page theme is presentation-only and does not move, rewrite or auto-fill campaign content.
 
 ## Global Manual & Rules Reference
 
-v1.0 adds a persistent floating **RG/TB book button** for every user. The manual can be opened while working elsewhere in Foundry instead of requiring a return to chat.
-
-The integrated manual now has two layers:
+The integrated manual has two layers:
 
 - **Using the Foundry System** - where the tools live and how the implemented play loop works.
 - **Rules Reference** - concise summaries of the rules and automation boundaries actually used by the system.
@@ -44,18 +48,16 @@ Rules are marked as:
 
 ## Permanent Rules Reference Journal
 
-On first GM load, v1.0 creates a player-readable Journal folder **Realm Guard / Torchbearer** and the Journal **Realm Guard / Torchbearer - Rules Reference** if it does not already exist.
+On first GM load, the system creates a player-readable Journal folder **Realm Guard / Torchbearer** and the Journal **Realm Guard / Torchbearer - Rules Reference** if it does not already exist.
 
 Normal world loading does not overwrite an existing Rules Reference Journal.
-
-The same v1.0 rules-reference definitions are used by the integrated manual and the seeded Journal.
 
 Shipped text references:
 
 - `SYSTEM_MANUAL.md`
 - `RULES_REFERENCE.md`
 
-## Existing v0.26 GOLD features retained
+## Existing GOLD features retained
 
 - Recruitment 2.0 / Create Ranger / Recruitment Guide
 - Skills, Learning, Beginner's Luck, Nature, Traits, Wises, Teamwork, Fate/Persona
@@ -73,11 +75,7 @@ Shipped text references:
 
 ## Data preservation
 
-v1.0 does not rename the internal system id and does not deliberately move/reset existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment, Inventory, Conditions, Tokens, Talents and progression must remain intact.
-
-### Final v1.0 Join Game correction
-
-v1.0.1 keeps the approved ultra-wide Realm Guard / Torchbearer release artwork while restoring Foundry's native World Description as the authoritative Join Page text source. Join Game layout styling aligns the live Foundry controls with the artwork without injecting campaign/system copy into the description panel.
+v1.0.2 does not rename the internal system id and does not deliberately move/reset existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment, Inventory, Conditions, Tokens, Talents and progression must remain intact.
 
 ## Installation
 
@@ -89,7 +87,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard-foundry-v1.0.1.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
+Download `realm-guard-foundry-v1.0.2.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
 
 ## Project repository
 
@@ -97,7 +95,7 @@ https://github.com/GuteboysFactory/RealmGuard-Torchbearer
 
 ## Join Page World Description
 
-Realm Guard / Torchbearer v1.0.1 displays the description saved in Foundry under **Edit World > World Description** when Foundry's **Join Page Theme** is set to **Default**. If the GM leaves that field blank, the Join Page description content is intentionally blank. The system does not write to the World document.
+Realm Guard / Torchbearer displays the description saved in Foundry under **Edit World > World Description** when Foundry's **Join Page Theme** is set to **Default**. If the GM leaves that field blank, the Join Page description content is intentionally blank. The system does not write to the World document.
 
 ## Fan project notice
 
