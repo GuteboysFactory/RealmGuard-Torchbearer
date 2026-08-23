@@ -1,0 +1,76 @@
+{
+  "id": "realm-guard",
+  "title": "Realm Guard / Torchbearer",
+  "description": "Realm Guard / Torchbearer is a fantasy roleplaying system for Foundry VTT focused on Rangers, hard journeys, dangerous conflicts and difficult choices. Its rules deliberately blend Realm Guard: Rangers of the North, inherited Mouse Guard RPG 2nd Edition mechanics, selected compatible ideas inspired by Torchbearer 2nd Edition, and clearly marked Realm Guard / Torchbearer Foundry expansions.",
+  "version": "1.0.1",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13.351",
+    "maximum": "13"
+  },
+  "authors": [
+    {
+      "name": "Realm Guard / Torchbearer Foundry Project"
+    }
+  ],
+  "esmodules": [
+    "realm-guard.mjs"
+  ],
+  "styles": [
+    "styles/realm-guard.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": [
+          "biography",
+          "notes"
+        ]
+      },
+      "npc": {
+        "htmlFields": [
+          "biography",
+          "notes"
+        ]
+      }
+    },
+    "Item": {
+      "role": {},
+      "trait": {},
+      "gear": {},
+      "condition": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "wise": {},
+      "tokenOfPower": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "talent": {
+        "htmlFields": [
+          "description"
+        ]
+      }
+    }
+  },
+  "initiative": "1d6",
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
+  "socket": true,
+  "background": "systems/realm-guard/assets/ui/realm-guard-torchbearer-world-bg.webp",
+  "url": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer",
+  "manifest": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json",
+  "download": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/realm-guard-foundry-v1.0.1.zip"
+}
