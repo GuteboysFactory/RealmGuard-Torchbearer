@@ -1,85 +1,38 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.0.2 - Sidebar Manual UI Hotfix  
+**Version:** 1.0.8.3  
 **Target:** Foundry VTT 13.351  
-**Status:** Stable public release  
-**Release baseline:** v1.0.2
+**Status:** Stable public release / GOLD  
+**Current stable baseline:** v1.0.8.3
 
-## v1.0.2 sidebar manual UI hotfix
+## v1.0.8.3 GOLD
 
-The old floating **RG/TB** pill button has been replaced by an icon-only manual button integrated with Foundry's sidebar controls. The button still opens the Realm Guard / Torchbearer Manual & Rules Reference, but now follows the visual language of the native sidebar instead of floating above it.
+Realm Guard / Torchbearer v1.0.8.3 completes the planned 1.0.x stabilization and polish cycle. The release includes the cumulative improvements from v1.0.5 through v1.0.8.3, including:
 
-No gameplay rules, Actor data, World data, roll logic, conditions, advancement, inventory, conflicts, recruitment or other core system mechanics were changed in this patch.
+- automatic Skill and Ability advancement
+- Beginner's Luck + Tap Nature integration
+- immediate Level Up and Talent flow
+- non-modal system windows
+- movable GM Dock
+- dark, readable RG/TB chat presentation
+- player-to-player Help Requests and Synergy
+- Baseline Obstacle, GM approval and Live Roll OB support
+- simplified and hardened Conflict Engine flow
+- Custom Roll / Flexible Test Engine
+- automatic untrained Skill learning
+- read-only automatic roll modifiers and improved dice presentation
+- Smart NPC Drag & Drop
+- NPC Templates & Quick Spawn
+- step-by-step Conflict chat results
+- corrected Trait session-use rules and End Session reset
+- improved NPC sheet layout and Conditions presentation
+- Quick Token Builder with manual framing, zoom, Fit/Fill and explicit Save
+- round NPC token generation with preserved original artwork
+- compact GM Notes layout on NPC sheets
 
-## v1.0.1 World Info hotfix
-
-Foundry's native **Edit World > World Description** field is the single source for text shown in the Join Page World Description panel. The system does not inject, create, overwrite or restore World Description text. For the native World Description panel to be visible, use **Join Page Theme: Default**.
-
-## v1.0 identity
-
-The visible system name is **Realm Guard / Torchbearer**. The internal Foundry package id remains `realm-guard` so existing Worlds continue to identify the same game system after upgrading from the verified 0.x line.
-
-This fan-made game system deliberately combines:
-
-1. **Realm Guard: Rangers of the North** rules where that hack defines/overrides play;
-2. inherited **Mouse Guard RPG 2nd Edition** core mechanics where Realm Guard does not replace them;
-3. selected compatible **Torchbearer 2nd Edition** ideas that were deliberately adopted; and
-4. clearly marked **Realm Guard / Torchbearer Foundry expansions**.
-
-The release is not presented as a one-to-one digital edition of any single source book.
-
-## Join page presentation
-
-The system keeps the dedicated **Realm Guard / Torchbearer** world/login background and uses Foundry's native **World Description** as the authoritative Join Page text. Existing Worlds keep their World data; the join-page theme is presentation-only and does not move, rewrite or auto-fill campaign content.
-
-## Global Manual & Rules Reference
-
-The integrated manual has two layers:
-
-- **Using the Foundry System** - where the tools live and how the implemented play loop works.
-- **Rules Reference** - concise summaries of the rules and automation boundaries actually used by the system.
-
-Rules are marked as:
-
-- `RULE`
-- `AUTOMATED`
-- `GM CALL`
-- `RG/TB FOUNDRY`
-
-## Permanent Rules Reference Journal
-
-On first GM load, the system creates a player-readable Journal folder **Realm Guard / Torchbearer** and the Journal **Realm Guard / Torchbearer - Rules Reference** if it does not already exist.
-
-Normal world loading does not overwrite an existing Rules Reference Journal.
-
-Shipped text references:
-
-- `SYSTEM_MANUAL.md`
-- `RULES_REFERENCE.md`
-
-## Existing GOLD features retained
-
-- Recruitment 2.0 / Create Ranger / Recruitment Guide
-- Skills, Learning, Beginner's Luck, Nature, Traits, Wises, Teamwork, Fate/Persona
-- Conditions, Recovery, Optional Turn Manager / Free Play
-- Inventory & Gear paper-doll and Containers
-- Tokens of Power
-- Levels & Talents
-- Card-driven Conflict Engine
-- Quick NPC / compact NPC sheet / GM Control
-- Starter Compendiums
-- GM Content Studio
-- End of Session
-- World Health Audit
-- non-destructive World upgrade/transfer policy
-
-## Data preservation
-
-v1.0.2 does not rename the internal system id and does not deliberately move/reset existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment, Inventory, Conditions, Tokens, Talents and progression must remain intact.
+The internal Foundry package id remains `realm-guard` to preserve compatibility with existing Worlds.
 
 ## Installation
-
-### Install directly in Foundry VTT
 
 In Foundry VTT, open **Game Systems > Install System** and paste this Manifest URL:
 
@@ -87,15 +40,39 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard-foundry-v1.0.2.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
+Download `realm-guard-foundry-v1.0.8.3.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
+
+## Rules identity
+
+This fan-made game system deliberately combines:
+
+1. **Realm Guard: Rangers of the North** rules where that hack defines or overrides play;
+2. inherited **Mouse Guard RPG 2nd Edition** core mechanics where Realm Guard does not replace them;
+3. selected compatible **Torchbearer 2nd Edition** ideas that were deliberately adopted; and
+4. clearly marked **Realm Guard / Torchbearer Foundry expansions**.
+
+The release is not presented as a one-to-one digital edition of any single source book.
+
+## Global Manual & Rules Reference
+
+The integrated manual contains:
+
+- **Using the Foundry System** — where the tools live and how the implemented play loop works.
+- **Rules Reference** — concise summaries of the rules and automation boundaries actually used by the system.
+
+Rules are marked as `RULE`, `AUTOMATED`, `GM CALL`, or `RG/TB FOUNDRY` where appropriate.
+
+## Join Page World Description
+
+Realm Guard / Torchbearer displays the description saved in Foundry under **Edit World > World Description** when Foundry's **Join Page Theme** is set to **Default**. The system does not inject or overwrite World Description text.
+
+## Data preservation
+
+The 1.0.x line keeps the internal system id `realm-guard` and is designed to preserve existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment data, Inventory, Conditions, Tokens, Talents and progression are not deliberately reset by these updates.
 
 ## Project repository
 
 https://github.com/GuteboysFactory/RealmGuard-Torchbearer
-
-## Join Page World Description
-
-Realm Guard / Torchbearer displays the description saved in Foundry under **Edit World > World Description** when Foundry's **Join Page Theme** is set to **Default**. If the GM leaves that field blank, the Join Page description content is intentionally blank. The system does not write to the World document.
 
 ## Fan project notice
 
