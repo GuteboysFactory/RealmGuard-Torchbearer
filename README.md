@@ -1,34 +1,35 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.0.8.3  
+**Version:** 1.0.8.44  
 **Target:** Foundry VTT 13.351  
 **Status:** Stable public release / GOLD  
-**Current stable baseline:** v1.0.8.3
+**Current stable baseline:** v1.0.8.44
 
-## v1.0.8.3 GOLD
+## v1.0.8.44 GOLD
 
-Realm Guard / Torchbearer v1.0.8.3 completes the planned 1.0.x stabilization and polish cycle. The release includes the cumulative improvements from v1.0.5 through v1.0.8.3, including:
+Realm Guard / Torchbearer v1.0.8.44 is the current verified GOLD release. It carries forward the complete 1.0.x feature line and adds the latest live-tested stability, portrait, Conflict and readability improvements.
+
+Highlights include:
 
 - automatic Skill and Ability advancement
 - Beginner's Luck + Tap Nature integration
 - immediate Level Up and Talent flow
-- non-modal system windows
-- movable GM Dock
-- dark, readable RG/TB chat presentation
+- non-modal system windows and movable GM Dock
 - player-to-player Help Requests and Synergy
 - Baseline Obstacle, GM approval and Live Roll OB support
-- simplified and hardened Conflict Engine flow
 - Custom Roll / Flexible Test Engine
 - automatic untrained Skill learning
-- read-only automatic roll modifiers and improved dice presentation
-- Smart NPC Drag & Drop
-- NPC Templates & Quick Spawn
-- step-by-step Conflict chat results
+- Smart NPC Drag & Drop, NPC Templates and Quick Spawn
 - corrected Trait session-use rules and End Session reset
-- improved NPC sheet layout and Conditions presentation
-- Quick Token Builder with manual framing, zoom, Fit/Fill and explicit Save
-- round NPC token generation with preserved original artwork
-- compact GM Notes layout on NPC sheets
+- persistent Ranger portrait framing and non-destructive Original Portrait / Token Portrait switching
+- persistent Token Builder framing with preserved source artwork
+- improved GM Quick Inspector layout and canvas token-name hover
+- contextual hover explanations across supported dropdowns and Conflict controls
+- audited Tap Nature availability in Conflict, including Beginner's Luck post-halving behavior and Resources/Circles exclusions
+- simplified, more readable standard roll result cards
+- rebuilt Conflict chat presentation with clear Action vs Action, side-by-side results, disposition changes and expandable technical details
+- readable Starting Disposition, Maneuver and Conflict Complete cards
+- hardened Conflict planning, lock and reveal progression
 
 The internal Foundry package id remains `realm-guard` to preserve compatibility with existing Worlds.
 
@@ -40,7 +41,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard-foundry-v1.0.8.3.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
+Download `realm-guard-foundry-v1.0.8.44.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
 
 ## Rules identity
 
