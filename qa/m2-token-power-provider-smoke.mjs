@@ -60,7 +60,8 @@ const reroll = effects.find(effect => effect.type === EFFECT_TYPES.REROLL);
 assert.ok(reroll);
 assert.equal(reroll.value.selector, "failed-dice");
 assert.equal(reroll.value.successThreshold, 4);
-assert.equal(effects.some(effect => effect.type === EFFECT_TYPES.STATE_CHANGE), true);
+assert.equal(reroll.metadata.consumeOnRerollAccept, true);
+assert.equal(effects.some(effect => effect.type === EFFECT_TYPES.STATE_CHANGE), false);
 
 power = token("used", 3, { used: true });
 actor = actorWith([power]);
@@ -80,4 +81,4 @@ power = token("ability-no", 2);
 actor = actorWith([power]);
 assert.equal(effectsFor(engine, actor, power.id, "Will", { isSkill: false }).length, 0);
 
-console.log("M2 Token of Power provider smoke PASS · L1/L2 dice · L3 reroll · manual/state · used/applicability/provenance OK");
+console.log("M2 Token of Power provider smoke PASS · L1/L2 dice · L3 reroll-on-accept · manual/state · used/applicability/provenance OK");
