@@ -24,9 +24,10 @@ import { installTeamworkWorkflow } from "./module/teamwork.mjs";
 import { installNpcBuilder } from "./module/npc-builder.mjs";
 import { installContextHelp } from "./module/context-help.mjs";
 import { installTokenNameHover } from "./module/token-hover.mjs";
+import { installCoreBaseline } from "./module/core-baseline.mjs";
 
 Hooks.once("init", () => {
-  console.log("Realm Guard / Torchbearer | Initializing v1.0.8.43");
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.2.0"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -50,6 +51,7 @@ Hooks.once("init", () => {
     makeDefault: true,
     label: "Realm Guard / Torchbearer Ranger Sheet"
   });
+  installCoreBaseline();
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
