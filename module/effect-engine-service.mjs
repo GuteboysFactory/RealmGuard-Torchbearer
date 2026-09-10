@@ -1,5 +1,6 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { conditionRollData } from "./conditions.mjs";
+import { resolveTokenPowerUse } from "./tokens-of-power.mjs";
 import {
   EffectEngine,
   createEffect,
@@ -25,6 +26,11 @@ import {
   buildWiseEffectContext
 } from "./providers/wise-effects.mjs";
 import {
+  TOKEN_POWER_EFFECT_PROVIDER,
+  TOKEN_POWER_PROVIDER_ID,
+  buildTokenPowerEffectContext
+} from "./providers/token-power-effects.mjs";
+import {
   CONFLICT_TOOL_EFFECT_PROVIDER,
   CONFLICT_TOOL_PROVIDER_ID,
   buildConflictToolEffectContext
@@ -42,6 +48,7 @@ function registerShadowProviders() {
   if (!registered.has(CONDITION_ROLL_PROVIDER_ID)) engine.registerProvider(CONDITION_ROLL_EFFECT_PROVIDER);
   if (!registered.has(TRAIT_SELECTION_PROVIDER_ID)) engine.registerProvider(TRAIT_SELECTION_EFFECT_PROVIDER);
   if (!registered.has(WISE_SELECTION_PROVIDER_ID)) engine.registerProvider(WISE_SELECTION_EFFECT_PROVIDER);
+  if (!registered.has(TOKEN_POWER_PROVIDER_ID)) engine.registerProvider(TOKEN_POWER_EFFECT_PROVIDER);
   if (!registered.has(CONFLICT_TOOL_PROVIDER_ID)) engine.registerProvider(CONFLICT_TOOL_EFFECT_PROVIDER);
 }
 
@@ -62,7 +69,7 @@ export function getEffectEngineStatus() {
     liveApplication: false,
     providerCount: engine.listProviders().length,
     migratedProviders: Object.freeze(engine.listProviders().map(provider => provider.id)),
-    shadowScope: "CONDITION_DICE_TRAIT_WISE_AND_CONFLICT_TOOL_EFFECTS",
+    shadowScope: "CONDITION_DICE_TRAIT_WISE_TOKEN_POWER_AND_CONFLICT_TOOL_EFFECTS",
     supportedTypes: Object.freeze([...Object.values(EFFECT_TYPES)]),
     supportedTimings: Object.freeze([...Object.values(EFFECT_TIMINGS)]),
     supportedStacking: Object.freeze([...Object.values(EFFECT_STACKING)])
@@ -244,6 +251,61 @@ export function compareWiseEffects(actor, wiseId, {
   });
 }
 
+export function compareTokenPowerEffects(actor, tokenId, sourceName, { isSkill = true } = {}) {
+  if (!actor) throw new Error("compareTokenPowerEffects requires an Actor.");
+  registerShadowProviders();
+
+  const legacyPower = resolveTokenPowerUse(actor, tokenId, sourceName, { isSkill });
+  const context = buildTokenPowerEffectContext(actor, tokenId, sourceName, { isSkill });
+  const effects = engine.collect(context, { providerIds: [TOKEN_POWER_PROVIDER_ID] });
+  const diceBonus = effects
+    .filter(effect => effect.type === EFFECT_TYPES.DICE_MODIFIER)
+    .reduce((total, effect) => total + Number(effect.value ?? 0), 0);
+  const reroll = effects.some(effect => effect.type === EFFECT_TYPES.REROLL);
+  const manual = effects.some(effect => effect.type === EFFECT_TYPES.MANUAL);
+  const consumeOnRoll = effects.some(effect => effect.type === EFFECT_TYPES.STATE_CHANGE);
+  const core = Object.freeze({
+    token: context.token?.name ?? null,
+    available: effects.length > 0,
+    level: Number(context.token?.system?.level ?? 0),
+    diceBonus,
+    reroll,
+    manual,
+    consumeOnRoll,
+    effects: Object.freeze(effects.map(effect => Object.freeze({
+      id: effect.id,
+      type: effect.type,
+      value: effect.value,
+      channel: effect.metadata?.channel ?? null,
+      token: effect.source.tokenName,
+      providerId: effect.source.providerId
+    })))
+  });
+  const legacy = Object.freeze({
+    token: legacyPower?.token?.name ?? context.token?.name ?? null,
+    available: Boolean(legacyPower),
+    level: Number(legacyPower?.level ?? context.token?.system?.level ?? 0),
+    diceBonus: Number(legacyPower?.diceBonus ?? 0),
+    reroll: Boolean(legacyPower?.reroll),
+    manual: Boolean(legacyPower?.manual),
+    consumeOnRoll: Boolean(legacyPower?.consumeOnRoll)
+  });
+
+  return Object.freeze({
+    match:
+      legacy.available === core.available &&
+      legacy.diceBonus === core.diceBonus &&
+      legacy.reroll === core.reroll &&
+      legacy.manual === core.manual &&
+      legacy.consumeOnRoll === core.consumeOnRoll,
+    sourceName: String(sourceName ?? ""),
+    isSkill: Boolean(isSkill),
+    tokenId: context.tokenId,
+    legacy,
+    core
+  });
+}
+
 export function compareConflictToolEffects(selection, action, {
   swordAction = "",
   requirementMet = true
@@ -308,7 +370,7 @@ function diagnosticsHtml() {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M2</div>
       <h2 style="margin:3px 0 4px;">Unified Effect Engine</h2>
-      <p style="margin:0;">Four real Effect Providers are now running in shadow-compare mode. Existing live rolls and Conflict resolution still use the v1.3.0 GOLD-compatible logic.</p>
+      <p style="margin:0;">Five real Effect Providers are now running in shadow-compare mode. Effect application remains OFF; live gameplay still uses the Legacy Mixed engines.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Mode</small><br><b>${esc(status.mode)}</b></div>
@@ -317,8 +379,9 @@ function diagnosticsHtml() {
     </div>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Shadow Migration Scope</h3>
-      <p style="margin:0 0 6px;"><b>Condition dice + selected Traits + selected Wise rerolls + Conflict Weapon/Tool action modifiers.</b></p>
-      <p style="margin:0;">Wises now translate selected beneficial reroll access into a CORE <code>REROLL</code> Effect. Angry blocking becomes <code>CAPABILITY_BLOCK</code>. The provider describes which failed dice are eligible; it does not roll or replace dice in qa.5.</p>
+      <p style="margin:0 0 6px;"><b>Condition dice + selected Traits + Wise rerolls + Tokens of Power + Conflict Weapon/Tool action modifiers.</b></p>
+      <p style="margin:0;">Tokens of Power translate L1/L2 bonuses to <code>DICE_MODIFIER</code>, L3 failed-die access to <code>REROLL</code>, manual tokens to <code>MANUAL</code>, and once/session consumption to a shadow <code>STATE_CHANGE</code>. No CORE state write is committed in qa.6.</p>
+      <p style="margin:6px 0 0;"><b>Wise UX correction:</b> a Wise reroll is now accepted or declined after the base dice are visible. A Wise selected before the roll is only the preferred default in that post-roll decision.</p>
       <p style="margin:6px 0 0;">Conflict Tools remain shadow-only. Armor/damage absorption is not invented here because it is not part of the current live action-modifier path.</p>
       <p style="margin:6px 0 0;"><b>Compatibility note:</b> current Legacy Mixed “no valid Conflict Weapon/Tool = -1D” remains a profile-specific legacy effect, not a universal CORE rule.</p>
     </section>
@@ -334,13 +397,15 @@ function diagnosticsHtml() {
       <code>game.realmGuard.core.effects.compareTraitEffects(actor, traitId, "help", { baseSuccesses: 3, target: 3 })</code>
       <p style="margin:8px 0 6px;">Wise:</p>
       <code>game.realmGuard.core.effects.compareWiseEffects(actor, wiseId, { faces: [1,2,4,6] })</code>
+      <p style="margin:8px 0 6px;">Token of Power:</p>
+      <code>game.realmGuard.core.effects.compareTokenPowerEffects(actor, tokenId, "Pathfinder", { isSkill: true })</code>
       <p style="margin:8px 0 6px;">Conflict Tool:</p>
       <code>game.realmGuard.core.effects.compareConflictToolEffects("Shield", "defend")</code>
-      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Helpers are read-only and do not roll dice or change Actor data.</p>
+      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Shadow helpers are read-only and do not roll dice or change Actor data.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No gameplay takeover in qa.5.</b><br>
-      <small>All four providers are deliberately shadow-only. Any live pool, reroll, success, resource, inventory or Conflict outcome change from v1.3.0 is a blocker.</small>
+      <b>No Effect Engine gameplay takeover in qa.6.</b><br>
+      <small>All five providers remain shadow-only. The only intended live change is Wise decision timing: the reroll is confirmed after the base roll instead of occurring automatically.</small>
     </div>
   </div>`;
 }
@@ -368,10 +433,12 @@ function exposeEffectApi() {
     compareConditionDice,
     compareTraitEffects,
     compareWiseEffects,
+    compareTokenPowerEffects,
     compareConflictToolEffects,
     buildConditionEffectContext,
     buildTraitEffectContext,
     buildWiseEffectContext,
+    buildTokenPowerEffectContext,
     buildConflictToolEffectContext,
     createEffect,
     effectApplies,
