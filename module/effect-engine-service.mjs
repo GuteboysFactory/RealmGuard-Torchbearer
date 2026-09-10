@@ -20,6 +20,11 @@ import {
   buildTraitEffectContext
 } from "./providers/trait-effects.mjs";
 import {
+  WISE_SELECTION_EFFECT_PROVIDER,
+  WISE_SELECTION_PROVIDER_ID,
+  buildWiseEffectContext
+} from "./providers/wise-effects.mjs";
+import {
   CONFLICT_TOOL_EFFECT_PROVIDER,
   CONFLICT_TOOL_PROVIDER_ID,
   buildConflictToolEffectContext
@@ -36,6 +41,7 @@ function registerShadowProviders() {
   const registered = new Set(engine.listProviders().map(provider => provider.id));
   if (!registered.has(CONDITION_ROLL_PROVIDER_ID)) engine.registerProvider(CONDITION_ROLL_EFFECT_PROVIDER);
   if (!registered.has(TRAIT_SELECTION_PROVIDER_ID)) engine.registerProvider(TRAIT_SELECTION_EFFECT_PROVIDER);
+  if (!registered.has(WISE_SELECTION_PROVIDER_ID)) engine.registerProvider(WISE_SELECTION_EFFECT_PROVIDER);
   if (!registered.has(CONFLICT_TOOL_PROVIDER_ID)) engine.registerProvider(CONFLICT_TOOL_EFFECT_PROVIDER);
 }
 
@@ -56,7 +62,7 @@ export function getEffectEngineStatus() {
     liveApplication: false,
     providerCount: engine.listProviders().length,
     migratedProviders: Object.freeze(engine.listProviders().map(provider => provider.id)),
-    shadowScope: "CONDITION_DICE_TRAIT_SELECTION_AND_CONFLICT_TOOL_ACTION_EFFECTS",
+    shadowScope: "CONDITION_DICE_TRAIT_WISE_AND_CONFLICT_TOOL_EFFECTS",
     supportedTypes: Object.freeze([...Object.values(EFFECT_TYPES)]),
     supportedTimings: Object.freeze([...Object.values(EFFECT_TIMINGS)]),
     supportedStacking: Object.freeze([...Object.values(EFFECT_STACKING)])
@@ -170,6 +176,74 @@ export function compareTraitEffects(actor, traitId, traitMode = "help", {
   });
 }
 
+export function compareWiseEffects(actor, wiseId, {
+  faces = [1, 2, 4, 6],
+  rollName = "QA Wise Test",
+  isSkill = true
+} = {}) {
+  if (!actor) throw new Error("compareWiseEffects requires an Actor.");
+  if (typeof actor._rollAssist !== "function") {
+    throw new Error("compareWiseEffects requires a Realm Guard Actor with legacy roll-assist helpers.");
+  }
+
+  registerShadowProviders();
+  const legacyAssist = actor._rollAssist({ wiseId });
+  const requestedWise = legacyAssist.requestedWise?.type === "wise" ? legacyAssist.requestedWise : null;
+  const legacyBlocked = Boolean(legacyAssist.blockedWise);
+  const legacyCanReroll = Boolean(legacyAssist.wise?.type === "wise");
+  const normalizedFaces = Object.freeze(Array.from(faces ?? []).map(value => Number(value)));
+  const legacyIndexes = Object.freeze(legacyCanReroll
+    ? normalizedFaces.map((value, index) => value < 4 ? index : -1).filter(index => index >= 0)
+    : []);
+
+  const context = buildWiseEffectContext(actor, wiseId, { rollName, isSkill });
+  const effects = engine.collect(context, { providerIds: [WISE_SELECTION_PROVIDER_ID] });
+  const blockEffect = effects.find(effect => effect.type === EFFECT_TYPES.CAPABILITY_BLOCK) ?? null;
+  const rerollEffect = effects.find(effect => effect.type === EFFECT_TYPES.REROLL) ?? null;
+  const threshold = Number(rerollEffect?.value?.successThreshold ?? 4);
+  const coreIndexes = Object.freeze(rerollEffect
+    ? normalizedFaces.map((value, index) => value < threshold ? index : -1).filter(index => index >= 0)
+    : []);
+  const coreBlocked = Boolean(blockEffect);
+  const coreCanReroll = Boolean(rerollEffect);
+
+  const legacy = Object.freeze({
+    wise: requestedWise?.name ?? null,
+    blocked: legacyBlocked,
+    canReroll: legacyCanReroll,
+    rerollIndexes: legacyIndexes,
+    rerollCount: legacyIndexes.length
+  });
+  const core = Object.freeze({
+    wise: context.wise?.name ?? null,
+    blocked: coreBlocked,
+    canReroll: coreCanReroll,
+    rerollIndexes: coreIndexes,
+    rerollCount: coreIndexes.length,
+    effects: Object.freeze(effects.map(effect => Object.freeze({
+      id: effect.id,
+      type: effect.type,
+      value: effect.value,
+      channel: effect.metadata?.channel ?? null,
+      wise: effect.source.wiseName,
+      providerId: effect.source.providerId
+    })))
+  });
+
+  return Object.freeze({
+    match:
+      legacy.wise === core.wise &&
+      legacy.blocked === core.blocked &&
+      legacy.canReroll === core.canReroll &&
+      legacy.rerollIndexes.length === core.rerollIndexes.length &&
+      legacy.rerollIndexes.every((value, index) => value === core.rerollIndexes[index]),
+    faces: normalizedFaces,
+    wiseId: context.wiseId,
+    legacy,
+    core
+  });
+}
+
 export function compareConflictToolEffects(selection, action, {
   swordAction = "",
   requirementMet = true
@@ -230,11 +304,11 @@ function diagnosticsHtml() {
   registerShadowProviders();
   const status = getEffectEngineStatus();
   const providers = engine.listProviders();
-  return `<div class="realm-guard" style="padding:4px 10px 10px 2px;max-height:calc(100vh - 190px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;">
+  return `<div class="realm-guard rg-effect-engine-scroll" style="box-sizing:border-box;padding:4px 10px 10px 2px;height:480px;max-height:55vh;min-height:0;overflow-y:scroll;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;">
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M2</div>
       <h2 style="margin:3px 0 4px;">Unified Effect Engine</h2>
-      <p style="margin:0;">Three real Effect Providers are now running in shadow-compare mode. Existing live rolls and Conflict resolution still use the v1.3.0 GOLD-compatible logic.</p>
+      <p style="margin:0;">Four real Effect Providers are now running in shadow-compare mode. Existing live rolls and Conflict resolution still use the v1.3.0 GOLD-compatible logic.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Mode</small><br><b>${esc(status.mode)}</b></div>
@@ -243,9 +317,10 @@ function diagnosticsHtml() {
     </div>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Shadow Migration Scope</h3>
-      <p style="margin:0 0 6px;"><b>Condition dice + selected Traits + Conflict Weapon/Tool action modifiers.</b></p>
-      <p style="margin:0;">The Conflict Tool provider mirrors the currently published Legacy Mixed action table for physical Fight weapons and saved/improvised Conflict Tools. Dice bonuses/penalties become <code>DICE_MODIFIER</code>; conditional success changes become <code>SUCCESS_MODIFIER</code>; unmet tool requirements become <code>CAPABILITY_BLOCK</code>. Armor/damage absorption is not invented here because it is not part of the current live action-modifier path.</p>
-      <p style="margin:6px 0 0;"><b>Compatibility note:</b> current Legacy Mixed “no valid Conflict Weapon/Tool = −1D” is shadowed as a profile-specific legacy effect, not declared as a universal CORE rule.</p>
+      <p style="margin:0 0 6px;"><b>Condition dice + selected Traits + selected Wise rerolls + Conflict Weapon/Tool action modifiers.</b></p>
+      <p style="margin:0;">Wises now translate selected beneficial reroll access into a CORE <code>REROLL</code> Effect. Angry blocking becomes <code>CAPABILITY_BLOCK</code>. The provider describes which failed dice are eligible; it does not roll or replace dice in qa.5.</p>
+      <p style="margin:6px 0 0;">Conflict Tools remain shadow-only. Armor/damage absorption is not invented here because it is not part of the current live action-modifier path.</p>
+      <p style="margin:6px 0 0;"><b>Compatibility note:</b> current Legacy Mixed “no valid Conflict Weapon/Tool = -1D” remains a profile-specific legacy effect, not a universal CORE rule.</p>
     </section>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Registered Providers</h3>
@@ -257,13 +332,15 @@ function diagnosticsHtml() {
       <code>game.realmGuard.core.effects.compareConditionDice(actor, "Pathfinder", { isSkill: true })</code>
       <p style="margin:8px 0 6px;">Trait:</p>
       <code>game.realmGuard.core.effects.compareTraitEffects(actor, traitId, "help", { baseSuccesses: 3, target: 3 })</code>
+      <p style="margin:8px 0 6px;">Wise:</p>
+      <code>game.realmGuard.core.effects.compareWiseEffects(actor, wiseId, { faces: [1,2,4,6] })</code>
       <p style="margin:8px 0 6px;">Conflict Tool:</p>
       <code>game.realmGuard.core.effects.compareConflictToolEffects("Shield", "defend")</code>
       <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Helpers are read-only and do not roll dice or change Actor data.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No gameplay takeover in qa.4.</b><br>
-      <small>All three providers are deliberately shadow-only. Any live pool, success, resource, inventory or Conflict outcome change from v1.3.0 is a blocker.</small>
+      <b>No gameplay takeover in qa.5.</b><br>
+      <small>All four providers are deliberately shadow-only. Any live pool, reroll, success, resource, inventory or Conflict outcome change from v1.3.0 is a blocker.</small>
     </div>
   </div>`;
 }
@@ -290,9 +367,11 @@ function exposeEffectApi() {
     getStatus: getEffectEngineStatus,
     compareConditionDice,
     compareTraitEffects,
+    compareWiseEffects,
     compareConflictToolEffects,
     buildConditionEffectContext,
     buildTraitEffectContext,
+    buildWiseEffectContext,
     buildConflictToolEffectContext,
     createEffect,
     effectApplies,
