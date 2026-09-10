@@ -1,6 +1,7 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { progressionLevelFor } from "./progression.mjs";
+import { getCoreBaselineStatus, CORE_SCHEMA_VERSION, CORE_ARCHITECTURE_VERSION, LEGACY_PROFILE_ID } from "./core-baseline.mjs";
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 const normalize = value => String(value ?? "").trim().toLowerCase();
@@ -113,7 +114,12 @@ export async function collectSystemAudit() {
   const systemVersion = String(game.system?.version ?? "Unknown");
   if (!foundryVersion.startsWith("13")) issues.push(issue("error", "Compatibility", `Foundry ${foundryVersion} is outside the supported v13 line.`));
   else if (foundryVersion !== "13.351") issues.push(issue("warn", "Compatibility", `Project target is Foundry 13.351; current host reports ${foundryVersion}.`));
-  if (systemVersion !== "1.0.4") issues.push(issue("warn", "Version", `Audit was built for Realm Guard / Torchbearer 1.0.4; current system reports ${systemVersion}.`));
+
+  const core = getCoreBaselineStatus();
+  if (core.schemaVersion < CORE_SCHEMA_VERSION) issues.push(issue("error", "CORE M0", `Schema metadata is ${core.schemaVersion}; expected ${CORE_SCHEMA_VERSION}.`));
+  if (core.architectureVersion !== CORE_ARCHITECTURE_VERSION) issues.push(issue("warn", "CORE M0", `Architecture metadata is '${core.architectureVersion || "unset"}'; expected '${CORE_ARCHITECTURE_VERSION}'.`));
+  if (core.profileId !== LEGACY_PROFILE_ID) issues.push(issue("warn", "CORE M0", `Active rules-profile metadata is '${core.profileId || "unset"}'; M0 compatibility target is '${LEGACY_PROFILE_ID}'.`));
+  if (core.lastError) issues.push(issue("error", "CORE M0", "The last CORE migration recorded an error. Review the F12 console and migration metadata before continuing."));
 
   const actors = (game.actors?.contents ?? []).filter(actor => ["character", "npc"].includes(actor.type));
   for (const actor of actors) issues.push(...auditActor(actor));
@@ -146,16 +152,17 @@ export async function collectSystemAudit() {
 
   const errors = issues.filter(row => row.severity === "error").length;
   const warnings = issues.filter(row => row.severity === "warn").length;
-  return { foundryVersion, systemVersion, actors, counts, packRows, pcFolder, npcFolder, issues, errors, warnings, ok: errors === 0 && warnings === 0 };
+  return { foundryVersion, systemVersion, core, actors, counts, packRows, pcFolder, npcFolder, issues, errors, warnings, ok: errors === 0 && warnings === 0 };
 }
 
 function auditHtml(report) {
   const status = report.errors ? "BLOCKING ISSUES" : report.warnings ? "REVIEW WARNINGS" : "CLEAN";
   const statusClass = report.errors ? "bad" : report.warnings ? "warn" : "good";
-  const issueRows = report.issues.length ? report.issues.map(row => `<div class="rg-audit-issue ${row.severity}"><i class="fa-solid ${row.severity === "error" ? "fa-circle-xmark" : "fa-triangle-exclamation"}"></i><div><b>${esc(row.area)}${row.actor ? ` · ${esc(row.actor)}` : ""}</b><span>${esc(row.message)}</span></div></div>`).join("") : `<div class="rg-audit-empty"><i class="fa-solid fa-circle-check"></i><span>No structural warnings found by the automated pre-v1.0 audit.</span></div>`;
+  const issueRows = report.issues.length ? report.issues.map(row => `<div class="rg-audit-issue ${row.severity}"><i class="fa-solid ${row.severity === "error" ? "fa-circle-xmark" : "fa-triangle-exclamation"}"></i><div><b>${esc(row.area)}${row.actor ? ` · ${esc(row.actor)}` : ""}</b><span>${esc(row.message)}</span></div></div>`).join("") : `<div class="rg-audit-empty"><i class="fa-solid fa-circle-check"></i><span>No structural warnings found by the automated World Health Audit.</span></div>`;
   return `<div class="realm-guard rg-system-audit">
-    <header class="rg-audit-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER · v1.0</div><h2>World Health Audit</h2><p>Read-only diagnostics. This tool does not move, delete, reset or repair world content.</p></div><span class="rg-audit-status ${statusClass}">${status}</span></header>
-    <div class="rg-audit-summary"><div><small>RG / TB</small><b>${esc(report.systemVersion)}</b></div><div><small>Foundry</small><b>${esc(report.foundryVersion)}</b></div><div><small>Rangers</small><b>${report.counts.characters}</b></div><div><small>NPCs</small><b>${report.counts.npcs}</b></div><div><small>Warnings</small><b>${report.warnings}</b></div><div><small>Errors</small><b>${report.errors}</b></div></div>
+    <header class="rg-audit-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER · CORE M0</div><h2>World Health Audit</h2><p>Read-only diagnostics. This tool does not move, delete, reset or repair world content.</p></div><span class="rg-audit-status ${statusClass}">${status}</span></header>
+    <div class="rg-audit-summary"><div><small>RG / TB</small><b>${esc(report.systemVersion)}</b></div><div><small>Foundry</small><b>${esc(report.foundryVersion)}</b></div><div><small>Schema</small><b>${report.core.schemaVersion}</b></div><div><small>Profile</small><b>${esc(report.core.profileId || "unset")}</b></div><div><small>Warnings</small><b>${report.warnings}</b></div><div><small>Errors</small><b>${report.errors}</b></div></div>
+    <section><h3>CORE migration baseline</h3><div class="rg-audit-facts"><span>Architecture <b>${esc(report.core.architectureVersion || "unset")}</b></span><span>Profile version <b>${report.core.profileVersion}</b></span><span>Migration entries <b>${report.core.migrationCount}</b></span><span>Last migration <b>${esc(report.core.lastMigration?.id || "none")}</b></span></div><p><small>M0 metadata is compatibility bookkeeping only. It does not convert this world to Strict Realm Guard and does not rewrite Actor or Item rules.</small></p></section>
     <section><h3>World structure</h3><div class="rg-audit-facts"><span>PC folder <b>${report.pcFolder ? "Present" : "Not present yet"}</b></span><span>NPC folder <b>${report.npcFolder ? "Present" : "Not present yet"}</b></span><span>World Items <b>${report.counts.worldItems}</b></span><span>Scenes <b>${report.counts.scenes}</b></span><span>Journals <b>${report.counts.journals}</b></span><span>Users <b>${report.counts.users}</b></span></div><p><small>PC/NPC folders are created on demand by Realm Guard creation flows. Their absence is not itself an error.</small></p></section>
     <section><h3>Starter Library</h3><div class="rg-audit-packs">${report.packRows.map(row => `<span class="${row.ok ? "ok" : "missing"}">${esc(row.label)} <b>${row.count}/${row.expected}</b></span>`).join("")}</div></section>
     <section><h3>Findings</h3><div class="rg-audit-issues">${issueRows}</div></section>
@@ -166,7 +173,7 @@ function auditHtml(report) {
 function auditChatHtml(report) {
   const label = report.errors ? "BLOCKING ISSUES" : report.warnings ? "WARNINGS" : "CLEAN";
   const top = report.issues.slice(0, 8);
-  return `<div class="realm-guard rg-chat-card"><span class="rg-kicker">v1.0 WORLD AUDIT</span><h3>${esc(label)}</h3><p>Realm Guard / Torchbearer ${esc(report.systemVersion)} · Foundry ${esc(report.foundryVersion)} · ${report.counts.characters} Rangers · ${report.counts.npcs} NPCs</p>${top.length ? `<ul>${top.map(row => `<li><b>${esc(row.area)}${row.actor ? ` · ${esc(row.actor)}` : ""}:</b> ${esc(row.message)}</li>`).join("")}</ul>` : `<p>No structural warnings found.</p>`}${report.issues.length > top.length ? `<p><small>${report.issues.length - top.length} additional finding(s) remain in the full audit window.</small></p>` : ""}</div>`;
+  return `<div class="realm-guard rg-chat-card"><span class="rg-kicker">CORE M0 · WORLD AUDIT</span><h3>${esc(label)}</h3><p>Realm Guard / Torchbearer ${esc(report.systemVersion)} · Foundry ${esc(report.foundryVersion)} · Schema ${report.core.schemaVersion} · ${esc(report.core.profileId || "profile unset")} · ${report.counts.characters} Rangers · ${report.counts.npcs} NPCs</p>${top.length ? `<ul>${top.map(row => `<li><b>${esc(row.area)}${row.actor ? ` · ${esc(row.actor)}` : ""}:</b> ${esc(row.message)}</li>`).join("")}</ul>` : `<p>No structural warnings found.</p>`}${report.issues.length > top.length ? `<p><small>${report.issues.length - top.length} additional finding(s) remain in the full audit window.</small></p>` : ""}</div>`;
 }
 
 export async function openSystemAudit() {
