@@ -1,0 +1,48 @@
+{
+  "snapshotVersion": 1,
+  "phase": "M0",
+  "packageId": "realm-guard",
+  "qaVersion": "1.2.0",
+  "codeBaseline": "1.0.8.44",
+  "foundry": {
+    "minimum": "13",
+    "verified": "13.351",
+    "maximum": "13"
+  },
+  "actorTypes": ["character", "npc"],
+  "itemTypes": ["role", "trait", "wise", "gear", "condition", "tokenOfPower", "talent"],
+  "actorSystemPaths": [
+    "biography", "notes", "concept", "rank", "homeland", "age", "lineage", "insignia",
+    "seniorArtisan", "friend", "cloak", "weapon", "mentor", "enemy", "parents",
+    "belief", "goal", "instinct",
+    "attributes.nature.value", "attributes.nature.maximum",
+    "attributes.will.value", "attributes.will.max",
+    "attributes.health.value", "attributes.health.max",
+    "attributes.resources.value", "attributes.resources.max",
+    "attributes.circles.value", "attributes.circles.max",
+    "resources.fate.value", "resources.fate.max",
+    "resources.persona.value", "resources.persona.max",
+    "resources.checks.value", "resources.checks.max",
+    "progression.level", "progression.spentFate", "progression.spentPersona",
+    "roll.versus", "roll.obstacle", "roll.modifier"
+  ],
+  "worldSettingsPreM0": [
+    "starterCompendiumSeedVersion", "baselineObstacle", "liveRollObstacle", "obstacleMode",
+    "useTurnManager", "turnPhase", "turnCycleId", "playerTurnLastActor",
+    "endSessionCycle", "endSessionFinalized", "defaultActorArt", "placeholderArtUpgradeV0183",
+    "conflictState"
+  ],
+  "clientSettingsPreM0": ["conflictPrivateState"],
+  "m0Settings": [
+    "systemSchemaVersion", "coreArchitectureVersion", "activeRulesProfileId",
+    "activeRulesProfileVersion", "migrationHistory", "migrationLastError"
+  ],
+  "compatibilityProfile": {
+    "id": "realm-guard-legacy-mixed",
+    "version": 1
+  },
+  "schemaVersion": 1,
+  "architectureVersion": "0.1",
+  "migrationId": "m0-core-baseline-v1",
+  "migrationPolicy": "world-setting metadata only; no Actor/Item rule data writes"
+}
