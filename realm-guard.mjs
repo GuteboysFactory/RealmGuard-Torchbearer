@@ -26,9 +26,10 @@ import { installContextHelp } from "./module/context-help.mjs";
 import { installTokenNameHover } from "./module/token-hover.mjs";
 import { installCoreBaseline } from "./module/core-baseline.mjs";
 import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
+import { installEffectEngineInfrastructure } from "./module/effect-engine-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.2.0"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.4.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -54,6 +55,7 @@ Hooks.once("init", () => {
   });
   installCoreBaseline();
   installRulesProfileInfrastructure();
+  installEffectEngineInfrastructure();
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
