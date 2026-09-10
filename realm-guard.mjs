@@ -28,9 +28,10 @@ import { installCoreBaseline } from "./module/core-baseline.mjs";
 import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
 import { installEffectEngineInfrastructure } from "./module/effect-engine-service.mjs";
 import { installTalentEffectShadow } from "./module/talent-effect-shadow.mjs";
+import { installTestEngineInfrastructure } from "./module/test-engine-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.4.0-qa.1"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -58,6 +59,7 @@ Hooks.once("init", () => {
   installRulesProfileInfrastructure();
   installEffectEngineInfrastructure();
   installTalentEffectShadow();
+  installTestEngineInfrastructure();
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
