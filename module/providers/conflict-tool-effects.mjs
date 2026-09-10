@@ -55,7 +55,7 @@ function sourceFor(context, extra = {}) {
 
 function effectId(context, suffix) {
   const selection = context.selection;
-  const key = selection.id ?? normalize(selection.name) || "unarmed";
+  const key = selection.id ?? (normalize(selection.name) || "unarmed");
   return `conflict-tool:${key}:${context.action || "any"}:${suffix}`;
 }
 
