@@ -65,7 +65,7 @@ function registryHtml(state) {
         </div>`).join("")}
     </section>`).join("");
 
-  return `<div class="realm-guard" style="padding:4px 2px 10px;">
+  return `<div class="realm-guard rg-rules-registry-scroll" style="padding:4px 10px 10px 2px;max-height:calc(100vh - 190px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;">
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M1</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
