@@ -14,6 +14,11 @@ import {
   CONDITION_ROLL_PROVIDER_ID,
   buildConditionEffectContext
 } from "./providers/condition-effects.mjs";
+import {
+  TRAIT_SELECTION_EFFECT_PROVIDER,
+  TRAIT_SELECTION_PROVIDER_ID,
+  buildTraitEffectContext
+} from "./providers/trait-effects.mjs";
 
 const engine = new EffectEngine();
 
@@ -24,6 +29,13 @@ function esc(value) {
 function registerShadowProviders() {
   const registered = new Set(engine.listProviders().map(provider => provider.id));
   if (!registered.has(CONDITION_ROLL_PROVIDER_ID)) engine.registerProvider(CONDITION_ROLL_EFFECT_PROVIDER);
+  if (!registered.has(TRAIT_SELECTION_PROVIDER_ID)) engine.registerProvider(TRAIT_SELECTION_EFFECT_PROVIDER);
+}
+
+function sumChannel(effects, type, channel) {
+  return effects
+    .filter(effect => effect.type === type && effect.metadata?.channel === channel)
+    .reduce((total, effect) => total + Number(effect.value ?? 0), 0);
 }
 
 export function getEffectEngine() {
@@ -37,7 +49,7 @@ export function getEffectEngineStatus() {
     liveApplication: false,
     providerCount: engine.listProviders().length,
     migratedProviders: Object.freeze(engine.listProviders().map(provider => provider.id)),
-    shadowScope: "CONDITION_DICE_MODIFIERS_ONLY",
+    shadowScope: "CONDITION_DICE_AND_TRAIT_SELECTION_EFFECTS",
     supportedTypes: Object.freeze([...Object.values(EFFECT_TYPES)]),
     supportedTimings: Object.freeze([...Object.values(EFFECT_TIMINGS)]),
     supportedStacking: Object.freeze([...Object.values(EFFECT_STACKING)])
@@ -70,6 +82,87 @@ export function compareConditionDice(actor, rollName, { isSkill = true } = {}) {
   });
 }
 
+export function compareTraitEffects(actor, traitId, traitMode = "help", {
+  versus = false,
+  baseSuccesses = 0,
+  target = 0,
+  rollName = "QA Trait Test",
+  isSkill = true
+} = {}) {
+  if (!actor) throw new Error("compareTraitEffects requires an Actor.");
+  if (typeof actor._rollAssist !== "function" || typeof actor._traitSuccessBonus !== "function") {
+    throw new Error("compareTraitEffects requires a Realm Guard Actor with legacy Trait helpers.");
+  }
+
+  registerShadowProviders();
+  const legacyAssist = actor._rollAssist({ traitId, traitMode, versus: Boolean(versus) });
+  const legacySuccessBonus = actor._traitSuccessBonus(
+    legacyAssist,
+    Number(baseSuccesses ?? 0),
+    Number(target ?? 0),
+    { versus: Boolean(versus) }
+  );
+  const context = buildTraitEffectContext(actor, traitId, traitMode, {
+    versus,
+    baseSuccesses,
+    target,
+    rollName,
+    isSkill
+  });
+  const effects = engine.collect(context, { providerIds: [TRAIT_SELECTION_PROVIDER_ID] });
+  const blocked = effects.some(effect => effect.type === EFFECT_TYPES.CAPABILITY_BLOCK);
+  const resolvedMode = effects[0]?.metadata?.resolvedMode ?? context.traitMode;
+  const selfDice = sumChannel(effects, EFFECT_TYPES.DICE_MODIFIER, "self");
+  const opponentDice = sumChannel(effects, EFFECT_TYPES.DICE_MODIFIER, "opponent");
+  const successBonus = sumChannel(effects, EFFECT_TYPES.SUCCESS_MODIFIER, "self");
+  const checks = sumChannel(effects, EFFECT_TYPES.CURRENCY, "checks");
+
+  const legacy = Object.freeze({
+    trait: legacyAssist.trait?.name ?? null,
+    mode: legacyAssist.traitMode,
+    selfDice: Number(legacyAssist.traitDice ?? 0),
+    opponentDice: Number(legacyAssist.opponentDice ?? 0),
+    successBonus: Number(legacySuccessBonus ?? 0),
+    checks: Number(legacyAssist.checks ?? 0),
+    blocked: Boolean(legacyAssist.blockedTraitHelp),
+    blockedReason: legacyAssist.blockedTraitReason || ""
+  });
+  const core = Object.freeze({
+    trait: context.trait?.name ?? null,
+    mode: resolvedMode,
+    selfDice,
+    opponentDice,
+    successBonus,
+    checks,
+    blocked,
+    effects: Object.freeze(effects.map(effect => Object.freeze({
+      id: effect.id,
+      type: effect.type,
+      value: effect.value,
+      channel: effect.metadata?.channel ?? null,
+      trait: effect.source.traitName,
+      providerId: effect.source.providerId
+    })))
+  });
+
+  return Object.freeze({
+    match:
+      legacy.mode === core.mode &&
+      legacy.selfDice === core.selfDice &&
+      legacy.opponentDice === core.opponentDice &&
+      legacy.successBonus === core.successBonus &&
+      legacy.checks === core.checks &&
+      legacy.blocked === core.blocked,
+    traitId: context.traitId,
+    requestedMode: context.traitMode,
+    versus: Boolean(versus),
+    baseSuccesses: Number(baseSuccesses ?? 0),
+    target: Number(target ?? 0),
+    legacy,
+    core
+  });
+}
+
 function diagnosticsHtml() {
   registerShadowProviders();
   const status = getEffectEngineStatus();
@@ -78,7 +171,7 @@ function diagnosticsHtml() {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M2</div>
       <h2 style="margin:3px 0 4px;">Unified Effect Engine</h2>
-      <p style="margin:0;">The first real Effect Provider is now running in shadow-compare mode. Existing live rolls still use the v1.3.0 GOLD Condition logic.</p>
+      <p style="margin:0;">Two real Effect Providers are now running in shadow-compare mode. Existing live rolls still use the v1.3.0 GOLD-compatible Condition and Trait logic.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Mode</small><br><b>${esc(status.mode)}</b></div>
@@ -87,8 +180,8 @@ function diagnosticsHtml() {
     </div>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Shadow Migration Scope</h3>
-      <p style="margin:0 0 6px;"><b>Condition dice modifiers only.</b></p>
-      <p style="margin:0;">Active Condition <code>rollModifier</code> and <code>appliesTo</code> data are translated into CORE <code>DICE_MODIFIER</code> Effects and can be compared against the existing Condition roll calculation. Recovery, disposition and capability-block rules have not moved yet.</p>
+      <p style="margin:0 0 6px;"><b>Condition dice modifiers + selected Trait roll effects.</b></p>
+      <p style="margin:0;">Conditions translate active <code>rollModifier</code>/<code>appliesTo</code> data. Traits translate the selected beneficial +1D/+1s behavior, Trait Against -1D, Versus opponent +2D, Check entitlement and beneficial-use blocking. Live resource commits, Trait session-use consumption and Check awards remain legacy-controlled.</p>
     </section>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Registered Providers</h3>
@@ -96,13 +189,15 @@ function diagnosticsHtml() {
     </section>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">QA Shadow Compare</h3>
-      <p style="margin:0 0 6px;">Console helper:</p>
+      <p style="margin:0 0 6px;">Condition helper:</p>
       <code>game.realmGuard.core.effects.compareConditionDice(actor, "Pathfinder", { isSkill: true })</code>
-      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. The helper is read-only and does not roll dice or change Actor data.</p>
+      <p style="margin:8px 0 6px;">Trait helper:</p>
+      <code>game.realmGuard.core.effects.compareTraitEffects(actor, traitId, "help", { baseSuccesses: 3, target: 3 })</code>
+      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Both helpers are read-only and do not roll dice or change Actor data.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No gameplay takeover in qa.2.</b><br>
-      <small>The Condition provider is deliberately shadow-only. Any live pool or outcome change from v1.3.0 is a blocker.</small>
+      <b>No gameplay takeover in qa.3.</b><br>
+      <small>The Condition and Trait providers are deliberately shadow-only. Any live pool, success, resource or outcome change from v1.3.0 is a blocker.</small>
     </div>
   </div>`;
 }
@@ -128,7 +223,9 @@ function exposeEffectApi() {
     engine,
     getStatus: getEffectEngineStatus,
     compareConditionDice,
+    compareTraitEffects,
     buildConditionEffectContext,
+    buildTraitEffectContext,
     createEffect,
     effectApplies,
     defaultRequirementEvaluator,
