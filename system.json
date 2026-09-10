@@ -71,6 +71,6 @@
   "socket": true,
   "background": "systems/realm-guard/assets/ui/realm-guard-torchbearer-world-bg.webp",
   "url": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer",
-  "manifest": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json",
-  "download": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/realm-guard-foundry-v1.0.8.44.zip"
+  "manifest": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/latest/download/system.json",
+  "download": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.0.8.44/realm-guard.zip"
 }
