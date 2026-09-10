@@ -1,0 +1,193 @@
+name: Release Realm Guard / Torchbearer
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "release/READY"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read manifest version
+        id: manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./system.json').version")"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          node -e "JSON.parse(require('fs').readFileSync('system.json','utf8'))"
+
+      - name: Bootstrap full source tree when needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f realm-guard.mjs && -d module && -d assets ]]; then
+            echo "Full source tree already present; bootstrap not required."
+            exit 0
+          fi
+
+          BASE_ZIP="realm-guard-foundry-v1.0.8.44.zip"
+          test -f "$BASE_ZIP"
+
+          rm -rf /tmp/realm-guard-bootstrap
+          mkdir -p /tmp/realm-guard-bootstrap
+          unzip -q "$BASE_ZIP" -d /tmp/realm-guard-bootstrap
+
+          if [[ -f /tmp/realm-guard-bootstrap/realm-guard/system.json ]]; then
+            SOURCE_DIR="/tmp/realm-guard-bootstrap/realm-guard"
+          elif [[ -f /tmp/realm-guard-bootstrap/system.json ]]; then
+            SOURCE_DIR="/tmp/realm-guard-bootstrap"
+          else
+            echo "Could not locate system.json inside $BASE_ZIP" >&2
+            exit 1
+          fi
+
+          # Populate missing baseline source/assets while preserving M0 overrides
+          # already committed in the repository.
+          rsync -a --ignore-existing "$SOURCE_DIR/" ./ \
+            --exclude 'system.json' \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'release/'
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Bootstrap full Realm Guard source tree for CORE M0"
+            git push origin HEAD:main
+          fi
+
+      - name: Validate Foundry system manifest and runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('system.json', 'utf8'));
+          const required = ['id', 'title', 'version', 'compatibility', 'esmodules', 'styles', 'languages', 'manifest', 'download'];
+          for (const key of required) {
+            if (manifest[key] == null) throw new Error(`Manifest missing required field: ${key}`);
+          }
+          if (manifest.id !== 'realm-guard') throw new Error(`Unexpected system id: ${manifest.id}`);
+          if (!/^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$/.test(manifest.version)) {
+            throw new Error(`Unexpected release version: ${manifest.version}`);
+          }
+          const runtimeFiles = [
+            ...(manifest.esmodules || []),
+            ...(manifest.styles || []),
+            ...((manifest.languages || []).map((entry) => entry.path).filter(Boolean))
+          ];
+          if (new Set(runtimeFiles).size !== runtimeFiles.length) throw new Error('Manifest contains duplicate runtime references.');
+          for (const file of runtimeFiles) {
+            if (!fs.existsSync(file)) throw new Error(`Manifest references missing runtime file: ${file}`);
+          }
+          for (const language of manifest.languages || []) {
+            if (!language.lang || !language.name || !language.path) throw new Error('Language entries require lang, name and path.');
+            JSON.parse(fs.readFileSync(language.path, 'utf8'));
+          }
+          NODE
+
+          for file in $(node -e "const m=require('./system.json'); console.log((m.esmodules||[]).join(' '))"); do
+            node --check "$file"
+          done
+
+          find module sheets -type f -name '*.mjs' -print0 | while IFS= read -r -d '' file; do
+            node --check "$file"
+          done
+
+          test -f README.md
+          test -f realm-guard.mjs
+          test -f styles/realm-guard.css
+          test -f lang/en.json
+
+      - name: Verify release URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('system.json','utf8'));
+          const versionBase = `https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/${m.version}`;
+          const latestManifest = 'https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/latest/download/system.json';
+          const versionManifest = `${versionBase}/system.json`;
+          if (![latestManifest, versionManifest].includes(m.manifest)) {
+            throw new Error(`Manifest URL is not a supported release channel: ${m.manifest}`);
+          }
+          if (m.download !== `${versionBase}/realm-guard.zip`) {
+            throw new Error(`Download URL does not match release ${m.version}: ${m.download}`);
+          }
+          NODE
+
+      - name: Build Foundry system package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist /tmp/realm-guard-release
+          mkdir -p dist /tmp/realm-guard-release
+
+          rsync -a ./ /tmp/realm-guard-release/ \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'dist/' \
+            --exclude 'release/' \
+            --exclude 'realm-guard-foundry-v*.zip'
+
+          cp system.json dist/system.json
+          cd /tmp/realm-guard-release
+          zip -qr "$GITHUB_WORKSPACE/dist/realm-guard.zip" .
+          unzip -t "$GITHUB_WORKSPACE/dist/realm-guard.zip"
+
+          unzip -Z1 "$GITHUB_WORKSPACE/dist/realm-guard.zip" | grep -qx 'system.json'
+          unzip -Z1 "$GITHUB_WORKSPACE/dist/realm-guard.zip" | grep -qx 'realm-guard.mjs'
+          unzip -Z1 "$GITHUB_WORKSPACE/dist/realm-guard.zip" | grep -qx 'styles/realm-guard.css'
+          unzip -Z1 "$GITHUB_WORKSPACE/dist/realm-guard.zip" | grep -qx 'lang/en.json'
+
+          node <<'NODE'
+          const fs = require('fs');
+          const cp = require('child_process');
+          const m = JSON.parse(fs.readFileSync('system.json', 'utf8'));
+          const listed = cp.execFileSync('unzip', ['-Z1', 'dist/realm-guard.zip'], { cwd: process.env.GITHUB_WORKSPACE, encoding: 'utf8' })
+            .split(/\r?\n/).filter(Boolean);
+          const files = new Set(listed);
+          for (const file of [...(m.esmodules || []), ...(m.styles || []), ...((m.languages || []).map((entry) => entry.path).filter(Boolean))]) {
+            if (!files.has(file)) throw new Error(`Release ZIP is missing manifest runtime file: ${file}`);
+          }
+          const forbiddenPrefixes = ['.git/', '.github/', 'dist/', 'release/'];
+          for (const file of listed) {
+            if (forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) throw new Error(`Release ZIP contains excluded path: ${file}`);
+            if (/^realm-guard-foundry-v.*\.zip$/.test(file)) throw new Error(`Release ZIP contains legacy nested package: ${file}`);
+          }
+          NODE
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          set -euo pipefail
+          PRERELEASE_ARGS=()
+          if [[ "$VERSION" == *-* ]]; then PRERELEASE_ARGS+=(--prerelease); fi
+
+          NOTES_ARGS=()
+          if [[ -f release/NOTES.md ]]; then NOTES_ARGS+=(--notes-file release/NOTES.md); else NOTES_ARGS+=(--notes "Realm Guard / Torchbearer $VERSION"); fi
+
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" dist/system.json dist/realm-guard.zip --clobber
+          else
+            gh release create "$VERSION" dist/system.json dist/realm-guard.zip \
+              --title "Realm Guard / Torchbearer $VERSION" \
+              "${NOTES_ARGS[@]}" \
+              "${PRERELEASE_ARGS[@]}"
+          fi
