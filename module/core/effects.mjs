@@ -185,9 +185,9 @@ export class EffectEngine {
           ...entry,
           id: entry?.id ?? `${provider.id}:${index}`,
           source: {
+            ...(entry?.source ?? {}),
             providerId: provider.id,
-            providerLabel: provider.label,
-            ...(entry?.source ?? {})
+            providerLabel: provider.label
           }
         });
         if (typeFilter && !typeFilter.has(effect.type)) return;
