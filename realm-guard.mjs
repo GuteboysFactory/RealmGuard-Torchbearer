@@ -57,7 +57,7 @@ Hooks.once("init", () => {
   installCoreBaseline();
   installRulesProfileInfrastructure();
   installEffectEngineInfrastructure();
-  installWisePostRollPrompt(RealmGuardActor);
+  installWisePostRollPrompt(RealmGuardActor, RealmGuardActorSheet);
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
