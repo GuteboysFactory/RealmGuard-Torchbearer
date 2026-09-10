@@ -1,25 +1,32 @@
-Realm Guard / Torchbearer v1.3.0 — CORE M1 GOLD.
+Realm Guard / Torchbearer v1.4.0-qa.1 — CORE M2 QA.
 
-M1 establishes the first operational MG-family Rules Profile infrastructure while preserving the v1.2.0 gameplay behavior through the explicit realm-guard-legacy-mixed compatibility profile.
+M2 begins the Unified Effect Engine phase from the v1.3.0 GOLD baseline.
 
-Included architecture components:
-- RulesProfile and ProfileResolver
-- immutable ResolvedRulesProfile
-- RulesRegistry with provenance, classification and automation metadata
-- deterministic Rules Snapshot hash
-- explicit realm-guard-legacy-mixed v1 compatibility profile
-- GM-only Active Rules Registry diagnostic window
-- read/diagnostic API at game.realmGuard.core
-- automated headless M1 profile smoke test in the GitHub release gate
+This first M2 build is deliberately foundation-only and runs the new Effect Engine in SHADOW_DIAGNOSTIC mode. It does not take over live roll, Conflict, recovery or other gameplay modifier resolution yet.
 
-Live QA result: PASS on Foundry v13.351.
+New architecture components:
+- shared immutable Effect model
+- Effect Types, Timings and Stacking registries
+- deterministic Effect provider registration and ordering
+- appliesTo / excludes context filtering
+- declarative requirement evaluation
+- source/provider provenance on collected Effects
+- type/timing/provider filters
+- numeric Effect summary helper
+- GM-only CORE M2 Effect Engine diagnostics window
+- runtime API at game.realmGuard.core.effects
+- automated M2 headless smoke test in the GitHub release gate
 
-The v1.3.0-qa.1 Registry scroll usability issue was corrected in v1.3.0-qa.2 and verified live. All other reported M1 protocol checks passed.
+Expected live status in qa.1:
+- phase: M2
+- mode: SHADOW_DIAGNOSTIC
+- live application: OFF
+- registered live providers: 0
 
-Legacy Mixed explicitly preserves representative current behavior including unrated Wises, structured inventory and enabled Levels/Talents. Strict Realm Guard is not active and no Actor/Item rule-data migration is introduced.
+This is intentional. Real Conditions/Traits/Gear/etc. providers will be migrated only after the Effect Engine foundation passes live QA, so any gameplay regression in qa.1 is considered a blocker.
+
+M0 schema/migration state and the M1 realm-guard-legacy-mixed profile/Rules Registry remain unchanged.
 
 Gameplay change: NONE INTENDED.
-Previous GOLD baseline: v1.2.0.
-New GOLD baseline: v1.3.0.
-Next architecture phase: M2 Unified Effect Engine.
+GOLD baseline: v1.3.0.
 Foundry target: v13.351.
