@@ -1,47 +1,41 @@
-Realm Guard / Torchbearer v1.4.0-qa.8 — CORE M2 Token of Power Level 3 shadow parity hotfix.
+Realm Guard / Torchbearer v1.5.0-qa.1 — CORE M3 Unified Test Engine foundation.
 
-qa.8 is a deliberately narrow follow-up to qa.7. Live QA verified the Talent provider and Token of Power Level 1/2 paths, then exposed one real Level 3 shadow mismatch: CORE marked the L3 Token with base-roll STATE_CHANGE consumption intent while the current Legacy Mixed resolver correctly reports consumeOnRoll=false and consumes the Token only if the failed-dice reroll is actually accepted/used.
+M2 is now treated as the approved development baseline for the CORE migration after live verification through v1.4.0-qa.8. M3 begins the next locked architecture phase: move test/roll resolution beneath the existing UI while preserving Legacy Mixed gameplay behavior.
 
-Fixed in qa.8:
-- tokens-of-power.selected-use Level 3 no longer emits a base-roll STATE_CHANGE
-- Level 3 still emits the shadow REROLL effect for failed dice
-- Level 3 reroll metadata now records consumeOnRerollAccept=true so future transaction wiring has the correct lifecycle intent without mutating live state in M2
-- compareTokenPowerEffects(...) now matches Legacy Mixed for a fresh L3 Token: available=true, diceBonus=0, reroll=true, manual=false, consumeOnRoll=false
-- the automated Token provider smoke now locks the corrected L3 semantics
-- Level 1 remains +1D once/session with shadow commit consumption intent
-- Level 2 remains +1D on every appropriate check with no session-use consumption state
-- manual once/session Token behavior remains unchanged
-
-qa.7 live verification carried forward:
-- talents.selected-use positive linked +1D path verified
-- Talent wrong-link and minimum-level gates verified
-- once/session Talent commit/use-state lifecycle verified
-- Token Level 1 +1D / used-state lifecycle verified
-- Token Level 2 repeatable +1D lifecycle verified
-- Token Level 3 live reroll and post-use blocking behavior verified; only the pre-use shadow consumption intent required correction
-
-Existing M2 providers retained:
-- conditions.roll-dice
-- traits.selected-use
-- wises.selected-reroll
-- tokens-of-power.selected-use
-- talents.selected-use
-- conflict-tools.action-modifiers
+New in v1.5.0-qa.1:
+- adds the pure CORE Test Engine foundation
+- implements TestRequest, RollPlan, RollTransaction, TestResult, TestContext and TestEngine
+- supports initial contexts: ordinary, versus, beginnerLuck, ability, nature, recovery, circles and custom
+- implements transaction states PREPARED -> RESERVED -> ROLLED -> RESOLVED -> COMMITTED
+- cancel before Commit restores the pure transaction to PREPARED and clears transient roll/result state
+- implements deterministic d6 result resolution with default 4+ successes
+- ordinary Obstacle tests pass on final successes >= Ob
+- Versus equality resolves as TIE
+- result data retains base/final pool, faces, raw/final successes, target, outcome, margin and provenance hooks
+- exposes `game.realmGuard.core.tests` for QA diagnostics
+- adds GM-only CORE M3 Test Engine diagnostics to the GM Dock
+- adds automated headless M3 smoke coverage for ordinary/Versus semantics, modifiers, transaction lifecycle, cancellation and validation
 
 Deliberate scope limits:
-- Effect Engine live application remains OFF
-- all six providers remain shadow-only
-- current Legacy Mixed live Token mechanics remain authoritative
+- Test Engine live application remains OFF
+- existing roll dialogs and Legacy Mixed resolution remain authoritative
+- no live resource reservation/spend is moved into CORE yet
+- no advancement semantics change
+- no strict-profile correction
 - no Actor/Item/world migration
-- no inventory or Conflict behavior change
-- qa.6 Wise live override remains reverted/deferred
-- no Strict Realm Guard or MG2E profile correction
+- Conflict remains on the existing implementation/adapter path until the later M6 refactor
+- existing M2 Effect Engine remains shadow-only with all six verified providers retained
 
 Expected live status:
-- phase: M2
-- mode: SHADOW_COMPARE
-- live application: OFF
-- providers: 6
+- `game.realmGuard.core.phase` = M3
+- Test Engine mode = SHADOW_DIAGNOSTIC
+- Test Engine live application = OFF
+- Effect Engine mode remains SHADOW_COMPARE
+- Effect Engine live application remains OFF
+- M2 providers remain 6
+
+QA protocol: TEST_PROTOCOL_v1.5.0-qa.1.md
 
 GOLD baseline: v1.3.0.
+Approved CORE development baseline: v1.4.0-qa.8.
 Foundry target: v13.351.
