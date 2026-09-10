@@ -25,6 +25,7 @@ import { installNpcBuilder } from "./module/npc-builder.mjs";
 import { installContextHelp } from "./module/context-help.mjs";
 import { installTokenNameHover } from "./module/token-hover.mjs";
 import { installCoreBaseline } from "./module/core-baseline.mjs";
+import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
 
 Hooks.once("init", () => {
   console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.2.0"}`);
@@ -52,6 +53,7 @@ Hooks.once("init", () => {
     label: "Realm Guard / Torchbearer Ranger Sheet"
   });
   installCoreBaseline();
+  installRulesProfileInfrastructure();
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
@@ -89,7 +91,6 @@ Hooks.once("init", () => {
     label: "Realm Guard / Torchbearer Item Sheet"
   });
 });
-
 
 Hooks.on("updateItem", async (item, changes, options) => {
   if (options?.realmGuardSkipConditionSync) return;
