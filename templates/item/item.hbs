@@ -1,0 +1,153 @@
+<section class="rg-item-form" autocomplete="off">
+  <div class="rg-brand">REALM GUARD / TORCHBEARER</div>
+  <label>Name<input type="text" name="name" value="{{item.name}}" /></label>
+
+  {{#if isRole}}
+    <label>Rating<input type="number" name="system.rating" value="{{system.rating}}" min="0" /></label>
+    <div class="rg-grid-4 compact">
+      <label>Pass<input type="number" name="system.learning.passed" value="{{system.learning.passed}}" min="0" /></label>
+      <label>Needed<input type="number" name="system.learning.passNeeded" value="{{system.learning.passNeeded}}" min="0" /></label>
+      <label>Fail<input type="number" name="system.learning.failed" value="{{system.learning.failed}}" min="0" /></label>
+      <label>Needed<input type="number" name="system.learning.failNeeded" value="{{system.learning.failNeeded}}" min="0" /></label>
+    </div>
+    <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+  {{/if}}
+
+  {{#if isTrait}}
+    <label>Rating<input type="number" name="system.rating" value="{{system.rating}}" min="0" /></label>
+    <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+  {{/if}}
+
+  {{#if isWise}}
+    <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+  {{/if}}
+
+  {{#if isTokenOfPower}}
+    <section class="rg-token-editor-block">
+      <div class="rg-token-editor-head">
+        <div><h3><i class="fa-solid fa-gem"></i> Token of Power</h3><small>Named relic with a narrow linked Skill or specific use.</small></div>
+        <span class="rg-token-level-badge">LEVEL {{system.level}}</span>
+      </div>
+      <div class="rg-grid-4 compact rg-token-editor-grid">
+        <label>Level
+          <select name="system.level">
+            <option value="1" {{#if tokenLevel1}}selected{{/if}}>1 - +1D once / session</option>
+            <option value="2" {{#if tokenLevel2}}selected{{/if}}>2 - +1D every appropriate check</option>
+            <option value="3" {{#if tokenLevel3}}selected{{/if}}>3 - reroll failed dice once / session</option>
+          </select>
+        </label>
+        <label>Link type
+          <select name="system.linkType">
+            <option value="skill" {{#if tokenLinkSkill}}selected{{/if}}>Linked Skill</option>
+            <option value="specific" {{#if tokenLinkSpecific}}selected{{/if}}>Specific use</option>
+          </select>
+        </label>
+        <label>Effect handling
+          <select name="system.effectMode">
+            <option value="level" {{#if tokenEffectLevel}}selected{{/if}}>Automatic level benefit</option>
+            <option value="manual" {{#if tokenEffectManual}}selected{{/if}}>Manual / written effect</option>
+          </select>
+        </label>
+        <label>Physical form<input type="text" name="system.form" value="{{system.form}}" placeholder="Sword, ring, horn, diadem..." /></label>
+      </div>
+      {{#if tokenLinkSkill}}
+        <label>Linked Skill<input type="text" name="system.linkedSkill" value="{{system.linkedSkill}}" placeholder="Fighter" /><small>Automatic applicability uses an exact Skill-name match.</small></label>
+      {{else}}
+        <label>Specific use<input type="text" name="system.linkedUse" value="{{system.linkedUse}}" placeholder="+1s disposition in Fight conflicts" /><small>The table decides when this narrow use applies. Use Manual handling for bespoke effects such as automatic successes.</small></label>
+      {{/if}}
+      <div class="rg-grid-4 compact rg-token-editor-grid">
+        <label>Origin / craft
+          <select name="system.origin">
+            <option value="" {{#if tokenOriginOther}}selected{{/if}}>Other / unknown</option>
+            <option value="elven" {{#if tokenOriginElven}}selected{{/if}}>Elven-crafted</option>
+            <option value="dwarven" {{#if tokenOriginDwarven}}selected{{/if}}>Dwarven-crafted</option>
+            <option value="ancient" {{#if tokenOriginAncient}}selected{{/if}}>Ancient / lost craft</option>
+          </select>
+        </label>
+        <label class="rg-check rg-token-used"><input type="checkbox" name="system.session.used" {{checked system.session.used}}> Once/session use spent</label>
+      </div>
+      <div class="rg-token-rule-note">
+        <b>Realm Guard rule:</b> Level 1 grants +1D once per session; Level 2 grants +1D on every appropriate check; Level 3 grants a failed-dice reroll once per session. Elven- and Dwarven-crafted items are at least Level 1. Naming ordinary gear alone does not make it a Token of Power.
+      </div>
+      {{#if tokenEffectManual}}<div class="rg-token-manual-note"><i class="fa-solid fa-hand"></i> Manual mode records and surfaces this Token, but does not alter dice automatically. Use the roll Modifier / Extra Dice or Conflict ruling for the written effect.</div>{{/if}}
+      <label>Description<textarea name="system.description" placeholder="History, appearance, bearer, significance...">{{system.description}}</textarea></label>
+    </section>
+  {{/if}}
+
+  {{#if isTalent}}
+    <section class="rg-talent-editor-block">
+      <div class="rg-token-editor-head">
+        <div><h3><i class="fa-solid fa-sparkles"></i> Talent</h3><small>Realm Guard Foundry progression benefit earned through lifetime spent Fate &amp; Persona.</small></div>
+        <span class="rg-token-level-badge">MIN L{{system.minLevel}}</span>
+      </div>
+      <div class="rg-grid-4 compact rg-talent-editor-grid">
+        <label>Minimum Level<input type="number" name="system.minLevel" value="{{system.minLevel}}" min="2" max="10" /></label>
+        <label>Frequency<select name="system.frequency"><option value="session" {{#if talentFrequencySession}}selected{{/if}}>Once per session</option><option value="conflict" {{#if talentFrequencyConflict}}selected{{/if}}>Once per conflict</option><option value="passive" {{#if talentFrequencyPassive}}selected{{/if}}>Passive / every applicable test</option></select></label>
+        <label>Link type<select name="system.linkType"><option value="skill" {{#if talentLinkSkill}}selected{{/if}}>Linked Skill</option><option value="ability" {{#if talentLinkAbility}}selected{{/if}}>Linked Ability</option><option value="general" {{#if talentLinkGeneral}}selected{{/if}}>General / table-approved</option></select></label>
+        <label>Effect<select name="system.effectMode"><option value="dice" {{#if talentEffectDice}}selected{{/if}}>Automatic +D</option><option value="manual" {{#if talentEffectManual}}selected{{/if}}>Manual / written effect</option></select></label>
+      </div>
+      {{#if talentLinkSkill}}<label>Linked Skill<input type="text" name="system.linkedSkill" value="{{system.linkedSkill}}" placeholder="Fighter" /><small>Exact Skill-name match.</small></label>{{/if}}
+      {{#if talentLinkAbility}}<label>Linked Ability<select name="system.linkedAbility"><option value="will" {{#if talentAbilityWill}}selected{{/if}}>Will</option><option value="health" {{#if talentAbilityHealth}}selected{{/if}}>Health</option><option value="nature" {{#if talentAbilityNature}}selected{{/if}}>Nature</option><option value="resources" {{#if talentAbilityResources}}selected{{/if}}>Resources</option><option value="circles" {{#if talentAbilityCircles}}selected{{/if}}>Circles</option></select></label>{{/if}}
+      {{#if talentLinkGeneral}}<div class="rg-token-manual-note"><i class="fa-solid fa-hand"></i> General Talents require table approval before use; use Manual effect for bespoke rules.</div>{{/if}}
+      {{#if talentEffectDice}}<label>Dice Bonus<input type="number" name="system.diceBonus" value="{{system.diceBonus}}" min="0" max="6" /></label>{{/if}}
+      <div class="rg-grid-4 compact"><label class="rg-check"><input type="checkbox" name="system.session.used" {{checked system.session.used}}> Session use spent</label><label>Conflict use ID<input type="text" name="system.conflict.usedId" value="{{system.conflict.usedId}}" readonly /></label></div>
+      <label>Description<textarea name="system.description" placeholder="What this Talent represents and how it is used...">{{system.description}}</textarea></label>
+      <div class="rg-token-rule-note"><b>Project rule:</b> Level 1 has no Talent. Each Level from 2 onward unlocks one permanent Talent choice. Level progression is driven by cumulative Fate and Persona actually spent in play.</div>
+    </section>
+  {{/if}}
+
+  {{#if isGear}}
+    <section class="rg-gear-editor-block">
+      <h3>Inventory &amp; Carrying</h3>
+      <div class="rg-grid-4 compact rg-gear-editor-grid">
+        <label>Quantity<input type="number" name="system.quantity" value="{{system.quantity}}" min="0" /></label>
+        <label>Slot size<input type="number" name="system.inventory.slots" value="{{system.inventory.slots}}" min="1" max="4" /><small>Slots per bundle/item.</small></label>
+        <label>Bundle per slot<input type="number" name="system.inventory.bundle" value="{{system.inventory.bundle}}" min="1" max="99" /><small>Example: 3 torches in one slot.</small></label>
+        <label>Wield hands<input type="number" name="system.inventory.wieldHands" value="{{system.inventory.wieldHands}}" min="0" max="2" /><small>0, 1 or 2 hands.</small></label>
+      </div>
+      <div class="rg-grid-4 compact rg-gear-container-grid">
+        <label>Container type
+          <select name="system.inventory.containerType">
+            <option value="none" {{#if gearContainerNone}}selected{{/if}}>Not a container</option>
+            <option value="backpack" {{#if gearContainerBackpack}}selected{{/if}}>Backpack · 6 pack slots / 2 torso slots</option>
+            <option value="satchel" {{#if gearContainerSatchel}}selected{{/if}}>Satchel · 3 pack slots / 1 torso slot</option>
+            <option value="custom" {{#if gearContainerCustom}}selected{{/if}}>Custom container</option>
+          </select>
+        </label>
+        <label>Pack capacity<input type="number" name="system.inventory.capacity" value="{{system.inventory.capacity}}" min="0" max="24" /><small>Presets overwrite this value.</small></label>
+      </div>
+      <p class="rg-item-placement-note"><b>Current placement:</b> {{#if system.inventory.containerId}}Pack container{{else}}{{system.inventory.mode}}{{#if system.inventory.location}} · {{system.inventory.location}}{{/if}}{{/if}}. Move gear by drag/drop on the Ranger sheet.</p>
+    </section>
+    <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+  {{/if}}
+
+  {{#if isCondition}}
+    <label class="rg-check"><input type="checkbox" name="system.active" {{checked system.active}}> Active</label>
+    <label>Token Icon<input type="text" name="system.icon" value="{{system.icon}}" /><small>Path to the icon shown on the token while this Condition is active.</small></label>
+    <label>Roll Modifier<input type="number" name="system.rollModifier" value="{{system.rollModifier}}" min="-6" max="6" /><small>Applied only when this Condition targets the current roll.</small></label>
+    <label>Affects rolls<input type="text" name="system.appliesTo" value="{{system.appliesTo}}" placeholder="all, none, skills, or Fighter,Scout" /><small>Use <b>skills</b> for every Skill, <b>none</b> for no ordinary roll, or comma-separated Skill/stat names.</small></label>
+    <div class="rg-grid-4 compact">
+      <label>Recovery
+        <select name="system.recoveryType">
+          <option value="manual" {{#if recoveryIsManual}}selected{{/if}}>Manual</option>
+          <option value="ability" {{#if recoveryIsAbility}}selected{{/if}}>Ability</option>
+          <option value="role" {{#if recoveryIsRole}}selected{{/if}}>Role / Skill</option>
+        </select>
+      </label>
+      <label>Ability
+        <select name="system.recoveryAbility">
+          <option value="" {{#unless system.recoveryAbility}}selected{{/unless}}>—</option>
+          <option value="will" {{#if recoveryAbilityIsWill}}selected{{/if}}>Will</option>
+          <option value="health" {{#if recoveryAbilityIsHealth}}selected{{/if}}>Health</option>
+          <option value="nature" {{#if recoveryAbilityIsNature}}selected{{/if}}>Nature</option>
+          <option value="resources" {{#if recoveryAbilityIsResources}}selected{{/if}}>Resources</option>
+          <option value="circles" {{#if recoveryAbilityIsCircles}}selected{{/if}}>Circles</option>
+        </select>
+      </label>
+      <label>Role / Skill<input type="text" name="system.recoveryRole" value="{{system.recoveryRole}}" /></label>
+      <label>Obstacle<input type="number" name="system.recoveryObstacle" value="{{system.recoveryObstacle}}" min="0" max="20" /></label>
+    </div>
+    <label>Recovery note<input type="text" name="system.recoveryNote" value="{{system.recoveryNote}}" /></label>
+    <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+  {{/if}}
+</section>

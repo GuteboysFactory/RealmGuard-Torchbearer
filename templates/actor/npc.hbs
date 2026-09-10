@@ -1,0 +1,105 @@
+<section class="rg-sheet npc rg-npc-sheet">
+  <header class="rg-npc-header">
+    <div class="rg-npc-portrait-wrap">
+      <img class="rg-npc-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+      {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard portrait / prototype token"><i class="fa-solid fa-palette"></i></button><button type="button" class="rg-token-button" data-action="tokenBuilder" title="Quick Token Builder"><i class="fa-solid fa-crop-simple"></i></button>{{/if}}
+    </div>
+    <div class="rg-npc-identity">
+      <div class="rg-brand-lockup"><span class="rg-brand-crest"><i class="fa-solid fa-skull"></i></span><span><div class="rg-brand">REALM GUARD / TORCHBEARER</div><div class="rg-brand-subtitle">GM NPC</div></span></div>
+      <input class="rg-name rg-npc-name" name="name" type="text" value="{{actor.name}}" placeholder="NPC name" />
+      <div class="rg-npc-identity-grid">
+        <label><span>Type / Rank</span><input name="system.rank" value="{{system.rank}}" placeholder="Orc scout, brigand captain..." /></label>
+        <label><span>Concept</span><input name="system.concept" value="{{system.concept}}" placeholder="Ambusher, guide, rival..." /></label>
+      </div>
+    </div>
+    <div class="rg-npc-resource-stack">
+      <div class="rg-resource"><span>FATE</span><button type="button" data-action="fateDown">-</button><strong>{{system.resources.fate.value}}</strong><button type="button" data-action="fateUp">+</button></div>
+      <div class="rg-resource"><span>PERSONA</span><button type="button" data-action="personaDown">-</button><strong>{{system.resources.persona.value}}</strong><button type="button" data-action="personaUp">+</button></div>
+      <div class="rg-resource"><span>CHECKS</span><button type="button" data-action="checksDown">-</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button></div>
+    </div>
+  </header>
+
+  <section class="rg-npc-statbar">
+    <label class="rg-npc-stat rg-npc-nature"><button type="button" data-action="rollAbility" data-ability="nature"><span>NATURE</span></button><span><input type="number" name="system.attributes.nature.value" value="{{natureCurrent}}" min="0" max="{{natureMaximum}}" /><b>/</b><input type="number" name="system.attributes.nature.maximum" value="{{natureMaximum}}" min="0" max="7" /></span></label>
+    <label class="rg-npc-stat"><button type="button" data-action="rollAbility" data-ability="will"><span>WILL</span></button><input type="number" name="system.attributes.will.value" value="{{system.attributes.will.value}}" min="0" max="{{system.attributes.will.max}}" /></label>
+    <label class="rg-npc-stat"><button type="button" data-action="rollAbility" data-ability="health"><span>HEALTH</span></button><input type="number" name="system.attributes.health.value" value="{{system.attributes.health.value}}" min="0" max="{{system.attributes.health.max}}" /></label>
+    <label class="rg-npc-stat"><button type="button" data-action="rollAbility" data-ability="resources"><span>RESOURCES</span></button><input type="number" name="system.attributes.resources.value" value="{{system.attributes.resources.value}}" min="0" max="{{system.attributes.resources.max}}" /></label>
+    <label class="rg-npc-stat"><button type="button" data-action="rollAbility" data-ability="circles"><span>CIRCLES</span></button><input type="number" name="system.attributes.circles.value" value="{{system.attributes.circles.value}}" min="0" max="{{system.attributes.circles.max}}" /></label>
+  </section>
+
+  <div class="rg-npc-toolbar"><div class="rg-npc-drop-hint"><i class="fa-solid fa-arrow-down"></i><span>Drop Skills, Wises, Traits, Gear, Conditions, Talents or Tokens anywhere on this NPC sheet.</span></div><div class="rg-npc-quick-tools"><button type="button" data-action="tokenBuilder"><i class="fa-solid fa-crop-simple"></i> Token Builder</button><button type="button" data-action="customRoll"><i class="fa-solid fa-dice-d20"></i> Custom Roll</button></div></div>
+  <main class="rg-npc-main">
+    <div class="rg-npc-left">
+    <section class="rg-panel rg-npc-skills">
+      <div class="rg-panel-title"><div><h2>Quick Skills</h2><small>Only trained NPC skills are shown.</small></div><button type="button" data-action="createRole">+ Skill</button></div>
+      <div class="rg-npc-skill-list">
+        {{#each trainedRoles as |role|}}
+        <article class="rg-npc-skill {{#if role.system.versus}}is-versus{{/if}}" data-item-id="{{role.id}}">
+          <button type="button" class="rg-npc-skill-roll" data-action="rollRole"><span>{{role.name}}</span><strong>{{role.rating}}D</strong></button>
+          <label class="rg-role-versus" title="Use as Versus"><input type="checkbox" data-action="toggleRoleVersus" {{checked role.system.versus}}><span>VS</span></label>
+          <button type="button" class="icon" data-action="editItem" title="Edit">✎</button>
+          <button type="button" class="icon" data-action="clearNpcSkill" title="Remove from Quick Skills">×</button>
+        </article>
+        {{else}}<p class="rg-empty">No trained NPC skills. Use + Skill or GM Control -> Quick NPC.</p>{{/each}}
+      </div>
+    </section>
+
+    <section class="rg-panel rg-npc-notes">
+      <div class="rg-panel-title"><div><h2>GM Notes</h2><small>Tactics, motivation, special rules, clues...</small></div></div>
+      <textarea name="system.notes" placeholder="Fast notes for this NPC...">{{system.notes}}</textarea>
+    </section>
+    </div>
+
+    <aside class="rg-npc-side">
+      <section class="rg-panel">
+        <div class="rg-panel-title"><div><h2>Conditions</h2><small>{{activeConditionCount}} active</small></div><div><button type="button" data-action="addDefaultConditions">Defaults</button><button type="button" data-action="createCondition">+ Add</button></div></div>
+        <div class="rg-npc-condition-grid">
+          {{#each conditions as |condition|}}
+          <div class="rg-npc-condition {{#if condition.system.active}}is-active{{/if}}" data-item-id="{{condition.id}}">
+            <button type="button" class="rg-npc-condition-toggle" data-action="toggleCondition" title="Toggle {{condition.name}}">
+              <img src="{{condition.system.icon}}" alt="" />
+              <span>{{condition.name}}</span>
+              {{#if condition.system.active}}<i class="fa-solid fa-circle-check" title="Active"></i>{{/if}}
+            </button>
+            <div class="rg-npc-condition-tools">
+              {{#if condition.system.active}}<button type="button" data-action="recoverCondition" title="Recovery"><i class="fa-solid fa-kit-medical"></i></button>{{/if}}
+              <button type="button" data-action="editItem" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            </div>
+          </div>
+          {{else}}<span class="rg-empty">No Conditions.</span>{{/each}}
+        </div>
+      </section>
+
+      <section class="rg-panel">
+        <div class="rg-panel-title"><h2>Traits</h2><button type="button" data-action="createTrait">+ Trait</button></div>
+        {{#each traits as |trait|}}<div class="rg-npc-line" data-item-id="{{trait.id}}"><span>{{trait.name}}</span><b>L{{trait.system.rating}}</b><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No Traits.</p>{{/each}}
+      </section>
+
+
+      <section class="rg-panel rg-npc-wises">
+        <div class="rg-panel-title"><h2>Wises</h2><button type="button" data-action="createWise">+ Wise</button></div>
+        {{#each wises as |item|}}<div class="rg-npc-line" data-item-id="{{item.id}}"><span>{{item.name}}</span><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No Wises.</p>{{/each}}
+      </section>
+
+      <section class="rg-panel rg-npc-talents">
+        <div class="rg-panel-title"><h2>Talents</h2><button type="button" data-action="createTalent">+ Talent</button></div>
+        {{#each talents as |talent|}}<div class="rg-npc-line" data-item-id="{{talent.id}}"><span>{{talent.name}}</span><small>{{talent.effectSummary}}</small><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No Talents.</p>{{/each}}
+      </section>
+
+      <section class="rg-panel rg-npc-token-panel">
+        <div class="rg-panel-title"><div><h2><i class="fa-solid fa-gem"></i> Tokens of Power</h2><small>Relics and named powers</small></div>{{#if isGM}}<button type="button" data-action="createTokenOfPower">+ Token</button>{{/if}}</div>
+        {{#each tokenPowers as |token|}}
+        <div class="rg-npc-line rg-npc-token-line {{#if token.used}}is-used{{/if}}" data-item-id="{{token.id}}">
+          <span><b class="rg-token-level">L{{token.level}}</b> {{token.name}}</span><small>{{token.stateLabel}} · {{token.linkSummary}}</small>{{#if token.canManage}}<button type="button" data-action="editItem" title="Edit">✎</button><button type="button" data-action="deleteItem" title="Delete">×</button>{{/if}}
+        </div>
+        {{else}}<p class="rg-empty">No Tokens of Power.</p>{{/each}}
+      </section>
+
+      <section class="rg-panel">
+        <div class="rg-panel-title"><h2>Gear</h2><button type="button" data-action="createGear">+ Gear</button></div>
+        {{#each npcGear as |item|}}<div class="rg-npc-line rg-npc-gear-line" data-item-id="{{item.id}}"><span><i class="{{item.iconClass}}"></i> {{item.name}}</span><small>{{item.locationLabel}}{{#if item.quantityLabel}} · {{item.quantityLabel}}{{/if}}</small><button type="button" data-action="editItem" title="Edit">✎</button><button type="button" data-action="deleteItem" title="Delete">×</button></div>{{else}}<p class="rg-empty">No Gear.</p>{{/each}}
+      </section>
+    </aside>
+  </main>
+
+</section>

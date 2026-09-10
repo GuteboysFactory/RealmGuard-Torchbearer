@@ -1,0 +1,314 @@
+<section class="rg-sheet {{actor.type}}">
+  <header class="rg-header">
+    <div class="rg-portrait-wrap {{#if portrait.tokenMode}}is-token-portrait{{/if}}">
+      <button type="button" class="rg-portrait-stage {{#if portrait.tokenMode}}is-token{{/if}}" data-action="portraitSettings" data-rg-portrait-stage data-rg-portrait-fit="{{portrait.framing.fit}}" data-rg-portrait-zoom="{{portrait.framing.zoom}}" data-rg-portrait-x="{{portrait.framing.offsetX}}" data-rg-portrait-y="{{portrait.framing.offsetY}}" title="Adjust Character Portrait">
+        <img class="rg-portrait" src="{{portrait.src}}" data-rg-portrait-image alt="{{actor.name}} portrait" />
+      </button>
+      {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard source artwork"><i class="fa-solid fa-palette"></i></button><button type="button" class="rg-token-button" data-action="tokenBuilder" title="Quick Token Builder"><i class="fa-solid fa-crop-simple"></i></button>{{/if}}
+    </div>
+    <div class="rg-identity">
+      <div class="rg-brand-lockup"><span class="rg-brand-crest" aria-hidden="true"><i class="fa-solid fa-tree"></i></span><span><div class="rg-brand">REALM GUARD / TORCHBEARER</div><div class="rg-brand-subtitle">RANGERS OF THE NORTH</div></span></div>
+      <input class="rg-name" name="name" type="text" value="{{actor.name}}" placeholder="Ranger name" />
+      <div class="rg-grid-4 compact">
+        <label>Station / Rank
+          <select data-rg-station-select>
+            <option value="">Select station…</option>
+            {{selectOptions stationOptions selected=stationSelected}}
+          </select>
+        </label>
+        <label>Homeland<input name="system.homeland" value="{{system.homeland}}" /></label>
+        <label>Age<input type="number" name="system.age" value="{{system.age}}" {{#if station}}min="{{station.ageMin}}" max="{{station.ageMax}}" placeholder="{{station.ageMin}}–{{station.ageMax}}"{{/if}} />{{#if station}}<small class="rg-age-range">{{station.ageMin}}–{{station.ageMax}}</small>{{/if}}</label>
+        <label>Concept<input name="system.concept" value="{{system.concept}}" /></label>
+      </div>
+    </div>
+    <div class="rg-meta">
+      <div class="rg-resource rg-level-resource"><span>LEVEL</span><strong>{{progression.level}}</strong></div>
+      <div class="rg-resource"><span>FATE</span><button type="button" data-action="fateDown">−</button><strong>{{system.resources.fate.value}}</strong><button type="button" data-action="fateUp">+</button></div>
+      <div class="rg-resource"><span>PERSONA</span><button type="button" data-action="personaDown">−</button><strong>{{system.resources.persona.value}}</strong><button type="button" data-action="personaUp">+</button></div>
+      <div class="rg-resource"><span>CHECKS</span><button type="button" data-action="checksDown">−</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button></div>
+    </div>
+  </header>
+
+  {{#if turn}}
+  <section class="rg-turn-strip {{turn.phase}}" aria-label="Realm Guard turn status">
+    <div class="rg-turn-strip-phase"><span>TURN</span><strong>{{turn.label}}</strong></div>
+    {{#if turn.freeAvailable}}
+      <div class="rg-turn-strip-state is-ready"><i class="fa-solid fa-circle-play"></i><span><b>Free Test available</b><small>Your next test uses it automatically.</small></span></div>
+    {{else}}
+      {{#if turn.freeUsed}}
+        <div class="rg-turn-strip-state"><i class="fa-solid fa-check"></i><span><b>Free Test used</b><small>{{turn.checks}} Checks available for extra tests.</small></span></div>
+      {{else}}
+        <div class="rg-turn-strip-state"><i class="fa-solid fa-shield-halved"></i><span><b>GM controls the mission</b><small>Trait Against may earn Checks in this phase.</small></span></div>
+      {{/if}}
+    {{/if}}
+    {{#if turn.blockedByAlternation}}<div class="rg-turn-strip-warning"><i class="fa-solid fa-people-arrows-left-right"></i> Another Ranger must test before you can test again.</div>{{/if}}
+    {{#if turn.done}}<div class="rg-turn-strip-done"><i class="fa-solid fa-flag-checkered"></i> DONE</div>{{/if}}
+    <div class="rg-turn-strip-actions">
+      {{#if turn.canDonate}}<button type="button" data-action="turnDonate" title="Pass Checks to a patrol-mate"><i class="fa-solid fa-share"></i> Pass Check</button>{{/if}}
+      {{#if turn.canFinish}}<button type="button" data-action="turnDone" title="Finish your Players' Turn and discard unused Checks"><i class="fa-solid fa-flag-checkered"></i> Done</button>{{/if}}
+    </div>
+  </section>
+  {{/if}}
+
+  <section class="rg-statbar" aria-label="Abilities and advancement">
+    <label class="rg-stat rg-nature-stat" data-ability-learning="nature" title="Nature advancement uses Maximum Nature. If taxed, advancing increases both Maximum and Current Nature by 1."><button type="button" class="rg-stat-roll" data-action="rollAbility" data-ability="nature" title="Roll Nature"><span>NATURE</span></button><span class="rg-nature-values"><input type="number" name="system.attributes.nature.value" value="{{natureCurrent}}" min="0" max="{{natureMaximum}}" /><b>/</b><input type="number" name="system.attributes.nature.maximum" value="{{natureMaximum}}" min="0" max="7" title="Maximum Nature" /></span><button type="button" class="rg-nature-manage-btn" data-action="manageNature" title="Manage Nature tax/recovery">Tax {{natureTax}}</button><span class="rg-ability-learning"><span class="pass" title="Passed Nature tests toward advancement">P <b>{{abilityAdvancement.nature.passed}}</b>/{{abilityAdvancement.nature.passNeeded}}</span>{{#unless abilityAdvancement.nature.maxRating}}<button type="button" data-action="abilityPassDown" title="Manual correction: remove Pass">−</button><button type="button" data-action="abilityPassUp" title="Manual correction: add Pass">+</button>{{/unless}}<span class="fail" title="Failed Nature tests toward advancement">F <b>{{abilityAdvancement.nature.failed}}</b>/{{abilityAdvancement.nature.failNeeded}}</span>{{#unless abilityAdvancement.nature.maxRating}}<button type="button" data-action="abilityFailDown" title="Manual correction: remove Fail">−</button><button type="button" data-action="abilityFailUp" title="Manual correction: add Fail">+</button>{{/unless}}</span></label>
+    <label class="rg-stat" data-ability-learning="will" title="Will tests track Pass/Fail automatically. Beginner's Luck does not advance Will."><button type="button" class="rg-stat-roll" data-action="rollAbility" data-ability="will"><span>WILL</span></button><input type="number" name="system.attributes.will.value" value="{{system.attributes.will.value}}" min="0" max="{{system.attributes.will.max}}" /><span class="rg-ability-learning"><span class="pass">P <b>{{abilityAdvancement.will.passed}}</b>/{{abilityAdvancement.will.passNeeded}}</span>{{#unless abilityAdvancement.will.maxRating}}<button type="button" data-action="abilityPassDown">−</button><button type="button" data-action="abilityPassUp">+</button>{{/unless}}<span class="fail">F <b>{{abilityAdvancement.will.failed}}</b>/{{abilityAdvancement.will.failNeeded}}</span>{{#unless abilityAdvancement.will.maxRating}}<button type="button" data-action="abilityFailDown">−</button><button type="button" data-action="abilityFailUp">+</button>{{/unless}}</span></label>
+    <label class="rg-stat" data-ability-learning="health" title="Health tests track Pass/Fail automatically. Beginner's Luck does not advance Health."><button type="button" class="rg-stat-roll" data-action="rollAbility" data-ability="health"><span>HEALTH</span></button><input type="number" name="system.attributes.health.value" value="{{system.attributes.health.value}}" min="0" max="{{system.attributes.health.max}}" /><span class="rg-ability-learning"><span class="pass">P <b>{{abilityAdvancement.health.passed}}</b>/{{abilityAdvancement.health.passNeeded}}</span>{{#unless abilityAdvancement.health.maxRating}}<button type="button" data-action="abilityPassDown">−</button><button type="button" data-action="abilityPassUp">+</button>{{/unless}}<span class="fail">F <b>{{abilityAdvancement.health.failed}}</b>/{{abilityAdvancement.health.failNeeded}}</span>{{#unless abilityAdvancement.health.maxRating}}<button type="button" data-action="abilityFailDown">−</button><button type="button" data-action="abilityFailUp">+</button>{{/unless}}</span></label>
+    <label class="rg-stat" data-ability-learning="resources" title="Resources tracks Pass/Fail like an Ability. Its tests use their own rule-specific Obstacle rather than the live Baseline Obstacle."><button type="button" class="rg-stat-roll" data-action="rollAbility" data-ability="resources"><span>RESOURCES</span></button><input type="number" name="system.attributes.resources.value" value="{{system.attributes.resources.value}}" min="0" max="{{system.attributes.resources.max}}" /><span class="rg-ability-learning"><span class="pass">P <b>{{abilityAdvancement.resources.passed}}</b>/{{abilityAdvancement.resources.passNeeded}}</span>{{#unless abilityAdvancement.resources.maxRating}}<button type="button" data-action="abilityPassDown">−</button><button type="button" data-action="abilityPassUp">+</button>{{/unless}}<span class="fail">F <b>{{abilityAdvancement.resources.failed}}</b>/{{abilityAdvancement.resources.failNeeded}}</span>{{#unless abilityAdvancement.resources.maxRating}}<button type="button" data-action="abilityFailDown">−</button><button type="button" data-action="abilityFailUp">+</button>{{/unless}}</span></label>
+    <label class="rg-stat" data-ability-learning="circles" title="Circles tracks Pass/Fail like an Ability. Its tests use their own rule-specific Obstacle rather than the live Baseline Obstacle."><button type="button" class="rg-stat-roll" data-action="rollAbility" data-ability="circles"><span>CIRCLES</span></button><input type="number" name="system.attributes.circles.value" value="{{system.attributes.circles.value}}" min="0" max="{{system.attributes.circles.max}}" /><span class="rg-ability-learning"><span class="pass">P <b>{{abilityAdvancement.circles.passed}}</b>/{{abilityAdvancement.circles.passNeeded}}</span>{{#unless abilityAdvancement.circles.maxRating}}<button type="button" data-action="abilityPassDown">−</button><button type="button" data-action="abilityPassUp">+</button>{{/unless}}<span class="fail">F <b>{{abilityAdvancement.circles.failed}}</b>/{{abilityAdvancement.circles.failNeeded}}</span>{{#unless abilityAdvancement.circles.maxRating}}<button type="button" data-action="abilityFailDown">−</button><button type="button" data-action="abilityFailUp">+</button>{{/unless}}</span></label>
+  </section>
+
+  <section class="rg-global-tools" aria-label="Realm Guard character tools"><button type="button" class="rg-custom-roll-launch" data-action="customRoll" title="Open a freeform Custom Roll"><i class="fa-solid fa-dice-d20"></i><span>Custom Roll</span></button>
+    <div class="rg-condition-launch">
+      <button type="button" class="rg-condition-launch-button" data-rg-conditions-toggle aria-expanded="false" title="Open Ranger Conditions">
+        <i class="fa-solid fa-heart-pulse"></i><span>Conditions</span><b class="rg-condition-count">{{activeConditionCount}}</b><i class="fa-solid fa-chevron-down rg-condition-caret"></i>
+      </button>
+      <section class="rg-condition-dropdown" data-rg-conditions-dropdown aria-label="Ranger Conditions">
+        <header class="rg-condition-dropdown-header">
+          <div><span class="rg-condition-eyebrow">REALM GUARD</span><h3>Conditions</h3><small>{{activeConditionCount}} active</small></div>
+          <button type="button" class="rg-condition-dropdown-close" data-rg-conditions-close title="Close Conditions"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="rg-condition-dropdown-list">
+          {{#each conditions as |condition|}}
+          <div class="rg-condition-dropdown-row" data-item-id="{{condition.id}}">
+            <button type="button" data-action="toggleCondition" class="rg-condition-dropdown-main {{#if condition.system.active}}active{{/if}}" title="Toggle {{condition.name}}">
+              <img src="{{condition.system.icon}}" alt="" /><span><b>{{condition.name}}</b><small>{{#if condition.system.active}}ACTIVE{{else}}Inactive{{/if}}</small></span><i class="fa-solid {{#if condition.system.active}}fa-toggle-on{{else}}fa-toggle-off{{/if}}"></i>
+            </button>
+            <div class="rg-condition-dropdown-actions">
+              {{#if condition.system.active}}<button type="button" data-action="recoverCondition" title="Recover / clear {{condition.name}}"><i class="fa-solid fa-kit-medical"></i></button>{{/if}}
+              <button type="button" data-action="editItem" title="View / edit {{condition.name}}"><i class="fa-solid fa-circle-info"></i></button>
+            </div>
+          </div>
+          {{else}}<p class="rg-empty">No Conditions yet.</p>{{/each}}
+        </div>
+        <footer class="rg-condition-dropdown-footer"><button type="button" data-action="addDefaultConditions"><i class="fa-solid fa-wand-magic-sparkles"></i> Defaults</button><button type="button" data-action="createCondition"><i class="fa-solid fa-plus"></i> Custom</button></footer>
+      </section>
+    </div>
+  </section>
+
+  <nav class="rg-sheet-tabs" aria-label="Realm Guard sheet sections">
+    <button type="button" class="rg-tab-button active" data-rg-tab="character">CHARACTER</button>
+    <button type="button" class="rg-tab-button" data-rg-tab="skills">SKILLS</button>
+    <button type="button" class="rg-tab-button" data-rg-tab="gear">INVENTORY &amp; GEAR</button>
+  </nav>
+  <div class="rg-tab-pages">
+    <section class="rg-tab-page active" data-rg-page="character">
+      <main class="rg-character-grid">
+        <section class="rg-panel rg-drives"><div class="rg-panel-title"><h2>Belief · Goal · Instinct</h2></div><label>Belief<textarea name="system.belief">{{system.belief}}</textarea></label><label>Goal<textarea name="system.goal">{{system.goal}}</textarea></label><label>Instinct<textarea name="system.instinct">{{system.instinct}}</textarea></label></section>
+        <section class="rg-character-support-grid">
+          <section class="rg-panel"><div class="rg-panel-title"><h2>Wises</h2><button type="button" data-action="createWise">+ Wise</button></div>{{#each wises as |item|}}<div class="rg-line" data-item-id="{{item.id}}"><span>{{item.name}}</span><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No wises.</p>{{/each}}</section>
+          <section class="rg-panel"><div class="rg-panel-title"><h2>Traits</h2><button type="button" data-action="createTrait">+ Trait</button></div>{{#each traits as |trait|}}<div class="rg-line" data-item-id="{{trait.id}}"><span>{{trait.name}}</span><b>{{trait.system.rating}}</b><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No traits.</p>{{/each}}</section>
+        </section>
+        <section class="rg-panel rg-progression-panel">
+          <div class="rg-panel-title">
+            <div><h2><i class="fa-solid fa-sparkles"></i> Level &amp; Talents</h2><small>Long-term Realm Guard progression driven by Fate and Persona actually spent in play.</small></div>
+            <div class="rg-progression-actions">{{#if progression.pendingTalents}}{{#if canChooseTalent}}<button type="button" class="rg-talent-ready-button" data-action="chooseTalent"><i class="fa-solid fa-star"></i> Choose Talent {{#if progression.pendingTalents}}({{progression.pendingTalents}}){{/if}}</button>{{/if}}{{/if}}{{#if isGM}}<button type="button" data-action="manageProgression" title="Credit historical Fate/Persona spend"><i class="fa-solid fa-sliders"></i></button><button type="button" data-action="createTalent" title="Create a custom Talent"><i class="fa-solid fa-plus"></i> Talent</button>{{/if}}</div>
+          </div>
+          <div class="rg-progression-summary">
+            <div class="rg-level-medallion"><span>LEVEL</span><strong>{{progression.level}}</strong><small>{{progression.talentCount}} / {{progression.talentSlots}} Talents</small></div>
+            <div class="rg-progression-tracks">
+              <div class="rg-progression-track"><header><span>SPENT FATE</span><b>{{progression.spentFate}}{{#if progression.next}} / {{progression.next.fate}}{{/if}}</b></header><i><em style="width:{{progression.fateProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.fateRemaining}} more Fate toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
+              <div class="rg-progression-track"><header><span>SPENT PERSONA</span><b>{{progression.spentPersona}}{{#if progression.next}} / {{progression.next.persona}}{{/if}}</b></header><i><em style="width:{{progression.personaProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.personaRemaining}} more Persona toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
+            </div>
+          </div>
+          <div class="rg-progression-note"><i class="fa-solid fa-circle-info"></i><span>Only <b>committed resource spending</b> counts. Awards and manual +/- buttons do not. Both Fate and Persona thresholds must be reached. This progression layer is a Realm Guard / Torchbearer Foundry expansion inspired by Torchbearer 2E; it does not add Torchbearer classes or Town phases.</span></div>
+          <div class="rg-talent-list">
+            {{#each talents as |talent|}}
+            <article class="rg-talent-card {{#if talent.used}}is-used{{/if}}" data-item-id="{{talent.id}}">
+              <div class="rg-talent-card-icon"><i class="fa-solid fa-sparkles"></i></div>
+              <div class="rg-talent-card-body"><div><strong>{{talent.name}}</strong><span class="rg-talent-state">{{talent.stateLabel}}</span></div><small><b>{{talent.linkSummary}}</b> · {{talent.effectSummary}}</small>{{#if talent.descriptionText}}<p class="rg-talent-description">{{talent.descriptionText}}</p>{{/if}}</div>
+              {{#if talent.canManage}}<div class="rg-talent-card-actions"><button type="button" data-action="editItem" title="Edit Talent"><i class="fa-solid fa-pen"></i></button><button type="button" data-action="deleteItem" title="Delete Talent"><i class="fa-solid fa-xmark"></i></button></div>{{/if}}
+            </article>
+            {{else}}<p class="rg-empty">No Talents yet. Level 2 unlocks the first Talent choice.</p>{{/each}}
+          </div>
+        </section>
+
+        <section class="rg-character-detail-grid">
+          <section class="rg-panel rg-ranger-details">
+            <div class="rg-panel-title"><div><h2>Ranger Details</h2><small>Background, lineage and house identity</small></div></div>
+            <label class="rg-detail-biography">Biography / Background<textarea name="system.biography" placeholder="Who is this Ranger? Where did they come from, what shaped them, and how are they known?">{{system.biography}}</textarea></label>
+            <div class="rg-detail-fields">
+              <label>Lineage / House<input name="system.lineage" value="{{system.lineage}}" placeholder="e.g. House of Ruor" /></label>
+              <label>House Insignia<input name="system.insignia" value="{{system.insignia}}" placeholder="e.g. Standard of Ruor" /></label>
+            </div>
+          </section>
+          <section class="rg-panel rg-relations">
+            <div class="rg-panel-title"><div><h2>Relationships</h2><small>Recurring people tied to the Ranger</small></div></div>
+            <div class="rg-relationship-grid">
+              <label class="rg-relation-card"><span><i class="fa-solid fa-people-roof"></i> Parents</span><input name="system.parents" value="{{system.parents}}" placeholder="Names, trade or home" /><small>Family or guardians from the Ranger's background.</small></label>
+              <label class="rg-relation-card"><span><i class="fa-solid fa-hammer"></i> Senior Artisan</span><input name="system.seniorArtisan" value="{{system.seniorArtisan}}" placeholder="Name and craft / trade" /><small>The artisan or teacher from the Ranger's earlier training.</small></label>
+              <label class="rg-relation-card"><span><i class="fa-solid fa-compass"></i> Mentor</span><input name="system.mentor" value="{{system.mentor}}" placeholder="Name, station and status" /><small>The Ranger who guided their early service.</small></label>
+              <label class="rg-relation-card"><span><i class="fa-solid fa-handshake"></i> Friend / Ally</span><input name="system.friend" value="{{system.friend}}" placeholder="Name, role / trade and location" /><small>A recurring ally who can be found and asked for aid.</small></label>
+              <label class="rg-relation-card rg-relation-wide"><span><i class="fa-solid fa-user-slash"></i> Enemy / Rival</span><input name="system.enemy" value="{{system.enemy}}" placeholder="Name, role / people and location" /><small>A recurring rival or enemy controlled by the GM in play.</small></label>
+            </div>
+          </section>
+        </section>
+        <section class="rg-panel rg-notes"><div class="rg-panel-title"><h2>Character Notes</h2></div><textarea class="rg-notes-field" name="system.notes" placeholder="Private notes, reminders and details that do not belong elsewhere...">{{system.notes}}</textarea></section>
+      </main>
+    </section>
+    <section class="rg-tab-page" data-rg-page="skills">
+    <section class="rg-panel rg-roles">
+      <div class="rg-panel-title">
+        <h2>Roles & Skills</h2>
+        <button type="button" data-action="createRole">+ Custom Skill</button>
+      </div>
+
+      <div class="rg-skill-stack">
+        <section class="rg-skill-group rg-trained-skills">
+          <div class="rg-skill-group-title">
+            <div><strong>TRAINED & CUSTOM</strong><small>Skills ready for normal tests and advancement.</small></div>
+            <span class="rg-skill-count">{{trainedRoleCount}}</span>
+          </div>
+          <div class="rg-trained-list">
+            {{#each trainedRoles as |role|}}
+            <article class="rg-role rg-trained-role {{#if role.system.versus}}is-versus{{/if}} {{#if role.advancementReady}}is-ready{{/if}}" data-item-id="{{role.id}}">
+              <div class="rg-role-top">
+                <button class="rg-role-roll" type="button" data-action="rollRole">
+                  <span class="role-name">{{role.name}}</span>
+                  <span class="role-rating">{{role.rating}}</span>
+                </button>
+                <div class="rg-role-actions">
+                  <label class="rg-role-versus" title="Use this Role / Skill as a Versus roll">
+                    <input type="checkbox" data-action="toggleRoleVersus" {{checked role.system.versus}}> <span>VERSUS</span>
+                  </label>
+                  {{#if role.maxRating}}<span class="rg-max-rating" title="Maximum rating">MAX 6</span>{{/if}}
+                  <button type="button" class="icon rg-skill-edit" data-action="editItem" title="Edit {{role.name}}">✎</button>
+                  <button type="button" class="icon rg-skill-delete" data-action="deleteItem" title="Delete {{role.name}}">×</button>
+                </div>
+              </div>
+              <div class="rg-learning">
+                <div class="rg-learn-track pass" title="Passed tests toward advancement"><span>PASS <b>{{role.system.learning.passed}}</b>/{{role.passNeeded}}</span><i><em style="width:{{role.passProgress}}%"></em></i></div>
+                <button type="button" data-action="learnPass" title="Manual correction: add Pass">+</button><button type="button" data-action="unlearnPass" title="Manual correction: remove Pass">−</button>
+                <div class="rg-learn-track fail" title="Failed tests toward advancement"><span>FAIL <b>{{role.system.learning.failed}}</b>/{{role.failNeeded}}</span><i><em style="width:{{role.failProgress}}%"></em></i></div>
+                <button type="button" data-action="learnFail" title="Manual correction: add Fail">+</button><button type="button" data-action="unlearnFail" title="Manual correction: remove Fail">−</button>
+              </div>
+            </article>
+            {{else}}
+            <p class="rg-empty">No trained skills yet.</p>
+            {{/each}}
+          </div>
+        </section>
+
+        <div class="rg-skill-divider" aria-hidden="true"><span></span></div>
+
+        <details class="rg-skill-group rg-untrained-skills" open>
+          <summary class="rg-skill-group-title">
+            <div><strong>UNTRAINED</strong><small>Canonical Realm Guard skills not yet trained.</small></div>
+            <span class="rg-skill-count">{{untrainedRoleCount}}</span>
+          </summary>
+          <div class="rg-untrained-grid">
+            {{#each untrainedRoles as |role|}}
+            <div class="rg-untrained-skill" data-item-id="{{role.id}}">
+              <div class="rg-untrained-main">
+                <button type="button" class="rg-untrained-name rg-untrained-roll" data-action="rollUntrained" title="Roll {{role.name}} with Beginner's Luck">{{role.name}}</button>
+                <div class="rg-untrained-actions">
+                  {{#if role.beginnerReady}}<span class="rg-learning-auto-ready" title="The next sheet refresh will learn this Skill automatically.">AUTO LEARN</span>{{/if}}
+                  <button type="button" class="icon" data-action="editItem" title="Edit {{role.name}}">✎</button>
+                </div>
+              </div>
+              <div class="rg-untrained-meta" aria-label="Beginner's Luck progress">
+                <span class="rg-untrained-badge">BEGINNER'S LUCK</span>
+                <span class="rg-beginner-base">{{#if role.beginnerAbility}}{{role.beginnerAbility}}{{else}}Will / Health{{/if}}</span>
+                <span class="rg-beginner-progress">{{role.beginnerAttempts}} / {{role.beginnerNeeded}}</span>
+              </div>
+            </div>
+            {{else}}
+            <p class="rg-empty">No untrained skills.</p>
+            {{/each}}
+          </div>
+        </details>
+      </div>
+
+    </section>
+    </section>
+    <section class="rg-tab-page" data-rg-page="gear">
+      <section class="rg-panel rg-token-power-panel rg-token-power-inventory">
+          <div class="rg-panel-title">
+            <div><h2><i class="fa-solid fa-gem"></i> Tokens of Power</h2><small>Named relics bound to a Skill or a narrow specific use.</small></div>
+            {{#if isGM}}<button type="button" data-action="createTokenOfPower"><i class="fa-solid fa-plus"></i> Token</button>{{/if}}
+          </div>
+          <div class="rg-token-power-list">
+            {{#each tokenPowers as |token|}}
+            <article class="rg-token-power-card {{#if token.used}}is-used{{/if}}" data-item-id="{{token.id}}">
+              <div class="rg-token-power-card-head"><span class="rg-token-level">L{{token.level}}</span><strong>{{token.name}}</strong><span class="rg-token-state {{#if token.used}}used{{else}}ready{{/if}}">{{token.stateLabel}}</span></div>
+              <div class="rg-token-power-card-body"><span><b>{{#if token.specific}}Specific use{{else}}Linked Skill{{/if}}:</b> {{token.linkSummary}}</span><small>{{token.effectSummary}}{{#if token.manual}} · MANUAL EFFECT{{/if}}</small></div>
+              <div class="rg-token-power-card-actions">{{#if token.canManage}}<button type="button" data-action="editItem" title="Edit Token of Power"><i class="fa-solid fa-pen"></i></button><button type="button" data-action="deleteItem" title="Delete Token of Power"><i class="fa-solid fa-xmark"></i></button>{{/if}}</div>
+            </article>
+            {{else}}<p class="rg-empty">No Tokens of Power. These are named relics with a level and a specific linked use.</p>{{/each}}
+          </div>
+          <div class="rg-token-scale-note"><i class="fa-solid fa-dragon"></i><span><b>Scale of Might:</b> an appropriate Token of Power can raise a Ranger's effective rank in a conflict. Realm Guard does not define one universal numeric conversion for every case, so the Conflict Engine surfaces the Token and leaves the exact creature-scale ruling to the GM/table.</span></div>
+        </section>
+      <section class="rg-gear-layout rg-gear-layout-silhouette">
+        <aside class="rg-gear-left-rail">
+          <section class="rg-panel rg-container-rail-panel">
+            <div class="rg-panel-title"><div><h2><i class="fa-solid fa-box"></i> Containers</h2><small>Pack gear and supplies</small></div></div>
+            <div class="rg-container-rail-list">
+              {{#each inventory.containers as |container|}}
+              <section class="rg-inventory-container rg-container-rail-card {{#if container.active}}is-active{{else}}is-inactive{{/if}} {{#if container.over}}is-over{{/if}}" data-rg-inventory-container="{{container.id}}">
+                <header>
+                  <div class="rg-container-rail-head rg-inventory-item" data-item-id="{{container.id}}" data-rg-gear-id="{{container.id}}" title="Drag to equip/move {{container.name}}">
+                    <i class="{{container.iconClass}} rg-gear-card-icon" aria-hidden="true"></i>
+                    <span>{{container.name}}</span>
+                    <small>{{container.used}} / {{container.capacity}}</small>
+                    <div class="rg-inventory-item-actions"><button type="button" data-action="gearUnassign" title="Move to Unassigned">↩</button><button type="button" data-action="editItem" title="Edit">✎</button><button type="button" data-action="deleteItem" title="Delete">×</button></div>
+                  </div>
+                </header>
+                {{#unless container.active}}<p class="rg-container-inactive-note"><i class="fa-solid fa-lock"></i> {{container.inactiveReason}}</p>{{/unless}}
+                <div class="rg-container-rail-contents">
+                  {{#each container.contents as |item|}}
+                  <div class="rg-container-chip" data-item-id="{{item.id}}" data-rg-gear-id="{{item.id}}" title="Drag {{item.name}}"><i class="{{item.iconClass}}"></i><span>{{item.name}}</span><small>x{{item.quantity}}</small></div>
+                  {{else}}<div class="rg-inventory-drop-hint">{{#if container.active}}Drop pack gear here{{else}}Container inactive{{/if}}</div>{{/each}}
+                </div>
+              </section>
+              {{else}}<p class="rg-empty">No containers yet.</p>{{/each}}
+            </div>
+          </section>
+        </aside>
+
+        <section class="rg-panel rg-equipment-panel">
+          <div class="rg-panel-title"><div><h2><i class="fa-solid fa-person"></i> Equipment</h2><small>Drag gear directly onto the Ranger</small></div><div class="rg-inventory-title-actions">{{#if isGM}}<button type="button" data-action="createTestGear" title="Load a complete temporary QA Gear set onto this Ranger"><i class="fa-solid fa-flask"></i> Load QA Gear</button>{{/if}}<button type="button" data-action="createGear">+ Gear</button></div></div>
+          {{#each inventory.warnings as |warning|}}<div class="rg-inventory-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{warning}}</div>{{/each}}
+          <div class="rg-equipment-stage">
+            <img class="rg-ranger-silhouette" src="systems/realm-guard/assets/ui/ranger-silhouette.svg" alt="" aria-hidden="true" />
+            {{#each inventory.zones as |zone|}}
+            <section class="rg-inventory-zone rg-silhouette-zone rg-slot-{{zone.id}} {{#if zone.over}}is-over{{/if}} {{#if zone.blocked}}is-blocked{{/if}}" data-rg-inventory-zone="{{zone.id}}" title="{{zone.hint}}">
+              <header><strong>{{zone.label}}</strong>{{#if zone.blocked}}<span>LOCKED</span>{{else}}<span>{{zone.used}} / {{zone.capacity}}</span>{{/if}}</header>
+              <div class="rg-inventory-zone-items">
+                {{#if zone.blocked}}<div class="rg-hand-blocked"><i class="fa-solid fa-lock"></i><span>2H · {{zone.blockedByName}}</span></div>{{else}}
+                {{#each zone.items as |item|}}
+                <div class="rg-inventory-item rg-silhouette-item" data-item-id="{{item.id}}" data-rg-gear-id="{{item.id}}" title="Drag to move {{item.name}}">
+                  <i class="{{item.iconClass}} rg-gear-card-icon" aria-hidden="true"></i><span>{{item.name}}</span><small>x{{item.quantity}}</small>
+                  <div class="rg-inventory-item-actions"><button type="button" data-action="gearUnassign" title="Move to Unassigned">↩</button><button type="button" data-action="editItem" title="Edit">✎</button><button type="button" data-action="deleteItem" title="Delete">×</button></div>
+                </div>
+                {{else}}<div class="rg-inventory-drop-hint">Drop here</div>{{/each}}
+                {{/if}}
+              </div>
+            </section>
+            {{/each}}
+          </div>
+          <div class="rg-slot-guide" aria-label="Inventory placement guide">
+            <div><i class="fa-solid fa-hand"></i><b>Hands</b><small>Left / Right; 2H locks both</small></div>
+            <div><i class="fa-solid fa-user-shield"></i><b>Cloak</b><small>Cloaks, capes &amp; mantles</small></div>
+            <div><i class="fa-solid fa-shirt"></i><b>Torso</b><small>Armor &amp; worn containers</small></div>
+            <div><i class="fa-solid fa-toolbox"></i><b>Belt</b><small>Small quick-access gear</small></div>
+            <div><i class="fa-solid fa-bag-shopping"></i><b>Pocket</b><small>One tiny item</small></div>
+            <div><i class="fa-solid fa-box-open"></i><b>Containers</b><small>Stored gear &amp; supplies</small></div>
+          </div>
+        </section>
+
+        <section class="rg-panel rg-unassigned-panel rg-inventory-loose" data-rg-inventory-unassigned>
+          <div class="rg-panel-title"><div><h2><i class="fa-solid fa-boxes-stacked"></i> Unassigned Gear</h2><small>{{inventory.totalGear}} total · {{inventory.totalAssigned}} assigned</small></div></div>
+          <p class="rg-unassigned-help">Drag an item onto a highlighted body slot or active container. Drop items back here to unequip them.</p>
+          <div class="rg-inventory-loose-grid">
+            {{#each inventory.unassigned as |item|}}
+            <div class="rg-inventory-item rg-unassigned-item" data-item-id="{{item.id}}" data-rg-gear-id="{{item.id}}" title="Drag to place {{item.name}}"><i class="fa-solid fa-grip-vertical rg-inventory-grip"></i><i class="{{item.iconClass}} rg-gear-card-icon" aria-hidden="true"></i><span>{{item.name}}</span><small>x{{item.quantity}} · {{item.slotLabel}}</small><div class="rg-inventory-item-actions"><button type="button" data-action="editItem" title="Edit">✎</button><button type="button" data-action="deleteItem" title="Delete">×</button></div></div>
+            {{else}}<div class="rg-inventory-drop-hint">Drop gear here to remove it from slots/containers.</div>{{/each}}
+            {{#each inventory.orphaned as |item|}}
+            <div class="rg-inventory-item is-orphaned" data-item-id="{{item.id}}" data-rg-gear-id="{{item.id}}"><i class="fa-solid fa-triangle-exclamation"></i><i class="{{item.iconClass}} rg-gear-card-icon" aria-hidden="true"></i><span>{{item.name}}</span><small>Missing container · {{item.slotLabel}}</small><div class="rg-inventory-item-actions"><button type="button" data-action="gearUnassign">Repair</button><button type="button" data-action="editItem">✎</button></div></div>
+            {{/each}}
+          </div>
+        </section>
+      </section>
+    </section>
+  </div>
+</section>
