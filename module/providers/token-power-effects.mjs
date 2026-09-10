@@ -99,9 +99,14 @@ export const TOKEN_POWER_EFFECT_PROVIDER = Object.freeze({
       appliesTo: ["token-power-selected-use"],
       source: sourceFor(context),
       stacking: EFFECT_STACKING.REPLACE,
-      metadata: { shadow: true, channel: "reroll", level: 3, oncePerSession: true }
+      metadata: {
+        shadow: true,
+        channel: "reroll",
+        level: 3,
+        oncePerSession: true,
+        consumeOnRerollAccept: true
+      }
     });
-    effects.push(stateChange(context, EFFECT_TIMINGS.ON_COMMIT));
     return effects;
   }
 });
