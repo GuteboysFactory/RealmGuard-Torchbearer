@@ -1,12 +1,25 @@
-Realm Guard / Torchbearer v1.3.0-qa.2 — CORE M1 QA hotfix.
+Realm Guard / Torchbearer v1.3.0 — CORE M1 GOLD.
 
-This build contains one targeted UI correction to the M1 Active Rules Registry:
-- the Registry content now has its own bounded vertical scroll area so the complete Rules Profile summary and all registry domains can be reached on normal and reduced window sizes.
+M1 establishes the first operational MG-family Rules Profile infrastructure while preserving the v1.2.0 gameplay behavior through the explicit realm-guard-legacy-mixed compatibility profile.
 
-The M1 Rules Profile, Rules Registry data, Rules Snapshot, Legacy Mixed manifest and gameplay engines are unchanged from v1.3.0-qa.1.
+Included architecture components:
+- RulesProfile and ProfileResolver
+- immutable ResolvedRulesProfile
+- RulesRegistry with provenance, classification and automation metadata
+- deterministic Rules Snapshot hash
+- explicit realm-guard-legacy-mixed v1 compatibility profile
+- GM-only Active Rules Registry diagnostic window
+- read/diagnostic API at game.realmGuard.core
+- automated headless M1 profile smoke test in the GitHub release gate
 
-Previous qa.1 live feedback: all reported M1 checks passed except that the Registry content could not be scrolled, which prevented visual verification of hidden entries.
+Live QA result: PASS on Foundry v13.351.
+
+The v1.3.0-qa.1 Registry scroll usability issue was corrected in v1.3.0-qa.2 and verified live. All other reported M1 protocol checks passed.
+
+Legacy Mixed explicitly preserves representative current behavior including unrated Wises, structured inventory and enabled Levels/Talents. Strict Realm Guard is not active and no Actor/Item rule-data migration is introduced.
 
 Gameplay change: NONE INTENDED.
-GOLD baseline: v1.2.0.
+Previous GOLD baseline: v1.2.0.
+New GOLD baseline: v1.3.0.
+Next architecture phase: M2 Unified Effect Engine.
 Foundry target: v13.351.
