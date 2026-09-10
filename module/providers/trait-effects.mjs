@@ -77,7 +77,7 @@ function sourceFor(context, extra = {}) {
 }
 
 function effectId(context, suffix) {
-  const traitKey = context.trait?.id ?? normalize(context.trait?.name) || "unknown";
+  const traitKey = context.trait?.id ?? (normalize(context.trait?.name) || "unknown");
   return `trait:${traitKey}:${suffix}`;
 }
 
