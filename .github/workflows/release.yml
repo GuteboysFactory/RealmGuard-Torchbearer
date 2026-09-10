@@ -57,9 +57,10 @@ jobs:
             node --check "$file"
           done
 
-          if [[ -f qa/m1-profile-smoke.mjs ]]; then
-            node qa/m1-profile-smoke.mjs
-          fi
+          for smoke in qa/*-smoke.mjs; do
+            [[ -f "$smoke" ]] || continue
+            node "$smoke"
+          done
 
           test -f README.md
           test -f styles/realm-guard.css
