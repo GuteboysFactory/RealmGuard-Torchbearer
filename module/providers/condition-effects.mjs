@@ -41,7 +41,7 @@ export const CONDITION_ROLL_EFFECT_PROVIDER = Object.freeze({
       const appliesTo = conditionTargets(condition);
       if (!appliesTo.length) continue;
       effects.push({
-        id: `condition:${condition.id ?? normalize(condition.name) || "unknown"}:roll-dice`,
+        id: `condition:${condition.id ?? (normalize(condition.name) || "unknown")}:roll-dice`,
         type: EFFECT_TYPES.DICE_MODIFIER,
         value,
         timing: EFFECT_TIMINGS.PRE_ROLL,
