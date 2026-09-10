@@ -19,6 +19,12 @@ import {
   TRAIT_SELECTION_PROVIDER_ID,
   buildTraitEffectContext
 } from "./providers/trait-effects.mjs";
+import {
+  CONFLICT_TOOL_EFFECT_PROVIDER,
+  CONFLICT_TOOL_PROVIDER_ID,
+  buildConflictToolEffectContext
+} from "./providers/conflict-tool-effects.mjs";
+import { legacyConflictToolReference } from "./legacy/conflict-tool-reference.mjs";
 
 const engine = new EffectEngine();
 
@@ -30,6 +36,7 @@ function registerShadowProviders() {
   const registered = new Set(engine.listProviders().map(provider => provider.id));
   if (!registered.has(CONDITION_ROLL_PROVIDER_ID)) engine.registerProvider(CONDITION_ROLL_EFFECT_PROVIDER);
   if (!registered.has(TRAIT_SELECTION_PROVIDER_ID)) engine.registerProvider(TRAIT_SELECTION_EFFECT_PROVIDER);
+  if (!registered.has(CONFLICT_TOOL_PROVIDER_ID)) engine.registerProvider(CONFLICT_TOOL_EFFECT_PROVIDER);
 }
 
 function sumChannel(effects, type, channel) {
@@ -49,7 +56,7 @@ export function getEffectEngineStatus() {
     liveApplication: false,
     providerCount: engine.listProviders().length,
     migratedProviders: Object.freeze(engine.listProviders().map(provider => provider.id)),
-    shadowScope: "CONDITION_DICE_AND_TRAIT_SELECTION_EFFECTS",
+    shadowScope: "CONDITION_DICE_TRAIT_SELECTION_AND_CONFLICT_TOOL_ACTION_EFFECTS",
     supportedTypes: Object.freeze([...Object.values(EFFECT_TYPES)]),
     supportedTimings: Object.freeze([...Object.values(EFFECT_TIMINGS)]),
     supportedStacking: Object.freeze([...Object.values(EFFECT_STACKING)])
@@ -163,6 +170,62 @@ export function compareTraitEffects(actor, traitId, traitMode = "help", {
   });
 }
 
+export function compareConflictToolEffects(selection, action, {
+  swordAction = "",
+  requirementMet = true
+} = {}) {
+  registerShadowProviders();
+  const legacy = legacyConflictToolReference(selection, action, { swordAction, requirementMet });
+  const context = buildConflictToolEffectContext(selection, action, { swordAction, requirementMet });
+  const effects = engine.collect(context, { providerIds: [CONFLICT_TOOL_PROVIDER_ID] });
+  const dice = effects
+    .filter(effect => effect.type === EFFECT_TYPES.DICE_MODIFIER)
+    .reduce((total, effect) => total + Number(effect.value ?? 0), 0);
+  const conditionalSuccess = effects
+    .filter(effect => effect.type === EFFECT_TYPES.SUCCESS_MODIFIER && effect.metadata?.channel === "conditionalSuccess")
+    .reduce((total, effect) => total + Math.max(0, Number(effect.value ?? 0)), 0);
+  const successPenalty = effects
+    .filter(effect => effect.type === EFFECT_TYPES.SUCCESS_MODIFIER && effect.metadata?.channel === "successPenalty")
+    .reduce((total, effect) => total + Math.abs(Math.min(0, Number(effect.value ?? 0))), 0);
+  const blocked = effects.some(effect => effect.type === EFFECT_TYPES.CAPABILITY_BLOCK);
+  const core = Object.freeze({
+    dice,
+    conditionalSuccess,
+    successPenalty,
+    blocked,
+    effects: Object.freeze(effects.map(effect => Object.freeze({
+      id: effect.id,
+      type: effect.type,
+      value: effect.value,
+      channel: effect.metadata?.channel ?? null,
+      tool: effect.source.toolName,
+      kind: effect.source.toolKind,
+      providerId: effect.source.providerId,
+      legacyCompatibility: Boolean(effect.metadata?.legacyCompatibility)
+    })))
+  });
+  const legacyView = Object.freeze({
+    dice: Number(legacy.dice ?? 0),
+    conditionalSuccess: Number(legacy.conditionalSuccess ?? 0),
+    successPenalty: Number(legacy.successPenalty ?? 0),
+    requirement: legacy.requirement ?? "",
+    requirementMet: Boolean(legacy.requirementMet),
+    toolName: legacy.toolName ?? "",
+    notes: Object.freeze([...(legacy.notes ?? [])])
+  });
+  return Object.freeze({
+    match:
+      legacyView.dice === core.dice &&
+      legacyView.conditionalSuccess === core.conditionalSuccess &&
+      legacyView.successPenalty === core.successPenalty &&
+      Boolean(legacyView.requirement && !legacyView.requirementMet) === core.blocked,
+    action: String(action ?? ""),
+    swordAction: String(swordAction ?? ""),
+    legacy: legacyView,
+    core
+  });
+}
+
 function diagnosticsHtml() {
   registerShadowProviders();
   const status = getEffectEngineStatus();
@@ -171,7 +234,7 @@ function diagnosticsHtml() {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M2</div>
       <h2 style="margin:3px 0 4px;">Unified Effect Engine</h2>
-      <p style="margin:0;">Two real Effect Providers are now running in shadow-compare mode. Existing live rolls still use the v1.3.0 GOLD-compatible Condition and Trait logic.</p>
+      <p style="margin:0;">Three real Effect Providers are now running in shadow-compare mode. Existing live rolls and Conflict resolution still use the v1.3.0 GOLD-compatible logic.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Mode</small><br><b>${esc(status.mode)}</b></div>
@@ -180,8 +243,9 @@ function diagnosticsHtml() {
     </div>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Shadow Migration Scope</h3>
-      <p style="margin:0 0 6px;"><b>Condition dice modifiers + selected Trait roll effects.</b></p>
-      <p style="margin:0;">Conditions translate active <code>rollModifier</code>/<code>appliesTo</code> data. Traits translate the selected beneficial +1D/+1s behavior, Trait Against -1D, Versus opponent +2D, Check entitlement and beneficial-use blocking. Live resource commits, Trait session-use consumption and Check awards remain legacy-controlled.</p>
+      <p style="margin:0 0 6px;"><b>Condition dice + selected Traits + Conflict Weapon/Tool action modifiers.</b></p>
+      <p style="margin:0;">The Conflict Tool provider mirrors the currently published Legacy Mixed action table for physical Fight weapons and saved/improvised Conflict Tools. Dice bonuses/penalties become <code>DICE_MODIFIER</code>; conditional success changes become <code>SUCCESS_MODIFIER</code>; unmet tool requirements become <code>CAPABILITY_BLOCK</code>. Armor/damage absorption is not invented here because it is not part of the current live action-modifier path.</p>
+      <p style="margin:6px 0 0;"><b>Compatibility note:</b> current Legacy Mixed “no valid Conflict Weapon/Tool = −1D” is shadowed as a profile-specific legacy effect, not declared as a universal CORE rule.</p>
     </section>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Registered Providers</h3>
@@ -189,15 +253,17 @@ function diagnosticsHtml() {
     </section>
     <section style="margin:0 0 14px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">QA Shadow Compare</h3>
-      <p style="margin:0 0 6px;">Condition helper:</p>
+      <p style="margin:0 0 6px;">Condition:</p>
       <code>game.realmGuard.core.effects.compareConditionDice(actor, "Pathfinder", { isSkill: true })</code>
-      <p style="margin:8px 0 6px;">Trait helper:</p>
+      <p style="margin:8px 0 6px;">Trait:</p>
       <code>game.realmGuard.core.effects.compareTraitEffects(actor, traitId, "help", { baseSuccesses: 3, target: 3 })</code>
-      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Both helpers are read-only and do not roll dice or change Actor data.</p>
+      <p style="margin:8px 0 6px;">Conflict Tool:</p>
+      <code>game.realmGuard.core.effects.compareConflictToolEffects("Shield", "defend")</code>
+      <p style="margin:6px 0 0;">Expected: <b>match: true</b>. Helpers are read-only and do not roll dice or change Actor data.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No gameplay takeover in qa.3.</b><br>
-      <small>The Condition and Trait providers are deliberately shadow-only. Any live pool, success, resource or outcome change from v1.3.0 is a blocker.</small>
+      <b>No gameplay takeover in qa.4.</b><br>
+      <small>All three providers are deliberately shadow-only. Any live pool, success, resource, inventory or Conflict outcome change from v1.3.0 is a blocker.</small>
     </div>
   </div>`;
 }
@@ -224,8 +290,10 @@ function exposeEffectApi() {
     getStatus: getEffectEngineStatus,
     compareConditionDice,
     compareTraitEffects,
+    compareConflictToolEffects,
     buildConditionEffectContext,
     buildTraitEffectContext,
+    buildConflictToolEffectContext,
     createEffect,
     effectApplies,
     defaultRequirementEvaluator,
