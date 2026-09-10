@@ -1,32 +1,30 @@
-Realm Guard / Torchbearer v1.4.0-qa.1 — CORE M2 QA.
+Realm Guard / Torchbearer v1.4.0-qa.2 — CORE M2 Condition Effect Provider QA.
 
-M2 begins the Unified Effect Engine phase from the v1.3.0 GOLD baseline.
+qa.1 established the Unified Effect Engine foundation and passed live QA. qa.2 adds the first real Effect Provider while keeping all live gameplay on the existing v1.3.0-compatible logic.
 
-This first M2 build is deliberately foundation-only and runs the new Effect Engine in SHADOW_DIAGNOSTIC mode. It does not take over live roll, Conflict, recovery or other gameplay modifier resolution yet.
+New in qa.2:
+- Condition roll-dice Effect Provider: conditions.roll-dice
+- active Condition system.rollModifier data maps to CORE DICE_MODIFIER Effects
+- Condition system.appliesTo maps to Effect applicability tags
+- Effect provenance retains Actor/Condition identity and provider ownership
+- independent shadow comparison helper: game.realmGuard.core.effects.compareConditionDice(...)
+- M2 diagnostics now show SHADOW_COMPARE mode, one provider and the exact migration scope
+- automated condition-provider headless smoke test added to the release gate
 
-New architecture components:
-- shared immutable Effect model
-- Effect Types, Timings and Stacking registries
-- deterministic Effect provider registration and ordering
-- appliesTo / excludes context filtering
-- declarative requirement evaluation
-- source/provider provenance on collected Effects
-- type/timing/provider filters
-- numeric Effect summary helper
-- GM-only CORE M2 Effect Engine diagnostics window
-- runtime API at game.realmGuard.core.effects
-- automated M2 headless smoke test in the GitHub release gate
+Scope is deliberately narrow:
+- migrated in shadow: Condition dice modifiers only
+- not migrated yet: recovery rules, disposition effects, capability blocks, Trait/Wise blocking or any other Condition behavior
+- live application remains OFF
+- current roll dialogs and live Condition calculation remain unchanged
 
-Expected live status in qa.1:
+Expected live status:
 - phase: M2
-- mode: SHADOW_DIAGNOSTIC
+- mode: SHADOW_COMPARE
 - live application: OFF
-- registered live providers: 0
-
-This is intentional. Real Conditions/Traits/Gear/etc. providers will be migrated only after the Effect Engine foundation passes live QA, so any gameplay regression in qa.1 is considered a blocker.
-
-M0 schema/migration state and the M1 realm-guard-legacy-mixed profile/Rules Registry remain unchanged.
+- providers: 1
+- provider: conditions.roll-dice
 
 Gameplay change: NONE INTENDED.
 GOLD baseline: v1.3.0.
+Previous M2 QA: v1.4.0-qa.1 PASS.
 Foundry target: v13.351.
