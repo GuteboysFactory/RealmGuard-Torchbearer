@@ -2,7 +2,7 @@
   "id": "realm-guard",
   "title": "Realm Guard / Torchbearer",
   "description": "Realm Guard / Torchbearer is a fantasy roleplaying system for Foundry VTT focused on Rangers, hard journeys, dangerous conflicts and difficult choices. The current Legacy Mixed rules profile preserves the published project behavior while the MG-family CORE architecture is introduced incrementally and non-destructively.",
-  "version": "1.3.0",
+  "version": "1.4.0-qa.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13.351",
@@ -71,6 +71,6 @@
   "socket": true,
   "background": "systems/realm-guard/assets/ui/realm-guard-torchbearer-world-bg.webp",
   "url": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer",
-  "manifest": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/latest/download/system.json",
-  "download": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.3.0/realm-guard.zip"
+  "manifest": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json",
+  "download": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.4.0-qa.1/realm-guard.zip"
 }
