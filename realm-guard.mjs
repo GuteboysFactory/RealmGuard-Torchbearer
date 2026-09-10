@@ -27,6 +27,7 @@ import { installTokenNameHover } from "./module/token-hover.mjs";
 import { installCoreBaseline } from "./module/core-baseline.mjs";
 import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
 import { installEffectEngineInfrastructure } from "./module/effect-engine-service.mjs";
+import { installWisePostRollPrompt } from "./module/wise-post-roll.mjs";
 
 Hooks.once("init", () => {
   console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.4.0-qa.1"}`);
@@ -56,6 +57,7 @@ Hooks.once("init", () => {
   installCoreBaseline();
   installRulesProfileInfrastructure();
   installEffectEngineInfrastructure();
+  installWisePostRollPrompt(RealmGuardActor);
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
