@@ -6,6 +6,8 @@ export const TEST_PARITY_FIELDS = Object.freeze([
   "margin"
 ]);
 
+const PARITY_CONTEXTS = new Set(["ordinary", "versus", "beginnerLuck"]);
+
 function clone(value) {
   if (value === undefined) return undefined;
   if (value === null || typeof value !== "object") return value;
@@ -40,14 +42,17 @@ function normalizeFaces(faces = []) {
 
 export function createLegacyTestSnapshot(spec = {}) {
   const context = String(spec.context ?? "ordinary").trim();
-  if (!["ordinary", "versus"].includes(context)) throw new Error(`Unsupported parity context: ${context}`);
+  if (!PARITY_CONTEXTS.has(context)) throw new Error(`Unsupported parity context: ${context}`);
   const pool = Math.max(0, integer(spec.pool, 0));
   const faces = normalizeFaces(spec.faces ?? []);
+  const supplementalFaces = normalizeFaces(spec.supplementalFaces ?? []);
   if (faces.length !== pool) {
     throw new Error(`Legacy parity snapshot expected ${pool} resolved dice, received ${faces.length}.`);
   }
   const successes = Math.max(0, integer(spec.successes, 0));
-  const rawSuccesses = faces.filter(face => face >= Math.max(2, Math.min(6, integer(spec.successThreshold, 4)))).length;
+  const successThreshold = Math.max(2, Math.min(6, integer(spec.successThreshold, 4)));
+  const allFaces = Object.freeze([...faces, ...supplementalFaces]);
+  const rawSuccesses = allFaces.filter(face => face >= successThreshold).length;
   return deepFreeze({
     id: String(spec.id ?? ""),
     context,
@@ -58,12 +63,14 @@ export function createLegacyTestSnapshot(spec = {}) {
     pool,
     target: Math.max(0, integer(spec.target, 0)),
     faces,
+    supplementalFaces,
+    allFaces,
     rawSuccesses,
     successModifier: successes - rawSuccesses,
     successes,
     outcome: normalizeOutcome(spec.outcome),
     margin: Math.max(0, integer(spec.margin, 0)),
-    successThreshold: Math.max(2, Math.min(6, integer(spec.successThreshold, 4))),
+    successThreshold,
     provenance: clone(spec.provenance ?? {})
   });
 }
@@ -92,6 +99,7 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
   if (!engine?.runDeterministic) throw new Error("runLegacyCoreTestParity requires a TestEngine.");
   const legacy = createLegacyTestSnapshot(legacySpec);
   const requestId = String(id ?? legacy.id ?? `m3-parity-${Date.now()}`);
+  const isVersus = legacy.context === "versus";
   const request = {
     id: requestId,
     context: {
@@ -105,8 +113,8 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
       }
     },
     basePool: legacy.pool,
-    obstacle: legacy.context === "ordinary" ? legacy.target : 0,
-    oppositionSuccesses: legacy.context === "versus" ? legacy.target : 0,
+    obstacle: isVersus ? 0 : legacy.target,
+    oppositionSuccesses: isVersus ? legacy.target : 0,
     successModifier: legacy.successModifier,
     successThreshold: legacy.successThreshold,
     profileId,
@@ -121,13 +129,18 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
   const prepared = engine.runDeterministic(request, {
     provenance: {
       shadowParity: true,
-      legacyPoolObserved: legacy.pool
+      legacyPoolObserved: legacy.pool,
+      supplementalFacesObserved: legacy.supplementalFaces.length
     }
-  }, legacy.faces);
+  }, legacy.faces, {
+    supplementalFaces: legacy.supplementalFaces
+  });
   const core = deepFreeze({
     pool: Number(prepared.plan.finalPool),
     target: Number(prepared.result.targetSuccesses),
     faces: [...prepared.result.faces],
+    supplementalFaces: [...prepared.result.supplementalFaces],
+    allFaces: [...prepared.result.allFaces],
     rawSuccesses: Number(prepared.result.rawSuccesses),
     successModifier: Number(prepared.result.successModifier),
     successes: Number(prepared.result.finalSuccesses),
