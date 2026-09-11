@@ -24,6 +24,7 @@ export function getTestEngineStatus() {
     supportedContexts: Object.freeze([...TEST_CONTEXTS]),
     transactionStates: Object.freeze([...Object.values(TEST_TRANSACTION_STATES)]),
     parityBridge: "LEGACY_MIXED_REAL_ROLLS",
+    supplementalFaces: true,
     conflictIntegration: "LEGACY_ADAPTER_UNTIL_M6"
   });
 }
@@ -36,7 +37,8 @@ export function runTestEngineDiagnostic({
   extraDice = 0,
   diceModifier = 0,
   successModifier = 0,
-  faces = [4, 4, 1, 2]
+  faces = [4, 4, 1, 2],
+  supplementalFaces = []
 } = {}) {
   const prepared = engine.runDeterministic({
     id: `m3-diagnostic-${Date.now()}`,
@@ -50,7 +52,7 @@ export function runTestEngineDiagnostic({
   }, {
     diceModifier,
     provenance: { diagnostic: true }
-  }, faces);
+  }, faces, { supplementalFaces });
   return Object.freeze({
     request: prepared.request,
     plan: prepared.plan,
@@ -81,11 +83,13 @@ function diagnosticsHtml() {
       <div>TestRequest · RollPlan · RollTransaction · TestResult · TestContext · TestEngine</div>
       <div style="margin-top:6px;"><b>Contexts:</b> ${status.supportedContexts.join(", ")}</div>
       <div style="margin-top:6px;"><b>Transaction:</b> ${status.transactionStates.join(" → ")}</div>
+      <div style="margin-top:6px;"><b>Supplemental deterministic faces:</b> supported for shadow replay.</div>
     </section>
     <section style="margin-bottom:12px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Real Legacy Mixed ↔ CORE shadow parity</h3>
       <p style="margin:0 0 6px;">Observed live Legacy Mixed test data is replayed deterministically through CORE and compared for <b>pool, target, successes, outcome and margin</b>.</p>
-      <div><b>Summary:</b> ${parityText}</div>
+      <div><b>qa.3 scope:</b> trained Skill, Ability, ordinary Beginner's Luck, Automatic Versus, Nature Versus and Fate/Open-6 supplemental dice.</div>
+      <div style="margin-top:6px;"><b>Summary:</b> ${parityText}</div>
       <div style="margin-top:4px;"><b>Latest:</b> ${latestText}</div>
       <div style="margin-top:8px;"><code>game.realmGuard.core.testParity.getLatest()</code></div>
       <div><code>game.realmGuard.core.testParity.getSummary()</code></div>
@@ -94,11 +98,11 @@ function diagnosticsHtml() {
     <section style="margin-bottom:12px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Deterministic foundation smoke</h3>
       <code>game.realmGuard.core.tests.runDiagnostic()</code>
-      <p style="margin:8px 0 0;">Expected default: 4D, faces [4,4,1,2], 2 successes vs Ob 2, PASS. No Actor or world state changes.</p>
+      <p style="margin:8px 0 0;">Default remains 4D, faces [4,4,1,2], 2 successes vs Ob 2, PASS. Optional supplementalFaces can be supplied for shadow Fate diagnostics without changing the base pool.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No Test Engine gameplay takeover in M3 qa.2.</b><br>
-      <small>Legacy Mixed still rolls, resolves, spends resources and writes chat. CORE only observes/replays supported results for parity diagnostics. Fate Open-6 additive dice and resolved secondary Versus tiebreaks are deliberately skipped in this first real-roll parity slice.</small>
+      <b>No Test Engine gameplay takeover in M3 qa.3.</b><br>
+      <small>Legacy Mixed still prepares rolls, rolls dice, decides/spends Fate, resolves gameplay, advances state and writes chat. CORE only observes and deterministically replays supported real results. Secondary Versus tiebreaks and Beginner's Luck Versus remain intentionally skipped.</small>
     </div>
   </div>`;
 }
