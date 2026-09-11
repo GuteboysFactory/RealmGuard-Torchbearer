@@ -32,9 +32,10 @@ import { installTestEngineInfrastructure } from "./module/test-engine-service.mj
 import { installTestParityShadow } from "./module/test-parity-service.mjs";
 import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
 import { installCustomRollParityAction } from "./module/custom-roll-parity-ui.mjs";
+import { installCustomContentCompatibilityQa } from "./module/custom-content-compatibility.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.9"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.10"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -66,6 +67,7 @@ Hooks.once("init", () => {
   installTalentEffectShadow();
   installTestEngineInfrastructure();
   installTestParityShadow(RealmGuardActor);
+  installCustomContentCompatibilityQa();
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
