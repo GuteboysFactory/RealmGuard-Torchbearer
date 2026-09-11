@@ -53,9 +53,11 @@ export function createLegacyTestSnapshot(spec = {}) {
   const successThreshold = Math.max(2, Math.min(6, integer(spec.successThreshold, 4)));
   const allFaces = Object.freeze([...faces, ...supplementalFaces]);
   const rawSuccesses = allFaces.filter(face => face >= successThreshold).length;
+  const versus = Boolean(spec.versus ?? context === "versus");
   return deepFreeze({
     id: String(spec.id ?? ""),
     context,
+    versus,
     actorId: spec.actorId ?? null,
     actorName: String(spec.actorName ?? ""),
     sourceId: spec.sourceId ?? null,
@@ -100,7 +102,7 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
   if (!engine?.runDeterministic) throw new Error("runLegacyCoreTestParity requires a TestEngine.");
   const legacy = createLegacyTestSnapshot(legacySpec);
   const requestId = String(id ?? legacy.id ?? `m3-parity-${Date.now()}`);
-  const isVersus = legacy.context === "versus";
+  const isVersus = legacy.versus;
   const request = {
     id: requestId,
     context: {
@@ -110,6 +112,7 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
       sourceName: legacy.sourceName,
       metadata: {
         shadowParity: true,
+        versus: isVersus,
         legacyMethod: legacy.provenance?.method ?? null
       }
     },
@@ -131,13 +134,16 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
     provenance: {
       shadowParity: true,
       legacyPoolObserved: legacy.pool,
-      supplementalFacesObserved: legacy.supplementalFaces.length
+      supplementalFacesObserved: legacy.supplementalFaces.length,
+      versus: isVersus
     }
   }, legacy.faces, {
     supplementalFaces: legacy.supplementalFaces,
     versusResolution: legacy.versusResolution
   });
   const core = deepFreeze({
+    context: prepared.result.context,
+    versus: Boolean(prepared.result.provenance?.isVersus),
     pool: Number(prepared.plan.finalPool),
     target: Number(prepared.result.targetSuccesses),
     faces: [...prepared.result.faces],
@@ -154,6 +160,7 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
   return deepFreeze({
     id: requestId,
     context: legacy.context,
+    versus: legacy.versus,
     legacy,
     core,
     parity,
