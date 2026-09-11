@@ -33,7 +33,7 @@ import { installTestParityShadow } from "./module/test-parity-service.mjs";
 import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.7"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.8"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
