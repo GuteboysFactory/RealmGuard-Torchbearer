@@ -32,7 +32,7 @@ import { installTestEngineInfrastructure } from "./module/test-engine-service.mj
 import { installTestParityShadow } from "./module/test-parity-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.3"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.5"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
