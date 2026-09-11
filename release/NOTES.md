@@ -1,32 +1,28 @@
-Realm Guard / Torchbearer v1.5.0-qa.10 — CORE M3 Custom Content Compatibility QA.
+Realm Guard / Torchbearer v1.5.0-qa.11 — CORE M3 Final Promotion Matrix.
 
-qa.9 verified the complete TestContext vocabulary including Custom Roll. qa.10 now verifies that supported user-created content remains first-class through the CORE shadow architecture and does not depend on canonical/default item names or IDs.
+qa.10 verified the Custom Content Compatibility matrix: custom Skill, Trait, Wise, Talent and Token of Power behavior, manual/free-text boundaries and reload persistence all passed without canonical-name dependence.
 
-New in v1.5.0-qa.10:
-- adds a dedicated `game.realmGuard.core.customContent` QA API
-- exposes custom-content status, Actor inspection and named-item verification
-- verifies a non-default custom Skill against the latest real Test parity result
-- verifies custom Trait through the existing M2 Trait shadow comparator
-- verifies custom Wise through the existing M2 Wise shadow comparator
-- verifies custom Talent through the existing M2 Talent shadow comparator
-- verifies custom Token of Power through the existing M2 Token of Power shadow comparator
-- keeps the architectural rule explicit: type/data-driven, not name-driven
-- preserves manual/free-text content as manual unless a structured effect mode exists
-- keeps custom Conditions as an M4 carry-forward requirement and custom Gear as an M5 carry-forward requirement
-- extends headless smoke coverage to retain Custom TestContext parity
+qa.11 is the final M3 gate. It does not promote CORE to live authority. It verifies that the complete Unified Test Engine shadow architecture is stable enough to mark M3 VERIFIED and proceed to M4.
+
+Final M3 QA scope:
+- startup / authority verification
+- positive and negative modifier parity without double application
+- cancel safety for ordinary and Custom Roll dialogs
+- representative context regression sweep across ordinary, ability, nature, circles, beginnerLuck, versus, recovery and custom
+- custom-content regression
+- reload / duplicate observer safety
+- GM + Player multiclient safety
+- M2 six-provider shadow preservation
 
 Important preservation:
-- Legacy Mixed remains sole live authority
-- Test Engine remains SHADOW_PARITY / live OFF
-- Effect Engine remains SHADOW_COMPARE / live OFF
-- all six M2 providers remain registered
-- no custom Item is migrated, renamed or rewritten by qa.10
-- no canonical content replacement is performed
-- no strict-profile correction or Conflict takeover
+- Legacy Mixed remains sole live authority throughout qa.11
+- CORE Test Engine remains SHADOW_PARITY / live OFF
+- CORE Effect Engine remains SHADOW_COMPARE / live OFF
+- Conflict remains on the Legacy adapter path until M6
+- no destructive world migration or strict-profile correction
 
-M3 work remaining after qa.10:
-- final promotion matrix: modifiers, cancellation safety, duplicate-observer/reload, multi-client behavior and promotion-readiness review
+If the full qa.11 matrix passes, record M3 Unified Test Engine = VERIFIED and begin M4 Advancement / Nature / Conditions Services.
 
-QA protocol: TEST_PROTOCOL_v1.5.0-qa.10.md
+QA protocol: TEST_PROTOCOL_v1.5.0-qa.11.md
 Foundry target: v13.351.
-Approved baseline: v1.5.0-qa.9 PASS.
+Approved baseline: v1.5.0-qa.10 PASS.
