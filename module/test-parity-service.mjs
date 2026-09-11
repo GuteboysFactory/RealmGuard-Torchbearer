@@ -21,6 +21,7 @@ function recordParity(actor,method,spec){const id=`m3-shadow-${Date.now()}-${++s
 
 function normalizeTieTrace(trace){const entry=trace?.tieResolutions?.length?trace.tieResolutions[trace.tieResolutions.length-1]:null;if(!entry)return null;const tie=entry.result??{};return {method:tie.method??"pending",resolved:Boolean(tie.resolved),ownTieFaces:Array.from(tie.ownTieFaces??[]).map(Number),oppTieFaces:Array.from(tie.oppTieFaces??[]).map(Number),finalOwnSuccesses:tie.finalOwnSuccesses??null,finalOpponentSuccesses:tie.finalOpponentSuccesses??null,ownAbility:tie.ownAbility??null,oppAbility:tie.oppAbility??null,opponentFaces:Array.from(entry.args?.[0]?.opponentFaces??[]).map(Number)};}
 function abilityContext(abilityKey){const key=String(abilityKey??"").toLowerCase();if(key==="nature")return "nature";if(key==="circles")return "circles";return "ability";}
+function isRecoveryRoll(options={}){return options?.ignoreConditions===true;}
 
 function paritySpecFor(actor,method,args,result,trace){
   if(!result||typeof result!=="object"||!result.roll)return null;
@@ -32,14 +33,17 @@ function paritySpecFor(actor,method,args,result,trace){
 
   if(method==="rollRole"){
     const [role,options={}]=args;
-    return {...common,context:"ordinary",target:Math.max(0,Number(options?.obstacle??1)),sourceId:role?.id??null,sourceName:role?.name??"Skill",provenance:{...common.provenance,targetSource:"legacy-options.obstacle",semanticContext:"trained-skill"}};
+    const recovery=isRecoveryRoll(options);
+    return {...common,context:recovery?"recovery":"ordinary",target:Math.max(0,Number(options?.obstacle??1)),sourceId:role?.id??null,sourceName:role?.name??"Skill",provenance:{...common.provenance,targetSource:"legacy-options.obstacle",semanticContext:recovery?"recovery-role":"trained-skill",recoverySignature:recovery?"ignoreConditions":null}};
   }
 
   if(method==="rollAbility"){
     const [abilityKey,options={}]=args;
     const key=String(abilityKey??"").toLowerCase();
+    const recovery=isRecoveryRoll(options);
     const sourceName=typeof actor?._abilityLabel==="function"?actor._abilityLabel(abilityKey):String(abilityKey??"Ability");
-    return {...common,context:abilityContext(key),target:Math.max(0,Number(options?.obstacle??1)),sourceId:key,sourceName,provenance:{...common.provenance,targetSource:"legacy-options.obstacle",abilityKey:key,semanticContext:key==="nature"?"nature":key==="circles"?"circles":key==="resources"?"resources":"ability"}};
+    const semanticContext=recovery?"recovery-ability":key==="nature"?"nature":key==="circles"?"circles":key==="resources"?"resources":"ability";
+    return {...common,context:recovery?"recovery":abilityContext(key),target:Math.max(0,Number(options?.obstacle??1)),sourceId:key,sourceName,provenance:{...common.provenance,targetSource:"legacy-options.obstacle",abilityKey:key,semanticContext,recoverySignature:recovery?"ignoreConditions":null}};
   }
 
   if(method==="rollBeginnerLuck"){
@@ -66,7 +70,7 @@ function markWrapped(fn){Object.defineProperty(fn,"_rgM3ParityWrapped",{value:tr
 function wrapHelper(ActorClass,method,traceKey){const original=ActorClass?.prototype?.[method];if(typeof original!=="function"||original._rgM3ParityWrapped)return false;const wrapped=markWrapped(async function(...args){const result=await original.apply(this,args);const trace=traceByActor.get(this);if(trace&&Array.isArray(trace[traceKey])){if(method==="_resolveAutomaticVersusTie")trace[traceKey].push({args:clone(args),result:clone(result)});else if(Array.isArray(result))trace[traceKey].push({faces:result.map(Number),rerollFaces:[],rerolledIndexes:[]});else trace[traceKey].push({faces:Array.from(result?.faces??[]).map(Number),rerollFaces:Array.from(result?.rerollFaces??[]).map(Number),rerolledIndexes:Array.from(result?.rerolledIndexes??[]).map(Number)});}return result;});ActorClass.prototype[method]=wrapped;return true;}
 function wrapRollMethod(ActorClass,method){const original=ActorClass?.prototype?.[method];if(typeof original!=="function"||original._rgM3ParityWrapped)return false;const wrapped=markWrapped(async function(...args){const previous=traceByActor.get(this)??null;const trace={method,wiseResults:[],tokenResults:[],fateExplosions:[],tieResolutions:[]};traceByActor.set(this,trace);try{const result=await original.apply(this,args);compareCompletedRoll(this,method,args,result,trace);return result;}finally{if(previous)traceByActor.set(this,previous);else traceByActor.delete(this);}});ActorClass.prototype[method]=wrapped;return true;}
 function installPrototypeObservers(ActorClass){if(installed)return;wrapHelper(ActorClass,"_applyWiseReroll","wiseResults");wrapHelper(ActorClass,"_applyTokenPowerReroll","tokenResults");wrapHelper(ActorClass,"_explodeSixes","fateExplosions");wrapHelper(ActorClass,"_resolveAutomaticVersusTie","tieResolutions");for(const method of INSTRUMENTED_METHODS)wrapRollMethod(ActorClass,method);installed=true;}
-export function getTestParityStatus(){return deepFreeze({phase:"M3",mode:"SHADOW_PARITY",liveApplication:false,authority:"LEGACY_MIXED",comparisonFields:[...TEST_PARITY_FIELDS],instrumentedMethods:[...INSTRUMENTED_METHODS],historyLimit:HISTORY_LIMIT,persistence:"CLIENT_MEMORY_ONLY",bridge:"LEGACY_RESOLVED_FACES_WITH_SEMANTIC_CONTEXT_TO_CORE",supportedSpecialResolution:["FATE_OPEN_SIX","AUTOMATIC_VERSUS_TIEBREAK","BEGINNER_LUCK_VERSUS","NATURE_VERSUS"],contextCoverage:["ordinary","ability","nature","circles","beginnerLuck","versus"],remainingContextWork:["recovery","custom"],skippedCases:["FATE_TRACE_UNAVAILABLE"]});}
+export function getTestParityStatus(){return deepFreeze({phase:"M3",mode:"SHADOW_PARITY",liveApplication:false,authority:"LEGACY_MIXED",comparisonFields:[...TEST_PARITY_FIELDS],instrumentedMethods:[...INSTRUMENTED_METHODS],historyLimit:HISTORY_LIMIT,persistence:"CLIENT_MEMORY_ONLY",bridge:"LEGACY_RESOLVED_FACES_WITH_RECOVERY_CONTEXT_TO_CORE",supportedSpecialResolution:["FATE_OPEN_SIX","AUTOMATIC_VERSUS_TIEBREAK","BEGINNER_LUCK_VERSUS","NATURE_VERSUS","RECOVERY_TEST"],contextCoverage:["ordinary","ability","nature","circles","beginnerLuck","versus","recovery"],remainingContextWork:["custom"],recoveryDetection:"LEGACY_IGNORE_CONDITIONS_SIGNATURE",skippedCases:["FATE_TRACE_UNAVAILABLE"]});}
 export function getTestParityHistory(){return Object.freeze([...history]);}
 export function getLatestTestParity(){return history.length?history[history.length-1]:null;}
 export function getTestParitySummary(){const matches=history.filter(e=>e.status==="MATCH").length,mismatches=history.filter(e=>e.status==="MISMATCH").length,skipped=history.filter(e=>e.status==="SKIPPED").length,errors=history.filter(e=>e.status==="ERROR").length;return deepFreeze({observed:history.length,compared:matches+mismatches,matches,mismatches,skipped,errors,latest:getLatestTestParity()});}
