@@ -70,7 +70,26 @@ function markWrapped(fn){Object.defineProperty(fn,"_rgM3ParityWrapped",{value:tr
 function wrapHelper(ActorClass,method,traceKey){const original=ActorClass?.prototype?.[method];if(typeof original!=="function"||original._rgM3ParityWrapped)return false;const wrapped=markWrapped(async function(...args){const result=await original.apply(this,args);const trace=traceByActor.get(this);if(trace&&Array.isArray(trace[traceKey])){if(method==="_resolveAutomaticVersusTie")trace[traceKey].push({args:clone(args),result:clone(result)});else if(Array.isArray(result))trace[traceKey].push({faces:result.map(Number),rerollFaces:[],rerolledIndexes:[]});else trace[traceKey].push({faces:Array.from(result?.faces??[]).map(Number),rerollFaces:Array.from(result?.rerollFaces??[]).map(Number),rerolledIndexes:Array.from(result?.rerolledIndexes??[]).map(Number)});}return result;});ActorClass.prototype[method]=wrapped;return true;}
 function wrapRollMethod(ActorClass,method){const original=ActorClass?.prototype?.[method];if(typeof original!=="function"||original._rgM3ParityWrapped)return false;const wrapped=markWrapped(async function(...args){const previous=traceByActor.get(this)??null;const trace={method,wiseResults:[],tokenResults:[],fateExplosions:[],tieResolutions:[]};traceByActor.set(this,trace);try{const result=await original.apply(this,args);compareCompletedRoll(this,method,args,result,trace);return result;}finally{if(previous)traceByActor.set(this,previous);else traceByActor.delete(this);}});ActorClass.prototype[method]=wrapped;return true;}
 function installPrototypeObservers(ActorClass){if(installed)return;wrapHelper(ActorClass,"_applyWiseReroll","wiseResults");wrapHelper(ActorClass,"_applyTokenPowerReroll","tokenResults");wrapHelper(ActorClass,"_explodeSixes","fateExplosions");wrapHelper(ActorClass,"_resolveAutomaticVersusTie","tieResolutions");for(const method of INSTRUMENTED_METHODS)wrapRollMethod(ActorClass,method);installed=true;}
-export function getTestParityStatus(){return deepFreeze({phase:"M3",mode:"SHADOW_PARITY",liveApplication:false,authority:"LEGACY_MIXED",comparisonFields:[...TEST_PARITY_FIELDS],instrumentedMethods:[...INSTRUMENTED_METHODS],historyLimit:HISTORY_LIMIT,persistence:"CLIENT_MEMORY_ONLY",bridge:"LEGACY_RESOLVED_FACES_WITH_RECOVERY_CONTEXT_TO_CORE",supportedSpecialResolution:["FATE_OPEN_SIX","AUTOMATIC_VERSUS_TIEBREAK","BEGINNER_LUCK_VERSUS","NATURE_VERSUS","RECOVERY_TEST"],contextCoverage:["ordinary","ability","nature","circles","beginnerLuck","versus","recovery"],remainingContextWork:["custom"],recoveryDetection:"LEGACY_IGNORE_CONDITIONS_SIGNATURE",skippedCases:["FATE_TRACE_UNAVAILABLE"]});}
+
+export function observeCustomRollParity(actor,spec={}){
+  try{
+    const pool=Math.max(0,Number(spec.pool??0));
+    const target=Math.max(0,Number(spec.target??spec.obstacle??0));
+    const faces=Array.from(spec.faces??[]).map(Number);
+    const supplementalFaces=Array.from(spec.supplementalFaces??[]).map(Number);
+    const successes=Math.max(0,Number(spec.successes??0));
+    const outcome=String(spec.outcome??(successes>=target?"PASS":"FAIL")).toUpperCase();
+    const margin=Math.max(0,Number(spec.margin??Math.abs(successes-target)));
+    if(!pool||faces.length!==pool)return recordSkipped(actor,"customRoll","CUSTOM_ROLL_INVALID_PRIMARY_FACES",{pool,faceCount:faces.length});
+    return recordParity(actor,"customRoll",{
+      context:"custom",versus:false,pool,target,faces,supplementalFaces,successes,outcome,margin,
+      sourceId:null,sourceName:String(spec.label??"Custom Roll"),
+      provenance:{targetSource:"custom-roll-dialog.obstacle",semanticContext:"custom-free-pool",fateOpenSix:Boolean(spec.fateSpent),personaDice:Math.max(0,Number(spec.personaDice??0)),baseDice:Math.max(0,Number(spec.baseDice??pool)),extraDice:Math.max(0,Number(spec.extraDice??0)),supplementalFaceCount:supplementalFaces.length,noLearning:true}
+    });
+  }catch(error){return recordError(actor,"customRoll",error);}
+}
+
+export function getTestParityStatus(){return deepFreeze({phase:"M3",mode:"SHADOW_PARITY",liveApplication:false,authority:"LEGACY_MIXED",comparisonFields:[...TEST_PARITY_FIELDS],instrumentedMethods:[...INSTRUMENTED_METHODS],observedEntryPoints:[...INSTRUMENTED_METHODS,"customRoll"],historyLimit:HISTORY_LIMIT,persistence:"CLIENT_MEMORY_ONLY",bridge:"LEGACY_RESOLVED_FACES_WITH_FULL_TEST_CONTEXT_TO_CORE",supportedSpecialResolution:["FATE_OPEN_SIX","AUTOMATIC_VERSUS_TIEBREAK","BEGINNER_LUCK_VERSUS","NATURE_VERSUS","RECOVERY_TEST","CUSTOM_ROLL"],contextCoverage:["ordinary","ability","nature","circles","beginnerLuck","versus","recovery","custom"],remainingContextWork:[],remainingM3Work:["CUSTOM_CONTENT_COMPATIBILITY","FINAL_PROMOTION_MATRIX"],recoveryDetection:"LEGACY_IGNORE_CONDITIONS_SIGNATURE",skippedCases:["FATE_TRACE_UNAVAILABLE"]});}
 export function getTestParityHistory(){return Object.freeze([...history]);}
 export function getLatestTestParity(){return history.length?history[history.length-1]:null;}
 export function getTestParitySummary(){const matches=history.filter(e=>e.status==="MATCH").length,mismatches=history.filter(e=>e.status==="MISMATCH").length,skipped=history.filter(e=>e.status==="SKIPPED").length,errors=history.filter(e=>e.status==="ERROR").length;return deepFreeze({observed:history.length,compared:matches+mismatches,matches,mismatches,skipped,errors,latest:getLatestTestParity()});}
