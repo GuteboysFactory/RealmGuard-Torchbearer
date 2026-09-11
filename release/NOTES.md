@@ -1,32 +1,20 @@
-Realm Guard / Torchbearer v1.5.0-qa.5 — CORE M3 Beginner's Luck Versus shadow parity.
+Realm Guard / Torchbearer v1.5.0-qa.6 — CORE M3 Beginner's Luck Versus UI bridge + focused parity QA.
 
-qa.4 verified Automatic Versus secondary tie-resolution parity. qa.5 closes the next M3 gap by feeding real Beginner's Luck Versus data into the same shadow comparison layer while keeping Legacy Mixed fully authoritative.
+qa.5 completed every requested regression except Beginner's Luck Versus because the Legacy backend path existed but the Ranger sheet did not expose a Versus toggle for untrained Skills. qa.6 closes that usability gap so the real gameplay path can be exercised normally.
 
-New in v1.5.0-qa.5:
-- removes the previous Beginner's Luck Versus SKIP path
-- marks Beginner's Luck parity snapshots explicitly as ordinary or Versus without changing the public TestContext type
-- captures the real opponent target for Beginner's Luck Versus
-- reconstructs non-tie opponent target from the completed Legacy outcome/margin when no secondary tie trace is required
-- captures `_resolveAutomaticVersusTie` inputs/results when Beginner's Luck enters the existing Legacy tiebreak workflow
-- replays captured Beginner's Luck Versus target and secondary tie data through CORE TestEngine
-- compares the same five fields: pool, target, successes, outcome and margin
-- adds headless smoke coverage for Beginner's Luck Versus PASS and resolved tiebreak FAIL
+New in v1.5.0-qa.6:
+- adds a visible VERSUS toggle to every untrained Skill row
+- the toggle persists through the existing role.system.versus flag
+- uses the existing Beginner's Luck roll dialog/opponent selection flow; no new resolution path is introduced
+- retains qa.5 Beginner's Luck Versus shadow capture and CORE parity logic
+- focused QA now covers both non-tie and resolved-tiebreak Beginner's Luck Versus through the normal character sheet UI
 
-Deliberate limits:
-- Test Engine live application remains OFF
-- Legacy Mixed still owns Beginner's Luck pool construction, halving order, opponent rolls, Fate, tie dialogs, tiebreak dice, learning, chat and all state mutation
-- CORE does not roll opponent or tiebreak dice; it only resolves captured/reconstructed real Legacy data
-- M2 Effect Engine remains SHADOW_COMPARE / live OFF with six verified providers
-- no migration, strict-profile correction or Conflict takeover
+Preserved:
+- Legacy Mixed remains sole live authority
+- Test Engine remains SHADOW_PARITY / live OFF
+- Effect Engine remains SHADOW_COMPARE / live OFF with six verified providers
+- no migration, no CORE state mutation, no gameplay takeover
 
-Expected live status:
-- `game.realmGuard.core.phase` = M3
-- Test Engine = SHADOW_PARITY / live OFF
-- parity authority = LEGACY_MIXED
-- supported special resolution includes FATE_OPEN_SIX, AUTOMATIC_VERSUS_TIEBREAK and BEGINNER_LUCK_VERSUS
-- Beginner's Luck Versus should now produce MATCH instead of SKIPPED
-- M2 provider count remains 6
-
-QA protocol: TEST_PROTOCOL_v1.5.0-qa.5.md
+QA protocol: TEST_PROTOCOL_v1.5.0-qa.6.md
 Foundry target: v13.351.
-Approved development baseline: v1.5.0-qa.4 PASS.
+Approved regression baseline: all qa.5 checks except UI-blocked Beginner's Luck Versus were reported PASS.
