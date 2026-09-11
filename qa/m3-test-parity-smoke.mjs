@@ -80,6 +80,37 @@ assert.equal(parity.legacy.successModifier, 1);
 assert.equal(parity.core.successes, 3);
 assert.equal(parity.parity.all, true);
 
+parity = runLegacyCoreTestParity(engine, {
+  id: "beginner-luck",
+  context: "beginnerLuck",
+  pool: 3,
+  target: 2,
+  faces: [4, 2, 5],
+  successes: 2,
+  outcome: "PASS",
+  margin: 0,
+  sourceName: "Untrained Pathfinder"
+});
+assert.equal(parity.context, "beginnerLuck");
+assert.equal(parity.parity.all, true);
+
+parity = runLegacyCoreTestParity(engine, {
+  id: "fate-open-six",
+  context: "ordinary",
+  pool: 3,
+  target: 3,
+  faces: [6, 2, 4],
+  supplementalFaces: [6, 5],
+  successes: 4,
+  outcome: "PASS",
+  margin: 1,
+  sourceName: "Fighter"
+});
+assert.deepEqual(parity.legacy.supplementalFaces, [6, 5]);
+assert.deepEqual(parity.core.supplementalFaces, [6, 5]);
+assert.equal(parity.core.rawSuccesses, 4);
+assert.equal(parity.parity.all, true);
+
 const mismatch = runLegacyCoreTestParity(engine, {
   id: "intentional-mismatch",
   context: "ordinary",
@@ -104,4 +135,4 @@ assert.throws(() => runLegacyCoreTestParity(engine, {
   margin: 0
 }), /expected 3 resolved dice/i);
 
-console.log("M3 Legacy Mixed <-> CORE Test parity smoke PASS · ordinary/versus · PASS/FAIL/TIE · positive failure margin · success modifier · mismatch detection OK");
+console.log("M3 Legacy Mixed <-> CORE Test parity smoke PASS · ordinary/versus/Beginner's Luck · Fate supplemental dice · PASS/FAIL/TIE · positive failure margin · success modifier · mismatch detection OK");
