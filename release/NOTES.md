@@ -1,20 +1,37 @@
-Realm Guard / Torchbearer v1.5.0-qa.6 — CORE M3 Beginner's Luck Versus UI bridge + focused parity QA.
+Realm Guard / Torchbearer v1.5.0-qa.7 — CORE M3 semantic TestContext parity expansion.
 
-qa.5 completed every requested regression except Beginner's Luck Versus because the Legacy backend path existed but the Ranger sheet did not expose a Versus toggle for untrained Skills. qa.6 closes that usability gap so the real gameplay path can be exercised normally.
+qa.6 verified the previously inaccessible Beginner's Luck Versus gameplay path through the normal Ranger-sheet UI, including a deeper second-tie -> GM-wins branch. qa.7 continues M3 by making the CORE shadow layer classify real Legacy tests with their actual semantic TestContext instead of flattening all Ability-family tests into ordinary.
 
-New in v1.5.0-qa.6:
-- adds a visible VERSUS toggle to every untrained Skill row
-- the toggle persists through the existing role.system.versus flag
-- uses the existing Beginner's Luck roll dialog/opponent selection flow; no new resolution path is introduced
-- retains qa.5 Beginner's Luck Versus shadow capture and CORE parity logic
-- focused QA now covers both non-tie and resolved-tiebreak Beginner's Luck Versus through the normal character sheet UI
+New in v1.5.0-qa.7:
+- expands parity snapshot acceptance to the full Test Engine context vocabulary
+- trained Skill remains ordinary
+- Will / Health / Resources are classified as ability
+- Nature tests are classified as nature
+- Circles tests are classified as circles
+- Nature Versus is classified as nature + versus=true
+- preserves Beginner's Luck, Automatic Versus and Fate/Open-6 parity from qa.6
+- exposes contextCoverage and remainingContextWork in testParity status
+
+Current parity context coverage after qa.7:
+- ordinary
+- ability
+- nature
+- circles
+- beginnerLuck
+- versus
+
+Remaining M3 context work after this build:
+- recovery
+- custom
+- broader full-matrix modifier/cancel/multiclient promotion coverage before M3 can be considered complete
 
 Preserved:
 - Legacy Mixed remains sole live authority
 - Test Engine remains SHADOW_PARITY / live OFF
 - Effect Engine remains SHADOW_COMPARE / live OFF with six verified providers
-- no migration, no CORE state mutation, no gameplay takeover
+- no strict-profile rule correction
+- no migration or gameplay takeover
 
-QA protocol: TEST_PROTOCOL_v1.5.0-qa.6.md
+QA protocol: TEST_PROTOCOL_v1.5.0-qa.7.md
 Foundry target: v13.351.
-Approved regression baseline: all qa.5 checks except UI-blocked Beginner's Luck Versus were reported PASS.
+Approved baseline: v1.5.0-qa.6 PASS.
