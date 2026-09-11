@@ -118,7 +118,7 @@ export function createTestResult(spec = {}) {
     finalSuccesses: Math.max(0, Math.trunc(finiteNumber(spec.finalSuccesses, 0))),
     targetSuccesses: Math.max(0, Math.trunc(finiteNumber(spec.targetSuccesses, 0))),
     outcome,
-    margin: Math.trunc(finiteNumber(spec.margin, 0)),
+    margin: Math.max(0, Math.trunc(finiteNumber(spec.margin, 0))),
     provenance: clone(spec.provenance ?? {})
   });
 }
@@ -215,10 +215,11 @@ export class TestEngine {
       finalSuccesses,
       targetSuccesses,
       outcome,
-      margin: delta,
+      margin: Math.abs(delta),
       provenance: {
         effects: plan.effects,
-        plan: plan.provenance
+        plan: plan.provenance,
+        signedDelta: delta
       }
     });
   }
