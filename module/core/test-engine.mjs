@@ -109,10 +109,14 @@ export function createRollPlan(request, spec = {}) {
 export function createTestResult(spec = {}) {
   const outcome = String(spec.outcome ?? "").toUpperCase();
   if (!["PASS", "FAIL", "TIE"].includes(outcome)) throw new Error(`Invalid TestResult outcome: ${outcome}`);
+  const faces = normalizeFaces(spec.faces ?? []);
+  const supplementalFaces = normalizeFaces(spec.supplementalFaces ?? []);
   return deepFreeze({
     requestId: String(spec.requestId ?? ""),
     context: normalizeContext(spec.context ?? "ordinary"),
-    faces: normalizeFaces(spec.faces ?? []),
+    faces,
+    supplementalFaces,
+    allFaces: Object.freeze([...faces, ...supplementalFaces]),
     rawSuccesses: Math.max(0, Math.trunc(finiteNumber(spec.rawSuccesses, 0))),
     successModifier: Math.trunc(finiteNumber(spec.successModifier, 0)),
     finalSuccesses: Math.max(0, Math.trunc(finiteNumber(spec.finalSuccesses, 0))),
@@ -194,13 +198,15 @@ export class TestEngine {
     return Object.freeze({ request, plan, transaction });
   }
 
-  resolveFaces(plan, faces) {
+  resolveFaces(plan, faces, { supplementalFaces = [] } = {}) {
     if (!plan?.requestId) throw new Error("TestEngine.resolveFaces requires RollPlan.");
     const normalizedFaces = normalizeFaces(faces);
     if (normalizedFaces.length !== plan.finalPool) {
       throw new Error(`RollPlan expected ${plan.finalPool} dice, received ${normalizedFaces.length}.`);
     }
-    const rawSuccesses = normalizedFaces.filter(face => face >= plan.successThreshold).length;
+    const normalizedSupplementalFaces = normalizeFaces(supplementalFaces);
+    const allFaces = Object.freeze([...normalizedFaces, ...normalizedSupplementalFaces]);
+    const rawSuccesses = allFaces.filter(face => face >= plan.successThreshold).length;
     const finalSuccesses = Math.max(0, rawSuccesses + plan.successModifier);
     const isVersus = plan.context.type === "versus";
     const targetSuccesses = isVersus ? plan.oppositionSuccesses : plan.obstacle;
@@ -210,6 +216,7 @@ export class TestEngine {
       requestId: plan.requestId,
       context: plan.context.type,
       faces: normalizedFaces,
+      supplementalFaces: normalizedSupplementalFaces,
       rawSuccesses,
       successModifier: plan.successModifier,
       finalSuccesses,
@@ -219,15 +226,16 @@ export class TestEngine {
       provenance: {
         effects: plan.effects,
         plan: plan.provenance,
-        signedDelta: delta
+        signedDelta: delta,
+        supplementalDice: normalizedSupplementalFaces.length
       }
     });
   }
 
-  runDeterministic(requestSpec, planSpec, faces) {
+  runDeterministic(requestSpec, planSpec, faces, resolveSpec = {}) {
     const prepared = this.prepare(requestSpec, planSpec);
     prepared.transaction.reserve().recordRoll(faces);
-    const result = this.resolveFaces(prepared.plan, faces);
+    const result = this.resolveFaces(prepared.plan, faces, resolveSpec);
     prepared.transaction.resolve(result);
     return Object.freeze({ ...prepared, result });
   }
