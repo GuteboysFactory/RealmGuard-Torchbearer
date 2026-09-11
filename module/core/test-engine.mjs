@@ -213,7 +213,7 @@ export class TestEngine {
     const allFaces = Object.freeze([...normalizedFaces, ...normalizedSupplementalFaces]);
     const rawSuccesses = allFaces.filter(face => face >= plan.successThreshold).length;
     const finalSuccesses = Math.max(0, rawSuccesses + plan.successModifier);
-    const isVersus = plan.context.type === "versus";
+    const isVersus = plan.context.type === "versus" || Boolean(plan.context.metadata?.versus);
     const targetSuccesses = isVersus ? plan.oppositionSuccesses : plan.obstacle;
     const delta = finalSuccesses - targetSuccesses;
     const outcome = delta > 0 || (!isVersus && delta === 0) ? "PASS" : delta === 0 ? "TIE" : "FAIL";
@@ -232,14 +232,16 @@ export class TestEngine {
         effects: plan.effects,
         plan: plan.provenance,
         signedDelta: delta,
-        supplementalDice: normalizedSupplementalFaces.length
+        supplementalDice: normalizedSupplementalFaces.length,
+        isVersus
       }
     });
   }
 
   resolveVersusTie(result, resolutionSpec = {}) {
     if (!result?.requestId) throw new Error("TestEngine.resolveVersusTie requires TestResult.");
-    if (result.context !== "versus") throw new Error("Versus tie resolution requires a versus TestResult.");
+    const isVersus = result.context === "versus" || Boolean(result.provenance?.isVersus);
+    if (!isVersus) throw new Error("Versus tie resolution requires a versus TestResult.");
 
     const method = String(resolutionSpec?.method ?? "pending").trim().toLowerCase();
     const resolved = Boolean(resolutionSpec?.resolved);
