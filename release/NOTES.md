@@ -1,34 +1,33 @@
-Realm Guard / Torchbearer v1.5.0-qa.3 — CORE M3 expanded real-roll shadow parity.
+Realm Guard / Torchbearer v1.5.0-qa.4 — CORE M3 Automatic Versus tie-resolution shadow parity.
 
-qa.2 verified real Legacy Mixed ↔ CORE parity for trained Skill, Ability and Automatic Versus with live CORE takeover still OFF. qa.3 expands that observer layer to Beginner's Luck and Fate/Open-6 supplemental dice.
+qa.3 verified ordinary Beginner's Luck and Fate/Open-6 supplemental dice parity. qa.4 closes the next M3 gap by shadow-replaying resolved Automatic Versus secondary tie procedures through CORE while keeping Legacy Mixed fully authoritative.
 
-New in v1.5.0-qa.3:
-- instruments ordinary Beginner's Luck rolls in the real-roll parity observer
-- adds `beginnerLuck` to the parity snapshot model
-- captures Fate/Open-6 explosion dice through the existing legacy `_explodeSixes` helper
-- extends TestEngine deterministic resolution with supplemental faces that do not alter the prepared base pool
-- replays real base/reroll faces plus Fate supplemental faces through CORE
-- compares the same five fields: pool, target, successes, outcome and margin
-- retains Legacy final-success bridging for legal +success effects
-- adds headless smoke coverage for Beginner's Luck and Fate supplemental faces
+New in v1.5.0-qa.4:
+- adds a pure TestEngine Versus secondary-resolution stage
+- removes the previous Automatic Versus resolved-tiebreak SKIP path
+- captures Legacy Automatic Versus tieResolution data after the real Legacy procedure completes
+- CORE independently evaluates supported tie outcomes from captured tiebreak faces / resolution method
+- supports tiebreaker roll, trait-yield, Fate-resolved tie, second-trait, second-Fate and GM-wins semantics in the pure resolver
+- preserves the original five parity fields: pool, target, successes, outcome and margin
+- adds headless smoke coverage for resolved tiebreak PASS, trait FAIL and GM-wins FAIL
 
 Deliberate limits:
 - Test Engine live application remains OFF
-- Legacy Mixed remains authoritative for all live preparation, dice, resources, advancement, chat and state mutation
+- Legacy Mixed still owns the actual tie dialog, tiebreak dice, Fate spending, checks, chat, learning and all state mutation
+- CORE does not roll additional live tiebreak dice; it only resolves captured real Legacy data
+- unresolved player-vs-player GM-decision ties remain TIE diagnostics
+- Beginner's Luck Versus remains SKIPPED until its opponent target/result capture is wired safely
 - M2 Effect Engine remains SHADOW_COMPARE / live OFF with six verified providers
-- Beginner's Luck Versus remains SKIPPED until opponent target capture is wired safely
-- secondary Versus tiebreak resolution remains SKIPPED
-- Fate is only shadow-replayed from the actual Legacy supplemental dice; CORE does not decide or spend Fate
 - no migration, strict-profile correction or Conflict takeover
 
 Expected live status:
 - `game.realmGuard.core.phase` = M3
 - Test Engine = SHADOW_PARITY / live OFF
 - parity authority = LEGACY_MIXED
-- instrumented methods include rollRole, rollAbility, rollBeginnerLuck, rollAutomaticVersus, rollNatureVersus
-- supported special resolution includes FATE_OPEN_SIX
+- supported special resolution includes FATE_OPEN_SIX and AUTOMATIC_VERSUS_TIEBREAK
+- Automatic Versus resolved secondary tiebreak should now produce MATCH instead of SKIPPED
 - M2 provider count remains 6
 
-QA protocol: TEST_PROTOCOL_v1.5.0-qa.3.md
+QA protocol: TEST_PROTOCOL_v1.5.0-qa.4.md
 Foundry target: v13.351.
-Approved development baseline: v1.5.0-qa.2 PASS.
+Approved development baseline: v1.5.0-qa.3 PASS.
