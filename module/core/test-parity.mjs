@@ -6,7 +6,16 @@ export const TEST_PARITY_FIELDS = Object.freeze([
   "margin"
 ]);
 
-const PARITY_CONTEXTS = new Set(["ordinary", "versus", "beginnerLuck"]);
+const PARITY_CONTEXTS = new Set([
+  "ordinary",
+  "versus",
+  "beginnerLuck",
+  "ability",
+  "nature",
+  "recovery",
+  "circles",
+  "custom"
+]);
 
 function clone(value) {
   if (value === undefined) return undefined;
