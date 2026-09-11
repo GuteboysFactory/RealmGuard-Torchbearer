@@ -71,6 +71,7 @@ export function createLegacyTestSnapshot(spec = {}) {
     outcome: normalizeOutcome(spec.outcome),
     margin: Math.max(0, integer(spec.margin, 0)),
     successThreshold,
+    versusResolution: clone(spec.versusResolution ?? null),
     provenance: clone(spec.provenance ?? {})
   });
 }
@@ -133,7 +134,8 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
       supplementalFacesObserved: legacy.supplementalFaces.length
     }
   }, legacy.faces, {
-    supplementalFaces: legacy.supplementalFaces
+    supplementalFaces: legacy.supplementalFaces,
+    versusResolution: legacy.versusResolution
   });
   const core = deepFreeze({
     pool: Number(prepared.plan.finalPool),
@@ -145,7 +147,8 @@ export function runLegacyCoreTestParity(engine, legacySpec, {
     successModifier: Number(prepared.result.successModifier),
     successes: Number(prepared.result.finalSuccesses),
     outcome: prepared.result.outcome,
-    margin: Number(prepared.result.margin)
+    margin: Number(prepared.result.margin),
+    secondaryResolution: clone(prepared.result.provenance?.secondaryResolution ?? null)
   });
   const parity = compareParitySnapshots(legacy, core);
   return deepFreeze({
