@@ -52,6 +52,11 @@ function normalizeContext(value) {
   return context;
 }
 
+function countSuccesses(faces, threshold = 4) {
+  const t = Math.min(6, Math.max(2, Math.trunc(finiteNumber(threshold, 4))));
+  return normalizeFaces(faces ?? []).filter(face => face >= t).length;
+}
+
 export function createTestContext(spec = {}) {
   return deepFreeze({
     type: normalizeContext(spec.type),
@@ -232,10 +237,71 @@ export class TestEngine {
     });
   }
 
+  resolveVersusTie(result, resolutionSpec = {}) {
+    if (!result?.requestId) throw new Error("TestEngine.resolveVersusTie requires TestResult.");
+    if (result.context !== "versus") throw new Error("Versus tie resolution requires a versus TestResult.");
+
+    const method = String(resolutionSpec?.method ?? "pending").trim().toLowerCase();
+    const resolved = Boolean(resolutionSpec?.resolved);
+    let outcome = result.outcome;
+    let margin = result.margin;
+    let ownTieSuccesses = null;
+    let opponentTieSuccesses = null;
+
+    if (!resolved || method === "pending" || method === "gm-decision") {
+      outcome = "TIE";
+      margin = 0;
+    } else if (["trait", "second-trait", "gm-wins"].includes(method)) {
+      outcome = "FAIL";
+      margin = 0;
+    } else if (method === "tiebreaker" || method === "second-fate") {
+      ownTieSuccesses = countSuccesses(resolutionSpec?.ownTieFaces ?? [], 4);
+      opponentTieSuccesses = countSuccesses(resolutionSpec?.oppTieFaces ?? [], 4);
+      const delta = ownTieSuccesses - opponentTieSuccesses;
+      outcome = delta > 0 ? "PASS" : delta < 0 ? "FAIL" : "TIE";
+      margin = Math.abs(delta);
+    } else if (method === "fate") {
+      const own = Math.max(0, Math.trunc(finiteNumber(resolutionSpec?.finalOwnSuccesses, result.finalSuccesses)));
+      const opponent = Math.max(0, Math.trunc(finiteNumber(resolutionSpec?.finalOpponentSuccesses, result.targetSuccesses)));
+      const delta = own - opponent;
+      outcome = delta > 0 ? "PASS" : delta < 0 ? "FAIL" : "TIE";
+      margin = Math.abs(delta);
+    } else {
+      throw new Error(`Unsupported Versus tie resolution method: ${method}`);
+    }
+
+    return createTestResult({
+      requestId: result.requestId,
+      context: result.context,
+      faces: result.faces,
+      supplementalFaces: result.supplementalFaces,
+      rawSuccesses: result.rawSuccesses,
+      successModifier: result.successModifier,
+      finalSuccesses: result.finalSuccesses,
+      targetSuccesses: result.targetSuccesses,
+      outcome,
+      margin,
+      provenance: {
+        ...clone(result.provenance ?? {}),
+        secondaryResolution: {
+          method,
+          resolved,
+          ownTieSuccesses,
+          opponentTieSuccesses,
+          ownAbility: resolutionSpec?.ownAbility ?? null,
+          opponentAbility: resolutionSpec?.oppAbility ?? null
+        }
+      }
+    });
+  }
+
   runDeterministic(requestSpec, planSpec, faces, resolveSpec = {}) {
     const prepared = this.prepare(requestSpec, planSpec);
     prepared.transaction.reserve().recordRoll(faces);
-    const result = this.resolveFaces(prepared.plan, faces, resolveSpec);
+    const baseResult = this.resolveFaces(prepared.plan, faces, resolveSpec);
+    const result = resolveSpec?.versusResolution
+      ? this.resolveVersusTie(baseResult, resolveSpec.versusResolution)
+      : baseResult;
     prepared.transaction.resolve(result);
     return Object.freeze({ ...prepared, result });
   }
