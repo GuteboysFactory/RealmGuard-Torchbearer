@@ -248,7 +248,13 @@ function wrapHelper(ActorClass, method, traceKey) {
   const wrapped = markWrapped(async function(...args) {
     const result = await original.apply(this, args);
     const trace = traceByActor.get(this);
-    if (trace && Array.isArray(trace[traceKey])) trace[traceKey].push(clone(result));
+    if (trace && Array.isArray(trace[traceKey])) {
+      trace[traceKey].push({
+        faces: Array.from(result?.faces ?? []).map(Number),
+        rerollFaces: Array.from(result?.rerollFaces ?? []).map(Number),
+        rerolledIndexes: Array.from(result?.rerolledIndexes ?? []).map(Number)
+      });
+    }
     return result;
   });
   ActorClass.prototype[method] = wrapped;
