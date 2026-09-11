@@ -30,9 +30,10 @@ import { installEffectEngineInfrastructure } from "./module/effect-engine-servic
 import { installTalentEffectShadow } from "./module/talent-effect-shadow.mjs";
 import { installTestEngineInfrastructure } from "./module/test-engine-service.mjs";
 import { installTestParityShadow } from "./module/test-parity-service.mjs";
+import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.5"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.6"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -51,6 +52,7 @@ Hooks.once("init", () => {
   };
 
   const { DocumentSheetConfig } = foundry.applications.apps;
+  installUntrainedVersusUi(RealmGuardActorSheet);
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, {
     types: ["character"],
     makeDefault: true,
