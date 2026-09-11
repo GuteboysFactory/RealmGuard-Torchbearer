@@ -84,9 +84,7 @@ function recordError(actor, method, error) {
     method,
     actorId: actor?.id ?? null,
     actorName: actor?.name ?? "",
-    detail: {
-      message: String(error?.message ?? error ?? "Unknown parity observer error")
-    }
+    detail: { message: String(error?.message ?? error ?? "Unknown parity observer error") }
   });
   console.warn("realm-guard | CORE M3 Test parity observer error (live Legacy result preserved)", error, entry);
   return entry;
@@ -130,10 +128,6 @@ function recordParity(actor, method, spec) {
 function paritySpecFor(actor, method, args, result, trace) {
   if (!result || typeof result !== "object" || !result.roll) return null;
 
-  if (method === "rollAutomaticVersus" && result.tieResolution?.resolved) {
-    return { skipped: "VERSUS_TIEBREAK_NOT_YET_MODELED_IN_PARITY" };
-  }
-
   const initialFaces = rollFaces(result.roll);
   const faces = resolvedOwnFaces(result, trace);
   const supplementalFaces = allHelperFaces(trace, "fateExplosions");
@@ -158,7 +152,7 @@ function paritySpecFor(actor, method, args, result, trace) {
     }
   };
 
-  if (Boolean(result.fateSpent) && supplementalFaces.length === 0) {
+  if (Boolean(result.fateSpent) && supplementalFaces.length === 0 && !result.tieResolution?.fateFaces?.length) {
     return { skipped: "FATE_TRACE_UNAVAILABLE" };
   }
 
@@ -176,9 +170,7 @@ function paritySpecFor(actor, method, args, result, trace) {
 
   if (method === "rollAbility") {
     const [abilityKey, options = {}] = args;
-    const sourceName = typeof actor?._abilityLabel === "function"
-      ? actor._abilityLabel(abilityKey)
-      : String(abilityKey ?? "Ability");
+    const sourceName = typeof actor?._abilityLabel === "function" ? actor._abilityLabel(abilityKey) : String(abilityKey ?? "Ability");
     return {
       ...common,
       context: "ordinary",
@@ -191,9 +183,7 @@ function paritySpecFor(actor, method, args, result, trace) {
 
   if (method === "rollBeginnerLuck") {
     const [role, options = {}] = args;
-    if (options?.opponent && options?.opposition) {
-      return { skipped: "BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED" };
-    }
+    if (options?.opponent && options?.opposition) return { skipped: "BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED" };
     return {
       ...common,
       context: "beginnerLuck",
@@ -210,18 +200,31 @@ function paritySpecFor(actor, method, args, result, trace) {
 
   if (method === "rollAutomaticVersus") {
     const [role, opponent, opposition] = args;
+    const tie = result.tieResolution ?? null;
+    const versusResolution = tie ? {
+      method: tie.method ?? "pending",
+      resolved: Boolean(tie.resolved),
+      ownTieFaces: Array.from(tie.ownTieFaces ?? []).map(Number),
+      oppTieFaces: Array.from(tie.oppTieFaces ?? []).map(Number),
+      finalOwnSuccesses: tie.finalOwnSuccesses ?? null,
+      finalOpponentSuccesses: tie.finalOpponentSuccesses ?? null,
+      ownAbility: tie.ownAbility ?? null,
+      oppAbility: tie.oppAbility ?? null
+    } : null;
     return {
       ...common,
       context: "versus",
       target: Math.max(0, Number(result.opponentSuccesses ?? 0)),
       sourceId: role?.id ?? null,
       sourceName: role?.name ?? "Skill",
+      versusResolution,
       provenance: {
         ...common.provenance,
         targetSource: "legacy-result.opponentSuccesses",
         opponentId: opponent?.id ?? null,
         opponentName: opponent?.name ?? "",
-        oppositionName: opposition?.name ?? result.opponentName ?? ""
+        oppositionName: opposition?.name ?? result.opponentName ?? "",
+        tieResolutionMethod: tie?.method ?? null
       }
     };
   }
@@ -258,29 +261,19 @@ function compareCompletedRoll(actor, method, args, result, trace) {
 }
 
 function markWrapped(fn) {
-  Object.defineProperty(fn, "_rgM3ParityWrapped", {
-    value: true,
-    configurable: false,
-    enumerable: false,
-    writable: false
-  });
+  Object.defineProperty(fn, "_rgM3ParityWrapped", { value: true, configurable: false, enumerable: false, writable: false });
   return fn;
 }
 
 function wrapHelper(ActorClass, method, traceKey) {
   const original = ActorClass?.prototype?.[method];
   if (typeof original !== "function" || original._rgM3ParityWrapped) return false;
-
   const wrapped = markWrapped(async function(...args) {
     const result = await original.apply(this, args);
     const trace = traceByActor.get(this);
     if (trace && Array.isArray(trace[traceKey])) {
       if (Array.isArray(result)) {
-        trace[traceKey].push({
-          faces: result.map(Number),
-          rerollFaces: [],
-          rerolledIndexes: []
-        });
+        trace[traceKey].push({ faces: result.map(Number), rerollFaces: [], rerolledIndexes: [] });
       } else {
         trace[traceKey].push({
           faces: Array.from(result?.faces ?? []).map(Number),
@@ -298,15 +291,9 @@ function wrapHelper(ActorClass, method, traceKey) {
 function wrapRollMethod(ActorClass, method) {
   const original = ActorClass?.prototype?.[method];
   if (typeof original !== "function" || original._rgM3ParityWrapped) return false;
-
   const wrapped = markWrapped(async function(...args) {
     const previous = traceByActor.get(this) ?? null;
-    const trace = {
-      method,
-      wiseResults: [],
-      tokenResults: [],
-      fateExplosions: []
-    };
+    const trace = { method, wiseResults: [], tokenResults: [], fateExplosions: [] };
     traceByActor.set(this, trace);
     try {
       const result = await original.apply(this, args);
@@ -340,44 +327,22 @@ export function getTestParityStatus() {
     instrumentedMethods: [...INSTRUMENTED_METHODS],
     historyLimit: HISTORY_LIMIT,
     persistence: "CLIENT_MEMORY_ONLY",
-    bridge: "LEGACY_RESOLVED_FACES_PLUS_FATE_SUPPLEMENTAL_TO_CORE",
-    supportedSpecialResolution: ["FATE_OPEN_SIX"],
-    skippedCases: [
-      "VERSUS_TIEBREAK_NOT_YET_MODELED_IN_PARITY",
-      "BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED",
-      "FATE_TRACE_UNAVAILABLE"
-    ]
+    bridge: "LEGACY_RESOLVED_FACES_FATE_AND_VERSUS_TIE_TO_CORE",
+    supportedSpecialResolution: ["FATE_OPEN_SIX", "AUTOMATIC_VERSUS_TIEBREAK"],
+    skippedCases: ["BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED", "FATE_TRACE_UNAVAILABLE"]
   });
 }
 
-export function getTestParityHistory() {
-  return Object.freeze([...history]);
-}
-
-export function getLatestTestParity() {
-  return history.length ? history[history.length - 1] : null;
-}
-
+export function getTestParityHistory() { return Object.freeze([...history]); }
+export function getLatestTestParity() { return history.length ? history[history.length - 1] : null; }
 export function getTestParitySummary() {
   const matches = history.filter(entry => entry.status === "MATCH").length;
   const mismatches = history.filter(entry => entry.status === "MISMATCH").length;
   const skipped = history.filter(entry => entry.status === "SKIPPED").length;
   const errors = history.filter(entry => entry.status === "ERROR").length;
-  return deepFreeze({
-    observed: history.length,
-    compared: matches + mismatches,
-    matches,
-    mismatches,
-    skipped,
-    errors,
-    latest: getLatestTestParity()
-  });
+  return deepFreeze({ observed: history.length, compared: matches + mismatches, matches, mismatches, skipped, errors, latest: getLatestTestParity() });
 }
-
-export function clearTestParityHistory() {
-  history.splice(0, history.length);
-  return getTestParitySummary();
-}
+export function clearTestParityHistory() { history.splice(0, history.length); return getTestParitySummary(); }
 
 function exposeParityApi() {
   game.realmGuard ??= {};
