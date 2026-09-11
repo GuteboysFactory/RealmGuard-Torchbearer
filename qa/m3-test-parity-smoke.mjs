@@ -17,6 +17,11 @@ assert.equal(parity.core.outcome,"FAIL");
 assert.equal(parity.core.margin,1);
 assert.equal(parity.parity.all,true);
 
+parity = runLegacyCoreTestParity(engine,{id:"custom-free-pool",context:"custom",pool:5,target:3,faces:[6,4,2,1,5],successes:3,outcome:"PASS",margin:0,sourceName:"Improvised Bridge Test"});
+assert.equal(parity.context,"custom");
+assert.equal(parity.versus,false);
+assert.equal(parity.parity.all,true);
+
 parity = runLegacyCoreTestParity(engine,{id:"bl-ordinary",context:"beginnerLuck",pool:3,target:2,faces:[4,2,5],successes:2,outcome:"PASS",margin:0,sourceName:"Untrained Pathfinder"});
 assert.equal(parity.context,"beginnerLuck");
 assert.equal(parity.versus,false);
@@ -42,4 +47,4 @@ assert.equal(parity.parity.all,true);
 const mismatch = runLegacyCoreTestParity(engine,{id:"intentional-mismatch",context:"ordinary",pool:4,target:3,faces:[4,1,2,3],successes:1,outcome:"PASS",margin:2,sourceName:"QA"});
 assert.equal(mismatch.parity.all,false);
 
-console.log("M3 Legacy Mixed <-> CORE Test parity smoke PASS · recovery Ability/Role · Beginner's Luck ordinary/Versus · Fate supplemental dice · mismatch detection OK");
+console.log("M3 Legacy Mixed <-> CORE Test parity smoke PASS · ordinary · recovery Ability/Role · custom free pool · Beginner's Luck ordinary/Versus · Fate supplemental dice · mismatch detection OK");
