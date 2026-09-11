@@ -31,9 +31,10 @@ import { installTalentEffectShadow } from "./module/talent-effect-shadow.mjs";
 import { installTestEngineInfrastructure } from "./module/test-engine-service.mjs";
 import { installTestParityShadow } from "./module/test-parity-service.mjs";
 import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
+import { installCustomRollParityAction } from "./module/custom-roll-parity-ui.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.8"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.9"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
@@ -53,6 +54,7 @@ Hooks.once("init", () => {
 
   const { DocumentSheetConfig } = foundry.applications.apps;
   installUntrainedVersusUi(RealmGuardActorSheet);
+  installCustomRollParityAction(RealmGuardActorSheet);
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, {
     types: ["character"],
     makeDefault: true,
