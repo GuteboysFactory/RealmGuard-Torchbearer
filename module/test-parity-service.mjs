@@ -5,6 +5,7 @@ const HISTORY_LIMIT = 50;
 const INSTRUMENTED_METHODS = Object.freeze([
   "rollRole",
   "rollAbility",
+  "rollBeginnerLuck",
   "rollAutomaticVersus",
   "rollNatureVersus"
 ]);
@@ -36,6 +37,12 @@ function helperFaces(trace, key) {
   const entries = trace?.[key] ?? [];
   const latest = entries.length ? entries[entries.length - 1] : null;
   return Array.isArray(latest?.faces) && latest.faces.length ? [...latest.faces] : null;
+}
+
+function allHelperFaces(trace, key) {
+  return (trace?.[key] ?? []).flatMap(entry =>
+    Array.isArray(entry?.faces) ? entry.faces.map(Number) : []
+  ).filter(value => Number.isInteger(value) && value >= 1 && value <= 6);
 }
 
 function resolvedOwnFaces(result, trace) {
@@ -123,16 +130,13 @@ function recordParity(actor, method, spec) {
 function paritySpecFor(actor, method, args, result, trace) {
   if (!result || typeof result !== "object" || !result.roll) return null;
 
-  if (Boolean(result.fateSpent)) {
-    return { skipped: "FATE_OPEN_SIX_NOT_YET_MODELED_IN_PARITY" };
-  }
-
   if (method === "rollAutomaticVersus" && result.tieResolution?.resolved) {
     return { skipped: "VERSUS_TIEBREAK_NOT_YET_MODELED_IN_PARITY" };
   }
 
   const initialFaces = rollFaces(result.roll);
   const faces = resolvedOwnFaces(result, trace);
+  const supplementalFaces = allHelperFaces(trace, "fateExplosions");
   const pool = initialFaces.length;
   const successes = Number(result.successes ?? 0);
   const outcome = String(result.outcome ?? "").toUpperCase();
@@ -141,19 +145,32 @@ function paritySpecFor(actor, method, args, result, trace) {
   if (!pool || !faces.length) return { skipped: "NO_RESOLVED_DICE_AVAILABLE" };
   if (!["PASS", "FAIL", "TIE"].includes(outcome)) return { skipped: "NO_FINAL_LEGACY_OUTCOME" };
 
+  const common = {
+    pool,
+    faces,
+    supplementalFaces,
+    successes,
+    outcome,
+    margin,
+    provenance: {
+      fateOpenSix: Boolean(result.fateSpent),
+      supplementalFaceCount: supplementalFaces.length
+    }
+  };
+
+  if (Boolean(result.fateSpent) && supplementalFaces.length === 0) {
+    return { skipped: "FATE_TRACE_UNAVAILABLE" };
+  }
+
   if (method === "rollRole") {
     const [role, options = {}] = args;
     return {
+      ...common,
       context: "ordinary",
-      pool,
       target: Math.max(0, Number(options?.obstacle ?? 1)),
-      faces,
-      successes,
-      outcome,
-      margin,
       sourceId: role?.id ?? null,
       sourceName: role?.name ?? "Skill",
-      provenance: { targetSource: "legacy-options.obstacle" }
+      provenance: { ...common.provenance, targetSource: "legacy-options.obstacle" }
     };
   }
 
@@ -163,32 +180,44 @@ function paritySpecFor(actor, method, args, result, trace) {
       ? actor._abilityLabel(abilityKey)
       : String(abilityKey ?? "Ability");
     return {
+      ...common,
       context: "ordinary",
-      pool,
       target: Math.max(0, Number(options?.obstacle ?? 1)),
-      faces,
-      successes,
-      outcome,
-      margin,
       sourceId: String(abilityKey ?? ""),
       sourceName,
-      provenance: { targetSource: "legacy-options.obstacle" }
+      provenance: { ...common.provenance, targetSource: "legacy-options.obstacle" }
+    };
+  }
+
+  if (method === "rollBeginnerLuck") {
+    const [role, options = {}] = args;
+    if (options?.opponent && options?.opposition) {
+      return { skipped: "BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED" };
+    }
+    return {
+      ...common,
+      context: "beginnerLuck",
+      target: Math.max(0, Number(options?.obstacle ?? 1)),
+      sourceId: role?.id ?? null,
+      sourceName: role?.name ?? "Untrained Skill",
+      provenance: {
+        ...common.provenance,
+        targetSource: "legacy-options.obstacle",
+        abilityKey: String(options?.abilityKey ?? "will")
+      }
     };
   }
 
   if (method === "rollAutomaticVersus") {
     const [role, opponent, opposition] = args;
     return {
+      ...common,
       context: "versus",
-      pool,
       target: Math.max(0, Number(result.opponentSuccesses ?? 0)),
-      faces,
-      successes,
-      outcome,
-      margin,
       sourceId: role?.id ?? null,
       sourceName: role?.name ?? "Skill",
       provenance: {
+        ...common.provenance,
         targetSource: "legacy-result.opponentSuccesses",
         opponentId: opponent?.id ?? null,
         opponentName: opponent?.name ?? "",
@@ -200,16 +229,13 @@ function paritySpecFor(actor, method, args, result, trace) {
   if (method === "rollNatureVersus") {
     const [opponent] = args;
     return {
+      ...common,
       context: "versus",
-      pool,
       target: Math.max(0, Number(result.opponentSuccesses ?? 0)),
-      faces,
-      successes,
-      outcome,
-      margin,
       sourceId: "nature",
       sourceName: "Nature",
       provenance: {
+        ...common.provenance,
         targetSource: "legacy-result.opponentSuccesses",
         opponentId: opponent?.id ?? null,
         opponentName: opponent?.name ?? ""
@@ -249,11 +275,19 @@ function wrapHelper(ActorClass, method, traceKey) {
     const result = await original.apply(this, args);
     const trace = traceByActor.get(this);
     if (trace && Array.isArray(trace[traceKey])) {
-      trace[traceKey].push({
-        faces: Array.from(result?.faces ?? []).map(Number),
-        rerollFaces: Array.from(result?.rerollFaces ?? []).map(Number),
-        rerolledIndexes: Array.from(result?.rerolledIndexes ?? []).map(Number)
-      });
+      if (Array.isArray(result)) {
+        trace[traceKey].push({
+          faces: result.map(Number),
+          rerollFaces: [],
+          rerolledIndexes: []
+        });
+      } else {
+        trace[traceKey].push({
+          faces: Array.from(result?.faces ?? []).map(Number),
+          rerollFaces: Array.from(result?.rerollFaces ?? []).map(Number),
+          rerolledIndexes: Array.from(result?.rerolledIndexes ?? []).map(Number)
+        });
+      }
     }
     return result;
   });
@@ -306,10 +340,12 @@ export function getTestParityStatus() {
     instrumentedMethods: [...INSTRUMENTED_METHODS],
     historyLimit: HISTORY_LIMIT,
     persistence: "CLIENT_MEMORY_ONLY",
-    bridge: "LEGACY_FINAL_SUCCESS_MODIFIER_TO_CORE_SUCCESS_MODIFIER",
+    bridge: "LEGACY_RESOLVED_FACES_PLUS_FATE_SUPPLEMENTAL_TO_CORE",
+    supportedSpecialResolution: ["FATE_OPEN_SIX"],
     skippedCases: [
-      "FATE_OPEN_SIX_NOT_YET_MODELED_IN_PARITY",
-      "VERSUS_TIEBREAK_NOT_YET_MODELED_IN_PARITY"
+      "VERSUS_TIEBREAK_NOT_YET_MODELED_IN_PARITY",
+      "BEGINNER_LUCK_VERSUS_TARGET_NOT_YET_CAPTURED",
+      "FATE_TRACE_UNAVAILABLE"
     ]
   });
 }
