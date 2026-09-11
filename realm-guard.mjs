@@ -35,7 +35,7 @@ import { installCustomRollParityAction } from "./module/custom-roll-parity-ui.mj
 import { installCustomContentCompatibilityQa } from "./module/custom-content-compatibility.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.10"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.11"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = {
