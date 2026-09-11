@@ -25,7 +25,10 @@ export function getTestEngineStatus() {
     transactionStates: Object.freeze([...Object.values(TEST_TRANSACTION_STATES)]),
     parityBridge: "LEGACY_MIXED_REAL_ROLLS",
     supplementalFaces: true,
-    conflictIntegration: "LEGACY_ADAPTER_UNTIL_M6"
+    contextCoverage: "FULL_M3_CONTEXT_VOCABULARY",
+    customContentCompatibility: "QA10_VERIFIED",
+    conflictIntegration: "LEGACY_ADAPTER_UNTIL_M6",
+    promotionState: "FINAL_QA_GATE"
   });
 }
 
@@ -63,6 +66,7 @@ export function runTestEngineDiagnostic({
 
 function diagnosticsHtml() {
   const status = getTestEngineStatus();
+  const parityStatus = game.realmGuard?.core?.testParity?.getStatus?.() ?? null;
   const parity = game.realmGuard?.core?.testParity?.getSummary?.() ?? null;
   const latest = parity?.latest ?? null;
   const parityText = parity
@@ -71,24 +75,26 @@ function diagnosticsHtml() {
   const latestText = latest
     ? `${latest.status}${latest.method ? ` · ${latest.method}` : ""}${latest.reason ? ` · ${latest.reason}` : ""}`
     : "No real Legacy Mixed roll observed yet.";
+  const contextText = parityStatus?.contextCoverage?.join?.(", ") ?? status.supportedContexts.join(", ");
 
   return `<div class="realm-guard" style="box-sizing:border-box;padding:6px 12px 12px;max-height:58vh;overflow:auto;">
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M3</div>
       <h2 style="margin:3px 0 4px;">Unified Test Engine</h2>
-      <div><b>Mode:</b> ${status.mode} · <b>Live application:</b> OFF</div>
+      <div><b>Mode:</b> ${status.mode} · <b>Live application:</b> OFF · <b>Promotion:</b> FINAL QA GATE</div>
     </header>
     <section style="margin-bottom:12px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Foundation</h3>
       <div>TestRequest · RollPlan · RollTransaction · TestResult · TestContext · TestEngine</div>
-      <div style="margin-top:6px;"><b>Contexts:</b> ${status.supportedContexts.join(", ")}</div>
+      <div style="margin-top:6px;"><b>Contexts:</b> ${contextText}</div>
       <div style="margin-top:6px;"><b>Transaction:</b> ${status.transactionStates.join(" → ")}</div>
-      <div style="margin-top:6px;"><b>Supplemental deterministic faces:</b> supported for shadow replay.</div>
+      <div style="margin-top:6px;"><b>Supplemental deterministic faces:</b> supported for shadow Fate replay.</div>
+      <div style="margin-top:6px;"><b>Custom content:</b> qa.10 compatibility matrix verified.</div>
     </section>
     <section style="margin-bottom:12px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
       <h3 style="margin:0 0 8px;">Real Legacy Mixed ↔ CORE shadow parity</h3>
       <p style="margin:0 0 6px;">Observed live Legacy Mixed test data is replayed deterministically through CORE and compared for <b>pool, target, successes, outcome and margin</b>.</p>
-      <div><b>qa.3 scope:</b> trained Skill, Ability, ordinary Beginner's Luck, Automatic Versus, Nature Versus and Fate/Open-6 supplemental dice.</div>
+      <div><b>Verified scope:</b> ordinary Skill, Ability, Nature, Circles, Beginner's Luck, Versus, Recovery, Custom Roll, Fate/Open-6 and secondary Versus resolution.</div>
       <div style="margin-top:6px;"><b>Summary:</b> ${parityText}</div>
       <div style="margin-top:4px;"><b>Latest:</b> ${latestText}</div>
       <div style="margin-top:8px;"><code>game.realmGuard.core.testParity.getLatest()</code></div>
@@ -96,13 +102,13 @@ function diagnosticsHtml() {
       <div><code>game.realmGuard.core.testParity.clear()</code></div>
     </section>
     <section style="margin-bottom:12px;padding:10px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
-      <h3 style="margin:0 0 8px;">Deterministic foundation smoke</h3>
+      <h3 style="margin:0 0 8px;">Deterministic foundation diagnostic</h3>
       <code>game.realmGuard.core.tests.runDiagnostic()</code>
-      <p style="margin:8px 0 0;">Default remains 4D, faces [4,4,1,2], 2 successes vs Ob 2, PASS. Optional supplementalFaces can be supplied for shadow Fate diagnostics without changing the base pool.</p>
+      <p style="margin:8px 0 0;">Supports base/extra dice, dice modifiers, success modifiers and supplemental faces without changing live Actor state.</p>
     </section>
     <div style="padding:8px 10px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>No Test Engine gameplay takeover in M3 qa.3.</b><br>
-      <small>Legacy Mixed still prepares rolls, rolls dice, decides/spends Fate, resolves gameplay, advances state and writes chat. CORE only observes and deterministically replays supported real results. Secondary Versus tiebreaks and Beginner's Luck Versus remain intentionally skipped.</small>
+      <b>No Test Engine gameplay takeover in M3.</b><br>
+      <small>Legacy Mixed still prepares rolls, rolls dice, spends resources, resolves gameplay, advances state and writes chat. CORE observes and deterministically replays. Conflict remains on the Legacy adapter path until M6.</small>
     </div>
   </div>`;
 }
