@@ -1,28 +1,36 @@
-Realm Guard / Torchbearer v1.5.0-qa.11 — CORE M3 Final Promotion Matrix.
+Realm Guard / Torchbearer v1.6.0-qa.1 — CORE M4 Service Foundation.
 
-qa.10 verified the Custom Content Compatibility matrix: custom Skill, Trait, Wise, Talent and Token of Power behavior, manual/free-text boundaries and reload persistence all passed without canonical-name dependence.
+M3 Unified Test Engine is now VERIFIED. v1.6.0-qa.1 begins M4: Advancement / Nature / Conditions Services while preserving Legacy Mixed as the sole live gameplay authority.
 
-qa.11 is the final M3 gate. It does not promote CORE to live authority. It verifies that the complete Unified Test Engine shadow architecture is stable enough to mark M3 VERIFIED and proceed to M4.
+New in qa.1:
+- adds a lightweight CORE domain event bus
+- adds AdvancementService shadow recommendation foundation
+- adds NatureService state / tax recommendation / non-mutating preview foundation
+- adds ConditionService data-driven inspection and roll-effect collection foundation
+- adds CapabilityBlockService foundation
+- adds RecoveryService / RecoveryContext foundation
+- exposes the M4 QA API under `game.realmGuard.core.m4`
+- adds GM diagnostics entry for M4
+- adds headless M4 foundation smoke QA
 
-Final M3 QA scope:
-- startup / authority verification
-- positive and negative modifier parity without double application
-- cancel safety for ordinary and Custom Roll dialogs
-- representative context regression sweep across ordinary, ability, nature, circles, beginnerLuck, versus, recovery and custom
-- custom-content regression
-- reload / duplicate observer safety
-- GM + Player multiclient safety
-- M2 six-provider shadow preservation
+Architecture requirements preserved:
+- Advancement is designed to react to TEST_RESOLVED events rather than being hard-coded into Test Engine
+- Nature is a separate subsystem using Current / Maximum / Tax and descriptor capability
+- Conditions are represented through Item data rather than requiring canonical names for modifier/recovery behavior
+- custom Conditions are first-class in ConditionService inspection and RecoveryContext
+- Recovery remains its own TestContext
+- strict profile corrections are NOT globally activated
 
-Important preservation:
-- Legacy Mixed remains sole live authority throughout qa.11
-- CORE Test Engine remains SHADOW_PARITY / live OFF
-- CORE Effect Engine remains SHADOW_COMPARE / live OFF
-- Conflict remains on the Legacy adapter path until M6
-- no destructive world migration or strict-profile correction
+Important qa.1 boundary:
+- no existing live advancement is replaced
+- no live Nature tax writes are moved yet
+- no live Condition/Recovery mutations are moved yet
+- synthetic M4 TEST_RESOLVED events generate shadow recommendations only
+- Legacy Mixed remains authoritative
+- M2 remains SHADOW_COMPARE / live OFF
+- M3 remains SHADOW_PARITY / live OFF
+- Conflict remains Legacy adapter until M6
 
-If the full qa.11 matrix passes, record M3 Unified Test Engine = VERIFIED and begin M4 Advancement / Nature / Conditions Services.
-
-QA protocol: TEST_PROTOCOL_v1.5.0-qa.11.md
+QA protocol: TEST_PROTOCOL_v1.6.0-qa.1.md
 Foundry target: v13.351.
-Approved baseline: v1.5.0-qa.10 PASS.
+Approved baseline: v1.5.0-qa.11 PASS / M3 VERIFIED.
