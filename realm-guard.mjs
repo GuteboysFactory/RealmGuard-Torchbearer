@@ -33,16 +33,13 @@ import { installTestParityShadow } from "./module/test-parity-service.mjs";
 import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
 import { installCustomRollParityAction } from "./module/custom-roll-parity-ui.mjs";
 import { installCustomContentCompatibilityQa } from "./module/custom-content-compatibility.mjs";
+import { installM4CoreServices } from "./module/m4-core-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.5.0-qa.11"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
-  CONFIG.Actor.dataModels = {
-    character: RealmGuardCharacterData,
-    npc: RealmGuardNpcData
-  };
-
+  CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
   CONFIG.Item.dataModels = {
     role: RealmGuardRoleData,
     trait: RealmGuardTraitData,
@@ -56,11 +53,8 @@ Hooks.once("init", () => {
   const { DocumentSheetConfig } = foundry.applications.apps;
   installUntrainedVersusUi(RealmGuardActorSheet);
   installCustomRollParityAction(RealmGuardActorSheet);
-  DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, {
-    types: ["character"],
-    makeDefault: true,
-    label: "Realm Guard / Torchbearer Ranger Sheet"
-  });
+  DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, { types: ["character"], makeDefault: true, label: "Realm Guard / Torchbearer Ranger Sheet" });
+
   installCoreBaseline();
   installRulesProfileInfrastructure();
   installEffectEngineInfrastructure();
@@ -68,6 +62,8 @@ Hooks.once("init", () => {
   installTestEngineInfrastructure();
   installTestParityShadow(RealmGuardActor);
   installCustomContentCompatibilityQa();
+  installM4CoreServices();
+
   installTokenConditionHud();
   installConditionTokenHover();
   installGmMassConditionHud();
@@ -93,17 +89,8 @@ Hooks.once("init", () => {
   installSystemAudit();
   installRealmGuardManual();
 
-  DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardNpcSheet, {
-    types: ["npc"],
-    makeDefault: true,
-    label: "Realm Guard / Torchbearer NPC Sheet"
-  });
-
-  DocumentSheetConfig.registerSheet(Item, "realm-guard", RealmGuardItemSheet, {
-    types: ["role", "trait", "wise", "gear", "condition", "tokenOfPower", "talent"],
-    makeDefault: true,
-    label: "Realm Guard / Torchbearer Item Sheet"
-  });
+  DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardNpcSheet, { types: ["npc"], makeDefault: true, label: "Realm Guard / Torchbearer NPC Sheet" });
+  DocumentSheetConfig.registerSheet(Item, "realm-guard", RealmGuardItemSheet, { types: ["role", "trait", "wise", "gear", "condition", "tokenOfPower", "talent"], makeDefault: true, label: "Realm Guard / Torchbearer Item Sheet" });
 });
 
 Hooks.on("updateItem", async (item, changes, options) => {
