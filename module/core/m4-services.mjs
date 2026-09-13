@@ -34,33 +34,65 @@ export class AdvancementService {
 
   evaluate(payload = {}) {
     const context = String(payload.context ?? "ordinary");
-    const outcome = String(payload.outcome ?? "").toUpperCase();
+    const legacyOutcome = String(payload.outcome ?? "").toUpperCase();
+    const hasLearningOutcome = Object.prototype.hasOwnProperty.call(payload, "learningOutcome");
+    const rawLearningOutcome = hasLearningOutcome ? payload.learningOutcome : legacyOutcome;
+    const learningOutcome = rawLearningOutcome === null || rawLearningOutcome === undefined
+      ? null
+      : String(rawLearningOutcome).toUpperCase();
     const sourceKind = String(payload.sourceKind ?? "");
     const countLearning = payload.countLearning !== false;
-    const tie = outcome === "TIE";
+    const tie = legacyOutcome === "TIE";
     const beginnerLuck = context === "beginnerLuck";
+    const noLegacyLearningResult = hasLearningOutcome && learningOutcome === null && !tie;
     let mode = "NONE";
-    if (countLearning && !tie) {
+    if (countLearning && !tie && !noLegacyLearningResult) {
       if (beginnerLuck) mode = "BEGINNER_ATTEMPT";
       else if (sourceKind === "role") mode = "SKILL_PASS_FAIL";
       else if (sourceKind === "ability") mode = "ABILITY_PASS_FAIL";
     }
+    const passed = learningOutcome === "PASS";
+    const failed = learningOutcome === "FAIL";
+    const reason = tie
+      ? "TIE_DOES_NOT_ADVANCE"
+      : !countLearning
+        ? "LEARNING_DISABLED"
+        : noLegacyLearningResult
+          ? "LEGACY_LEARNING_RESULT_NONE"
+          : mode === "NONE"
+            ? "NO_ADVANCEMENT_POLICY"
+            : "LEGACY_MIXED_SHADOW_RECOMMENDATION";
     return deepFreeze({
       mode,
       eligible: mode !== "NONE",
-      passed: outcome === "PASS",
-      failed: outcome === "FAIL",
+      passed,
+      failed,
       context,
       sourceKind,
       sourceId: payload.sourceId ?? null,
       sourceName: String(payload.sourceName ?? ""),
-      reason: tie ? "TIE_DOES_NOT_ADVANCE" : !countLearning ? "LEARNING_DISABLED" : mode === "NONE" ? "NO_ADVANCEMENT_POLICY" : "LEGACY_MIXED_SHADOW_RECOMMENDATION",
+      legacyOutcome,
+      learningOutcome,
+      countLearning,
+      countLearningSource: String(payload.countLearningSource ?? ""),
+      realLegacyRoll: Boolean(payload.realLegacyRoll),
+      legacyMethod: String(payload.legacyMethod ?? ""),
+      parityId: payload.parityId ?? null,
+      parityStatus: payload.parityStatus ?? null,
+      reason,
       liveApplication: false
     });
   }
 
   getHistory() { return Object.freeze([...this.history]); }
   getLatest() { return this.history.at(-1) ?? null; }
+  getSummary() {
+    const realLegacy = this.history.filter(entry => entry.realLegacyRoll).length;
+    const eligible = this.history.filter(entry => entry.eligible).length;
+    const ignored = this.history.length - eligible;
+    const parityMatches = this.history.filter(entry => entry.parityStatus === "MATCH").length;
+    return deepFreeze({ observed: this.history.length, realLegacy, eligible, ignored, parityMatches, latest: this.getLatest() });
+  }
   clear() { this.history.splice(0); return this.getHistory(); }
 }
 
