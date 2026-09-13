@@ -1,6 +1,7 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { getCoreEventBus, CORE_EVENTS } from "./core/domain-events.mjs";
 import { AdvancementService, NatureService, ConditionService, CapabilityBlockService, RecoveryService } from "./core/m4-services.mjs";
+import { getM4AdvancementBridgeStatus } from "./m4-advancement-shadow-bridge.mjs";
 
 const eventBus = getCoreEventBus();
 const advancement = new AdvancementService({ eventBus }).start();
@@ -26,7 +27,8 @@ function status() {
       events: Object.freeze(Object.values(CORE_EVENTS)),
       listeners: eventBus.listenerCount()
     }),
-    currentScope: "FOUNDATION_ONLY",
+    testResolvedBridge: getM4AdvancementBridgeStatus(),
+    currentScope: "REAL_TEST_RESOLVED_ADVANCEMENT_SHADOW",
     preservation: Object.freeze({
       m2: "SHADOW_COMPARE",
       m3: "SHADOW_PARITY",
@@ -38,18 +40,22 @@ function status() {
 
 function diagnosticsHtml() {
   const s = status();
+  const a = advancement.getSummary();
   return `<div class="realm-guard" style="padding:8px 12px;max-height:60vh;overflow:auto;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M4</div>
     <h2>Advancement · Nature · Conditions</h2>
     <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>M4 qa.1 installs service boundaries and the lightweight CORE event bus only. Existing live advancement, Nature tax and Condition/Recovery code remains authoritative.</p>
+    <p>M4 qa.2 observes completed real Legacy Mixed tests and emits observer-only <b>TEST_RESOLVED</b> events into AdvancementService. Legacy still writes all real Learning and Advancement state.</p>
+    <h3>Real-test bridge</h3>
+    <p><b>Mode:</b> ${s.testResolvedBridge.mode}<br><b>Roll wrapper:</b> ${s.testResolvedBridge.rollBridgeInstalled ? "ready" : "waiting for ready"}<br><b>Learning checkbox capture:</b> ${s.testResolvedBridge.learningDecisionCapture}</p>
+    <h3>Advancement shadow</h3>
+    <p>${a.observed} observed · ${a.realLegacy} real Legacy · ${a.eligible} eligible · ${a.ignored} ignored · ${a.parityMatches} with M3 MATCH</p>
     <h3>Services</h3><p>${s.services.join(" · ")}</p>
-    <h3>Event bus</h3><p>${s.eventBus.events.join(" · ")}</p>
     <h3>Console QA</h3>
     <code>game.realmGuard.core.m4.getStatus()</code><br>
-    <code>game.realmGuard.core.m4.nature.state(actor)</code><br>
-    <code>game.realmGuard.core.m4.conditions.list(actor)</code><br>
-    <code>game.realmGuard.core.m4.capabilityBlocks.collect(actor)</code>
+    <code>game.realmGuard.core.m4.advancement.getLatest()</code><br>
+    <code>game.realmGuard.core.m4.advancement.getSummary()</code><br>
+    <code>game.realmGuard.core.m4.advancement.clear()</code>
   </div>`;
 }
 
@@ -72,6 +78,7 @@ function exposeApi() {
       evaluate: payload => advancement.evaluate(payload),
       getHistory: () => advancement.getHistory(),
       getLatest: () => advancement.getLatest(),
+      getSummary: () => advancement.getSummary(),
       clear: () => advancement.clear()
     }),
     nature: Object.freeze({
@@ -107,6 +114,6 @@ export function installM4CoreServices() {
   });
   Hooks.once("ready", () => {
     exposeApi();
-    console.log("realm-guard | CORE M4 service foundation ready", status());
+    console.log("realm-guard | CORE M4 service layer ready", status());
   });
 }
