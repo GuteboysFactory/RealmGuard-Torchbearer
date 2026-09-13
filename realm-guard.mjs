@@ -34,9 +34,10 @@ import { installUntrainedVersusUi } from "./module/untrained-versus-ui.mjs";
 import { installCustomRollParityAction } from "./module/custom-roll-parity-ui.mjs";
 import { installCustomContentCompatibilityQa } from "./module/custom-content-compatibility.mjs";
 import { installM4CoreServices } from "./module/m4-core-service.mjs";
+import { installM4AdvancementShadowBridge } from "./module/m4-advancement-shadow-bridge.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.1"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.2"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -63,6 +64,7 @@ Hooks.once("init", () => {
   installTestParityShadow(RealmGuardActor);
   installCustomContentCompatibilityQa();
   installM4CoreServices();
+  installM4AdvancementShadowBridge(RealmGuardActor, RealmGuardActorSheet);
 
   installTokenConditionHud();
   installConditionTokenHover();
