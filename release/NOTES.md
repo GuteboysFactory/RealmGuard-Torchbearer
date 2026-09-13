@@ -1,36 +1,28 @@
-Realm Guard / Torchbearer v1.6.0-qa.1 — CORE M4 Service Foundation.
+Realm Guard / Torchbearer v1.6.0-qa.2 — CORE M4 Real TEST_RESOLVED Advancement Shadow.
 
-M3 Unified Test Engine is now VERIFIED. v1.6.0-qa.1 begins M4: Advancement / Nature / Conditions Services while preserving Legacy Mixed as the sole live gameplay authority.
+v1.6.0-qa.1 verified the M4 service foundation. qa.2 connects completed real Legacy Mixed tests to the CORE domain event bus so AdvancementService can shadow-evaluate actual gameplay results while Legacy remains the sole live writer of Learning and Advancement state.
 
-New in qa.1:
-- adds a lightweight CORE domain event bus
-- adds AdvancementService shadow recommendation foundation
-- adds NatureService state / tax recommendation / non-mutating preview foundation
-- adds ConditionService data-driven inspection and roll-effect collection foundation
-- adds CapabilityBlockService foundation
-- adds RecoveryService / RecoveryContext foundation
-- exposes the M4 QA API under `game.realmGuard.core.m4`
-- adds GM diagnostics entry for M4
-- adds headless M4 foundation smoke QA
+New in qa.2:
+- adds `m4-advancement-shadow-bridge.mjs`
+- observes real Legacy `rollRole`, `rollAbility`, `rollBeginnerLuck`, `rollAutomaticVersus` and `rollNatureVersus` completions
+- captures the real Learning checkbox decision from the Legacy Roll Dialog
+- emits observer-only `TEST_RESOLVED` domain events after completed Legacy tests
+- links M4 advancement observations to the latest matching M3 parity result when available
+- preserves Legacy Automatic Versus `learningResult:null` semantics rather than inventing an advancement mark after secondary tie resolution
+- adds AdvancementService summary diagnostics
+- keeps Custom Roll deliberately outside AdvancementService because the free pool has no Learning/Advancement contract
+- adds headless advancement-shadow semantics smoke QA
 
-Architecture requirements preserved:
-- Advancement is designed to react to TEST_RESOLVED events rather than being hard-coded into Test Engine
-- Nature is a separate subsystem using Current / Maximum / Tax and descriptor capability
-- Conditions are represented through Item data rather than requiring canonical names for modifier/recovery behavior
-- custom Conditions are first-class in ConditionService inspection and RecoveryContext
-- Recovery remains its own TestContext
-- strict profile corrections are NOT globally activated
-
-Important qa.1 boundary:
-- no existing live advancement is replaced
-- no live Nature tax writes are moved yet
-- no live Condition/Recovery mutations are moved yet
-- synthetic M4 TEST_RESOLVED events generate shadow recommendations only
-- Legacy Mixed remains authoritative
+Important preservation:
+- Legacy Mixed remains sole live authority
+- AdvancementService remains recommendation/shadow only
+- no Skill Pass/Fail mark, Ability mark, Beginner's Luck attempt or rating is written by CORE
 - M2 remains SHADOW_COMPARE / live OFF
 - M3 remains SHADOW_PARITY / live OFF
-- Conflict remains Legacy adapter until M6
+- M4 remains SHADOW_SERVICES / live OFF
+- Conflict remains on the Legacy adapter path until M6
+- no destructive migration or strict-profile correction
 
-QA protocol: TEST_PROTOCOL_v1.6.0-qa.1.md
+QA protocol: TEST_PROTOCOL_v1.6.0-qa.2.md
 Foundry target: v13.351.
-Approved baseline: v1.5.0-qa.11 PASS / M3 VERIFIED.
+Approved baseline: v1.6.0-qa.1 PASS.
