@@ -1,0 +1,97 @@
+/* v1.7.0-qa.1 — M5 ancestry-aware equipment silhouette foundation */
+.realm-guard .rg-ranger-silhouette {
+  width: 47%;
+  height: 88%;
+  opacity: .94;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,.48)) drop-shadow(0 0 16px rgba(180,145,73,.10));
+}
+
+.realm-guard .rg-equipment-stage[data-rg-silhouette-key="dwarf"] .rg-ranger-silhouette {
+  width: 52%;
+  height: 82%;
+  top: 55%;
+}
+
+.realm-guard .rg-equipment-stage[data-rg-silhouette-key="elf"] .rg-ranger-silhouette {
+  width: 43%;
+  height: 90%;
+}
+
+.realm-guard .rg-equipment-stage[data-rg-silhouette-key="halfling"] .rg-ranger-silhouette {
+  width: 48%;
+  height: 78%;
+  top: 57%;
+}
+
+.realm-guard .rg-equipment-ancestry-control {
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) minmax(190px,1.15fr) auto;
+  gap:10px;
+  align-items:end;
+  margin:0 0 9px;
+  padding:9px 10px;
+  border:1px solid rgba(186,123,53,.45);
+  border-radius:7px;
+  background:linear-gradient(180deg,rgba(44,47,37,.94),rgba(24,27,21,.94));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.realm-guard .rg-equipment-ancestry-copy {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.realm-guard .rg-equipment-ancestry-copy > span {
+  color:var(--rg-accent);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.realm-guard .rg-equipment-ancestry-copy small {
+  color:var(--rg-muted)!important;
+  font-size:10px;
+}
+
+.realm-guard .rg-equipment-ancestry-control label {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  color:var(--rg-muted)!important;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.realm-guard .rg-equipment-ancestry-control input {
+  height:32px;
+  padding:4px 8px;
+  color:var(--rg-ink)!important;
+  background:#11140f!important;
+  border:1px solid #65583e!important;
+}
+
+.realm-guard .rg-equipment-ancestry-resolved {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:32px;
+  padding:0 9px;
+  border:1px solid rgba(174,139,70,.25);
+  border-radius:6px;
+  background:#10130f;
+  color:#c8b583;
+  font-size:11px;
+  white-space:nowrap;
+}
+.realm-guard .rg-equipment-ancestry-resolved i { color:var(--rg-accent); }
+.realm-guard .rg-equipment-ancestry-resolved b { color:var(--rg-ink); }
+
+@media(max-width:900px){
+  .realm-guard .rg-equipment-ancestry-control{grid-template-columns:1fr 1fr}
+  .realm-guard .rg-equipment-ancestry-resolved{grid-column:1/-1}
+}
+@media(max-width:620px){
+  .realm-guard .rg-equipment-ancestry-control{grid-template-columns:1fr}
+  .realm-guard .rg-equipment-ancestry-resolved{grid-column:auto}
+}
