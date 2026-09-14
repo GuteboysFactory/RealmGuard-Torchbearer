@@ -11,7 +11,7 @@ export class RealmGuardCharacterData extends TypeDataModel {
     return {
       biography: new fields.HTMLField({ required: true, nullable: false, initial: "" }),
       notes: new fields.HTMLField({ required: true, nullable: false, initial: "" }),
-      concept: str(), rank: str(), homeland: str(), age: str(),
+      concept: str(), rank: str(), homeland: str(), age: str(), ancestry: str(),
       lineage: str(), insignia: str(), seniorArtisan: str(), friend: str(),
       cloak: str(), weapon: str(), mentor: str(), enemy: str(), parents: str(),
       belief: str(), goal: str(), instinct: str(),
