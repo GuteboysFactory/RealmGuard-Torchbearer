@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 720" role="img" aria-label="Human equipment silhouette">
+  <defs>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b59a63" stop-opacity=".58"/><stop offset="1" stop-color="#574b33" stop-opacity=".72"/></linearGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d513b"/><stop offset="1" stop-color="#22261d"/></linearGradient>
+    <linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#655837"/><stop offset="1" stop-color="#1b2118"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".55"/></filter>
+  </defs>
+  <g filter="url(#shadow)" stroke="#c19a54" stroke-width="2.2" stroke-linejoin="round">
+    <path fill="url(#cloak)" d="M106 151 Q180 101 254 151 L286 278 263 525 224 637 180 592 136 637 97 525 74 278Z" opacity=".72"/>
+    <ellipse cx="180" cy="79" rx="41" ry="47" fill="url(#skin)"/>
+    <path fill="#2a2f24" d="M139 72 Q180 31 221 72 L216 55 Q180 18 144 55Z"/>
+    <path fill="url(#cloth)" d="M136 124 Q180 145 224 124 L243 187 229 333 211 432 204 640 167 640 158 443 149 640 112 640 119 432 101 333 117 187Z"/>
+    <path fill="url(#skin)" d="M116 170 84 239 58 332 79 341 110 260 135 206Z"/>
+    <path fill="url(#skin)" d="M244 170 276 239 302 332 281 341 250 260 225 206Z"/>
+    <path fill="#8a7241" d="M116 339 Q180 360 244 339 L241 363 Q180 382 119 363Z"/>
+    <path fill="#1f231b" d="M119 432 158 443 149 640 106 640Z"/>
+    <path fill="#1f231b" d="M241 432 202 443 211 640 254 640Z"/>
+    <path fill="#302b20" d="M101 640 153 640 154 670 91 670Z"/>
+    <path fill="#302b20" d="M207 640 259 640 269 670 206 670Z"/>
+    <path d="M137 130 Q180 164 223 130" fill="none" opacity=".55"/>
+    <path d="M124 294 Q180 314 236 294" fill="none" opacity=".42"/>
+  </g>
+</svg>
