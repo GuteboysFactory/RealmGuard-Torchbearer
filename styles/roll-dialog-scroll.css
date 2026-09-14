@@ -30,3 +30,155 @@
     max-height: 58vh;
   }
 }
+
+/* v1.6.0-qa.5 — Roll Dialog visual hierarchy / parchment UX */
+.rg-roll-dialog,
+.rg-free-custom-roll {
+  --rg-roll-paper: #e8dcc2;
+  --rg-roll-panel: #f5ecd9;
+  --rg-roll-panel-strong: #ded0b1;
+  --rg-roll-ink: #2c261d;
+  --rg-roll-muted: #6d604d;
+  --rg-roll-line: #a28e6c;
+  --rg-roll-green: #315d39;
+  --rg-roll-green-line: #62815f;
+  --rg-roll-green-bg: #dce8d4;
+  color: var(--rg-roll-ink);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(86,63,29,.03)),
+    var(--rg-roll-paper);
+  border: 1px solid var(--rg-roll-line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.rg-roll-dialog-head {
+  color: var(--rg-roll-ink);
+  background: var(--rg-roll-panel-strong);
+  border-color: var(--rg-roll-line);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32);
+}
+
+.rg-roll-dialog fieldset,
+.rg-free-custom-roll fieldset,
+.rg-obstacle-panel,
+.rg-roll-dialog .rg-teamwork-requester,
+.rg-roll-dialog .rg-teamwork-accepted-list,
+.rg-roll-dialog .rg-active-condition-box {
+  color: var(--rg-roll-ink);
+  background: var(--rg-roll-panel);
+  border: 1px solid var(--rg-roll-line);
+  border-radius: 7px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32);
+}
+
+.rg-roll-dialog fieldset,
+.rg-free-custom-roll fieldset {
+  padding: 9px 10px 10px;
+}
+
+.rg-roll-dialog legend,
+.rg-free-custom-roll legend {
+  color: #4b402f;
+  font-weight: 800;
+  letter-spacing: .035em;
+  padding: 0 5px;
+}
+
+.rg-roll-dialog small,
+.rg-free-custom-roll small,
+.rg-roll-dialog .rg-obstacle-guide,
+.rg-roll-dialog .rg-help-tip {
+  color: var(--rg-roll-muted);
+  opacity: 1;
+}
+
+.rg-roll-dialog input,
+.rg-roll-dialog select,
+.rg-roll-dialog textarea,
+.rg-free-custom-roll input,
+.rg-free-custom-roll select,
+.rg-free-custom-roll textarea {
+  color: var(--rg-roll-ink);
+  background: #fffaf0;
+  border-color: #a99572;
+}
+
+.rg-roll-dialog input:focus,
+.rg-roll-dialog select:focus,
+.rg-roll-dialog textarea:focus,
+.rg-free-custom-roll input:focus,
+.rg-free-custom-roll select:focus,
+.rg-free-custom-roll textarea:focus {
+  outline: 2px solid rgba(96,120,72,.35);
+  outline-offset: 1px;
+}
+
+/* Checked choices should read immediately as active. */
+.rg-roll-dialog input[type="checkbox"],
+.rg-roll-dialog input[type="radio"],
+.rg-free-custom-roll input[type="checkbox"],
+.rg-free-custom-roll input[type="radio"] {
+  accent-color: var(--rg-roll-green);
+}
+
+.rg-roll-dialog label:has(input[type="checkbox"]:checked),
+.rg-roll-dialog label:has(input[type="radio"]:checked),
+.rg-free-custom-roll label:has(input[type="checkbox"]:checked),
+.rg-free-custom-roll label:has(input[type="radio"]:checked) {
+  color: #213d27;
+  background: var(--rg-roll-green-bg);
+  border: 1px solid var(--rg-roll-green-line);
+  border-radius: 6px;
+  padding: 5px 7px;
+  box-shadow: inset 3px 0 0 var(--rg-roll-green);
+}
+
+.rg-roll-dialog label:has(input[type="checkbox"]:checked) small,
+.rg-roll-dialog label:has(input[type="radio"]:checked) small,
+.rg-free-custom-roll label:has(input[type="checkbox"]:checked) small,
+.rg-free-custom-roll label:has(input[type="radio"]:checked) small {
+  color: #35523a;
+}
+
+/* Make disabled options visibly subordinate rather than visually noisy. */
+.rg-roll-dialog input:disabled,
+.rg-roll-dialog select:disabled,
+.rg-free-custom-roll input:disabled,
+.rg-free-custom-roll select:disabled {
+  opacity: .55;
+}
+
+.rg-roll-dialog .rg-disabled-reason {
+  color: #7a493a;
+}
+
+/* Nature Versus should be discoverable even before the user knows the target workflow. */
+.rg-roll-dialog fieldset.rg-nature-roll:has(select[name="natureUse"]):not(:has(input[name="natureVersus"]))::after {
+  content: "Nature Versus: target exactly one opponent to enable the Versus option.";
+  display: block;
+  margin-top: 7px;
+  padding: 6px 8px;
+  border: 1px dashed #947b55;
+  border-radius: 5px;
+  background: #efe1c5;
+  color: #5f4c32;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Selected Nature Versus gets the same green active-state treatment. */
+.rg-roll-dialog fieldset.rg-nature-roll:has(input[name="natureVersus"]:checked) {
+  border-color: var(--rg-roll-green-line);
+  background: #edf3e9;
+}
+
+/* Preserve compact layouts while improving separation between dense sections. */
+.rg-roll-dialog-grid {
+  gap: 9px;
+}
+
+.rg-roll-dialog > fieldset + fieldset,
+.rg-free-custom-roll > fieldset + fieldset {
+  margin-top: 2px;
+}
