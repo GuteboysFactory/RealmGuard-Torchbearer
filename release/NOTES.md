@@ -1,27 +1,26 @@
-Realm Guard / Torchbearer v1.6.0-qa.4 — CORE M4 Real Nature Shadow Parity.
+Realm Guard / Torchbearer v1.6.0-qa.5 — Roll Dialog Visual UX Polish.
 
-v1.6.0-qa.2 verified the real TEST_RESOLVED Advancement shadow bridge and v1.6.0-qa.3 added the approved scrollable roll-dialog UX. qa.4 now observes real Legacy Mixed Nature use and compares the resulting Nature state against CORE NatureService predictions while Legacy remains the sole live writer.
+v1.6.0-qa.4 verified real Nature shadow parity. qa.5 is a UI-only readability pass for the Roll Dialog and preserves all M2/M3/M4 gameplay behavior.
 
-New in qa.4:
-- adds `m4-nature-shadow-parity.mjs`
-- observes real Nature use through Skill, Ability, Beginner's Luck, Automatic Versus and Nature Versus roll paths
-- compares Legacy Nature tax against CORE `NatureService.taxForResult`
-- compares resulting Current, Maximum and collapse state against CORE `previewTax`
-- covers Tap Nature within / against, direct Nature within / against, ties and double-tap semantics
-- exposes Nature parity diagnostics under `game.realmGuard.core.m4.natureParity`
-- adds headless Nature shadow parity smoke QA
-- preserves the qa.3 scrollable Roll Dialog UX
+New in qa.5:
+- adds a warm beige / parchment Roll Dialog background
+- groups dense roll sections into light parchment panels with clearer borders and headings
+- highlights checked checkbox/radio choices in green so active roll options are immediately visible
+- keeps inactive and disabled options visually quieter
+- improves input/select contrast and focus visibility
+- adds a Nature Versus discovery hint when no single target is selected
+- highlights the Nature block when Nature Versus is actively selected
+- preserves the approved viewport-safe internal scrolling from qa.3
 
 Important preservation:
-- Legacy Mixed remains sole live authority for Nature writes
-- CORE NatureService is observation/prediction only
+- no rules or roll resolution logic changed
+- Legacy Mixed remains sole live authority
 - M2 remains SHADOW_COMPARE / live OFF
 - M3 remains SHADOW_PARITY / live OFF
 - M4 remains SHADOW_SERVICES / live OFF
-- Advancement shadow remains enabled and unchanged
+- Advancement shadow and Nature shadow parity remain enabled and unchanged
 - Conflict remains on the Legacy adapter path until M6
-- no destructive migration or strict-profile correction
 
-QA protocol: TEST_PROTOCOL_v1.6.0-qa.4.md
+QA protocol: TEST_PROTOCOL_v1.6.0-qa.5.md
 Foundry target: v13.351.
-Approved baseline: v1.6.0-qa.3 PASS.
+Approved baseline: v1.6.0-qa.4 PASS.
