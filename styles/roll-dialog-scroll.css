@@ -1,0 +1,32 @@
+/* v1.6.0-qa.3 — viewport-safe Roll Dialog scrolling */
+.rg-roll-dialog,
+.rg-free-custom-roll {
+  box-sizing: border-box;
+  max-height: min(72vh, 680px);
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 6px;
+}
+
+/* Keep interactive controls comfortably reachable near the bottom edge. */
+.rg-roll-dialog > :last-child,
+.rg-free-custom-roll > :last-child {
+  margin-bottom: 2px;
+}
+
+@media (max-height: 800px) {
+  .rg-roll-dialog,
+  .rg-free-custom-roll {
+    max-height: 66vh;
+  }
+}
+
+@media (max-height: 620px) {
+  .rg-roll-dialog,
+  .rg-free-custom-roll {
+    max-height: 58vh;
+  }
+}
