@@ -11,6 +11,7 @@ import { installTurnManager } from "./module/turns.mjs";
 import { installRealmGuardArt } from "./module/theme-art.mjs";
 import { installInventoryQaTools } from "./module/qa-tools.mjs";
 import { installInventoryMigration } from "./module/inventory.mjs";
+import { installEquipmentSilhouette } from "./module/equipment-silhouette.mjs";
 import { installRecruitment } from "./module/recruitment.mjs";
 import { installConflictEngine } from "./module/conflicts.mjs";
 import { installGmTools } from "./module/gm-tools.mjs";
@@ -39,7 +40,7 @@ import { installM4NatureShadowParity } from "./module/m4-nature-shadow-parity.mj
 import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-recovery-shadow-parity.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.6"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -56,6 +57,7 @@ Hooks.once("init", () => {
   const { DocumentSheetConfig } = foundry.applications.apps;
   installUntrainedVersusUi(RealmGuardActorSheet);
   installCustomRollParityAction(RealmGuardActorSheet);
+  installEquipmentSilhouette(RealmGuardActorSheet);
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, { types: ["character"], makeDefault: true, label: "Realm Guard / Torchbearer Ranger Sheet" });
 
   installCoreBaseline();
