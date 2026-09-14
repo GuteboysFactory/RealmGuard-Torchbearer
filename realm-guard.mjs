@@ -37,7 +37,7 @@ import { installM4CoreServices } from "./module/m4-core-service.mjs";
 import { installM4AdvancementShadowBridge } from "./module/m4-advancement-shadow-bridge.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.2"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.6.0-qa.2.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
