@@ -2,6 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { getCoreEventBus, CORE_EVENTS } from "./core/domain-events.mjs";
 import { AdvancementService, NatureService, ConditionService, CapabilityBlockService, RecoveryService } from "./core/m4-services.mjs";
 import { getM4AdvancementBridgeStatus } from "./m4-advancement-shadow-bridge.mjs";
+import { getM4NatureParityStatus, getM4NatureParityHistory, getM4NatureParityLatest, getM4NatureParitySummary, clearM4NatureParity } from "./m4-nature-shadow-parity.mjs";
 
 const eventBus = getCoreEventBus();
 const advancement = new AdvancementService({ eventBus }).start();
@@ -28,7 +29,8 @@ function status() {
       listeners: eventBus.listenerCount()
     }),
     testResolvedBridge: getM4AdvancementBridgeStatus(),
-    currentScope: "REAL_TEST_RESOLVED_ADVANCEMENT_SHADOW",
+    natureParity: getM4NatureParityStatus(),
+    currentScope: "REAL_NATURE_SHADOW_PARITY",
     preservation: Object.freeze({
       m2: "SHADOW_COMPARE",
       m3: "SHADOW_PARITY",
@@ -41,21 +43,23 @@ function status() {
 function diagnosticsHtml() {
   const s = status();
   const a = advancement.getSummary();
+  const n = getM4NatureParitySummary();
   return `<div class="realm-guard" style="padding:8px 12px;max-height:60vh;overflow:auto;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M4</div>
     <h2>Advancement · Nature · Conditions</h2>
     <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>M4 qa.2 observes completed real Legacy Mixed tests and emits observer-only <b>TEST_RESOLVED</b> events into AdvancementService. Legacy still writes all real Learning and Advancement state.</p>
-    <h3>Real-test bridge</h3>
-    <p><b>Mode:</b> ${s.testResolvedBridge.mode}<br><b>Roll wrapper:</b> ${s.testResolvedBridge.rollBridgeInstalled ? "ready" : "waiting for ready"}<br><b>Learning checkbox capture:</b> ${s.testResolvedBridge.learningDecisionCapture}</p>
+    <p>M4 qa.4 keeps Advancement shadow observation and adds real Legacy Nature shadow parity. Legacy still performs every real Nature write; CORE independently predicts tax and resulting Current / Maximum / collapse state.</p>
     <h3>Advancement shadow</h3>
     <p>${a.observed} observed · ${a.realLegacy} real Legacy · ${a.eligible} eligible · ${a.ignored} ignored · ${a.parityMatches} with M3 MATCH</p>
+    <h3>Nature shadow parity</h3>
+    <p>${n.observed} observed · ${n.matches} match · ${n.mismatches} mismatch</p>
+    <p><b>Compared:</b> tax · current · maximum · collapsed</p>
     <h3>Services</h3><p>${s.services.join(" · ")}</p>
     <h3>Console QA</h3>
     <code>game.realmGuard.core.m4.getStatus()</code><br>
-    <code>game.realmGuard.core.m4.advancement.getLatest()</code><br>
-    <code>game.realmGuard.core.m4.advancement.getSummary()</code><br>
-    <code>game.realmGuard.core.m4.advancement.clear()</code>
+    <code>game.realmGuard.core.m4.natureParity.getLatest()</code><br>
+    <code>game.realmGuard.core.m4.natureParity.getSummary()</code><br>
+    <code>game.realmGuard.core.m4.natureParity.clear()</code>
   </div>`;
 }
 
@@ -85,6 +89,13 @@ function exposeApi() {
       state: actor => nature.state(actor),
       taxForResult: (result, options) => nature.taxForResult(result, options),
       previewTax: (actor, amount) => nature.previewTax(actor, amount)
+    }),
+    natureParity: Object.freeze({
+      getStatus: getM4NatureParityStatus,
+      getHistory: getM4NatureParityHistory,
+      getLatest: getM4NatureParityLatest,
+      getSummary: getM4NatureParitySummary,
+      clear: clearM4NatureParity
     }),
     conditions: Object.freeze({
       list: actor => conditions.list(actor),
