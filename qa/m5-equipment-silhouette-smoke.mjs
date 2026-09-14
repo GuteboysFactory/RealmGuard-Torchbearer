@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { normalizeEquipmentAncestry, resolveEquipmentSilhouette } from "../module/equipment-silhouette.mjs";
 
-assert.equal(normalizeEquipmentAncestry("Dúnadan"), "human");
-assert.equal(normalizeEquipmentAncestry("Dunedain"), "human");
+assert.equal(normalizeEquipmentAncestry("Dúnadan"), "dunadan");
+assert.equal(normalizeEquipmentAncestry("Dunedain"), "dunadan");
+assert.equal(normalizeEquipmentAncestry("Númenórean"), "dunadan");
 assert.equal(normalizeEquipmentAncestry("Human"), "human");
 assert.equal(normalizeEquipmentAncestry("Dwarf"), "dwarf");
 assert.equal(normalizeEquipmentAncestry("Dwarven"), "dwarf");
@@ -15,6 +16,11 @@ assert.equal(normalizeEquipmentAncestry("Bogkin"), "neutral");
 assert.equal(normalizeEquipmentAncestry(""), "neutral");
 
 let resolved = resolveEquipmentSilhouette("Dúnadan");
+assert.equal(resolved.key, "dunadan");
+assert.equal(resolved.fallback, false);
+assert.match(resolved.src, /dunadan\.svg$/);
+
+resolved = resolveEquipmentSilhouette("Human");
 assert.equal(resolved.key, "human");
 assert.equal(resolved.fallback, false);
 assert.match(resolved.src, /human\.svg$/);
