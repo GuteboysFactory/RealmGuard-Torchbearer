@@ -3,6 +3,7 @@ import { getCoreEventBus, CORE_EVENTS } from "./core/domain-events.mjs";
 import { AdvancementService, NatureService, ConditionService, CapabilityBlockService, RecoveryService } from "./core/m4-services.mjs";
 import { getM4AdvancementBridgeStatus } from "./m4-advancement-shadow-bridge.mjs";
 import { getM4NatureParityStatus, getM4NatureParityHistory, getM4NatureParityLatest, getM4NatureParitySummary, clearM4NatureParity } from "./m4-nature-shadow-parity.mjs";
+import { getM4ConditionRecoveryParityStatus, getM4ConditionRecoveryParityHistory, getM4ConditionRecoveryParityLatest, getM4ConditionRecoveryParitySummary, clearM4ConditionRecoveryParity } from "./m4-condition-recovery-shadow-parity.mjs";
 
 const eventBus = getCoreEventBus();
 const advancement = new AdvancementService({ eventBus }).start();
@@ -30,7 +31,8 @@ function status() {
     }),
     testResolvedBridge: getM4AdvancementBridgeStatus(),
     natureParity: getM4NatureParityStatus(),
-    currentScope: "REAL_NATURE_SHADOW_PARITY",
+    conditionRecoveryParity: getM4ConditionRecoveryParityStatus(),
+    currentScope: "REAL_CONDITION_CAPABILITY_RECOVERY_SHADOW_PARITY",
     preservation: Object.freeze({
       m2: "SHADOW_COMPARE",
       m3: "SHADOW_PARITY",
@@ -44,22 +46,24 @@ function diagnosticsHtml() {
   const s = status();
   const a = advancement.getSummary();
   const n = getM4NatureParitySummary();
+  const c = getM4ConditionRecoveryParitySummary();
   return `<div class="realm-guard" style="padding:8px 12px;max-height:60vh;overflow:auto;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M4</div>
-    <h2>Advancement · Nature · Conditions</h2>
+    <h2>Advancement · Nature · Conditions · Recovery</h2>
     <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>M4 qa.4 keeps Advancement shadow observation and adds real Legacy Nature shadow parity. Legacy still performs every real Nature write; CORE independently predicts tax and resulting Current / Maximum / collapse state.</p>
+    <p>M4 qa.6 preserves verified Advancement and Nature shadow behavior, then adds real Legacy Condition, capability-block and Recovery parity. Legacy remains the sole live writer.</p>
     <h3>Advancement shadow</h3>
     <p>${a.observed} observed · ${a.realLegacy} real Legacy · ${a.eligible} eligible · ${a.ignored} ignored · ${a.parityMatches} with M3 MATCH</p>
     <h3>Nature shadow parity</h3>
     <p>${n.observed} observed · ${n.matches} match · ${n.mismatches} mismatch</p>
-    <p><b>Compared:</b> tax · current · maximum · collapsed</p>
-    <h3>Services</h3><p>${s.services.join(" · ")}</p>
+    <h3>Condition / Recovery shadow parity</h3>
+    <p>${c.observed} observed · ${c.matches} match · ${c.mismatches} mismatch</p>
+    <p><b>Compared:</b> roll modifiers · capability blocks · recovery validation · recovery methods · recovery outcome · GM Check economy · attempt marking</p>
     <h3>Console QA</h3>
     <code>game.realmGuard.core.m4.getStatus()</code><br>
-    <code>game.realmGuard.core.m4.natureParity.getLatest()</code><br>
-    <code>game.realmGuard.core.m4.natureParity.getSummary()</code><br>
-    <code>game.realmGuard.core.m4.natureParity.clear()</code>
+    <code>game.realmGuard.core.m4.conditionRecoveryParity.getLatest()</code><br>
+    <code>game.realmGuard.core.m4.conditionRecoveryParity.getSummary()</code><br>
+    <code>game.realmGuard.core.m4.conditionRecoveryParity.clear()</code>
   </div>`;
 }
 
@@ -97,13 +101,30 @@ function exposeApi() {
       getSummary: getM4NatureParitySummary,
       clear: clearM4NatureParity
     }),
+    conditionRecoveryParity: Object.freeze({
+      getStatus: getM4ConditionRecoveryParityStatus,
+      getHistory: getM4ConditionRecoveryParityHistory,
+      getLatest: getM4ConditionRecoveryParityLatest,
+      getSummary: getM4ConditionRecoveryParitySummary,
+      clear: clearM4ConditionRecoveryParity
+    }),
     conditions: Object.freeze({
       list: actor => conditions.list(actor),
       collectRollEffects: (actor, rollName, options) => conditions.collectRollEffects(actor, rollName, options),
       recoveryContext: (actor, conditionId) => conditions.recoveryContext(actor, conditionId)
     }),
-    capabilityBlocks: Object.freeze({ collect: actor => capabilityBlocks.collect(actor) }),
-    recovery: Object.freeze({ context: (actor, conditionId) => recovery.context(actor, conditionId) })
+    capabilityBlocks: Object.freeze({
+      collect: actor => capabilityBlocks.collect(actor),
+      isBlocked: (actor, capability) => capabilityBlocks.isBlocked(actor, capability)
+    }),
+    recovery: Object.freeze({
+      context: (actor, conditionId) => recovery.context(actor, conditionId),
+      blocker: (actor, conditionId) => recovery.blocker(actor, conditionId),
+      methods: (actor, conditionId) => recovery.methods(actor, conditionId),
+      validate: (actor, conditionId, options) => recovery.validate(actor, conditionId, options),
+      economy: (actor, options) => recovery.economy(actor, options),
+      resolution: (actor, conditionId, options) => recovery.resolution(actor, conditionId, options)
+    })
   });
 }
 
