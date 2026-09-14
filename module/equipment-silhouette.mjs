@@ -2,7 +2,8 @@ const ASSET_ROOT = "systems/realm-guard/assets/ui/silhouettes";
 
 export const EQUIPMENT_SILHOUETTES = Object.freeze({
   neutral: Object.freeze({ key: "neutral", label: "Neutral Humanoid", src: `${ASSET_ROOT}/neutral.svg` }),
-  human: Object.freeze({ key: "human", label: "Human / Dúnadan", src: `${ASSET_ROOT}/human.svg` }),
+  dunadan: Object.freeze({ key: "dunadan", label: "Dúnadan", src: `${ASSET_ROOT}/dunadan.svg` }),
+  human: Object.freeze({ key: "human", label: "Human", src: `${ASSET_ROOT}/human.svg` }),
   dwarf: Object.freeze({ key: "dwarf", label: "Dwarf", src: `${ASSET_ROOT}/dwarf.svg` }),
   elf: Object.freeze({ key: "elf", label: "Elf", src: `${ASSET_ROOT}/elf.svg` }),
   halfling: Object.freeze({ key: "halfling", label: "Halfling / Hobbit", src: `${ASSET_ROOT}/halfling.svg` })
@@ -16,10 +17,10 @@ const ALIASES = Object.freeze({
   humans: "human",
   man: "human",
   men: "human",
-  dunadan: "human",
-  dunedain: "human",
-  numenorean: "human",
-  numenoreans: "human",
+  dunadan: "dunadan",
+  dunedain: "dunadan",
+  numenorean: "dunadan",
+  numenoreans: "dunadan",
   dwarf: "dwarf",
   dwarves: "dwarf",
   dwarven: "dwarf",
@@ -67,9 +68,6 @@ export function equipmentAncestryForActor(actor) {
   const explicit = String(actor?.system?.ancestry ?? "").trim();
   if (explicit) return explicit;
 
-  // Backward-compatible bridge only: older actors may have stored ancestry-like
-  // wording in Lineage / House. House names such as "House of Ruor" deliberately
-  // do not match and therefore use the neutral silhouette.
   const legacyLineage = String(actor?.system?.lineage ?? "").trim();
   return normalizeEquipmentAncestry(legacyLineage) !== "neutral" ? legacyLineage : "";
 }
@@ -80,7 +78,8 @@ export function equipmentSilhouetteForActor(actor) {
 
 function ancestryChoices() {
   return [
-    { value: "Dúnadan", label: "Dúnadan / Human" },
+    { value: "Dúnadan", label: "Dúnadan" },
+    { value: "Human", label: "Human" },
     { value: "Dwarf", label: "Dwarf" },
     { value: "Elf", label: "Elf" },
     { value: "Halfling", label: "Halfling / Hobbit" },
@@ -99,12 +98,12 @@ function ensureAncestryControl(sheet, panel, resolved) {
     const choices = ancestryChoices();
     control.innerHTML = `
       <div class="rg-equipment-ancestry-copy">
-        <span>Equipment silhouette</span>
+        <span>Equipment figure</span>
         <small>Visual only · inventory rules are unchanged</small>
       </div>
       <label>
         <span>Ancestry</span>
-        <input type="text" list="${listId}" data-rg-equipment-ancestry-input placeholder="Dúnadan, Dwarf, Elf, Halfling…" />
+        <input type="text" list="${listId}" data-rg-equipment-ancestry-input placeholder="Dúnadan, Human, Dwarf, Elf, Halfling…" />
         <datalist id="${listId}">${choices.map(choice => `<option value="${choice.value}">${choice.label}</option>`).join("")}</datalist>
       </label>
       <div class="rg-equipment-ancestry-resolved" data-rg-equipment-ancestry-resolved></div>`;
@@ -144,7 +143,7 @@ export function applyEquipmentSilhouette(sheet) {
 
   const resolved = equipmentSilhouetteForActor(actor);
   image.src = resolved.src;
-  image.alt = `${resolved.label} equipment silhouette`;
+  image.alt = `${resolved.label} equipment figure`;
   image.removeAttribute("aria-hidden");
   image.dataset.rgSilhouetteKey = resolved.key;
   image.dataset.rgSilhouetteFallback = String(resolved.fallback);
@@ -163,7 +162,8 @@ export function applyEquipmentSilhouette(sheet) {
 export function equipmentSilhouetteStatus() {
   return Object.freeze({
     phase: "M5",
-    scope: "LINEAGE_AWARE_EQUIPMENT_SILHOUETTE",
+    scope: "ANCESTRY_AWARE_EQUIPMENT_FIGURE",
+    artDirection: "PAINTERLY_DARK_FANTASY_RANGER",
     liveApplication: false,
     inventoryAuthority: "LEGACY_MIXED",
     registry: Object.freeze(Object.keys(EQUIPMENT_SILHOUETTES)),
@@ -200,6 +200,6 @@ export function installEquipmentSilhouette(ActorSheetClass) {
 
   globalThis.Hooks?.once?.("ready", () => {
     exposeApi();
-    console.log("realm-guard | M5 equipment silhouette registry ready", equipmentSilhouetteStatus());
+    console.log("realm-guard | M5 equipment figure registry ready", equipmentSilhouetteStatus());
   });
 }
