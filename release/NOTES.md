@@ -1,22 +1,27 @@
-Realm Guard / Torchbearer v1.6.0-qa.3 — Roll Dialog Scroll Hotfix.
+Realm Guard / Torchbearer v1.6.0-qa.4 — CORE M4 Real Nature Shadow Parity.
 
-This build preserves the fully verified v1.6.0-qa.2 M4 Advancement shadow behavior and only improves roll-dialog usability on shorter viewports.
+v1.6.0-qa.2 verified the real TEST_RESOLVED Advancement shadow bridge and v1.6.0-qa.3 added the approved scrollable roll-dialog UX. qa.4 now observes real Legacy Mixed Nature use and compares the resulting Nature state against CORE NatureService predictions while Legacy remains the sole live writer.
 
-New in qa.3:
-- adds a dedicated viewport-safe roll-dialog stylesheet
-- makes standard Realm Guard Roll Dialog content vertically scrollable when it exceeds available screen height
-- makes Custom Roll / Free Dice Pool vertically scrollable under the same conditions
-- prevents unnecessary horizontal scrolling
-- keeps controls reachable on short desktop windows
+New in qa.4:
+- adds `m4-nature-shadow-parity.mjs`
+- observes real Nature use through Skill, Ability, Beginner's Luck, Automatic Versus and Nature Versus roll paths
+- compares Legacy Nature tax against CORE `NatureService.taxForResult`
+- compares resulting Current, Maximum and collapse state against CORE `previewTax`
+- covers Tap Nature within / against, direct Nature within / against, ties and double-tap semantics
+- exposes Nature parity diagnostics under `game.realmGuard.core.m4.natureParity`
+- adds headless Nature shadow parity smoke QA
+- preserves the qa.3 scrollable Roll Dialog UX
 
 Important preservation:
-- no rules or gameplay logic changed
-- Legacy Mixed remains sole live authority
+- Legacy Mixed remains sole live authority for Nature writes
+- CORE NatureService is observation/prediction only
 - M2 remains SHADOW_COMPARE / live OFF
 - M3 remains SHADOW_PARITY / live OFF
 - M4 remains SHADOW_SERVICES / live OFF
-- v1.6.0-qa.2 Advancement shadow behavior is unchanged
+- Advancement shadow remains enabled and unchanged
+- Conflict remains on the Legacy adapter path until M6
+- no destructive migration or strict-profile correction
 
-QA protocol: TEST_PROTOCOL_v1.6.0-qa.3.md
+QA protocol: TEST_PROTOCOL_v1.6.0-qa.4.md
 Foundry target: v13.351.
-Approved baseline: v1.6.0-qa.2 PASS.
+Approved baseline: v1.6.0-qa.3 PASS.
