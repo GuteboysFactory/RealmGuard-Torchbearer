@@ -1,4 +1,9 @@
+import { rangerPortraitState } from "./token-builder.mjs";
+
+const NS = "realm-guard";
+const FIGURE_FLAG = "equipmentFigure";
 const ASSET_ROOT = "systems/realm-guard/assets/ui/silhouettes";
+const FIGURE_MODES = Object.freeze(["auto", "character", "ancestry", "custom"]);
 
 export const EQUIPMENT_SILHOUETTES = Object.freeze({
   neutral: Object.freeze({ key: "neutral", label: "Neutral Humanoid", src: `${ASSET_ROOT}/neutral.svg` }),
@@ -34,6 +39,10 @@ const ALIASES = Object.freeze({
   halflings: "halfling"
 });
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value ?? 0)));
+}
+
 function fold(value) {
   return String(value ?? "")
     .normalize("NFD")
@@ -41,6 +50,19 @@ function fold(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function esc(value) {
+  const text = String(value ?? "");
+  return globalThis.foundry?.utils?.escapeHTML ? foundry.utils.escapeHTML(text) : text.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+}
+
+function isUsableCharacterArt(src) {
+  const value = String(src ?? "").trim();
+  if (!value) return false;
+  if (/icons\/svg\/mystery-man\.svg/i.test(value)) return false;
+  if (/icons\/svg\/mystery-man/i.test(value)) return false;
+  return true;
 }
 
 export function normalizeEquipmentAncestry(value) {
@@ -68,12 +90,84 @@ export function equipmentAncestryForActor(actor) {
   const explicit = String(actor?.system?.ancestry ?? "").trim();
   if (explicit) return explicit;
 
+  // Backward compatibility only. A real House name such as "House of Ruor"
+  // deliberately does not match and therefore falls back to Neutral.
   const legacyLineage = String(actor?.system?.lineage ?? "").trim();
   return normalizeEquipmentAncestry(legacyLineage) !== "neutral" ? legacyLineage : "";
 }
 
 export function equipmentSilhouetteForActor(actor) {
   return resolveEquipmentSilhouette(equipmentAncestryForActor(actor));
+}
+
+export function equipmentFigurePreferences(actor) {
+  const raw = actor?.getFlag?.(NS, FIGURE_FLAG) ?? {};
+  const rawMode = String(raw?.mode ?? "auto").toLowerCase();
+  return Object.freeze({
+    mode: FIGURE_MODES.includes(rawMode) ? rawMode : "auto",
+    customSrc: String(raw?.customSrc ?? "").trim(),
+    fit: String(raw?.fit ?? "contain") === "cover" ? "cover" : "contain",
+    zoom: clamp(raw?.zoom ?? 1, 0.5, 2.5),
+    offsetX: clamp(raw?.offsetX ?? 0, -40, 40),
+    offsetY: clamp(raw?.offsetY ?? 0, -40, 40)
+  });
+}
+
+export function characterArtForEquipment(actor) {
+  if (!actor) return "";
+  try {
+    const portrait = rangerPortraitState(actor);
+    const original = String(portrait?.originalSource ?? "").trim();
+    if (isUsableCharacterArt(original)) return original;
+  } catch (_error) { /* actor.img fallback below */ }
+  const actorImage = String(actor?.img ?? "").trim();
+  return isUsableCharacterArt(actorImage) ? actorImage : "";
+}
+
+export function resolveEquipmentFigure(actor) {
+  const preferences = equipmentFigurePreferences(actor);
+  const ancestry = equipmentSilhouetteForActor(actor);
+  const characterSrc = characterArtForEquipment(actor);
+  const hasCharacterArt = Boolean(characterSrc);
+  const hasCustom = Boolean(preferences.customSrc);
+
+  let sourceType = "ancestry";
+  let src = ancestry.src;
+  let label = ancestry.label;
+  let fallbackReason = null;
+
+  if (preferences.mode === "auto") {
+    if (hasCharacterArt) {
+      sourceType = "character";
+      src = characterSrc;
+      label = "Character Art";
+    }
+  } else if (preferences.mode === "character") {
+    if (hasCharacterArt) {
+      sourceType = "character";
+      src = characterSrc;
+      label = "Character Art";
+    } else fallbackReason = "CHARACTER_ART_UNAVAILABLE";
+  } else if (preferences.mode === "custom") {
+    if (hasCustom) {
+      sourceType = "custom";
+      src = preferences.customSrc;
+      label = "Custom Equipment Figure";
+    } else fallbackReason = "CUSTOM_ART_UNAVAILABLE";
+  }
+
+  return Object.freeze({
+    mode: preferences.mode,
+    sourceType,
+    src,
+    label,
+    hasCharacterArt,
+    hasCustom,
+    fallbackReason,
+    ancestry,
+    preferences,
+    inventoryRulesChanged: false
+  });
 }
 
 function ancestryChoices() {
@@ -87,53 +181,159 @@ function ancestryChoices() {
   ];
 }
 
-function ensureAncestryControl(sheet, panel, resolved) {
+async function saveFigurePreferences(actor, patch = {}) {
+  const current = equipmentFigurePreferences(actor);
+  const next = {
+    mode: patch.mode ?? current.mode,
+    customSrc: patch.customSrc ?? current.customSrc,
+    fit: patch.fit ?? current.fit,
+    zoom: clamp(patch.zoom ?? current.zoom, 0.5, 2.5),
+    offsetX: clamp(patch.offsetX ?? current.offsetX, -40, 40),
+    offsetY: clamp(patch.offsetY ?? current.offsetY, -40, 40)
+  };
+  await actor.update({ [`flags.${NS}.${FIGURE_FLAG}`]: next });
+  return next;
+}
+
+function applyFigureImage(image, resolved) {
+  if (!image || !resolved) return;
+  image.src = resolved.src;
+  image.alt = `${resolved.label} equipment figure`;
+  image.removeAttribute("aria-hidden");
+  image.dataset.rgFigureSource = resolved.sourceType;
+  image.dataset.rgSilhouetteKey = resolved.ancestry.key;
+  image.dataset.rgSilhouetteFallback = String(resolved.ancestry.fallback);
+  image.classList.toggle("is-character-art", resolved.sourceType === "character");
+  image.classList.toggle("is-custom-art", resolved.sourceType === "custom");
+  image.classList.toggle("is-ancestry-art", resolved.sourceType === "ancestry");
+
+  const customFraming = resolved.sourceType === "character" || resolved.sourceType === "custom";
+  if (customFraming) {
+    const framing = resolved.preferences;
+    image.style.objectFit = framing.fit;
+    image.style.left = `calc(50% + ${framing.offsetX}%)`;
+    image.style.top = `calc(51% + ${framing.offsetY}%)`;
+    image.style.transform = `translate(-50%, -50%) scale(${framing.zoom})`;
+  } else {
+    image.style.objectFit = "contain";
+    image.style.left = "50%";
+    image.style.top = "51%";
+    image.style.transform = "translate(-50%, -50%)";
+  }
+}
+
+function resolvedCopy(resolved) {
+  if (resolved.sourceType === "character") return `<i class="fa-solid fa-image"></i><span><b>Character Art</b> · personal PC image</span>`;
+  if (resolved.sourceType === "custom") return `<i class="fa-solid fa-wand-magic-sparkles"></i><span><b>Custom Figure</b></span>`;
+  if (resolved.fallbackReason === "CHARACTER_ART_UNAVAILABLE") return `<i class="fa-solid fa-triangle-exclamation"></i><span>Character Art unavailable → <b>${esc(resolved.ancestry.label)}</b></span>`;
+  if (resolved.fallbackReason === "CUSTOM_ART_UNAVAILABLE") return `<i class="fa-solid fa-triangle-exclamation"></i><span>Custom image missing → <b>${esc(resolved.ancestry.label)}</b></span>`;
+  if (resolved.ancestry.fallback) return `<i class="fa-solid fa-person"></i><span>Custom ancestry → <b>${esc(resolved.ancestry.label)}</b> fallback</span>`;
+  return `<i class="fa-solid fa-person"></i><span><b>${esc(resolved.ancestry.label)}</b> ancestry figure</span>`;
+}
+
+function ensureFigureControl(sheet, panel, resolved, image) {
   if (!panel || !sheet?.actor) return;
-  let control = panel.querySelector("[data-rg-equipment-ancestry-control]");
+  let control = panel.querySelector("[data-rg-equipment-figure-control]");
   if (!control) {
     control = document.createElement("div");
-    control.className = "rg-equipment-ancestry-control";
-    control.dataset.rgEquipmentAncestryControl = "true";
+    control.className = "rg-equipment-figure-control";
+    control.dataset.rgEquipmentFigureControl = "true";
     const listId = `rg-equipment-ancestry-${sheet.actor.id}`;
     const choices = ancestryChoices();
     control.innerHTML = `
-      <div class="rg-equipment-ancestry-copy">
-        <span>Equipment figure</span>
-        <small>Visual only · inventory rules are unchanged</small>
+      <div class="rg-equipment-figure-copy">
+        <span>Equipment Figure</span>
+        <small>PC art first · ancestry fallback · visual only</small>
       </div>
-      <label>
+      <label class="rg-equipment-figure-mode">
+        <span>Source</span>
+        <select data-rg-equipment-figure-mode>
+          <option value="auto">Auto · Character Art → Ancestry</option>
+          <option value="character">Character Art</option>
+          <option value="ancestry">Ancestry Figure</option>
+          <option value="custom">Custom Figure</option>
+        </select>
+      </label>
+      <label class="rg-equipment-figure-ancestry">
         <span>Ancestry</span>
         <input type="text" list="${listId}" data-rg-equipment-ancestry-input placeholder="Dúnadan, Human, Dwarf, Elf, Halfling…" />
-        <datalist id="${listId}">${choices.map(choice => `<option value="${choice.value}">${choice.label}</option>`).join("")}</datalist>
+        <datalist id="${listId}">${choices.map(choice => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`).join("")}</datalist>
       </label>
-      <div class="rg-equipment-ancestry-resolved" data-rg-equipment-ancestry-resolved></div>`;
+      <div class="rg-equipment-figure-resolved" data-rg-equipment-figure-resolved></div>
+      <div class="rg-equipment-figure-tools" data-rg-equipment-figure-tools>
+        <label class="rg-equipment-custom-source" data-rg-equipment-custom-source-wrap><span>Custom image path</span><input type="text" data-rg-equipment-custom-source placeholder="worlds/.../figure.webp" /></label>
+        <label><span>Fit</span><select data-rg-equipment-figure-fit><option value="contain">Fit Entire Image</option><option value="cover">Fill / Crop</option></select></label>
+        <label><span>Zoom <output data-rg-equipment-zoom-output></output></span><input type="range" min="0.5" max="2.5" step="0.05" data-rg-equipment-figure-zoom /></label>
+        <label><span>Horizontal <output data-rg-equipment-x-output></output></span><input type="range" min="-40" max="40" step="1" data-rg-equipment-figure-x /></label>
+        <label><span>Vertical <output data-rg-equipment-y-output></output></span><input type="range" min="-40" max="40" step="1" data-rg-equipment-figure-y /></label>
+      </div>`;
     const stage = panel.querySelector(".rg-equipment-stage");
     if (stage) panel.insertBefore(control, stage);
     else panel.appendChild(control);
 
-    const input = control.querySelector("[data-rg-equipment-ancestry-input]");
-    input?.addEventListener("change", async event => {
-      const value = String(event.currentTarget?.value ?? "").trim();
-      try {
-        await sheet.actor.update({ "system.ancestry": value });
-      } catch (error) {
-        console.error("realm-guard | Could not update equipment ancestry", error);
-        globalThis.ui?.notifications?.error?.("Realm Guard: Could not update equipment ancestry.");
-      }
+    control.querySelector("[data-rg-equipment-figure-mode]")?.addEventListener("change", async event => {
+      await saveFigurePreferences(sheet.actor, { mode: String(event.currentTarget?.value ?? "auto") });
     });
+    control.querySelector("[data-rg-equipment-ancestry-input]")?.addEventListener("change", async event => {
+      await sheet.actor.update({ "system.ancestry": String(event.currentTarget?.value ?? "").trim() });
+    });
+    control.querySelector("[data-rg-equipment-custom-source]")?.addEventListener("change", async event => {
+      await saveFigurePreferences(sheet.actor, { customSrc: String(event.currentTarget?.value ?? "").trim() });
+    });
+    control.querySelector("[data-rg-equipment-figure-fit]")?.addEventListener("change", async event => {
+      await saveFigurePreferences(sheet.actor, { fit: String(event.currentTarget?.value ?? "contain") });
+    });
+
+    const bindRange = (selector, key, outputSelector, suffix = "") => {
+      const input = control.querySelector(selector);
+      const output = control.querySelector(outputSelector);
+      input?.addEventListener("input", event => {
+        const value = Number(event.currentTarget?.value ?? 0);
+        if (output) output.textContent = `${value}${suffix}`;
+        const preview = {
+          ...resolveEquipmentFigure(sheet.actor),
+          preferences: { ...equipmentFigurePreferences(sheet.actor), [key]: value }
+        };
+        applyFigureImage(image, preview);
+      });
+      input?.addEventListener("change", async event => {
+        await saveFigurePreferences(sheet.actor, { [key]: Number(event.currentTarget?.value ?? 0) });
+      });
+    };
+    bindRange("[data-rg-equipment-figure-zoom]", "zoom", "[data-rg-equipment-zoom-output]", "x");
+    bindRange("[data-rg-equipment-figure-x]", "offsetX", "[data-rg-equipment-x-output]", "%");
+    bindRange("[data-rg-equipment-figure-y]", "offsetY", "[data-rg-equipment-y-output]", "%");
   }
 
-  const input = control.querySelector("[data-rg-equipment-ancestry-input]");
-  if (input && document.activeElement !== input) input.value = String(sheet.actor.system?.ancestry ?? "");
-  const output = control.querySelector("[data-rg-equipment-ancestry-resolved]");
-  if (output) {
-    output.innerHTML = resolved.fallback
-      ? `<i class="fa-solid fa-person"></i><span>Custom ancestry → <b>${resolved.label}</b> fallback</span>`
-      : `<i class="fa-solid fa-person"></i><span><b>${resolved.label}</b></span>`;
-  }
+  const prefs = resolved.preferences;
+  const setValue = (selector, value) => {
+    const field = control.querySelector(selector);
+    if (field && document.activeElement !== field) field.value = String(value ?? "");
+  };
+  setValue("[data-rg-equipment-figure-mode]", prefs.mode);
+  setValue("[data-rg-equipment-ancestry-input]", sheet.actor.system?.ancestry ?? "");
+  setValue("[data-rg-equipment-custom-source]", prefs.customSrc);
+  setValue("[data-rg-equipment-figure-fit]", prefs.fit);
+  setValue("[data-rg-equipment-figure-zoom]", prefs.zoom);
+  setValue("[data-rg-equipment-figure-x]", prefs.offsetX);
+  setValue("[data-rg-equipment-figure-y]", prefs.offsetY);
+
+  const zoomOutput = control.querySelector("[data-rg-equipment-zoom-output]");
+  if (zoomOutput) zoomOutput.textContent = `${prefs.zoom.toFixed(2)}x`;
+  const xOutput = control.querySelector("[data-rg-equipment-x-output]");
+  if (xOutput) xOutput.textContent = `${prefs.offsetX}%`;
+  const yOutput = control.querySelector("[data-rg-equipment-y-output]");
+  if (yOutput) yOutput.textContent = `${prefs.offsetY}%`;
+
+  const status = control.querySelector("[data-rg-equipment-figure-resolved]");
+  if (status) status.innerHTML = resolvedCopy(resolved);
+  control.dataset.rgFigureSource = resolved.sourceType;
+  control.dataset.rgFigureMode = prefs.mode;
+  control.querySelector("[data-rg-equipment-custom-source-wrap]")?.classList.toggle("is-visible", prefs.mode === "custom");
+  control.querySelector("[data-rg-equipment-figure-tools]")?.classList.toggle("is-active", resolved.sourceType === "character" || resolved.sourceType === "custom");
 }
 
-export function applyEquipmentSilhouette(sheet) {
+export function applyEquipmentFigure(sheet) {
   const actor = sheet?.actor;
   const root = sheet?.element;
   if (!actor || actor.type !== "character" || !root?.querySelector) return null;
@@ -141,47 +341,59 @@ export function applyEquipmentSilhouette(sheet) {
   const image = root.querySelector(".rg-ranger-silhouette");
   if (!image) return null;
 
-  const resolved = equipmentSilhouetteForActor(actor);
-  image.src = resolved.src;
-  image.alt = `${resolved.label} equipment figure`;
-  image.removeAttribute("aria-hidden");
-  image.dataset.rgSilhouetteKey = resolved.key;
-  image.dataset.rgSilhouetteFallback = String(resolved.fallback);
+  const resolved = resolveEquipmentFigure(actor);
+  applyFigureImage(image, resolved);
 
   const stage = image.closest(".rg-equipment-stage");
   if (stage) {
-    stage.dataset.rgSilhouetteKey = resolved.key;
-    stage.dataset.rgSilhouetteLabel = resolved.label;
+    stage.dataset.rgFigureSource = resolved.sourceType;
+    stage.dataset.rgSilhouetteKey = resolved.ancestry.key;
+    stage.dataset.rgSilhouetteLabel = resolved.ancestry.label;
     stage.dataset.rgAncestry = String(actor.system?.ancestry ?? "");
   }
 
-  ensureAncestryControl(sheet, image.closest(".rg-equipment-panel"), resolved);
+  ensureFigureControl(sheet, image.closest(".rg-equipment-panel"), resolved, image);
   return resolved;
 }
 
-export function equipmentSilhouetteStatus() {
+export const applyEquipmentSilhouette = applyEquipmentFigure;
+
+export function equipmentFigureStatus() {
   return Object.freeze({
     phase: "M5",
-    scope: "ANCESTRY_AWARE_EQUIPMENT_FIGURE",
-    artDirection: "PAINTERLY_DARK_FANTASY_RANGER",
+    scope: "PC_CHARACTER_ART_FIRST_EQUIPMENT_FIGURE",
+    defaultMode: "auto",
+    sourceOrder: Object.freeze(["CHARACTER_ART", "ANCESTRY", "NEUTRAL"]),
+    modes: FIGURE_MODES,
     liveApplication: false,
     inventoryAuthority: "LEGACY_MIXED",
     registry: Object.freeze(Object.keys(EQUIPMENT_SILHOUETTES)),
     ancestryField: "system.ancestry",
+    preferencesFlag: `flags.${NS}.${FIGURE_FLAG}`,
+    originalPortraitAware: true,
     legacyLineageBridge: true,
     inventoryRulesChanged: false
   });
 }
 
+export const equipmentSilhouetteStatus = equipmentFigureStatus;
+
 function exposeApi() {
   globalThis.game.realmGuard ??= {};
   globalThis.game.realmGuard.inventory ??= {};
   globalThis.game.realmGuard.inventory.silhouette = Object.freeze({
-    getStatus: equipmentSilhouetteStatus,
+    getStatus: equipmentFigureStatus,
     registry: EQUIPMENT_SILHOUETTES,
     normalize: normalizeEquipmentAncestry,
     resolve: resolveEquipmentSilhouette,
     forActor: equipmentSilhouetteForActor
+  });
+  globalThis.game.realmGuard.inventory.figure = Object.freeze({
+    getStatus: equipmentFigureStatus,
+    getPreferences: equipmentFigurePreferences,
+    characterArt: characterArtForEquipment,
+    resolve: resolveEquipmentFigure,
+    forActor: resolveEquipmentFigure
   });
 }
 
@@ -190,8 +402,8 @@ export function installEquipmentSilhouette(ActorSheetClass) {
   if (typeof original === "function" && !original._rgEquipmentSilhouetteWrapped) {
     const wrapped = function(...args) {
       const result = original.apply(this, args);
-      try { applyEquipmentSilhouette(this); }
-      catch (error) { console.error("realm-guard | Equipment silhouette render failed", error); }
+      try { applyEquipmentFigure(this); }
+      catch (error) { console.error("realm-guard | Equipment figure render failed", error); }
       return result;
     };
     Object.defineProperty(wrapped, "_rgEquipmentSilhouetteWrapped", { value: true });
@@ -200,6 +412,6 @@ export function installEquipmentSilhouette(ActorSheetClass) {
 
   globalThis.Hooks?.once?.("ready", () => {
     exposeApi();
-    console.log("realm-guard | M5 equipment figure registry ready", equipmentSilhouetteStatus());
+    console.log("realm-guard | M5 PC character-art equipment figure ready", equipmentFigureStatus());
   });
 }
