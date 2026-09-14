@@ -14,6 +14,7 @@ function deepFreeze(value) {
 }
 
 const normalize = value => String(value ?? "").trim().toLowerCase();
+const RECOVERY_ORDER = Object.freeze(["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"]);
 
 export class AdvancementService {
   constructor({ eventBus = getCoreEventBus() } = {}) {
@@ -198,9 +199,93 @@ export class CapabilityBlockService {
     }
     return Object.freeze(blocks.map(deepFreeze));
   }
+
+  isBlocked(actor, capability) {
+    const key = String(capability ?? "").trim().toUpperCase();
+    const matches = this.collect(actor).filter(block => String(block.capability).toUpperCase() === key);
+    return deepFreeze({ blocked: matches.length > 0, capability: key, sources: matches, liveApplication: false });
+  }
 }
 
 export class RecoveryService {
   constructor(conditionService = new ConditionService()) { this.conditions = conditionService; }
+
   context(actor, conditionId) { return this.conditions.recoveryContext(actor, conditionId); }
+
+  blocker(actor, conditionId) {
+    const conditions = this.conditions.list(actor);
+    const condition = conditions.find(entry => entry.id === conditionId) ?? null;
+    if (!condition) return null;
+    const index = RECOVERY_ORDER.findIndex(name => normalize(name) === normalize(condition.name));
+    if (index < 0) return null;
+    for (let i = 0; i < index; i += 1) {
+      const blocker = conditions.find(entry => entry.active && normalize(entry.name) === normalize(RECOVERY_ORDER[i]));
+      if (blocker) return deepFreeze({ id: blocker.id, name: blocker.name });
+    }
+    return null;
+  }
+
+  methods(actor, conditionId) {
+    const condition = this.conditions.list(actor).find(entry => entry.id === conditionId) ?? null;
+    if (!condition) return Object.freeze([]);
+    const attributes = actor?.system?.attributes ?? {};
+    const roles = Array.from(actor?.items ?? []).filter(item => item.type === "role");
+    const ability = (name, obstacle) => {
+      const key = normalize(name);
+      const stat = attributes?.[key];
+      if (!stat) return null;
+      return deepFreeze({ kind: "ability", key, name: String(name), obstacle: Math.max(0, Number(obstacle ?? 0)), dice: Math.max(0, Number(stat.value ?? 0)), sourceId: `ability:${key}` });
+    };
+    const role = (name, obstacle) => {
+      const item = roles.find(entry => normalize(entry.name) === normalize(name) && Number(entry.system?.rating ?? 0) > 0);
+      if (!item) return null;
+      return deepFreeze({ kind: "role", key: null, name: String(item.name), obstacle: Math.max(0, Number(obstacle ?? 0)), dice: Math.max(0, Number(item.system?.rating ?? 0)), sourceId: item.id ?? null });
+    };
+
+    const key = normalize(condition.name);
+    let methods = [];
+    if (key === "hungry & thirsty") methods = [role("Cook", 1), role("Brewer", 1), role("Baker", 1), ability("Resources", 1)];
+    else if (key === "angry") methods = [ability("Will", 2)];
+    else if (key === "afraid") methods = [ability("Will", 3)];
+    else if (key === "tired") methods = [ability("Health", 3)];
+    else if (key === "injured") methods = [ability("Health", 4)];
+    else if (key === "strained") methods = [ability("Will", 4)];
+    else if (condition.recoveryType === "ability") methods = [ability(condition.recoveryAbility, condition.recoveryObstacle)];
+    else if (condition.recoveryType === "role") methods = [role(condition.recoveryRole, condition.recoveryObstacle)];
+    return Object.freeze(methods.filter(Boolean));
+  }
+
+  validate(actor, conditionId, { turnManagerEnabled = false, phase = "free", recoveryAttempted = false, checks = null } = {}) {
+    const condition = this.conditions.list(actor).find(entry => entry.id === conditionId) ?? null;
+    if (!condition) return deepFreeze({ ok: false, reasonCode: "INVALID_TARGET", blocker: null, liveApplication: false });
+    if (!condition.active) return deepFreeze({ ok: false, reasonCode: "INACTIVE", blocker: null, liveApplication: false });
+    const blocker = this.blocker(actor, conditionId);
+    if (blocker) return deepFreeze({ ok: false, reasonCode: "RECOVERY_ORDER", blocker, liveApplication: false });
+    if (turnManagerEnabled && recoveryAttempted) return deepFreeze({ ok: false, reasonCode: "ALREADY_ATTEMPTED", blocker: null, liveApplication: false });
+    const availableChecks = checks === null || checks === undefined ? Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0)) : Math.max(0, Number(checks ?? 0));
+    if (turnManagerEnabled && String(phase) === "gm" && availableChecks < 2) {
+      return deepFreeze({ ok: false, reasonCode: "GM_CHECKS", blocker: null, checks: availableChecks, requiredChecks: 2, liveApplication: false });
+    }
+    return deepFreeze({ ok: true, reasonCode: "OK", blocker: null, liveApplication: false });
+  }
+
+  economy(actor, { turnManagerEnabled = false, phase = "free" } = {}) {
+    const checks = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+    if (!turnManagerEnabled) return deepFreeze({ phase: "free", source: "free-play", cost: 0, checksBefore: checks, checksAfter: checks, liveApplication: false });
+    if (String(phase) === "gm") return deepFreeze({ phase: "gm", source: "gm-checks", cost: 2, checksBefore: checks, checksAfter: Math.max(0, checks - 2), liveApplication: false });
+    return deepFreeze({ phase: "player", source: "player-turn", cost: null, checksBefore: checks, checksAfter: null, liveApplication: false });
+  }
+
+  resolution(actor, conditionId, { passed = false } = {}) {
+    const condition = this.conditions.list(actor).find(entry => entry.id === conditionId) ?? null;
+    if (!condition) return null;
+    return deepFreeze({
+      conditionId,
+      conditionName: condition.name,
+      passed: Boolean(passed),
+      activeBefore: condition.active,
+      activeAfter: Boolean(passed) ? false : condition.active,
+      liveApplication: false
+    });
+  }
 }
