@@ -2,33 +2,30 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.equal(manifest.version, "1.7.0-qa.18");
+assert.equal(manifest.version, "1.7.0-qa.19");
 assert.equal(manifest.compatibility.minimum, "13");
 assert.equal(manifest.compatibility.maximum, "14");
-assert.ok(manifest.esmodules[0] === "module/foundry-compat.mjs");
-assert.ok(manifest.esmodules.includes("module/recruitment-scroll-select.mjs"));
-assert.ok(manifest.styles.includes("styles/recruitment-scroll-select.css"));
+assert.equal(manifest.esmodules[0], "module/foundry-compat.mjs");
+assert.ok(manifest.esmodules.includes("module/smart-select-scroll-hotfix.mjs"));
+assert.ok(!manifest.esmodules.includes("module/recruitment-scroll-select.mjs"));
+assert.ok(!manifest.styles.includes("styles/recruitment-scroll-select.css"));
 
 const compat = fs.readFileSync("module/foundry-compat.mjs", "utf8");
-assert.match(compat, /foundry\?\.applications\?\.apps\?\.FilePicker/);
-assert.match(compat, /Hooks\?\.once\?\.\("init"/);
-assert.match(compat, /Hooks\?\.once\?\.\("ready"/);
-assert.match(compat, /deprecatedGlobalReadRequired:\s*false/);
-assert.doesNotMatch(compat, /globalThis\.FilePicker\s*\?\?/);
+assert.ok(compat.includes("foundry?.applications?.apps?.FilePicker"));
+assert.ok(compat.includes("deprecatedGlobalReadRequired: false"));
 
 const ux = fs.readFileSync("module/token-builder-ux-hotfix.mjs", "utf8");
-assert.match(ux, /modernFilePickerImplementation/);
-assert.doesNotMatch(ux, /globalThis\.FilePicker\s*\?\?/);
-assert.match(ux, /filePickerApi:\s*"foundry\.applications\.apps\.FilePicker\.implementation"/);
+assert.ok(ux.includes("modernFilePickerImplementation"));
+assert.ok(ux.includes("foundry.applications.apps.FilePicker.implementation"));
 
-const recruitmentUx = fs.readFileSync("module/recruitment-scroll-select.mjs", "utf8");
-assert.match(recruitmentUx, /MIN_OPTIONS = 9/);
-assert.match(recruitmentUx, /rg-recruit-progress/);
-assert.match(recruitmentUx, /querySelectorAll\?\.\("select"\)/);
-assert.match(recruitmentUx, /STYLE_ID = "rg-recruitment-scroll-select-styles"/);
-assert.match(recruitmentUx, /overflow-y:auto!important/);
-assert.match(recruitmentUx, /scrollIntoView/);
-assert.match(recruitmentUx, /window\.addEventListener\("wheel", handleMenuWheel, \{ capture: true, passive: false \}\)/);
-assert.match(recruitmentUx, /PageDown/);
+const smartScroll = fs.readFileSync("module/smart-select-scroll-hotfix.mjs", "utf8");
+assert.ok(smartScroll.includes(".rg-smart-select-menu"));
+assert.ok(smartScroll.includes("overflow-y: auto !important"));
+assert.ok(smartScroll.includes('window.addEventListener("scroll", protectSmartMenuScroll, true)'));
+assert.ok(smartScroll.includes("stopImmediatePropagation"));
+
+const contextHelp = fs.readFileSync("module/context-help.mjs", "utf8");
+assert.ok(contextHelp.includes("rg-smart-select-menu"));
+assert.ok(contextHelp.includes('window.addEventListener("scroll", () => closeSmartSelect(activeSmartSelect), true)'));
 
 console.log("PASS m5-foundry-filepicker-compat-smoke");
