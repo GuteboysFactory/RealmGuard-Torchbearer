@@ -41,7 +41,7 @@ import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-re
 import { installM5CoreServices } from "./module/m5-core-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.10"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.11"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
