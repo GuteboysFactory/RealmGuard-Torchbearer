@@ -13,55 +13,87 @@ export function modernFilePickerImplementation() {
   return FilePickerClass?.implementation ?? FilePickerClass ?? null;
 }
 
-export function installRealmGuardFoundryCompat() {
-  if (globalThis[RG_COMPAT_KEY]) return globalThis[RG_COMPAT_KEY];
+const state = {
+  attempts: 0,
+  filePickerBridgeInstalled: false,
+  filePickerBridgeReason: "NOT_ATTEMPTED",
+  lastAttemptPhase: "module-load"
+};
+
+function bridgeFilePicker(phase = "runtime") {
+  state.attempts += 1;
+  state.lastAttemptPhase = phase;
 
   const modernFilePicker = modernFilePickerImplementation();
-  let aliasBridge = false;
-  let aliasReason = "MODERN_FILE_PICKER_UNAVAILABLE";
-
-  if (modernFilePicker) {
-    try {
-      const descriptor = Object.getOwnPropertyDescriptor(globalThis, "FilePicker");
-      if (!descriptor || descriptor.configurable) {
-        Object.defineProperty(globalThis, "FilePicker", {
-          configurable: true,
-          enumerable: false,
-          writable: false,
-          value: modernFilePicker
-        });
-        aliasBridge = true;
-        aliasReason = "MODERN_NAMESPACED_IMPLEMENTATION";
-      } else {
-        aliasReason = "GLOBAL_ALIAS_NOT_CONFIGURABLE";
-      }
-    } catch (error) {
-      aliasReason = `BRIDGE_FAILED:${error?.message ?? "unknown"}`;
-    }
+  if (!modernFilePicker) {
+    state.filePickerBridgeInstalled = false;
+    state.filePickerBridgeReason = "MODERN_FILE_PICKER_UNAVAILABLE";
+    return false;
   }
 
-  const status = Object.freeze({
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, "FilePicker");
+    if (descriptor && !descriptor.configurable && descriptor.value !== modernFilePicker) {
+      state.filePickerBridgeInstalled = false;
+      state.filePickerBridgeReason = "GLOBAL_ALIAS_NOT_CONFIGURABLE";
+      return false;
+    }
+
+    if (!descriptor || descriptor.configurable) {
+      Object.defineProperty(globalThis, "FilePicker", {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: modernFilePicker
+      });
+    }
+
+    state.filePickerBridgeInstalled = true;
+    state.filePickerBridgeReason = "MODERN_NAMESPACED_IMPLEMENTATION";
+    return true;
+  } catch (error) {
+    state.filePickerBridgeInstalled = false;
+    state.filePickerBridgeReason = `BRIDGE_FAILED:${error?.message ?? "unknown"}`;
+    return false;
+  }
+}
+
+function statusSnapshot() {
+  return Object.freeze({
     scope: "FOUNDRY_V13_V14_COMPAT",
     targetApi: "foundry.applications.apps.FilePicker.implementation",
     deprecatedGlobalReadRequired: false,
-    filePickerBridgeInstalled: aliasBridge,
-    filePickerBridgeReason: aliasReason,
+    filePickerBridgeInstalled: state.filePickerBridgeInstalled,
+    filePickerBridgeReason: state.filePickerBridgeReason,
+    attempts: state.attempts,
+    lastAttemptPhase: state.lastAttemptPhase,
     foundryGeneration: foundryGeneration(),
     minimumSupportedGeneration: 13,
     forwardApiBaseline: 14,
     legacyGlobalRemovalGeneration: 15
   });
+}
 
-  globalThis[RG_COMPAT_KEY] = status;
-  globalThis.__realmGuardFoundryCompat = status;
+export function installRealmGuardFoundryCompat() {
+  bridgeFilePicker("module-load");
 
-  globalThis.Hooks?.once?.("ready", () => {
-    globalThis.game.realmGuard ??= {};
-    globalThis.game.realmGuard.compat = Object.freeze({ getStatus: () => status });
-    console.log("realm-guard | Foundry compatibility bridge ready", status);
+  globalThis.Hooks?.once?.("init", () => {
+    bridgeFilePicker("init");
   });
 
-  return status;
+  globalThis.Hooks?.once?.("ready", () => {
+    bridgeFilePicker("ready");
+    globalThis.game.realmGuard ??= {};
+    globalThis.game.realmGuard.compat = Object.freeze({
+      getStatus: statusSnapshot,
+      getFilePicker: modernFilePickerImplementation
+    });
+    console.log("realm-guard | Foundry compatibility bridge ready", statusSnapshot());
+  });
+
+  globalThis[RG_COMPAT_KEY] = Object.freeze({ getStatus: statusSnapshot, getFilePicker: modernFilePickerImplementation });
+  globalThis.__realmGuardFoundryCompat = globalThis[RG_COMPAT_KEY];
+  return globalThis[RG_COMPAT_KEY];
 }
 
 installRealmGuardFoundryCompat();
