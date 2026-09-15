@@ -2,21 +2,83 @@
   "id": "realm-guard",
   "title": "Realm Guard / Torchbearer",
   "description": "Realm Guard / Torchbearer is a fantasy roleplaying system for Foundry VTT focused on Rangers, hard journeys, dangerous conflicts and difficult choices. The current Legacy Mixed rules profile preserves the published project behavior while the MG-family CORE architecture is introduced incrementally and non-destructively.",
-  "version": "1.7.0-qa.20",
-  "compatibility": {"minimum":"13","verified":"13.351","maximum":"14"},
-  "authors": [{"name":"Realm Guard / Torchbearer Foundry Project"}],
-  "esmodules": ["module/foundry-compat.mjs", "module/smart-select-scroll-hotfix.mjs", "realm-guard.mjs", "module/token-builder-ux-hotfix.mjs"],
-  "styles": ["styles/realm-guard.css", "styles/roll-dialog-scroll.css", "styles/equipment-silhouette.css", "styles/equipment-figure.css", "styles/m5-equipment-token-ux.css", "styles/m5-equipment-layout-final.css"],
-  "languages": [{"lang":"en","name":"English","path":"lang/en.json"}],
+  "version": "1.7.0-qa.21",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13.351",
+    "maximum": "14"
+  },
+  "authors": [
+    {
+      "name": "Realm Guard / Torchbearer Foundry Project"
+    }
+  ],
+  "esmodules": [
+    "module/foundry-compat.mjs",
+    "module/smart-select-scroll-hotfix.mjs",
+    "realm-guard.mjs",
+    "module/token-builder-ux-hotfix.mjs"
+  ],
+  "styles": [
+    "styles/realm-guard.css",
+    "styles/roll-dialog-scroll.css",
+    "styles/equipment-silhouette.css",
+    "styles/equipment-figure.css",
+    "styles/m5-equipment-token-ux.css",
+    "styles/m5-equipment-layout-final.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
   "documentTypes": {
-    "Actor": {"character":{"htmlFields":["biography","notes"]},"npc":{"htmlFields":["biography","notes"]}},
-    "Item": {"role":{},"trait":{},"gear":{},"condition":{"htmlFields":["description"]},"wise":{},"tokenOfPower":{"htmlFields":["description"]},"talent":{"htmlFields":["description"]}}
+    "Actor": {
+      "character": {
+        "htmlFields": [
+          "biography",
+          "notes"
+        ]
+      },
+      "npc": {
+        "htmlFields": [
+          "biography",
+          "notes"
+        ]
+      }
+    },
+    "Item": {
+      "role": {},
+      "trait": {},
+      "gear": {},
+      "condition": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "wise": {},
+      "tokenOfPower": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "talent": {
+        "htmlFields": [
+          "description"
+        ]
+      }
+    }
   },
   "initiative": "1d6",
-  "grid": {"distance":5,"units":"ft"},
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
   "socket": true,
   "background": "systems/realm-guard/assets/ui/realm-guard-torchbearer-world-bg.webp",
   "url": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer",
   "manifest": "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json",
-  "download": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.7.0-qa.20/realm-guard.zip"
+  "download": "https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.7.0-qa.21/realm-guard.zip"
 }

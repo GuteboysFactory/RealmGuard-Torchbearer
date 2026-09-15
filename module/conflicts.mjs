@@ -4,6 +4,7 @@ import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
 import { talentOptionViews, resolveTalentUse, commitTalentUse, talentEffectSummary } from "./talents.mjs";
 import { recordAbilityTest, recordHelperSkillTest } from "./advancement.mjs";
 import { traitPositiveStatus } from "./traits.mjs";
+import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -1193,8 +1194,10 @@ async function rollCurrentAction(side, state) {
   if (!dialog) return;
   if (dialog.lockSword && gear.hasSword && !gear.swordAction) gear.dice += 1;
   if (gear.requirement && !dialog.weaponRequirementMet) { gear.dice = 0; gear.conditionalSuccess = 0; gear.successPenalty = 0; gear.notes = [`${gear.toolName}: requirement not met — no bonus`]; }
+  const swordUsefulAction = dialog.lockSword ? action : String(state.effects?.[side]?.swordActions?.[actor.id] ?? state.effects?.[side]?.swordAction ?? gear.swordAction ?? "");
+  const liveGear = evaluateM5ConflictToolLiveHandoff({ actor, state, side, toolId: actionWeaponId, action, legacy: gear, requirementMet: dialog.weaponRequirementMet, swordUsefulAction });
   const source = choices.find(c => c.id === dialog.sourceId) ?? choices[0];
-  const roll = await executeActorPool({ actor, source, modifier: dialog.modifier, extra: dialog.extra, persona: dialog.persona, traitId: dialog.traitId, wiseId: dialog.wiseId, tokenPowerId: dialog.tokenPowerId, talentId: dialog.talentId, helperIds: dialog.helperIds, temporaryDice: tactical, gear, label: actionLabel(action), contextKey: state.id, tapNature: dialog.tapNature, natureScope: dialog.natureScope });
+  const roll = await executeActorPool({ actor, source, modifier: dialog.modifier, extra: dialog.extra, persona: dialog.persona, traitId: dialog.traitId, wiseId: dialog.wiseId, tokenPowerId: dialog.tokenPowerId, talentId: dialog.talentId, helperIds: dialog.helperIds, temporaryDice: tactical, gear: liveGear, label: actionLabel(action), contextKey: state.id, tapNature: dialog.tapNature, natureScope: dialog.natureScope });
   if (!roll) return;
   roll.lockSwordAction = dialog.lockSword ? action : "";
   const message = { side, roll };

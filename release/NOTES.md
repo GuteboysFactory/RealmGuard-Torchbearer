@@ -1,32 +1,14 @@
-Realm Guard / Torchbearer v1.7.0-qa.20 — M5 controlled Inventory validation handoff.
+Realm Guard / Torchbearer v1.7.0-qa.21 — M5 controlled Conflict Tool evaluation handoff.
 
-qa.15 proved promotion readiness across accepted/rejected Inventory paths plus Conflict declaration/roll/disable parity. qa.20 performs the first bounded live handoff.
+qa.20 verified CORE M5 as live Inventory placement validator with Legacy Mixed remaining writer. qa.21 now promotes only Conflict Tool evaluation: provider resolution and action-specific dice/success modifiers are calculated by CORE M5, but only after the live Legacy calculation agrees.
 
-New in qa.20:
-- CORE M5 PlacementValidator becomes live validation authority for `PLACE_ZONE` and `PLACE_CONTAINER`
-- existing Legacy Mixed Item update path remains the writer; no inventory data-model migration is introduced
-- Conflict remains fully Legacy Mixed
-- Unassign and container detach remain Legacy Mixed
-- every live validation decision records handoff telemetry
-- automatic session rollback to Legacy Mixed if CORE validation throws or disagrees with the legacy validator
-- manual QA rollback and re-enable controls exposed through `game.realmGuard.core.m5.inventory`
-- handoff status/history exposed for direct live verification
-- M5 status now reports split authority instead of claiming all-live or all-shadow state
+Safety:
+- Legacy Mixed still owns all Conflict state writes, action queue, Maneuver choices, Disarm/disable writes and exchange advancement.
+- Every live Tool evaluation compares CORE against the existing Legacy calculation before CORE values are applied.
+- Any provider/effect disagreement or CORE exception automatically disables CORE evaluation for the session and falls back to Legacy Mixed.
+- Manual rollback and re-enable APIs are exposed for QA.
+- Legacy Mixed Unarmed -1D remains active through the profile override.
 
-Safety model:
-- CORE validates
-- Legacy Mixed writes
-- CORE/Legacy disagreement does not write according to CORE; it immediately falls back to Legacy Mixed and disables the handoff for the rest of the session
-- CORE error does the same
-- Conflict takeover is still OFF
+Preserved: qa.20 Inventory handoff, qa.19 smart-select scroll fix, M2/M3/M4, Equipment/portrait/token workflows.
 
-Preserved:
-- qa.19 smart-select scroll root fix
-- qa.12 Ranger sheet scroll-position persistence
-- Equipment paper-doll UX
-- portrait/token workflow and FilePicker compatibility
-- M2, M3 and verified M4
-
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.20.md`
-
-Primary PASS condition: legal and illegal zone/container moves are decided by CORE with zero validation disagreements/error fallbacks, Legacy Mixed remains the writer, manual rollback works, and regression checks remain clean.
+QA protocol: TEST_PROTOCOL_v1.7.0-qa.21.md

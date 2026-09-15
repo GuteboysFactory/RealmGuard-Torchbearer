@@ -3,6 +3,7 @@ import { getActiveRulesProfile } from "./rules-profile-service.mjs";
 import { createM5Services, INVENTORY_MODES, M5_STRUCTURED_ZONES, M5_CONTAINER_PRESETS } from "./core/m5-services.mjs";
 import { getM5InventoryLiveHandoffStatus, getM5InventoryHandoffHistory, resetM5InventoryHandoffTelemetry, setM5InventoryCoreValidationEnabled } from "./inventory.mjs";
 import { createM5ParityBridge } from "./m5-parity-bridge.mjs";
+import { getM5ConflictLiveHandoffStatus, getM5ConflictHandoffHistory, resetM5ConflictHandoffTelemetry, setM5ConflictCoreEvaluationEnabled } from "./m5-conflict-live-handoff.mjs";
 import { evaluateM5PromotionReadiness, M5_PROMOTION_REQUIREMENTS } from "./m5-promotion-readiness.mjs";
 import "./m5-parity-deepening.mjs";
 
@@ -25,22 +26,25 @@ export function getM5Status() {
   const profile = getActiveRulesProfile();
   const current = services();
   const inventoryHandoff = getM5InventoryLiveHandoffStatus();
+  const conflictHandoff = getM5ConflictLiveHandoffStatus();
   const parityReport = parityBridge?.report?.() ?? Object.freeze({ phase: "M5", mode: "SHADOW_PARITY", authority: "LEGACY_MIXED", liveApplication: false, summary: Object.freeze({ total: 0, matches: 0, mismatches: 0, coreOnly: 0 }), events: Object.freeze([]) });
   const paritySummary = parityReport.summary;
   const readiness = evaluateM5PromotionReadiness(parityReport);
   return Object.freeze({
     phase: "M5",
-    buildScope: "CONTROLLED_INVENTORY_VALIDATION_HANDOFF",
+    buildScope: "CONTROLLED_INVENTORY_AND_CONFLICT_EVALUATION_HANDOFF",
     mode: "PARTIAL_LIVE_HANDOFF",
-    liveApplication: inventoryHandoff.enabled,
+    liveApplication: inventoryHandoff.enabled || conflictHandoff.enabled,
     authority: Object.freeze({
       inventoryValidation: inventoryHandoff.validationAuthority,
       inventoryWriter: inventoryHandoff.writerAuthority,
-      conflict: "LEGACY_MIXED"
+      conflictEvaluation: conflictHandoff.evaluationAuthority,
+      conflictState: conflictHandoff.conflictStateAuthority
     }),
     activeProfile: profile?.id ?? "realm-guard-legacy-mixed",
     inventoryPolicy: current.policy.mode,
     inventoryHandoff,
+    conflictHandoff,
     services: Object.freeze([
       "GearService",
       "InventoryPolicy",
@@ -80,7 +84,8 @@ export function getM5Status() {
       existingPaperDollUx: true,
       legacyInventoryWriter: true,
       legacyConflictWriter: true,
-      conflictLiveTakeover: false,
+      conflictEvaluationLiveTakeover: conflictHandoff.enabled,
+      conflictStateLiveTakeover: false,
       gameplayChangeIntended: false,
       m2: "PRESERVED",
       m3: "PRESERVED",
@@ -176,7 +181,12 @@ function exposeApi() {
       list: (actor, options) => current.conflictTools.list(actor, options),
       resolve: (actor, id, options) => current.conflictTools.resolve(actor, id, options),
       evaluate: (actor, options) => current.conflictTools.evaluate(actor, options),
-      disableTargets: (actor, options) => current.conflictTools.disableTargets(actor, options)
+      disableTargets: (actor, options) => current.conflictTools.disableTargets(actor, options),
+      handoffStatus: getM5ConflictLiveHandoffStatus,
+      handoffHistory: getM5ConflictHandoffHistory,
+      resetHandoffTelemetry: resetM5ConflictHandoffTelemetry,
+      rollback: reason => setM5ConflictCoreEvaluationEnabled(false, { reason: reason || "MANUAL_QA_ROLLBACK" }),
+      enableCoreEvaluation: () => setM5ConflictCoreEvaluationEnabled(true, { reason: "MANUAL_QA_ENABLE" })
     }),
     parity: Object.freeze({
       report: options => bridge.report(options),
@@ -214,6 +224,6 @@ export function installM5CoreServices() {
     parityBridge = createM5ParityBridge({ services: runtime });
     parityBridge.install();
     exposeApi();
-    console.log("realm-guard | CORE M5 controlled Inventory validation handoff ready", getM5Status());
+    console.log("realm-guard | CORE M5 controlled Inventory + Conflict Tool evaluation handoff ready", getM5Status());
   });
 }
