@@ -1,27 +1,23 @@
-Realm Guard / Torchbearer v1.7.0-qa.9 — Foundry v14 forward-compatibility + Equipment Figure responsive toolbar.
+Realm Guard / Torchbearer v1.7.0-qa.10 — FilePicker deprecation warning hotfix.
 
-This patch addresses the FilePicker deprecation warning seen in live v13.351 QA and prepares the system to use the modern namespaced Foundry FilePicker implementation while keeping current v13 compatibility.
+This patch is a targeted Foundry v13/v14 compatibility correction after live qa.9 testing still showed Realm Guard stacks accessing the deprecated global `FilePicker` alias during Token Builder image upload and token creation.
 
-New / corrected in qa.9:
-- adds an early Foundry compatibility bridge before the main Realm Guard system module loads
-- uses `foundry.applications.apps.FilePicker.implementation` as the forward API baseline instead of relying on the deprecated global FilePicker getter
-- removes the Realm Guard-side need to read the deprecated global FilePicker alias during portrait/token upload workflows
-- manifest support range is now Foundry v13 through v14
-- v13.351 remains the currently verified runtime until direct v14 QA is completed
-- Character Portrait drag/drop and Token Builder upload/save workflows remain intact
-- Equipment Figure toolbar is redesigned as a responsive compact control block
-- wide layouts keep Source + Ancestry efficiently arranged
-- medium/narrow layouts stack fields cleanly while keeping the settings gear reachable
-- resolved Figure status remains inside the toolbar without overlap or horizontal overflow
-- qa.8 Containers / Unassigned Gear / Equipment layout remains preserved
+New / corrected in qa.10:
+- `module/token-builder-ux-hotfix.mjs` now resolves FilePicker exclusively through the modern namespaced Foundry API
+- the compatibility bridge now retries after Foundry initialization (`init`) and again at `ready`, instead of assuming the namespaced FilePicker implementation already exists during first module evaluation
+- the bridge replaces the deprecated global alias without reading its deprecated getter when Foundry allows the property to be reconfigured
+- compatibility status now exposes attempt count and the last install phase for live QA
+- direct NPC and PC Token Builder drag/drop paths keep existing behavior
+- round token creation remains unchanged
+- manifest remains Foundry v13–v14 compatible; v13.351 remains the verified runtime until direct v14 QA is completed
 
-Important preservation:
-- Inventory mechanics are unchanged
-- M5 Gear / Inventory / Conflict Tool CORE services remain shadow/read-only
-- Legacy Mixed remains sole live Inventory and Conflict authority
-- PC profile portrait remains separate from the generated round token
-- M2, M3 and verified M4 behavior remain unchanged
+Preserved from qa.9:
+- responsive Equipment Figure toolbar
+- Containers + Unassigned Gear left / Equipment main-column layout
+- square PC portrait / separate round token behavior
+- M5 Gear / Inventory / Conflict Tool CORE remains shadow/read-only
+- Legacy Mixed remains sole live Inventory / Conflict authority
+- M2, M3 and verified M4 remain unchanged
 
-QA protocol: TEST_PROTOCOL_v1.7.0-qa.9.md
-Current verified runtime: Foundry v13.351.
-Forward target: Foundry v14; advance `compatibility.verified` only after direct v14 QA.
+QA protocol: TEST_PROTOCOL_v1.7.0-qa.10.md
+Primary PASS condition: no Realm Guard `FilePicker` deprecation warning during Character portrait upload, Character Token Builder upload/save or NPC Token Builder upload/save on Foundry v13.351.
