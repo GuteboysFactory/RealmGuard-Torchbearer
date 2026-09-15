@@ -1,27 +1,33 @@
-Realm Guard / Torchbearer v1.7.0-qa.4 — M5 Equipment Artwork + Token Builder UX correction.
+Realm Guard / Torchbearer v1.7.0-qa.5 — M5 Gear / Inventory / Conflict Tool CORE foundation.
 
-This patch corrects the two visual/UX issues identified after qa.3: the Equipment fallback/mannequin look and the Token Builder portrait workflow.
+qa.4 is the approved visual/UX baseline for Equipment Figure and Token Builder. qa.5 returns to the planned M5 architecture work: Gear, Inventory placement, Containers and Conflict Tools now have profile-aware CORE services underneath the existing Legacy Mixed gameplay.
 
-New / corrected in qa.4:
-- paper/mannequin Equipment figures are formally retired (`paperFiguresAllowed: false`)
-- Custom Figure with no custom image falls back to detailed dark Ranger artwork, never a paper figure
-- Ancestry Figure for Dúnadan, Human, Elf, Dwarf and Halfling/Hobbit uses the same detailed dark-fantasy Ranger art direction with ancestry-specific proportions
-- unknown/custom ancestry falls back to detailed Neutral Ranger artwork
-- no environmental scene is baked into the Equipment figure artwork
-- restores local desktop image drag/drop into Quick Token Builder
-- dropped PC artwork becomes the preserved Character Portrait source
-- PC Character Portrait is kept square/rounded-square on the sheet
-- generated token remains a separate round PNG used by Prototype Token / Scene tokens
-- Token Builder is prevented from replacing a PC's Character Portrait with the generated round token
-- legacy qa.3 Rangers that had switched to Token Portrait are repaired back to preserved original artwork when possible
+New in qa.5:
+- adds `GearService`
+- adds `InventoryPolicy` with LOOSE / STRUCTURED / CUSTOM modes
+- adds `PlacementValidator`
+- adds `ContainerService`
+- adds `ConflictToolService`
+- adds `ConflictToolEffectProvider`
+- Legacy Mixed resolves the current STRUCTURED inventory policy
+- structured shadow validation models existing zones, capacities, 2H locks, Cloak/Belt/Pocket restrictions and container capacity
+- Conflict Tool architecture supports physical Gear, natural tools/weapons and narrative/contextual tools
+- structured Tools may carry multiple action-specific effects and requirements
+- backend disable-target capability includes Conflict Tool/Gear/Natural Tool/Trait providers where present
+- HARD CORE defines no universal Unarmed penalty; the active Legacy Mixed compatibility evaluator still reports the existing -1D behavior
+- exposes read-only diagnostics under `game.realmGuard.core.m5`
+- adds M5 service smoke tests and static QA
 
 Important preservation:
-- Equipment visuals remain presentation-only
-- inventory zones, capacities, 2H locking, containers and gear assignments are unchanged
-- Legacy Mixed remains sole live inventory authority
+- `liveApplication:false`
+- no M5 service writes inventory or conflict gameplay state
+- Legacy Mixed remains sole live Inventory authority
+- Legacy Conflict remains sole live Conflict authority until the later takeover/refactor stages
+- no Actor or Item migration
+- qa.4 Equipment artwork and Token Builder UX are preserved
 - M2, M3 and verified M4 behavior remain unchanged
-- Conflict remains on the Legacy adapter path until M6
 
-QA protocol: TEST_PROTOCOL_v1.7.0-qa.4.md
+QA protocol: TEST_PROTOCOL_v1.7.0-qa.5.md
+Static QA: STATIC_QA_v1.7.0-qa.5.md
 Foundry target: v13.351.
-Approved baseline: v1.6.0-qa.6 PASS / M4 VERIFIED; M5 remains under QA.
+Approved baseline entering this build: v1.7.0-qa.4 PASS for M5 Equipment/portrait UX; M4 remains VERIFIED.
