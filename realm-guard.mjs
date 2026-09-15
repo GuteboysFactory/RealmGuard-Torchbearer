@@ -40,9 +40,10 @@ import { installM4NatureShadowParity } from "./module/m4-nature-shadow-parity.mj
 import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-recovery-shadow-parity.mjs";
 import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
+import { installConflictPhysicalSourceGuard } from "./module/conflict-physical-source-guard.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.13"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.14"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -57,6 +58,7 @@ Hooks.once("init", () => {
   };
 
   const { DocumentSheetConfig } = foundry.applications.apps;
+  installConflictPhysicalSourceGuard(RealmGuardActor);
   installUntrainedVersusUi(RealmGuardActorSheet);
   installCustomRollParityAction(RealmGuardActorSheet);
   installEquipmentSilhouette(RealmGuardActorSheet);
