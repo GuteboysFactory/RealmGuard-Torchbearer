@@ -1,6 +1,7 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { getActiveRulesProfile } from "./rules-profile-service.mjs";
 import { createM5Services, INVENTORY_MODES, M5_STRUCTURED_ZONES, M5_CONTAINER_PRESETS } from "./core/m5-services.mjs";
+import { getM5InventoryLiveHandoffStatus, getM5InventoryHandoffHistory, resetM5InventoryHandoffTelemetry, setM5InventoryCoreValidationEnabled } from "./inventory.mjs";
 import { createM5ParityBridge } from "./m5-parity-bridge.mjs";
 import { evaluateM5PromotionReadiness, M5_PROMOTION_REQUIREMENTS } from "./m5-promotion-readiness.mjs";
 import "./m5-parity-deepening.mjs";
@@ -23,17 +24,23 @@ function parity() {
 export function getM5Status() {
   const profile = getActiveRulesProfile();
   const current = services();
+  const inventoryHandoff = getM5InventoryLiveHandoffStatus();
   const parityReport = parityBridge?.report?.() ?? Object.freeze({ phase: "M5", mode: "SHADOW_PARITY", authority: "LEGACY_MIXED", liveApplication: false, summary: Object.freeze({ total: 0, matches: 0, mismatches: 0, coreOnly: 0 }), events: Object.freeze([]) });
   const paritySummary = parityReport.summary;
   const readiness = evaluateM5PromotionReadiness(parityReport);
   return Object.freeze({
     phase: "M5",
-    buildScope: "LIVE_SHADOW_PARITY_PROMOTION_READINESS",
-    mode: "SHADOW_PARITY",
-    liveApplication: false,
-    authority: "LEGACY_MIXED",
+    buildScope: "CONTROLLED_INVENTORY_VALIDATION_HANDOFF",
+    mode: "PARTIAL_LIVE_HANDOFF",
+    liveApplication: inventoryHandoff.enabled,
+    authority: Object.freeze({
+      inventoryValidation: inventoryHandoff.validationAuthority,
+      inventoryWriter: inventoryHandoff.writerAuthority,
+      conflict: "LEGACY_MIXED"
+    }),
     activeProfile: profile?.id ?? "realm-guard-legacy-mixed",
     inventoryPolicy: current.policy.mode,
+    inventoryHandoff,
     services: Object.freeze([
       "GearService",
       "InventoryPolicy",
@@ -103,25 +110,28 @@ function diagnosticsHtml() {
   const s = getM5Status();
   const p = s.parity.report;
   const r = s.readiness;
+  const h = s.inventoryHandoff;
   const coverageRows = Object.values(r.coverage).map(row => `<li>${row.observed ? "✅" : "⬜"} ${row.label}${row.mismatches ? ` · ${row.mismatches} mismatch` : ""}</li>`).join("");
   return `<div class="realm-guard" style="padding:8px 12px;max-height:64vh;overflow:auto;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M5</div>
     <h2>Gear · Inventory · Conflict Tools</h2>
-    <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>Live Inventory and Conflict Tool flows are observed against CORE. qa.15 adds a promotion-readiness gate only; it does not perform any live takeover.</p>
+    <p><b>Mode:</b> ${s.mode}</p>
+    <p><b>Inventory validation:</b> ${h.validationAuthority} · <b>Inventory writes:</b> ${h.writerAuthority} · <b>Conflict:</b> Legacy Mixed</p>
+    <p>qa.20 promotes only Inventory placement validation. The existing writer remains intact. Any CORE error or validation disagreement automatically falls back to Legacy Mixed for the session.</p>
+    <h3>Inventory handoff telemetry</h3>
+    <p><b>${h.telemetry.coreDecisions}</b> CORE decisions · <b>${h.telemetry.coreAccepted}</b> accepted · <b>${h.telemetry.coreRejected}</b> rejected · <b>${h.telemetry.disagreements}</b> disagreements · <b>${h.telemetry.errorFallbacks}</b> error fallbacks</p>
+    <p><b>Rollback:</b> ${h.enabled ? "OFF" : `ON · ${h.rollbackReason || "manual"}`}</p>
     <h3>Live shadow parity</h3>
     <p><b>${p.total}</b> observations · <b>${p.matches}</b> MATCH · <b>${p.mismatches}</b> MISMATCH · <b>${p.coreOnly}</b> CORE-only probes</p>
     <h3>Promotion readiness</h3>
     <p><b>${r.status}</b></p><ul>${coverageRows}</ul>
-    <p>${r.nextStep}</p>
-    <h3>Services</h3>
-    <p>${s.services.join(" · ")}</p>
     <h3>Console QA</h3>
     <code>game.realmGuard.core.m5.getStatus()</code><br>
-    <code>game.realmGuard.core.m5.parity.report()</code><br>
-    <code>game.realmGuard.core.m5.readiness()</code><br>
-    <code>game.realmGuard.core.m5.parity.events({ mismatchesOnly: true })</code><br>
-    <code>game.realmGuard.core.m5.parity.clear()</code>
+    <code>game.realmGuard.core.m5.inventory.handoffStatus()</code><br>
+    <code>game.realmGuard.core.m5.inventory.handoffHistory()</code><br>
+    <code>game.realmGuard.core.m5.inventory.rollback()</code><br>
+    <code>game.realmGuard.core.m5.inventory.enableCoreValidation()</code><br>
+    <code>game.realmGuard.core.m5.parity.events({ mismatchesOnly: true })</code>
   </div>`;
 }
 
@@ -148,7 +158,12 @@ function exposeApi() {
     inventory: Object.freeze({
       policy: () => current.policy.describe(),
       validateZone: (actor, itemOrId, zoneId) => current.placement.validateZone(actor, itemOrId, zoneId),
-      validateContainer: (actor, itemOrId, containerOrId) => current.placement.validateContainer(actor, itemOrId, containerOrId)
+      validateContainer: (actor, itemOrId, containerOrId) => current.placement.validateContainer(actor, itemOrId, containerOrId),
+      handoffStatus: getM5InventoryLiveHandoffStatus,
+      handoffHistory: getM5InventoryHandoffHistory,
+      resetHandoffTelemetry: resetM5InventoryHandoffTelemetry,
+      rollback: reason => setM5InventoryCoreValidationEnabled(false, { reason: reason || "MANUAL_QA_ROLLBACK" }),
+      enableCoreValidation: () => setM5InventoryCoreValidationEnabled(true, { reason: "MANUAL_QA_ENABLE" })
     }),
     containers: Object.freeze({
       capacity: item => current.containers.capacity(item),
@@ -199,6 +214,6 @@ export function installM5CoreServices() {
     parityBridge = createM5ParityBridge({ services: runtime });
     parityBridge.install();
     exposeApi();
-    console.log("realm-guard | CORE M5 promotion readiness ready", getM5Status());
+    console.log("realm-guard | CORE M5 controlled Inventory validation handoff ready", getM5Status());
   });
 }
