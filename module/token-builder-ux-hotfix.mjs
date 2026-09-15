@@ -1,10 +1,11 @@
 import { setRangerOriginalPortrait } from "./token-builder.mjs";
+import { modernFilePickerImplementation } from "./foundry-compat.mjs";
 
 const NS = "realm-guard";
 let installed = false;
 
 function pickerApi() {
-  return globalThis.FilePicker ?? globalThis.foundry?.applications?.apps?.FilePicker?.implementation ?? null;
+  return modernFilePickerImplementation();
 }
 
 async function ensureUploadDirectory(picker) {
@@ -134,7 +135,8 @@ Hooks.once("ready", async () => {
   globalThis.game.realmGuard ??= {};
   game.realmGuard.tokenBuilderUx = Object.freeze({
     getStatus: () => Object.freeze({ phase: "M5", scope: "TOKEN_BUILDER_DRAG_DROP_AND_PC_PORTRAIT_SEPARATION", installed,
-      characterPortraitShape: "SQUARE", tokenShape: "ROUND_PNG", dragDrop: true, tokenMayReplaceCharacterPortrait: false })
+      characterPortraitShape: "SQUARE", tokenShape: "ROUND_PNG", dragDrop: true, tokenMayReplaceCharacterPortrait: false,
+      filePickerApi: "foundry.applications.apps.FilePicker.implementation" })
   });
   console.log("realm-guard | M5 Token Builder UX hotfix ready", game.realmGuard.tokenBuilderUx.getStatus());
 });
