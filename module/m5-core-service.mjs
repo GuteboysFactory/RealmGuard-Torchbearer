@@ -2,6 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { getActiveRulesProfile } from "./rules-profile-service.mjs";
 import { createM5Services, INVENTORY_MODES, M5_STRUCTURED_ZONES, M5_CONTAINER_PRESETS } from "./core/m5-services.mjs";
 import { createM5ParityBridge } from "./m5-parity-bridge.mjs";
+import { evaluateM5PromotionReadiness, M5_PROMOTION_REQUIREMENTS } from "./m5-promotion-readiness.mjs";
 import "./m5-parity-deepening.mjs";
 
 let runtime = null;
@@ -22,10 +23,12 @@ function parity() {
 export function getM5Status() {
   const profile = getActiveRulesProfile();
   const current = services();
-  const paritySummary = parityBridge?.report?.()?.summary ?? Object.freeze({ total: 0, matches: 0, mismatches: 0, coreOnly: 0 });
+  const parityReport = parityBridge?.report?.() ?? Object.freeze({ phase: "M5", mode: "SHADOW_PARITY", authority: "LEGACY_MIXED", liveApplication: false, summary: Object.freeze({ total: 0, matches: 0, mismatches: 0, coreOnly: 0 }), events: Object.freeze([]) });
+  const paritySummary = parityReport.summary;
+  const readiness = evaluateM5PromotionReadiness(parityReport);
   return Object.freeze({
     phase: "M5",
-    buildScope: "LIVE_SHADOW_INVENTORY_DECISIONS_CONFLICT_PROVIDER_PARITY",
+    buildScope: "LIVE_SHADOW_PARITY_PROMOTION_READINESS",
     mode: "SHADOW_PARITY",
     liveApplication: false,
     authority: "LEGACY_MIXED",
@@ -38,7 +41,8 @@ export function getM5Status() {
       "ContainerService",
       "ConflictToolService",
       "ConflictToolEffectProvider",
-      "M5ParityBridge"
+      "M5ParityBridge",
+      "M5PromotionReadiness"
     ]),
     parity: Object.freeze({
       inventoryLiveObservation: true,
@@ -49,6 +53,7 @@ export function getM5Status() {
       mismatchBlocksLegacy: false,
       report: paritySummary
     }),
+    readiness,
     inventoryModes: INVENTORY_MODES,
     structuredZones: Object.freeze(M5_STRUCTURED_ZONES.map(zone => zone.id)),
     conflictToolCapabilities: Object.freeze([
@@ -97,29 +102,26 @@ function actorSnapshot(actor) {
 function diagnosticsHtml() {
   const s = getM5Status();
   const p = s.parity.report;
+  const r = s.readiness;
+  const coverageRows = Object.values(r.coverage).map(row => `<li>${row.observed ? "✅" : "⬜"} ${row.label}${row.mismatches ? ` · ${row.mismatches} mismatch` : ""}</li>`).join("");
   return `<div class="realm-guard" style="padding:8px 12px;max-height:64vh;overflow:auto;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M5</div>
     <h2>Gear · Inventory · Conflict Tools</h2>
     <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>qa.13 deepens live parity: accepted Inventory writes remain observed, rejected drag/drop decisions are now inferred from the real Legacy UI path when no write occurs, and Conflict declarations plus disabled provider state are compared against CORE.</p>
+    <p>Live Inventory and Conflict Tool flows are observed against CORE. qa.15 adds a promotion-readiness gate only; it does not perform any live takeover.</p>
     <h3>Live shadow parity</h3>
     <p><b>${p.total}</b> observations · <b>${p.matches}</b> MATCH · <b>${p.mismatches}</b> MISMATCH · <b>${p.coreOnly}</b> CORE-only probes</p>
-    <p>CORE remains shadow-only. Mismatches warn QA but never block, rewrite, migrate or take authority from Legacy Mixed.</p>
+    <h3>Promotion readiness</h3>
+    <p><b>${r.status}</b></p><ul>${coverageRows}</ul>
+    <p>${r.nextStep}</p>
     <h3>Services</h3>
     <p>${s.services.join(" · ")}</p>
-    <h3>Active policy</h3>
-    <p><b>${s.inventoryPolicy}</b> · ${s.structuredZones.length} structured zones · no Actor or Item migration</p>
-    <h3>Conflict Tool architecture</h3>
-    <p>Physical Gear · Natural Tools · Narrative/Contextual Tools · multiple effects · temporary disable targets.</p>
-    <p><b>Unarmed:</b> CORE default 0D tool effect. Legacy Mixed compatibility remains −1D until an explicit profile conversion changes live behavior.</p>
     <h3>Console QA</h3>
     <code>game.realmGuard.core.m5.getStatus()</code><br>
     <code>game.realmGuard.core.m5.parity.report()</code><br>
+    <code>game.realmGuard.core.m5.readiness()</code><br>
     <code>game.realmGuard.core.m5.parity.events({ mismatchesOnly: true })</code><br>
-    <code>game.realmGuard.core.m5.parity.clear()</code><br>
-    <code>game.realmGuard.core.m5.actorSnapshot(game.actors.getName("Ranger Name"))</code><br>
-    <code>game.realmGuard.core.m5.parity.probeZone(actor, gearId, "right-hand", { legacyAccepted: true })</code><br>
-    <code>game.realmGuard.core.m5.parity.probeConflict(actor, { toolId: "gear:ID", action: "attack", conflictType: "fight" }, { dice: 0 })</code>
+    <code>game.realmGuard.core.m5.parity.clear()</code>
   </div>`;
 }
 
@@ -131,6 +133,8 @@ function exposeApi() {
   game.realmGuard.core.phase = "M5";
   game.realmGuard.core.m5 = Object.freeze({
     getStatus: getM5Status,
+    readiness: () => evaluateM5PromotionReadiness(bridge.report()),
+    promotionRequirements: M5_PROMOTION_REQUIREMENTS,
     actorSnapshot,
     constants: Object.freeze({ inventoryModes: INVENTORY_MODES, zones: M5_STRUCTURED_ZONES, containerPresets: M5_CONTAINER_PRESETS }),
     gear: Object.freeze({
@@ -195,6 +199,6 @@ export function installM5CoreServices() {
     parityBridge = createM5ParityBridge({ services: runtime });
     parityBridge.install();
     exposeApi();
-    console.log("realm-guard | CORE M5 deep live shadow parity ready", getM5Status());
+    console.log("realm-guard | CORE M5 promotion readiness ready", getM5Status());
   });
 }
