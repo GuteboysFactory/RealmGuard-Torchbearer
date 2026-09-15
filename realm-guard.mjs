@@ -42,7 +42,7 @@ import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.21"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.22"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };

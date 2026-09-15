@@ -5,6 +5,7 @@ import { talentOptionViews, resolveTalentUse, commitTalentUse, talentEffectSumma
 import { recordAbilityTest, recordHelperSkillTest } from "./advancement.mjs";
 import { traitPositiveStatus } from "./traits.mjs";
 import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mjs";
+import { resolveConflictActor, inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -106,7 +107,7 @@ let dragOffset = null;
 function esc(value) { return foundry.utils.escapeHTML(String(value ?? "")); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function actionLabel(action) { return ACTION_LABELS[action] ?? action; }
-function actorById(id) { return id ? game.actors.get(id) : null; }
+function actorById(id) { return resolveConflictActor(id); }
 function currentState() {
   try {
     const raw = game.settings.get(SYSTEM_ID, PUBLIC_SETTING);

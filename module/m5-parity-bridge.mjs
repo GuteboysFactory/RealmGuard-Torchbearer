@@ -1,3 +1,5 @@
+import { resolveConflictActor } from "./conflict-actor-resolver.mjs";
+
 const SYSTEM_ID = "realm-guard";
 const CONFLICT_SETTING = "conflictState";
 const DEFAULT_EVENT_LIMIT = 250;
@@ -156,7 +158,7 @@ export class M5ParityBridge {
     if (!services?.placement || !services?.conflictTools) throw new Error("M5ParityBridge requires M5 services.");
     this.services = services;
     this.eventLimit = Math.max(25, Number(eventLimit ?? DEFAULT_EVENT_LIMIT));
-    this.actorResolver = actorResolver ?? (id => globalThis.game?.actors?.get?.(id) ?? null);
+    this.actorResolver = actorResolver ?? (id => resolveConflictActor(id));
     this.conflictStateReader = conflictStateReader ?? (() => {
       try {
         const raw = globalThis.game?.settings?.get?.(SYSTEM_ID, CONFLICT_SETTING);

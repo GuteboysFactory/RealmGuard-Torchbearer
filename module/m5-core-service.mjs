@@ -4,6 +4,7 @@ import { createM5Services, INVENTORY_MODES, M5_STRUCTURED_ZONES, M5_CONTAINER_PR
 import { getM5InventoryLiveHandoffStatus, getM5InventoryHandoffHistory, resetM5InventoryHandoffTelemetry, setM5InventoryCoreValidationEnabled } from "./inventory.mjs";
 import { createM5ParityBridge } from "./m5-parity-bridge.mjs";
 import { getM5ConflictLiveHandoffStatus, getM5ConflictHandoffHistory, resetM5ConflictHandoffTelemetry, setM5ConflictCoreEvaluationEnabled } from "./m5-conflict-live-handoff.mjs";
+import { inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";
 import { evaluateM5PromotionReadiness, M5_PROMOTION_REQUIREMENTS } from "./m5-promotion-readiness.mjs";
 import "./m5-parity-deepening.mjs";
 
@@ -178,6 +179,7 @@ function exposeApi() {
       usage: (actor, item) => current.containers.usage(actor, item)
     }),
     conflictTools: Object.freeze({
+      inspectActorResolution: actorId => inspectConflictActorResolution(actorId),
       list: (actor, options) => current.conflictTools.list(actor, options),
       resolve: (actor, id, options) => current.conflictTools.resolve(actor, id, options),
       evaluate: (actor, options) => current.conflictTools.evaluate(actor, options),
