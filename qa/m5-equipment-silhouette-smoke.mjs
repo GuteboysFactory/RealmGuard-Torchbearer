@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeEquipmentAncestry, resolveEquipmentSilhouette } from "../module/equipment-silhouette.mjs";
+import { normalizeEquipmentAncestry, resolveEquipmentSilhouette, equipmentFigureStatus } from "../module/equipment-silhouette.mjs";
 
 assert.equal(normalizeEquipmentAncestry("Dúnadan"), "dunadan");
 assert.equal(normalizeEquipmentAncestry("Dunedain"), "dunadan");
@@ -15,17 +15,13 @@ assert.equal(normalizeEquipmentAncestry("House of Ruor"), "neutral");
 assert.equal(normalizeEquipmentAncestry("Bogkin"), "neutral");
 assert.equal(normalizeEquipmentAncestry(""), "neutral");
 
-let resolved = resolveEquipmentSilhouette("Dúnadan");
-assert.equal(resolved.key, "dunadan");
-assert.equal(resolved.fallback, false);
-assert.match(resolved.src, /dunadan\.svg$/);
+for (const ancestry of ["Dúnadan", "Human", "Dwarf", "Elf", "Halfling"]) {
+  const resolved = resolveEquipmentSilhouette(ancestry);
+  assert.equal(resolved.fallback, false);
+  assert.match(resolved.src, /dunadan\.svg$/);
+}
 
-resolved = resolveEquipmentSilhouette("Human");
-assert.equal(resolved.key, "human");
-assert.equal(resolved.fallback, false);
-assert.match(resolved.src, /human\.svg$/);
-
-resolved = resolveEquipmentSilhouette("Bogkin");
+let resolved = resolveEquipmentSilhouette("Bogkin");
 assert.equal(resolved.key, "neutral");
 assert.equal(resolved.fallback, true);
 assert.match(resolved.src, /neutral\.svg$/);
@@ -33,5 +29,11 @@ assert.match(resolved.src, /neutral\.svg$/);
 resolved = resolveEquipmentSilhouette("");
 assert.equal(resolved.key, "neutral");
 assert.equal(resolved.fallback, false);
+assert.match(resolved.src, /neutral\.svg$/);
+
+const status = equipmentFigureStatus();
+assert.equal(status.paperFiguresAllowed, false);
+assert.equal(status.inventoryRulesChanged, false);
+assert.deepEqual(status.sourceOrder, ["CHARACTER_ART", "ANCESTRY_ARTWORK", "NEUTRAL_ARTWORK"]);
 
 console.log("PASS m5-equipment-silhouette-smoke");
