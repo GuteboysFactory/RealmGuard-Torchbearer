@@ -1,0 +1,88 @@
+name: Apply qa.22 Token Actor Resolver
+on:
+  push:
+    paths:
+      - '.github/workflows/qa22-token-actor-resolver.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply qa.22 source patch
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import json
+
+          p = Path('module/conflicts.mjs')
+          s = p.read_text()
+          anchor = 'import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mjs";\n'
+          imp = 'import { resolveConflictActor, inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";\n'
+          if imp not in s:
+              assert anchor in s
+              s = s.replace(anchor, anchor + imp, 1)
+          old = 'function actorById(id) { return id ? game.actors.get(id) : null; }'
+          new = 'function actorById(id) { return resolveConflictActor(id); }'
+          assert old in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('module/m5-parity-bridge.mjs')
+          s = p.read_text()
+          imp = 'import { resolveConflictActor } from "./conflict-actor-resolver.mjs";\n\n'
+          if not s.startswith('import { resolveConflictActor }'):
+              s = imp + s
+          old = 'this.actorResolver = actorResolver ?? (id => globalThis.game?.actors?.get?.(id) ?? null);'
+          new = 'this.actorResolver = actorResolver ?? (id => resolveConflictActor(id));'
+          assert old in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('module/m5-core-service.mjs')
+          s = p.read_text()
+          anchor = 'import { getM5ConflictLiveHandoffStatus, getM5ConflictHandoffHistory, resetM5ConflictHandoffTelemetry, setM5ConflictCoreEvaluationEnabled } from "./m5-conflict-live-handoff.mjs";\n'
+          imp = 'import { inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";\n'
+          if imp not in s:
+              assert anchor in s
+              s = s.replace(anchor, anchor + imp, 1)
+          old = '    conflictTools: Object.freeze({\n      list: (actor, options) => current.conflictTools.list(actor, options),'
+          new = '    conflictTools: Object.freeze({\n      inspectActorResolution: actorId => inspectConflictActorResolution(actorId),\n      list: (actor, options) => current.conflictTools.list(actor, options),'
+          assert old in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('realm-guard.mjs')
+          p.write_text(p.read_text().replace('1.7.0-qa.21', '1.7.0-qa.22'))
+
+          p = Path('system.json')
+          m = json.loads(p.read_text())
+          m['version'] = '1.7.0-qa.22'
+          m['download'] = 'https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/1.7.0-qa.22/realm-guard.zip'
+          p.write_text(json.dumps(m, indent=2) + '\n')
+
+          compat = Path('qa/m5-foundry-filepicker-compat-smoke.mjs')
+          compat.write_text(compat.read_text().replace('1.7.0-qa.21', '1.7.0-qa.22'))
+
+          Path('qa/conflict-token-actor-resolver-smoke.mjs').write_text('''import assert from "node:assert/strict";\nimport { inspectConflictActorResolution, resolveConflictActor } from "../module/conflict-actor-resolver.mjs";\n\nconst world = { id: "A1", name: "World Dev" };\nconst tokenActor = { id: "A1", name: "Token Dev", isToken: true };\nconst token = { id: "T1", actor: tokenActor, document: { id: "T1", actorId: "A1", actorLink: false } };\nconst gameRef = { actors: { get: id => id === "A1" ? world : null } };\nconst canvasRef = { tokens: { placeables: [token], controlled: [] } };\nconst inspected = inspectConflictActorResolution("A1", { gameRef, canvasRef });\nassert.equal(inspected.source, "UNIQUE_SCENE_TOKEN");\nassert.equal(resolveConflictActor("A1", { gameRef, canvasRef }), tokenActor);\nconst ambiguousCanvas = { tokens: { placeables: [token, { ...token, id: "T2", actor: { ...tokenActor, name: "Token Dev 2" }, document: { id: "T2", actorId: "A1", actorLink: false } }], controlled: [] } };\nassert.equal(inspectConflictActorResolution("A1", { gameRef, canvasRef: ambiguousCanvas }).source, "AMBIGUOUS_SCENE_TOKENS");\nassert.equal(resolveConflictActor("A1", { gameRef, canvasRef: ambiguousCanvas, logger: { warn() {} } }), world);\nconsole.log("PASS conflict-token-actor-resolver-smoke");\n''')
+
+          Path('TEST_PROTOCOL_v1.7.0-qa.22.md').write_text('''# Realm Guard / Torchbearer v1.7.0-qa.22 QA Protocol\n\n## Scope\nTargeted Conflict actor-resolution hotfix discovered during qa.21. Conflict must use the active scene Token Actor when exactly one matching token exists, so unlinked/synthetic token Gear, Conditions, Skills, Nature and resources are respected. World Actor remains the safe fallback. qa.21 M5 Conflict Tool evaluation handoff is otherwise unchanged.\n\n## 1. Status\n```js\ngame.system.version\n```\nExpected `1.7.0-qa.22`.\n\n## 2. Resolver proof\nWith Dev Testsson on the active scene, run:\n```js\nconst world = game.actors.getName("Dev Testsson");\ngame.realmGuard.core.m5.conflictTools.inspectActorResolution(world.id)\n```\nExpected with exactly one scene token: `source:"UNIQUE_SCENE_TOKEN"`, `actor.isToken:true`, and tokenId matching the scene token.\n\n## 3. Conflict Weapon list\nOpen/start a Fight using Dev Testsson. In planning, Weapon / Tool must reflect the token Actor state. For the reported reproduction, Shield and Dagger/Sword present on the token must be available according to normal Conflict weapon rules.\n\n## 4. World Actor fallback\nRemove Dev Testsson token from the scene or test another Actor with no scene token. Resolver must report `WORLD_ACTOR`; existing Conflict behavior must remain unchanged.\n\n## 5. Ambiguity safety\nIf two tokens on the active scene reference the same world Actor and neither is uniquely controlled, resolver must use `WORLD_ACTOR` and warn rather than guessing. If exactly one matching token is controlled, that controlled token is used.\n\n## 6. qa.21 continuation\nResume qa.21 Conflict Tool evaluation tests: physical Tool, Unarmed, conditional success, custom/narrative Tool, rollback and full Action-pair regression. Final M5 Conflict handoff status must remain enabled with mismatches 0 and errorFallbacks 0.\n''')
+
+          Path('release/NOTES.md').write_text('''Realm Guard / Torchbearer v1.7.0-qa.22 — Conflict Token Actor resolution hotfix.\n\nDuring qa.21 live testing, an unlinked Dev Testsson scene token showed Shield + other token-specific Gear while the world Actor contained only Sword. Conflict participant lookup still used game.actors.get(actorId), so planning and evaluation read the world Actor instead of the actual synthetic Token Actor on the table.\n\nqa.22 fixes that resolution layer only:\n- exactly one matching active-scene token -> use token.actor\n- multiple matches with exactly one controlled token -> use the controlled token\n- ambiguous multiple matches -> safe world Actor fallback + warning\n- no scene token -> existing world Actor behavior\n- M5 parity bridge uses the same resolver\n- no Conflict rule changes and qa.21 evaluation handoff remains intact\n\nQA protocol: TEST_PROTOCOL_v1.7.0-qa.22.md\n''')
+          Path('release/READY').write_text('1.7.0-qa.22\n')
+          PY
+          node --check module/conflict-actor-resolver.mjs
+          node --check module/conflicts.mjs
+          node --check module/m5-parity-bridge.mjs
+          node --check module/m5-core-service.mjs
+          for smoke in qa/*-smoke.mjs; do node "$smoke"; done
+          rm -f .github/workflows/qa22-token-actor-resolver.yml
+          git config user.name "GuteboysFactory"
+          git config user.email "per@guteboy.eu"
+          git add -A
+          git commit -m "Release qa.22 token-aware Conflict actor resolution"
+          git push
