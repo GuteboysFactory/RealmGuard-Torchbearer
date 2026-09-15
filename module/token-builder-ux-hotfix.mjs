@@ -25,8 +25,18 @@ async function uploadDroppedFile(file) {
   return path;
 }
 
+function actorForDialog(app) {
+  const direct = app?.actor ?? app?.document;
+  if (direct?.documentName === "Actor" || direct?.type === "character" || direct?.type === "npc") return direct;
+  const title = String(app?.window?.title ?? app?.options?.window?.title ?? "");
+  const marker = "Token Builder · ";
+  const actorName = title.includes(marker) ? title.slice(title.indexOf(marker) + marker.length).trim() : "";
+  return actorName ? globalThis.game?.actors?.getName?.(actorName) ?? null : null;
+}
+
 function installDropTarget(app) {
-  const root = app?.element?.querySelector?.("[data-rg-token-builder]") ?? app?.element?.matches?.("[data-rg-token-builder]") ? app.element : null;
+  const element = app?.element;
+  const root = element?.querySelector?.("[data-rg-token-builder]") ?? (element?.matches?.("[data-rg-token-builder]") ? element : null);
   if (!root || root.dataset.rgDropHotfix === "true") return false;
   const stage = root.querySelector("[data-rg-token-stage]");
   const image = root.querySelector("[data-rg-token-image]");
@@ -35,7 +45,7 @@ function installDropTarget(app) {
   const yInput = root.querySelector("[data-rg-token-y]");
   const zoomInput = root.querySelector("[data-rg-token-zoom]");
   const fitInput = root.querySelector("[data-rg-token-fit]");
-  const actor = app?.actor ?? app?.document ?? null;
+  const actor = actorForDialog(app);
   if (!stage || !image || !sourceInput) return false;
 
   root.dataset.rgDropHotfix = "true";
@@ -76,7 +86,7 @@ function installDropTarget(app) {
       if (zoomInput) zoomInput.value = "1";
       if (fitInput) fitInput.value = "cover";
       if (actor?.type === "character") await setRangerOriginalPortrait(actor, path, { switchToOriginal: true });
-      globalThis.ui?.notifications?.info?.(`Realm Guard: ${file.name} loaded as source artwork.`);
+      globalThis.ui?.notifications?.info?.(`Realm Guard: ${file.name} loaded as source artwork${actor?.type === "character" ? " and set as the Ranger portrait" : ""}.`);
     } catch (error) {
       console.error("realm-guard | Token Builder dropped artwork failed", error);
       globalThis.ui?.notifications?.error?.(`Realm Guard: ${error.message || "Could not load dropped artwork."}`);
@@ -106,11 +116,8 @@ async function repairLegacyCharacterPortraits() {
     const token = String(actor.getFlag?.(NS, "tokenPortraitPath") ?? actor.prototypeToken?.texture?.src ?? "").trim();
     const mode = String(actor.getFlag?.(NS, "portraitMode") ?? "original");
     if (!original || (mode !== "token" && String(actor.img ?? "") !== token)) continue;
-    try {
-      await actor.update({ img: original, "flags.realm-guard.portraitMode": "original" });
-    } catch (error) {
-      console.warn("realm-guard | Could not restore Ranger original portrait", actor.name, error);
-    }
+    try { await actor.update({ img: original, "flags.realm-guard.portraitMode": "original" }); }
+    catch (error) { console.warn("realm-guard | Could not restore Ranger original portrait", actor.name, error); }
   }
 }
 
@@ -126,15 +133,8 @@ Hooks.once("ready", async () => {
   await repairLegacyCharacterPortraits();
   globalThis.game.realmGuard ??= {};
   game.realmGuard.tokenBuilderUx = Object.freeze({
-    getStatus: () => Object.freeze({
-      phase: "M5",
-      scope: "TOKEN_BUILDER_DRAG_DROP_AND_PC_PORTRAIT_SEPARATION",
-      installed,
-      characterPortraitShape: "SQUARE",
-      tokenShape: "ROUND_PNG",
-      dragDrop: true,
-      tokenMayReplaceCharacterPortrait: false
-    })
+    getStatus: () => Object.freeze({ phase: "M5", scope: "TOKEN_BUILDER_DRAG_DROP_AND_PC_PORTRAIT_SEPARATION", installed,
+      characterPortraitShape: "SQUARE", tokenShape: "ROUND_PNG", dragDrop: true, tokenMayReplaceCharacterPortrait: false })
   });
   console.log("realm-guard | M5 Token Builder UX hotfix ready", game.realmGuard.tokenBuilderUx.getStatus());
 });
