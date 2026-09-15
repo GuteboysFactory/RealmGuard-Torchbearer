@@ -1,30 +1,25 @@
-Realm Guard / Torchbearer v1.7.0-qa.11 — M5 live shadow parity bridge.
+Realm Guard / Torchbearer v1.7.0-qa.12 — Ranger sheet scroll-position persistence hotfix.
 
-This patch resumes the functional M5 backend track after the Equipment/Portrait/FilePicker polish line. Legacy Mixed remains the sole live authority. CORE M5 remains read-only/shadow and does not block or mutate gameplay state.
+This patch fixes the UX regression shown in live QA where the Character sheet jumps back toward the top whenever an action triggers an Actor/Item update and the sheet rerenders.
 
-New in qa.11:
-- adds `M5ParityBridge` between real Legacy Mixed activity and the existing CORE M5 services
-- observes successful live Gear placement/unassignment writes and compares the intended target against `PlacementValidator`
-- observes resolved live Conflict Tool/Weapon results from Conflict state and compares Legacy `gearDice`, conditional +success and success penalties against `ConflictToolService.evaluate()`
-- records `MATCH`, `MISMATCH`, and `CORE_ONLY` events in a bounded in-memory QA buffer
-- exposes parity diagnostics through `game.realmGuard.core.m5.parity`
-- adds parity counters to the GM M5 diagnostics window
-- parity mismatches warn the console but never cancel, block or rewrite the Legacy Mixed operation
-- adds automated smoke coverage for inventory placement/container parity, Conflict Tool parity, live observer behavior, de-duplication and explicit non-takeover guarantees
+New / corrected in qa.12:
+- Ranger sheet now remembers scroll position before update-triggered rerenders
+- scroll position is restored after the new DOM has rendered
+- active Character/Equipment tab remains preserved as before
+- nested/scrollable sheet areas are handled without changing gameplay data
+- the fix is UI-state only: no Actor, Item, Inventory, Conflict or CORE authority changes
+- adds automated smoke coverage for the scroll persistence bridge
 
-Still intentionally unchanged:
+Preserved from qa.11:
+- M5 live shadow parity bridge remains active
 - `liveApplication:false`
 - `authority:"LEGACY_MIXED"`
-- Legacy Inventory writers remain live
-- Legacy Conflict writers remain live
-- no Actor/Item migration
-- no Conflict live takeover
-- CORE default still has no universal Unarmed penalty, while Legacy Mixed compatibility remains −1D until a future explicit profile handoff
-- locked Equipment Figure / Inventory layout remains unchanged
-- PC square/original portrait and separate round token workflow remains unchanged
-- FilePicker compatibility work from qa.10 is preserved
+- Legacy Inventory and Conflict writers remain sole live authority
+- Equipment Figure / Inventory layout remains locked
+- PC square/original portrait + separate round token workflow remains unchanged
+- Foundry FilePicker compatibility from qa.10 remains preserved
 - M2, M3 and verified M4 remain unchanged
 
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.11.md`
+QA protocol: `TEST_PROTOCOL_v1.7.0-qa.12.md`
 
-Primary PASS condition: real Inventory writes and resolved Conflict Tool rolls produce expected CORE parity observations with no unexplained mismatch, while Legacy Mixed remains the only live authority.
+Primary PASS condition: when the user is scrolled down in Character or Equipment and performs an action that rerenders the sheet, the sheet remains at the same working position instead of jumping back to the top.
