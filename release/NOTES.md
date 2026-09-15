@@ -1,26 +1,32 @@
-Realm Guard / Torchbearer v1.7.0-qa.19 — System smart-select scrolling root fix.
+Realm Guard / Torchbearer v1.7.0-qa.20 — M5 controlled Inventory validation handoff.
 
-Live diagnostics from qa.18 identified the actual component and failure path. Recruitment was not using the temporary `rg-scroll-select` menu for the visible dropdown. The visible dropdown is the existing system-wide `rg-smart-select` component from Context Help. Its menu received wheel input correctly, but Context Help also had a global captured `scroll` listener that closed every open smart select as soon as the menu itself scrolled.
+qa.15 proved promotion readiness across accepted/rejected Inventory paths plus Conflict declaration/roll/disable parity. qa.20 performs the first bounded live handoff.
 
-New in qa.19:
-- uses the existing system-wide `rg-smart-select` as the sole dropdown authority
-- removes the temporary Recruitment-specific scroll enhancer from system loading
-- removes the temporary Recruitment scroll stylesheet from system loading
-- adds `module/smart-select-scroll-hotfix.mjs` before `realm-guard.mjs` so the internal-menu scroll guard registers before Context Help's global close-on-scroll listener
-- open `.rg-smart-select-menu` now has explicit vertical overflow, contained overscroll and a visible scrollbar
-- scroll events originating inside the open smart-select menu stop before they reach the later global close-on-scroll listener
-- outside/viewport scrolling behavior is otherwise unchanged
+New in qa.20:
+- CORE M5 PlacementValidator becomes live validation authority for `PLACE_ZONE` and `PLACE_CONTAINER`
+- existing Legacy Mixed Item update path remains the writer; no inventory data-model migration is introduced
+- Conflict remains fully Legacy Mixed
+- Unassign and container detach remain Legacy Mixed
+- every live validation decision records handoff telemetry
+- automatic session rollback to Legacy Mixed if CORE validation throws or disagrees with the legacy validator
+- manual QA rollback and re-enable controls exposed through `game.realmGuard.core.m5.inventory`
+- handoff status/history exposed for direct live verification
+- M5 status now reports split authority instead of claiming all-live or all-shadow state
+
+Safety model:
+- CORE validates
+- Legacy Mixed writes
+- CORE/Legacy disagreement does not write according to CORE; it immediately falls back to Legacy Mixed and disables the handoff for the rest of the session
+- CORE error does the same
+- Conflict takeover is still OFF
 
 Preserved:
-- existing system-wide smart-select option help and selection behavior
-- Recruitment rules, calculations and saved values
-- M5 promotion-readiness state and shadow parity architecture from qa.15
-- `liveApplication:false`
-- `authority:"LEGACY_MIXED"`
-- qa.12 Ranger-sheet scroll-position persistence
-- Equipment layout, portrait/token workflow and FilePicker compatibility
+- qa.19 smart-select scroll root fix
+- qa.12 Ranger sheet scroll-position persistence
+- Equipment paper-doll UX
+- portrait/token workflow and FilePicker compatibility
 - M2, M3 and verified M4
 
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.19.md`
+QA protocol: `TEST_PROTOCOL_v1.7.0-qa.20.md`
 
-Primary PASS condition: open Recruitment Natural Talent, scroll the visible `rg-smart-select` option list with the mouse wheel/trackpad without the menu closing, reach the bottom, select a lower option, and confirm the value persists through Continue/Back.
+Primary PASS condition: legal and illegal zone/container moves are decided by CORE with zero validation disagreements/error fallbacks, Legacy Mixed remains the writer, manual rollback works, and regression checks remain clean.
