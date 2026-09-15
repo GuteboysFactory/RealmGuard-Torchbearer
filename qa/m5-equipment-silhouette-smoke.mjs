@@ -15,10 +15,18 @@ assert.equal(normalizeEquipmentAncestry("House of Ruor"), "neutral");
 assert.equal(normalizeEquipmentAncestry("Bogkin"), "neutral");
 assert.equal(normalizeEquipmentAncestry(""), "neutral");
 
-for (const ancestry of ["Dúnadan", "Human", "Dwarf", "Elf", "Halfling"]) {
+const expected = new Map([
+  ["Dúnadan", "dunadan.svg"],
+  ["Human", "human.svg"],
+  ["Dwarf", "dwarf.svg"],
+  ["Elf", "elf.svg"],
+  ["Halfling", "halfling.svg"],
+  ["Hobbit", "halfling.svg"]
+]);
+for (const [ancestry, file] of expected) {
   const resolved = resolveEquipmentSilhouette(ancestry);
   assert.equal(resolved.fallback, false);
-  assert.match(resolved.src, /dunadan\.svg$/);
+  assert.ok(resolved.src.endsWith(`/${file}`));
 }
 
 let resolved = resolveEquipmentSilhouette("Bogkin");
@@ -34,6 +42,9 @@ assert.match(resolved.src, /neutral\.svg$/);
 const status = equipmentFigureStatus();
 assert.equal(status.paperFiguresAllowed, false);
 assert.equal(status.inventoryRulesChanged, false);
-assert.deepEqual(status.sourceOrder, ["CHARACTER_ART", "ANCESTRY_ARTWORK", "NEUTRAL_ARTWORK"]);
+assert.equal(status.defaultMode, "custom");
+assert.deepEqual(status.modes, ["custom", "ancestry"]);
+assert.equal(status.characterArtModeRemoved, true);
+assert.equal(status.automaticAncestrySelection, true);
 
 console.log("PASS m5-equipment-silhouette-smoke");
