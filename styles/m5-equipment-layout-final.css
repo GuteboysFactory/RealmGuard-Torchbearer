@@ -1,0 +1,62 @@
+/* v1.7.0-qa.8 — final Equipment cosmetic layout pass.
+   Keep Containers + Unassigned Gear together on the left rail while Equipment owns the main column. */
+
+@media (min-width: 901px) {
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-layout-silhouette {
+    grid-template-columns: minmax(220px,.72fr) minmax(500px,1.75fr) !important;
+    grid-template-rows: auto auto;
+    align-items:start;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-left-rail {
+    grid-column:1;
+    grid-row:1;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-equipment-panel {
+    grid-column:2;
+    grid-row:1 / span 2;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel {
+    grid-column:1 !important;
+    grid-row:2;
+    position:relative !important;
+    top:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel .rg-inventory-loose-grid {
+    grid-template-columns:1fr !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-layout-silhouette {
+    grid-template-columns:1fr !important;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-left-rail {
+    grid-column:1;
+    grid-row:1;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel {
+    grid-column:1 !important;
+    grid-row:2;
+    position:relative !important;
+    top:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-equipment-panel {
+    grid-column:1;
+    grid-row:3;
+  }
+
+  .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel .rg-inventory-loose-grid {
+    grid-template-columns:1fr !important;
+  }
+}
