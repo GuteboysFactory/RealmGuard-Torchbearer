@@ -2,6 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { getActiveRulesProfile } from "./rules-profile-service.mjs";
 import { createM5Services, INVENTORY_MODES, M5_STRUCTURED_ZONES, M5_CONTAINER_PRESETS } from "./core/m5-services.mjs";
 import { createM5ParityBridge } from "./m5-parity-bridge.mjs";
+import "./m5-parity-deepening.mjs";
 
 let runtime = null;
 let parityBridge = null;
@@ -24,7 +25,7 @@ export function getM5Status() {
   const paritySummary = parityBridge?.report?.()?.summary ?? Object.freeze({ total: 0, matches: 0, mismatches: 0, coreOnly: 0 });
   return Object.freeze({
     phase: "M5",
-    buildScope: "LIVE_SHADOW_INVENTORY_CONFLICT_TOOL_PARITY",
+    buildScope: "LIVE_SHADOW_INVENTORY_DECISIONS_CONFLICT_PROVIDER_PARITY",
     mode: "SHADOW_PARITY",
     liveApplication: false,
     authority: "LEGACY_MIXED",
@@ -41,7 +42,10 @@ export function getM5Status() {
     ]),
     parity: Object.freeze({
       inventoryLiveObservation: true,
+      inventoryRejectedObservation: true,
       conflictToolLiveObservation: true,
+      conflictDeclarationObservation: true,
+      conflictDisableObservation: true,
       mismatchBlocksLegacy: false,
       report: paritySummary
     }),
@@ -97,10 +101,10 @@ function diagnosticsHtml() {
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M5</div>
     <h2>Gear · Inventory · Conflict Tools</h2>
     <p><b>Mode:</b> ${s.mode} · <b>Live application:</b> OFF · <b>Authority:</b> Legacy Mixed</p>
-    <p>qa.11 connects the real Legacy Mixed Inventory writes and Conflict Tool roll results to CORE shadow validation/evaluation. CORE records parity only: it never blocks, rewrites or takes authority from the live flow.</p>
+    <p>qa.13 deepens live parity: accepted Inventory writes remain observed, rejected drag/drop decisions are now inferred from the real Legacy UI path when no write occurs, and Conflict declarations plus disabled provider state are compared against CORE.</p>
     <h3>Live shadow parity</h3>
     <p><b>${p.total}</b> observations · <b>${p.matches}</b> MATCH · <b>${p.mismatches}</b> MISMATCH · <b>${p.coreOnly}</b> CORE-only probes</p>
-    <p>Inventory placement writes are observed before commit. Conflict Tool results are compared when the live Conflict state receives a resolved roll.</p>
+    <p>CORE remains shadow-only. Mismatches warn QA but never block, rewrite, migrate or take authority from Legacy Mixed.</p>
     <h3>Services</h3>
     <p>${s.services.join(" · ")}</p>
     <h3>Active policy</h3>
@@ -162,7 +166,9 @@ function exposeApi() {
       probeZone: (actor, itemOrId, zoneId, options) => bridge.probeZone(actor, itemOrId, zoneId, options),
       probeContainer: (actor, itemOrId, containerOrId, options) => bridge.probeContainer(actor, itemOrId, containerOrId, options),
       probeConflict: (actor, options, legacy, meta) => bridge.probeConflict(actor, options, legacy, meta),
-      observeConflictState: state => bridge.observeConflictState(state)
+      observeInventoryDecision: decision => bridge.observeLegacyInventoryDecision(decision),
+      observeConflictState: state => bridge.observeConflictState(state),
+      observeConflictProviders: state => bridge.observeConflictProviderState(state)
     })
   });
 }
@@ -189,6 +195,6 @@ export function installM5CoreServices() {
     parityBridge = createM5ParityBridge({ services: runtime });
     parityBridge.install();
     exposeApi();
-    console.log("realm-guard | CORE M5 live shadow parity ready", getM5Status());
+    console.log("realm-guard | CORE M5 deep live shadow parity ready", getM5Status());
   });
 }
