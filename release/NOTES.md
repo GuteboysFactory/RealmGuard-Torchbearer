@@ -1,32 +1,22 @@
-Realm Guard / Torchbearer v1.7.0-qa.13 — M5 deep live shadow parity.
+Realm Guard / Torchbearer v1.7.0-qa.14 — physical Conflict weapon source fix.
 
-This patch resumes the main M5 functional track after the qa.12 Ranger-sheet scroll-position hotfix. Legacy Mixed remains the sole live authority. CORE M5 remains shadow/read-only and still does not block, rewrite or migrate gameplay state.
+This hotfix corrects the live Fight planning bug where a stale/saved Conflict Tool named like a physical weapon (for example Staff) could appear even though the Ranger was visibly holding different Gear such as Sword + Shield.
 
-New in qa.13:
-- deepens Inventory parity beyond successful Item writes
-- observes real Ranger Equipment drag/drop intent and identifies rejected Legacy placement attempts when no Item write follows
-- records rejected operations as `LIVE_INVENTORY_REJECT` and compares the same target against CORE PlacementValidator
-- accepted Inventory writes continue to use the existing live preUpdateItem parity path
-- adds Conflict declaration/provider parity: revealed `gmWeaponId` / `rangerWeaponId` selections are resolved through CORE and compared
-- adds Conflict disabled-provider parity: live `disabledGearIds` from Disarm are checked against CORE provider disabled state
-- declaration and disable observations are de-duplicated to avoid rerender warning/count loops
-- exposes manual `observeInventoryDecision` and `observeConflictProviders` QA helpers
-- adds automated smoke coverage for rejected Inventory parity, declaration parity, disabled provider parity and deep-state de-duplication
+New / corrected in qa.14:
+- physical Fight/Fight Creature weapon names are now sourced from currently held Gear
+- stale saved Conflict Tools named Sword, Staff, Bow, Shield, etc. no longer masquerade as equipped physical weapons during an active Fight
+- if Staff is actually equipped as Gear, Staff remains available normally
+- narrative/custom Conflict Tools remain supported according to their configured conflict types
+- M5 CORE parity remains shadow-only and still uses Legacy Mixed as sole live authority
 
 Preserved:
 - `liveApplication:false`
 - `authority:"LEGACY_MIXED"`
-- Legacy Inventory writers remain live
-- Legacy Conflict writers remain live
-- no Actor/Item migration
-- no Conflict live takeover
-- existing Conflict roll effect parity from qa.11 remains active
-- qa.12 Ranger sheet scroll-position persistence remains active
-- Equipment Figure / Inventory layout remains locked
-- PC square/original portrait and separate round token workflow remains unchanged
-- FilePicker compatibility remains unchanged
-- M2, M3 and verified M4 remain unchanged
+- qa.13 accepted/rejected Inventory parity and declaration/disable parity
+- qa.12 Ranger-sheet scroll-position persistence
+- Equipment layout, portrait/token workflow, FilePicker compatibility
+- M2, M3 and verified M4
 
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.13.md`
+QA protocol: `TEST_PROTOCOL_v1.7.0-qa.14.md`
 
-Primary PASS condition: both accepted and rejected real Inventory interactions agree with CORE, Conflict declarations and Disarm-disabled providers agree with CORE, real Conflict roll parity remains clean, and Legacy Mixed remains the only live authority.
+Primary PASS condition: a Ranger holding Sword + Shield sees Sword + Shield as physical Fight weapon sources and does not see a phantom Staff merely because an old saved Conflict Tool named Staff exists.
