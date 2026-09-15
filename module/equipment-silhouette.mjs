@@ -165,6 +165,61 @@ function resolvedCopy(resolved) {
   return `<i class="fa-solid fa-person"></i><span><b>${esc(resolved.ancestry.label)}</b> ancestry figure</span>`;
 }
 
+function figureSettingsContent(actor) {
+  const prefs = equipmentFigurePreferences(actor);
+  const ancestry = equipmentSilhouetteForActor(actor);
+  const modeNote = prefs.mode === "custom"
+    ? `These settings affect the active <b>Custom Figure</b>. Leave the image path empty to use the built-in gray humanoid.`
+    : `These settings are stored for <b>Custom Figure</b>. Current Ancestry Figure is <b>${esc(ancestry.label)}</b> and keeps its fixed ancestry framing.`;
+  return `<div class="rg-equipment-figure-settings-dialog">
+    <header>
+      <div class="rg-equipment-figure-settings-kicker"><i class="fa-solid fa-gear"></i> Equipment Figure</div>
+      <h2>Figure Settings</h2>
+      <p>${modeNote}</p>
+    </header>
+    <div class="rg-equipment-figure-settings-grid">
+      <label class="rg-equipment-figure-settings-wide"><span>Custom image path · optional</span><input type="text" name="customSrc" value="${esc(prefs.customSrc)}" placeholder="Leave empty for built-in gray figure"></label>
+      <label><span>Fit</span><select name="fit"><option value="contain" ${prefs.fit === "contain" ? "selected" : ""}>Fit Entire Image</option><option value="cover" ${prefs.fit === "cover" ? "selected" : ""}>Fill / Crop</option></select></label>
+      <label><span>Zoom · ${prefs.zoom.toFixed(2)}x</span><input type="range" name="zoom" min="0.5" max="2.5" step="0.05" value="${prefs.zoom}"></label>
+      <label><span>Horizontal · ${prefs.offsetX}%</span><input type="range" name="offsetX" min="-40" max="40" step="1" value="${prefs.offsetX}"></label>
+      <label><span>Vertical · ${prefs.offsetY}%</span><input type="range" name="offsetY" min="-40" max="40" step="1" value="${prefs.offsetY}"></label>
+    </div>
+    <p class="rg-equipment-figure-settings-foot"><i class="fa-solid fa-circle-info"></i> Figure settings are visual only. Inventory zones, capacity, two-handed locking and containers are unchanged.</p>
+  </div>`;
+}
+
+async function openFigureSettings(sheet, image) {
+  if (!sheet?.actor) return null;
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: `${sheet.actor.name} · Equipment Figure Settings`, resizable: true },
+    position: { width: 560, height: "auto" },
+    content: figureSettingsContent(sheet.actor),
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      {
+        action: "apply",
+        label: "Apply",
+        icon: "fa-solid fa-check",
+        default: true,
+        callback: (_event, button) => ({
+          customSrc: String(button.form?.elements?.customSrc?.value ?? "").trim(),
+          fit: String(button.form?.elements?.fit?.value ?? "contain"),
+          zoom: Number(button.form?.elements?.zoom?.value ?? 1),
+          offsetX: Number(button.form?.elements?.offsetX?.value ?? 0),
+          offsetY: Number(button.form?.elements?.offsetY?.value ?? 0)
+        })
+      },
+      { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark", callback: () => null }
+    ]
+  });
+  if (!result) return null;
+  await saveFigurePreferences(sheet.actor, result);
+  const resolved = resolveEquipmentFigure(sheet.actor);
+  applyFigureImage(image, resolved);
+  return resolved;
+}
+
 function ensureFigureControl(sheet, panel, resolved, image) {
   if (!panel || !sheet?.actor) return;
   let control = panel.querySelector("[data-rg-equipment-figure-control]");
@@ -182,14 +237,8 @@ function ensureFigureControl(sheet, panel, resolved, image) {
       </select></label>
       <label class="rg-equipment-figure-ancestry"><span>Ancestry</span><input type="text" list="${listId}" data-rg-equipment-ancestry-input placeholder="Dúnadan, Human, Elf, Dwarf, Halfling…" />
       <datalist id="${listId}">${choices.map(choice => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`).join("")}</datalist></label>
-      <div class="rg-equipment-figure-resolved" data-rg-equipment-figure-resolved></div>
-      <div class="rg-equipment-figure-tools" data-rg-equipment-figure-tools>
-        <label class="rg-equipment-custom-source is-visible" data-rg-equipment-custom-source-wrap><span>Custom image path · optional</span><input type="text" data-rg-equipment-custom-source placeholder="Leave empty for built-in gray figure" /></label>
-        <label><span>Fit</span><select data-rg-equipment-figure-fit><option value="contain">Fit Entire Image</option><option value="cover">Fill / Crop</option></select></label>
-        <label><span>Zoom <output data-rg-equipment-zoom-output></output></span><input type="range" min="0.5" max="2.5" step="0.05" data-rg-equipment-figure-zoom /></label>
-        <label><span>Horizontal <output data-rg-equipment-x-output></output></span><input type="range" min="-40" max="40" step="1" data-rg-equipment-figure-x /></label>
-        <label><span>Vertical <output data-rg-equipment-y-output></output></span><input type="range" min="-40" max="40" step="1" data-rg-equipment-figure-y /></label>
-      </div>`;
+      <button type="button" class="rg-equipment-figure-settings-button" data-rg-equipment-figure-settings title="Figure settings" aria-label="Open Equipment Figure settings"><i class="fa-solid fa-gear"></i></button>
+      <div class="rg-equipment-figure-resolved" data-rg-equipment-figure-resolved></div>`;
     const stage = panel.querySelector(".rg-equipment-stage");
     if (stage) panel.insertBefore(control, stage); else panel.appendChild(control);
 
@@ -199,25 +248,10 @@ function ensureFigureControl(sheet, panel, resolved, image) {
     control.querySelector("[data-rg-equipment-ancestry-input]")?.addEventListener("change", async event => {
       await sheet.actor.update({ "system.ancestry": String(event.currentTarget?.value ?? "").trim() });
     });
-    control.querySelector("[data-rg-equipment-custom-source]")?.addEventListener("change", async event => {
-      await saveFigurePreferences(sheet.actor, { customSrc: String(event.currentTarget?.value ?? "").trim() });
+    control.querySelector("[data-rg-equipment-figure-settings]")?.addEventListener("click", async event => {
+      event.preventDefault();
+      await openFigureSettings(sheet, image);
     });
-    control.querySelector("[data-rg-equipment-figure-fit]")?.addEventListener("change", async event => {
-      await saveFigurePreferences(sheet.actor, { fit: String(event.currentTarget?.value ?? "contain") });
-    });
-
-    const bindRange = (selector, key, outputSelector, suffix = "") => {
-      const input = control.querySelector(selector), output = control.querySelector(outputSelector);
-      input?.addEventListener("input", event => {
-        const value = Number(event.currentTarget?.value ?? 0);
-        if (output) output.textContent = `${value}${suffix}`;
-        applyFigureImage(image, { ...resolveEquipmentFigure(sheet.actor), preferences: { ...equipmentFigurePreferences(sheet.actor), [key]: value } });
-      });
-      input?.addEventListener("change", async event => saveFigurePreferences(sheet.actor, { [key]: Number(event.currentTarget?.value ?? 0) }));
-    };
-    bindRange("[data-rg-equipment-figure-zoom]", "zoom", "[data-rg-equipment-zoom-output]", "x");
-    bindRange("[data-rg-equipment-figure-x]", "offsetX", "[data-rg-equipment-x-output]", "%");
-    bindRange("[data-rg-equipment-figure-y]", "offsetY", "[data-rg-equipment-y-output]", "%");
   }
 
   const prefs = resolved.preferences;
@@ -227,22 +261,13 @@ function ensureFigureControl(sheet, panel, resolved, image) {
   };
   setValue("[data-rg-equipment-figure-mode]", prefs.mode);
   setValue("[data-rg-equipment-ancestry-input]", sheet.actor.system?.ancestry ?? "");
-  setValue("[data-rg-equipment-custom-source]", prefs.customSrc);
-  setValue("[data-rg-equipment-figure-fit]", prefs.fit);
-  setValue("[data-rg-equipment-figure-zoom]", prefs.zoom);
-  setValue("[data-rg-equipment-figure-x]", prefs.offsetX);
-  setValue("[data-rg-equipment-figure-y]", prefs.offsetY);
 
-  const zoomOutput = control.querySelector("[data-rg-equipment-zoom-output]"); if (zoomOutput) zoomOutput.textContent = `${prefs.zoom.toFixed(2)}x`;
-  const xOutput = control.querySelector("[data-rg-equipment-x-output]"); if (xOutput) xOutput.textContent = `${prefs.offsetX}%`;
-  const yOutput = control.querySelector("[data-rg-equipment-y-output]"); if (yOutput) yOutput.textContent = `${prefs.offsetY}%`;
-  const status = control.querySelector("[data-rg-equipment-figure-resolved]"); if (status) status.innerHTML = resolvedCopy(resolved);
+  const status = control.querySelector("[data-rg-equipment-figure-resolved]");
+  if (status) status.innerHTML = resolvedCopy(resolved);
 
   control.dataset.rgFigureSource = resolved.sourceType;
   control.dataset.rgFigureMode = prefs.mode;
   control.querySelector("[data-rg-equipment-ancestry-input]")?.closest("label")?.classList.toggle("is-disabled", prefs.mode !== "ancestry");
-  control.querySelector("[data-rg-equipment-custom-source-wrap]")?.classList.toggle("is-visible", prefs.mode === "custom");
-  control.querySelector("[data-rg-equipment-figure-tools]")?.classList.toggle("is-active", prefs.mode === "custom");
 }
 
 export function applyEquipmentFigure(sheet) {
@@ -276,6 +301,7 @@ export function equipmentFigureStatus() {
     automaticAncestrySelection: true,
     supportedAncestries: Object.freeze(Object.keys(EQUIPMENT_SILHOUETTES)),
     characterArtModeRemoved: true,
+    framingControls: "SETTINGS_DIALOG",
     paperFiguresAllowed: false,
     liveApplication: false,
     inventoryAuthority: "LEGACY_MIXED",
