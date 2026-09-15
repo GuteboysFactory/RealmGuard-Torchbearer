@@ -1,8 +1,49 @@
-const SELECTOR = ".realm-guard.rg-recruitment select";
 const MIN_OPTIONS = 9;
+const STYLE_ID = "rg-recruitment-scroll-select-styles";
 
 let openState = null;
+let installed = false;
 const states = new Set();
+
+const STYLE_TEXT = `
+.rg-recruit-native-select{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+.rg-scroll-select{position:relative;width:100%}
+.rg-scroll-select-trigger{box-sizing:border-box;width:100%;min-height:38px;padding:7px 32px 7px 9px;border:1px solid #5d5844;border-radius:5px;background:#0c0f0c;color:#eee2c8;font:14.5px/1.35 Georgia,serif;cursor:pointer;position:relative;display:flex;align-items:center;user-select:none}
+.rg-scroll-select-trigger:after{content:"▾";position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#c8a86d;font-size:12px;pointer-events:none}
+.rg-scroll-select-trigger[aria-expanded="true"]{border-color:#ad8448;box-shadow:0 0 0 1px rgba(185,139,67,.22)}
+.rg-scroll-select-trigger.is-placeholder{color:#8f8c7b}
+.rg-scroll-select-trigger[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+.rg-scroll-select-menu{position:fixed;z-index:100000;box-sizing:border-box;overflow-y:auto!important;overscroll-behavior:contain;border:1px solid #756442;border-radius:6px;background:#11140f;box-shadow:0 10px 30px rgba(0,0,0,.55);padding:4px;scrollbar-width:thin;scrollbar-color:#8d7447 #151812}
+.rg-scroll-select-menu[hidden]{display:none!important}
+.rg-scroll-select-menu::-webkit-scrollbar{width:10px}
+.rg-scroll-select-menu::-webkit-scrollbar-track{background:#151812;border-radius:8px}
+.rg-scroll-select-menu::-webkit-scrollbar-thumb{background:#8d7447;border-radius:8px;border:2px solid #151812}
+.rg-scroll-select-option{display:block!important;width:100%!important;min-height:32px!important;margin:0!important;padding:6px 9px!important;text-align:left!important;border:0!important;border-radius:4px!important;background:transparent!important;color:#e8ddc5!important;font:13.5px/1.25 Georgia,serif!important;cursor:pointer!important;white-space:normal!important}
+.rg-scroll-select-option:hover,.rg-scroll-select-option:focus{outline:none!important;background:#2a2b1d!important;color:#f0cf87!important}
+.rg-scroll-select-option.is-selected{background:#35341f!important;color:#f0cf87!important;font-weight:700!important}
+.rg-scroll-select-option:disabled{opacity:.45!important;cursor:not-allowed!important;text-decoration:none!important}
+`;
+
+function ensureStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.append(style);
+}
+
+function recruitmentScope(select) {
+  const explicit = select.closest?.(".realm-guard.rg-recruitment");
+  if (explicit) return explicit;
+
+  const form = select.closest?.("form");
+  if (form?.querySelector?.(".rg-recruit-progress")) return form;
+
+  const application = select.closest?.(".application, .window-app, dialog");
+  if (application?.querySelector?.(".rg-recruit-progress")) return application;
+
+  return null;
+}
 
 function optionLabel(select) {
   return select.selectedOptions?.[0]?.textContent?.trim() || "Choose...";
@@ -99,11 +140,13 @@ function menuKeydown(event, state) {
     }
     return;
   }
-  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  if (!["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(event.key)) return;
   event.preventDefault();
   let next = index;
   if (event.key === "ArrowDown") next = Math.min(buttons.length - 1, index + 1);
   if (event.key === "ArrowUp") next = Math.max(0, index - 1);
+  if (event.key === "PageDown") next = Math.min(buttons.length - 1, index + 8);
+  if (event.key === "PageUp") next = Math.max(0, index - 8);
   if (event.key === "Home") next = 0;
   if (event.key === "End") next = buttons.length - 1;
   buttons[next].focus({ preventScroll: true });
@@ -132,11 +175,12 @@ function handleMenuWheel(event) {
   event.stopImmediatePropagation?.();
 
   const max = Math.max(0, state.menu.scrollHeight - state.menu.clientHeight);
-  const next = Math.max(0, Math.min(max, state.menu.scrollTop + wheelPixels(event, state.menu)));
-  state.menu.scrollTop = next;
+  state.menu.scrollTop = Math.max(0, Math.min(max, state.menu.scrollTop + wheelPixels(event, state.menu)));
 }
 
 function buildMenu(select) {
+  ensureStyles();
+
   const wrapper = document.createElement("div");
   wrapper.className = "rg-scroll-select";
 
@@ -182,7 +226,7 @@ function buildMenu(select) {
     else closeMenu(state, { focusTrigger: true });
   });
   trigger.addEventListener("keydown", event => {
-    if (["Enter", " ", "ArrowDown", "ArrowUp"].includes(event.key)) {
+    if (["Enter", " ", "ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(event.key)) {
       event.preventDefault();
       openMenu(state);
     }
@@ -196,14 +240,17 @@ function buildMenu(select) {
 function enhanceSelect(select) {
   if (!(select instanceof HTMLSelectElement)) return;
   if (select.dataset.rgScrollableSelect === "true") return;
+  if (!recruitmentScope(select)) return;
   if (select.options.length < MIN_OPTIONS) return;
   select.dataset.rgScrollableSelect = "true";
   buildMenu(select);
 }
 
 function scan(root = document) {
-  if (root instanceof Element && root.matches?.(SELECTOR)) enhanceSelect(root);
-  root.querySelectorAll?.(SELECTOR).forEach(enhanceSelect);
+  const candidates = [];
+  if (root instanceof HTMLSelectElement) candidates.push(root);
+  root.querySelectorAll?.("select").forEach(select => candidates.push(select));
+  candidates.forEach(enhanceSelect);
 }
 
 function cleanupDetached() {
@@ -216,11 +263,13 @@ function cleanupDetached() {
 }
 
 export function installRecruitmentScrollableSelects() {
+  if (installed) return Object.freeze({ marker: ".rg-recruit-progress", minOptions: MIN_OPTIONS, wheelCapture: true, installed: true });
+  installed = true;
+  ensureStyles();
   scan(document);
-  const observer = new MutationObserver(records => {
-    for (const record of records) {
-      for (const node of record.addedNodes) if (node instanceof Element) scan(node);
-    }
+
+  const observer = new MutationObserver(() => {
+    scan(document);
     cleanupDetached();
   });
   observer.observe(document.body, { childList: true, subtree: true });
@@ -237,10 +286,10 @@ export function installRecruitmentScrollableSelects() {
   window.addEventListener("resize", () => positionMenu(openState));
   document.addEventListener("scroll", () => positionMenu(openState), true);
 
-  return Object.freeze({ selector: SELECTOR, minOptions: MIN_OPTIONS, wheelCapture: true });
+  return Object.freeze({ marker: ".rg-recruit-progress", minOptions: MIN_OPTIONS, wheelCapture: true, installed: true });
 }
 
 Hooks.once("ready", () => {
-  installRecruitmentScrollableSelects();
-  console.log("realm-guard | Recruitment scrollable long-select UX ready");
+  const state = installRecruitmentScrollableSelects();
+  console.log("realm-guard | Recruitment scrollable long-select UX ready", state);
 });
