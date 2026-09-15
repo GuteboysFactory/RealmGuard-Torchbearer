@@ -34,6 +34,33 @@ function signatureSeen(bridge, signature) {
   return false;
 }
 
+function readDraggedGear(event) {
+  const transfer = event?.dataTransfer;
+  if (!transfer) return null;
+  const direct = String(transfer.getData?.("application/x-realm-guard-gear") ?? "").trim();
+  if (direct) return { itemId: direct, actorId: "" };
+  for (const key of ["text/plain", "application/json"]) {
+    const raw = String(transfer.getData?.(key) ?? "").trim();
+    if (!raw) continue;
+    try {
+      const data = JSON.parse(raw);
+      const itemId = String(data?.data?._id ?? data?.id ?? data?._id ?? data?.itemId ?? "");
+      const actorId = String(data?.actorId ?? data?.parentUuid?.match?.(/Actor\.([^.]+)/)?.[1] ?? data?.uuid?.match?.(/Actor\.([^.]+)\.Item\./)?.[1] ?? "");
+      if (itemId) return { itemId, actorId };
+    } catch (_error) { /* not JSON */ }
+  }
+  return null;
+}
+
+function resolveDraggedActor(bridge, payload) {
+  if (payload?.actorId) {
+    const direct = bridge.actorResolver(payload.actorId);
+    if (direct && itemById(direct, payload.itemId)) return direct;
+  }
+  const actors = Array.from(globalThis.game?.actors ?? []);
+  return actors.find(actor => itemById(actor, payload?.itemId)) ?? null;
+}
+
 M5ParityBridge.prototype.observeLegacyInventoryDecision = function observeLegacyInventoryDecision(decision = {}) {
   const actor = decision.actor ?? this.actorResolver(decision.actorId);
   const operation = String(decision.operation ?? "").toUpperCase();
@@ -154,7 +181,55 @@ M5ParityBridge.prototype.observeConflictState = function observeConflictStateWit
 const originalClear = M5ParityBridge.prototype.clear;
 M5ParityBridge.prototype.clear = function clearDeepParity() {
   this._m5DeepSignatures?.clear?.();
+  this._m5PendingInventoryDrops?.clear?.();
   return originalClear.call(this);
+};
+
+M5ParityBridge.prototype._observeInventoryDropIntent = function _observeInventoryDropIntent(event) {
+  const target = event?.target?.closest?.("[data-rg-inventory-zone], [data-rg-inventory-container], [data-rg-inventory-unassigned]");
+  if (!target) return;
+  const payload = readDraggedGear(event);
+  if (!payload?.itemId) return;
+  const actor = resolveDraggedActor(this, payload);
+  if (!actor) return;
+
+  let operation = "UNASSIGN";
+  let destination = "unassigned";
+  if (target.hasAttribute("data-rg-inventory-zone")) {
+    operation = "PLACE_ZONE";
+    destination = String(target.dataset.rgInventoryZone ?? "");
+  } else if (target.hasAttribute("data-rg-inventory-container")) {
+    operation = "PLACE_CONTAINER";
+    destination = String(target.dataset.rgInventoryContainer ?? "");
+  }
+
+  this._m5PendingInventoryDrops ??= new Map();
+  const key = `${actor.id}|${payload.itemId}`;
+  const token = `${Date.now()}|${Math.random()}`;
+  this._m5PendingInventoryDrops.set(key, { token, actor, itemId: payload.itemId, operation, target: destination });
+
+  setTimeout(() => {
+    const pending = this._m5PendingInventoryDrops?.get(key);
+    if (!pending || pending.token !== token) return;
+    this._m5PendingInventoryDrops.delete(key);
+    this.observeLegacyInventoryDecision({
+      actor: pending.actor,
+      itemId: pending.itemId,
+      operation: pending.operation,
+      target: pending.target,
+      accepted: false,
+      source: "LIVE_INVENTORY_REJECT"
+    });
+  }, 300);
+};
+
+M5ParityBridge.prototype._markInventoryDropAccepted = function _markInventoryDropAccepted(item, changes = {}) {
+  if (!item?.parent || item?.type !== "gear") return;
+  const relevant = ["system.inventory.mode", "system.inventory.location", "system.inventory.containerId"]
+    .some(path => Object.prototype.hasOwnProperty.call(changes, path) || path.split(".").reduce((value, part) => value?.[part], changes) !== undefined);
+  if (!relevant) return;
+  const key = `${item.parent.id}|${item.id}`;
+  if (this._m5PendingInventoryDrops?.has(key)) this._m5PendingInventoryDrops.delete(key);
 };
 
 const originalInstall = M5ParityBridge.prototype.install;
@@ -166,6 +241,14 @@ M5ParityBridge.prototype.install = function installDeepParity() {
       try { this.observeLegacyInventoryDecision(decision); }
       catch (error) { this.logger?.warn?.("realm-guard | CORE M5 rejected inventory decision parity observer failed safely", error); }
     });
+    Hooks.on("preUpdateItem", (item, changes) => {
+      try { this._markInventoryDropAccepted(item, changes); }
+      catch (error) { this.logger?.warn?.("realm-guard | CORE M5 inventory drop acceptance observer failed safely", error); }
+    });
+    globalThis.document?.addEventListener?.("drop", event => {
+      try { this._observeInventoryDropIntent(event); }
+      catch (error) { this.logger?.warn?.("realm-guard | CORE M5 inventory drop intent observer failed safely", error); }
+    }, true);
   }
   return result;
 };
