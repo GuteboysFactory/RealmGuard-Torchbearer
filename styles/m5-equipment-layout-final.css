@@ -1,5 +1,6 @@
-/* v1.7.0-qa.8 — final Equipment cosmetic layout pass.
-   Keep Containers + Unassigned Gear together on the left rail while Equipment owns the main column. */
+/* v1.7.0-qa.9 — Equipment layout lock + responsive Figure toolbar.
+   Containers + Unassigned stay together on the left; Equipment owns the main column.
+   Figure controls use a compact two-row toolbar that collapses cleanly with panel width. */
 
 @media (min-width: 901px) {
   .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-layout-silhouette {
@@ -32,6 +33,100 @@
   }
 }
 
+/* Equipment Figure toolbar: stable at wide widths, graceful at narrow widths. */
+.realm-guard .rg-equipment-figure-control {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 36px !important;
+  grid-template-areas:
+    "copy settings"
+    "fields fields"
+    "status status";
+  gap:8px 10px !important;
+  align-items:end;
+  padding:9px 10px !important;
+}
+
+.realm-guard .rg-equipment-figure-copy {
+  grid-area:copy;
+  min-width:0;
+}
+
+.realm-guard .rg-equipment-figure-copy small {
+  white-space:normal;
+  line-height:1.25;
+}
+
+.realm-guard .rg-equipment-figure-settings-button {
+  grid-area:settings !important;
+  justify-self:end;
+  align-self:start !important;
+  margin:0;
+}
+
+.realm-guard .rg-equipment-figure-mode,
+.realm-guard .rg-equipment-figure-ancestry {
+  min-width:0;
+}
+
+.realm-guard .rg-equipment-figure-mode {
+  grid-column:1;
+}
+
+.realm-guard .rg-equipment-figure-ancestry {
+  grid-column:2;
+}
+
+.realm-guard .rg-equipment-figure-control::before {
+  content:"";
+  grid-area:fields;
+  display:grid;
+  pointer-events:none;
+}
+
+.realm-guard .rg-equipment-figure-mode,
+.realm-guard .rg-equipment-figure-ancestry {
+  grid-row:2;
+}
+
+.realm-guard .rg-equipment-figure-control {
+  grid-template-columns:minmax(145px,.85fr) minmax(180px,1.15fr) 36px !important;
+  grid-template-areas:
+    "copy copy settings"
+    "source ancestry ancestry"
+    "status status status";
+}
+.realm-guard .rg-equipment-figure-copy { grid-area:copy; }
+.realm-guard .rg-equipment-figure-mode { grid-area:source; }
+.realm-guard .rg-equipment-figure-ancestry { grid-area:ancestry; }
+.realm-guard .rg-equipment-figure-resolved { grid-area:status; grid-column:auto !important; min-width:0; }
+.realm-guard .rg-equipment-figure-settings-button { grid-area:settings !important; }
+.realm-guard .rg-equipment-figure-control::before { display:none; }
+
+.realm-guard .rg-equipment-figure-control input,
+.realm-guard .rg-equipment-figure-control select {
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+.realm-guard .rg-equipment-figure-resolved {
+  min-height:28px !important;
+  padding:5px 8px !important;
+  line-height:1.2;
+  white-space:normal;
+}
+
+@media (max-width: 1120px) {
+  .realm-guard .rg-equipment-figure-control {
+    grid-template-columns:minmax(0,1fr) 36px !important;
+    grid-template-areas:
+      "copy settings"
+      "source source"
+      "ancestry ancestry"
+      "status status";
+  }
+}
+
 @media (max-width: 900px) {
   .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-gear-layout-silhouette {
     grid-template-columns:1fr !important;
@@ -58,5 +153,18 @@
 
   .realm-guard .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel .rg-inventory-loose-grid {
     grid-template-columns:1fr !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .realm-guard .rg-equipment-figure-control {
+    grid-template-columns:minmax(0,1fr) 34px !important;
+    gap:7px !important;
+    padding:8px !important;
+  }
+  .realm-guard .rg-equipment-figure-settings-button {
+    width:34px;
+    min-width:34px;
+    height:30px;
   }
 }
