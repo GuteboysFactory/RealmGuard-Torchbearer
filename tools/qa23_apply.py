@@ -125,7 +125,12 @@ Preserved: M5 live handoffs, qa.22 Token Actor resolution, current Conflict UX, 
 QA protocol: TEST_PROTOCOL_v1.8.0-qa.1.md
 ''')
 
-compat = Path('qa/m5-foundry-filepicker-compat-smoke.mjs')
-if compat.exists():
-    compat.write_text(compat.read_text().replace('1.7.0-qa.22', '1.8.0-qa.1'))
+# M5 visual/compat smoke tests are milestone-preservation tests, not a version lock.
+for smoke in Path('qa').glob('*.mjs'):
+    text = smoke.read_text()
+    updated = text.replace(r'/^1\.7\.0-qa\.\d+$/', r'/^1\.(?:7|8)\.0-qa\.\d+$/')
+    updated = updated.replace('1.7.0-qa.22', '1.8.0-qa.1')
+    if updated != text:
+        smoke.write_text(updated)
+
 Path('release/READY').write_text('1.8.0-qa.1\n')
