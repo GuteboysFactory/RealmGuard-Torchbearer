@@ -1,37 +1,26 @@
-Realm Guard / Torchbearer v1.7.0-qa.15 — M5 promotion readiness gate.
+Realm Guard / Torchbearer v1.7.0-qa.16 — Recruitment long-list scrolling UX hotfix.
 
-This QA build adds an explicit readiness gate on top of the live M5 shadow-parity work. It does not perform any CORE live takeover. Legacy Mixed remains the sole gameplay authority.
+This QA build fixes the Recruitment 2.0 usability issue where long select lists could not be scrolled reliably with the mouse wheel / trackpad in Foundry VTT.
 
-New in qa.15:
-- adds `game.realmGuard.core.m5.readiness()`
-- requires clean live coverage for:
-  - accepted Inventory write
-  - rejected Inventory decision
-  - Conflict Tool declaration
-  - Conflict Tool live roll
-  - Conflict Tool disable / Disarm
-- returns `PARTIAL` until all required paths have been observed
-- returns `BLOCKED_MISMATCH` when any parity mismatch exists
-- returns `READY_FOR_CONTROLLED_HANDOFF` only when every required live path is observed with zero mismatches while `liveApplication:false` and `authority:"LEGACY_MIXED"`
-- GM M5 diagnostics now show promotion-readiness coverage
-- adds automated smoke coverage for readiness, missing-path and mismatch blocking behavior
-
-Correction from qa.14:
-- the Staff report was a false alarm caused by test setup rather than a confirmed system bug
-- the temporary physical-name Conflict Tool guard introduced for that report has therefore been removed
-- existing custom/narrative Conflict Tools remain untouched according to their configured data
+New in qa.16:
+- long Recruitment selects (9+ options) are enhanced with a dedicated scrollable menu
+- mouse wheel / trackpad scrolling works inside the menu
+- visible scrollbar and bounded menu height
+- menu opens above or below depending on available viewport space
+- currently selected value is highlighted and scrolled into view
+- keyboard navigation supports Arrow Up/Down, Home/End, Enter/Space and Escape
+- short Recruitment selects remain native/unchanged
+- underlying native select remains the form authority, so Recruitment commit/validation logic and saved data are unchanged
 
 Preserved:
-- M5 remains shadow/read-only
+- all Recruitment rules and calculations
+- M5 promotion-readiness state and shadow parity architecture from qa.15
 - `liveApplication:false`
 - `authority:"LEGACY_MIXED"`
-- accepted/rejected Inventory parity
-- Conflict declaration, roll and Disarm parity
 - qa.12 Ranger-sheet scroll-position persistence
-- Equipment layout and portrait/token workflow
-- Foundry FilePicker compatibility
+- Equipment layout, portrait/token workflow and FilePicker compatibility
 - M2, M3 and verified M4
 
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.15.md`
+QA protocol: `TEST_PROTOCOL_v1.7.0-qa.16.md`
 
-Primary PASS condition: after one clean live observation of every required M5 path, `game.realmGuard.core.m5.readiness()` reports `READY_FOR_CONTROLLED_HANDOFF`, the mismatch list is empty, and Legacy Mixed remains sole live authority.
+Primary PASS condition: open Life Experience and other Recruitment steps with long lists, scroll from the first options to the bottom with mouse wheel/trackpad, select a lower option, continue/back through the wizard, and confirm the chosen value persists without console errors.
