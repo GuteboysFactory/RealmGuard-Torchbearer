@@ -38,9 +38,10 @@ import { installM4CoreServices } from "./module/m4-core-service.mjs";
 import { installM4AdvancementShadowBridge } from "./module/m4-advancement-shadow-bridge.mjs";
 import { installM4NatureShadowParity } from "./module/m4-nature-shadow-parity.mjs";
 import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-recovery-shadow-parity.mjs";
+import { installM5CoreServices } from "./module/m5-core-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.1"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.7.0-qa.5"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -71,6 +72,7 @@ Hooks.once("init", () => {
   installM4AdvancementShadowBridge(RealmGuardActor, RealmGuardActorSheet);
   installM4NatureShadowParity(RealmGuardActor);
   installM4ConditionRecoveryShadowParity(RealmGuardActor, RealmGuardActorSheet);
+  installM5CoreServices();
 
   installTokenConditionHud();
   installConditionTokenHover();
