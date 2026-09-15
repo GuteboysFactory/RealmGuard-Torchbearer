@@ -1,20 +1,19 @@
-Realm Guard / Torchbearer v1.7.0-qa.17 — Recruitment Foundry wheel-capture hotfix.
+Realm Guard / Torchbearer v1.7.0-qa.18 — Recruitment long-list scrolling root-cause fix.
 
-Live QA of qa.16 confirmed that the custom long-list menu rendered correctly, but mouse-wheel input could still be consumed by Foundry before the menu actually scrolled. qa.17 fixes that specific live behavior.
+Live diagnostics from qa.17 proved the custom scroll enhancer was not activating at all: Recruitment had visible native selects, but `.rg-recruitment`, custom wrappers, triggers and menus were all absent in the rendered DialogV2 DOM. qa.18 fixes the activation path rather than adding another wheel workaround.
 
-New in qa.17:
-- captures wheel input at the window capture phase while a Recruitment long-list menu is open
-- uses a non-passive wheel listener so the Foundry/background handler can be prevented
-- explicitly converts wheel/trackpad delta to pixels and updates the menu's `scrollTop`
-- clamps scrolling to the menu's top/bottom bounds
-- stops the wheel event from propagating to the Recruitment window/canvas while the pointer is inside the long list
-- preserves keyboard navigation, selection highlighting, viewport-aware menu placement and native-select form authority from qa.16
-- strengthens automated smoke checks for capture/passive behavior and explicit scrollTop movement
+New in qa.18:
+- Recruitment long-select detection no longer depends on the missing `.realm-guard.rg-recruitment` wrapper
+- enhancer scans rendered selects and identifies Recruitment ownership through the stable `.rg-recruit-progress` marker in the owning DialogV2 form/application
+- runtime style injection guarantees the custom scroll-menu CSS is present even if the external stylesheet is not discoverable in `document.styleSheets`
+- long Recruitment selects (9+ options) receive the custom trigger/menu only when they belong to Recruitment
+- explicit capture-phase wheel handling remains in place for Foundry
+- keyboard support includes Arrow Up/Down, Page Up/Down, Home/End, Enter/Space and Escape
+- duplicate installation guard prevents repeated global listeners
 
 Preserved:
-- all Recruitment rules, validation and calculations
-- selected Recruitment values and Continue/Back flow
-- short Recruitment selects remain native/unchanged
+- all Recruitment rules, calculations and saved values
+- short select behavior
 - M5 promotion-readiness state and shadow parity architecture from qa.15
 - `liveApplication:false`
 - `authority:"LEGACY_MIXED"`
@@ -22,6 +21,6 @@ Preserved:
 - Equipment layout, portrait/token workflow and FilePicker compatibility
 - M2, M3 and verified M4
 
-QA protocol: `TEST_PROTOCOL_v1.7.0-qa.17.md`
+QA protocol: `TEST_PROTOCOL_v1.7.0-qa.18.md`
 
-Primary PASS condition: with the pointer over the option text in a long Recruitment list, mouse-wheel/trackpad input visibly scrolls the list to the bottom and back while the underlying Recruitment window does not steal the scroll; selected values must still persist through Continue/Back without console errors.
+Primary PASS condition: in live Foundry, Natural Talent is enhanced (`data-rg-scrollable-select`, trigger and menu present) and the open option list scrolls from top to bottom using the mouse wheel / trackpad.
