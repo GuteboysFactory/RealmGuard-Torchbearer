@@ -277,7 +277,7 @@ export class M5ParityBridge {
     const inventory = this.services.gear.inventoryData(projected);
     let event;
     if (inventory.containerId) {
-      event = this.probeContainer(actor, projected, inventory.containerId, { legacyAccepted: true, source });
+      event = this.probeContainer(actor, item, inventory.containerId, { legacyAccepted: true, source });
     } else if (inventory.mode === "unassigned" || !inventory.location) {
       event = this._record({
         domain: "inventory",
@@ -295,7 +295,7 @@ export class M5ParityBridge {
         core: { ok: true, reason: "Unassign is always permitted by the M5 shadow bridge.", policy: this.services.policy?.mode ?? "", manual: false }
       });
     } else {
-      event = this.probeZone(actor, projected, inventory.location, { legacyAccepted: true, source });
+      event = this.probeZone(actor, item, inventory.location, { legacyAccepted: true, source });
     }
     if (event && userId) return Object.freeze({ ...event, userId: String(userId) });
     return event;
