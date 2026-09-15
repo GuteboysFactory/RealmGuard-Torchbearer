@@ -1,13 +1,9 @@
-Realm Guard / Torchbearer v1.7.0-qa.22 — Conflict Token Actor resolution hotfix.
+Realm Guard / Torchbearer v1.8.0-qa.1 — M6 Conflict Engine shadow foundation.
 
-During qa.21 live testing, an unlinked Dev Testsson scene token showed Shield + other token-specific Gear while the world Actor contained only Sword. Conflict participant lookup still used game.actors.get(actorId), so planning and evaluation read the world Actor instead of the actual synthetic Token Actor on the table.
+M5 is now treated as verified for controlled live Inventory validation and Conflict Tool evaluation. M6 begins the Conflict Engine refactor without taking live authority.
 
-qa.22 fixes that resolution layer only:
-- exactly one matching active-scene token -> use token.actor
-- multiple matches with exactly one controlled token -> use the controlled token
-- ambiguous multiple matches -> safe world Actor fallback + warning
-- no scene token -> existing world Actor behavior
-- M5 parity bridge uses the same resolver
-- no Conflict rule changes and qa.21 evaluation handoff remains intact
+New CORE shadow services independently calculate interaction mode, Versus/Independent resolution, effective successes, margins, disposition deltas and pending Maneuver side/margin. Legacy Mixed remains the sole live Conflict resolution/state authority; M6 only observes and reports parity.
 
-QA protocol: TEST_PROTOCOL_v1.7.0-qa.22.md
+Preserved: M5 live handoffs, qa.22 Token Actor resolution, current Conflict UX, Learning/Nature handling and all previous CORE milestones.
+
+QA protocol: TEST_PROTOCOL_v1.8.0-qa.1.md

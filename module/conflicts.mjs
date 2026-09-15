@@ -1170,8 +1170,14 @@ async function revealCurrentAction(state) {
   const gmActor = actorById(state.gm.actorId); const rangerActor = actorById(rangerEntry.actorId);
   const gmWeaponId = validateWeaponId(gmActor, state, "gm", gmEntry.weaponId ?? "");
   const rangerWeaponId = validateWeaponId(rangerActor, state, "ranger", rangerEntry.weaponId ?? "");
-  const gmMode = interactionMode(gmEntry.action, rangerEntry.action, { ownMissile: sideHasMissile(gmActor, state, "gm", gmWeaponId), opponentMissile: sideHasMissile(rangerActor, state, "ranger", rangerWeaponId) });
-  const rangerMode = interactionMode(rangerEntry.action, gmEntry.action, { ownMissile: sideHasMissile(rangerActor, state, "ranger", rangerWeaponId), opponentMissile: sideHasMissile(gmActor, state, "gm", gmWeaponId) });
+  const gmOwnMissile = sideHasMissile(gmActor, state, "gm", gmWeaponId);
+  const rangerOwnMissile = sideHasMissile(rangerActor, state, "ranger", rangerWeaponId);
+  const gmMode = interactionMode(gmEntry.action, rangerEntry.action, { ownMissile: gmOwnMissile, opponentMissile: rangerOwnMissile });
+  const rangerMode = interactionMode(rangerEntry.action, gmEntry.action, { ownMissile: rangerOwnMissile, opponentMissile: gmOwnMissile });
+  try {
+    Hooks.callAll("realmGuardLegacyConflictInteraction", { conflictId: state.id, side: "gm", ownAction: gmEntry.action, opponentAction: rangerEntry.action, ownMissile: gmOwnMissile, opponentMissile: rangerOwnMissile, legacyMode: gmMode });
+    Hooks.callAll("realmGuardLegacyConflictInteraction", { conflictId: state.id, side: "ranger", ownAction: rangerEntry.action, opponentAction: gmEntry.action, ownMissile: rangerOwnMissile, opponentMissile: gmOwnMissile, legacyMode: rangerMode });
+  } catch (_error) { /* M6 shadow observer must never interrupt Conflict */ }
   const next = clone(state);
   next.revealed = [...(next.revealed ?? []).filter(r => r.index !== next.currentIndex), { index: next.currentIndex, gmAction: gmEntry.action, rangerAction: rangerEntry.action, rangerActorId: rangerEntry.actorId, gmWeaponId, rangerWeaponId, gmMode, rangerMode, resultText: "" }];
   next.rolls = { gm: gmMode === "trumped" ? { trumped: true, successes: 0 } : null, ranger: rangerMode === "trumped" ? { trumped: true, successes: 0 } : null };
@@ -1472,6 +1478,32 @@ async function gmResolveCurrentPair(state) {
   pair.resultText = pair.resultText || `<b>Resolved:</b> GM ${gmRaw} effective successes${gmRoll?.successPenalty ? ` (−${Number(gmRoll.successPenalty)}s penalty)` : ""}${gmPassed ? ` · margin ${gmMargin}` : ""} · Rangers ${rRaw} effective successes${rr?.successPenalty ? ` (−${Number(rr.successPenalty)}s penalty)` : ""}${rPassed ? ` · margin ${rMargin}` : ""}.`;
   next.revealed = next.revealed.map(r => r.index === pair.index ? { ...r, resultText: pair.resultText, tiePending: false, gmPassed, rangerPassed: rPassed, gmMargin, rangerMargin: rMargin, gmRoll: gmRoll?.trumped ? null : gmRoll, rangerRoll: rr?.trumped ? null : rr } : r);
   await postConflictStepChat(next, pair, { gmRoll, rangerRoll: rr, gmPassed, rangerPassed: rPassed, gmMargin, rangerMargin: rMargin, gmFailureMargin, rangerFailureMargin: rFailureMargin, beforeGm, beforeRanger });
+
+  try {
+    Hooks.callAll("realmGuardLegacyConflictResolution", {
+      conflictId: next.id,
+      exchange: next.exchange,
+      pair: { index: pair.index, gmAction: pair.gmAction, rangerAction: pair.rangerAction, gmMode, rangerMode },
+      gmRoll,
+      rangerRoll: rr,
+      beforeDisposition: {
+        gm: { start: next.gm.disposition.start, current: beforeGm },
+        ranger: { start: next.ranger.disposition.start, current: beforeRanger }
+      },
+      gmPassed,
+      rangerPassed: rPassed,
+      gmMargin,
+      rangerMargin: rMargin,
+      gmFailureMargin,
+      rangerFailureMargin: rFailureMargin,
+      gmEffectiveSuccesses: gmRaw,
+      rangerEffectiveSuccesses: rRaw,
+      gmDisposition: next.gm.disposition.current,
+      rangerDisposition: next.ranger.disposition.current,
+      tiePending: false,
+      maneuverQueue: maneuverPending
+    });
+  } catch (_error) { /* M6 shadow observer must never interrupt Conflict */ }
 
   const gmZero = Number(next.gm.disposition.current ?? 0) <= 0, rangerZero = Number(next.ranger.disposition.current ?? 0) <= 0;
   if (gmZero || rangerZero) {
