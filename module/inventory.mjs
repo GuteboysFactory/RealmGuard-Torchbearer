@@ -1,3 +1,110 @@
+import { createM5Services } from "./core/m5-services.mjs";
+
+const M5_LEGACY_PROFILE_FALLBACK = Object.freeze({
+  id: "realm-guard-legacy-mixed",
+  domains: Object.freeze({ inventory: Object.freeze({ policy: "STRUCTURED" }) })
+});
+const M5_HANDOFF_HISTORY_LIMIT = 50;
+let m5InventoryCoreValidationEnabled = true;
+let m5InventoryRollbackReason = "";
+const m5InventoryHandoffTelemetry = {
+  coreDecisions: 0,
+  coreAccepted: 0,
+  coreRejected: 0,
+  disagreements: 0,
+  errorFallbacks: 0,
+  rollbackDecisions: 0,
+  lastDecision: null,
+  history: []
+};
+
+function activeM5InventoryProfile() {
+  try {
+    return globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.() ?? M5_LEGACY_PROFILE_FALLBACK;
+  } catch (_error) {
+    return M5_LEGACY_PROFILE_FALLBACK;
+  }
+}
+
+function m5PlacementValidator() {
+  return createM5Services(activeM5InventoryProfile()).placement;
+}
+
+function recordM5InventoryHandoff(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M5",
+    scope: "INVENTORY_VALIDATION_HANDOFF",
+    ...entry
+  });
+  m5InventoryHandoffTelemetry.lastDecision = event;
+  m5InventoryHandoffTelemetry.history.push(event);
+  if (m5InventoryHandoffTelemetry.history.length > M5_HANDOFF_HISTORY_LIMIT) m5InventoryHandoffTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM5InventoryHandoff", event); } catch (_error) { /* telemetry must never block play */ }
+  return event;
+}
+
+function tripM5InventoryRollback(reason) {
+  m5InventoryCoreValidationEnabled = false;
+  m5InventoryRollbackReason = String(reason || "SAFETY_ROLLBACK");
+}
+
+export function setM5InventoryCoreValidationEnabled(enabled, { reason = "MANUAL_ROLLBACK" } = {}) {
+  m5InventoryCoreValidationEnabled = Boolean(enabled);
+  m5InventoryRollbackReason = m5InventoryCoreValidationEnabled ? "" : String(reason || "MANUAL_ROLLBACK");
+  recordM5InventoryHandoff({
+    operation: "AUTHORITY_SWITCH",
+    outcome: m5InventoryCoreValidationEnabled ? "CORE_VALIDATION_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    reason: m5InventoryRollbackReason,
+    validationAuthority: m5InventoryCoreValidationEnabled ? "CORE_M5" : "LEGACY_MIXED",
+    writerAuthority: "LEGACY_MIXED"
+  });
+  return getM5InventoryLiveHandoffStatus();
+}
+
+export function resetM5InventoryHandoffTelemetry() {
+  m5InventoryHandoffTelemetry.coreDecisions = 0;
+  m5InventoryHandoffTelemetry.coreAccepted = 0;
+  m5InventoryHandoffTelemetry.coreRejected = 0;
+  m5InventoryHandoffTelemetry.disagreements = 0;
+  m5InventoryHandoffTelemetry.errorFallbacks = 0;
+  m5InventoryHandoffTelemetry.rollbackDecisions = 0;
+  m5InventoryHandoffTelemetry.lastDecision = null;
+  m5InventoryHandoffTelemetry.history.length = 0;
+  return getM5InventoryLiveHandoffStatus();
+}
+
+export function getM5InventoryHandoffHistory() {
+  return Object.freeze([...m5InventoryHandoffTelemetry.history]);
+}
+
+export function getM5InventoryLiveHandoffStatus() {
+  return Object.freeze({
+    phase: "M5",
+    scope: "INVENTORY_VALIDATION_HANDOFF",
+    enabled: m5InventoryCoreValidationEnabled,
+    mode: m5InventoryCoreValidationEnabled ? "CORE_VALIDATE_LEGACY_WRITE" : "LEGACY_ROLLBACK",
+    validationAuthority: m5InventoryCoreValidationEnabled ? "CORE_M5" : "LEGACY_MIXED",
+    writerAuthority: "LEGACY_MIXED",
+    guardedByLegacyParity: true,
+    fallbackOnCoreError: true,
+    autoRollbackOnDisagreement: true,
+    rollbackReason: m5InventoryRollbackReason,
+    liveOperations: Object.freeze(["PLACE_ZONE", "PLACE_CONTAINER"]),
+    legacyOperations: Object.freeze(["UNASSIGN", "DETACH_CONTAINED"]),
+    telemetry: Object.freeze({
+      coreDecisions: m5InventoryHandoffTelemetry.coreDecisions,
+      coreAccepted: m5InventoryHandoffTelemetry.coreAccepted,
+      coreRejected: m5InventoryHandoffTelemetry.coreRejected,
+      disagreements: m5InventoryHandoffTelemetry.disagreements,
+      errorFallbacks: m5InventoryHandoffTelemetry.errorFallbacks,
+      rollbackDecisions: m5InventoryHandoffTelemetry.rollbackDecisions,
+      historyCount: m5InventoryHandoffTelemetry.history.length,
+      lastDecision: m5InventoryHandoffTelemetry.lastDecision
+    })
+  });
+}
+
 export const RG_INVENTORY_ZONES = Object.freeze([
   { id: "head", label: "Head", mode: "worn", capacity: 1, hint: "Helmet / headwear" },
   { id: "neck", label: "Neck", mode: "worn", capacity: 1, hint: "Necklace / amulet / neckwear" },
@@ -65,7 +172,6 @@ export function isContainerActive(item) {
   }
   return data.mode !== "unassigned" && !data.containerId;
 }
-
 
 function gearIconClass(item) {
   const name = String(item?.name ?? "").toLowerCase();
@@ -230,23 +336,12 @@ function validateZonePlacement(actor, item, zone) {
   return { ok: true };
 }
 
-export async function placeGearInZone(actor, itemId, zoneId) {
-  const item = actor?.items?.get?.(itemId);
-  const zone = zoneById(zoneId);
+function validateZonePlacementRequest(actor, item, zone) {
   if (!item || item.type !== "gear" || !zone) return { ok: false, reason: "Invalid gear or inventory zone." };
-  const valid = validateZonePlacement(actor, item, zone);
-  if (!valid.ok) return valid;
-  await item.update({
-    "system.inventory.mode": zone.mode,
-    "system.inventory.location": zone.id,
-    "system.inventory.containerId": ""
-  });
-  return { ok: true };
+  return validateZonePlacement(actor, item, zone);
 }
 
-export async function placeGearInContainer(actor, itemId, containerId) {
-  const item = actor?.items?.get?.(itemId);
-  const container = actor?.items?.get?.(containerId);
+function validateContainerPlacement(actor, item, container) {
   if (!item || item.type !== "gear" || !container || !isContainer(container)) return { ok: false, reason: "Invalid gear or container." };
   if (item.id === container.id) return { ok: false, reason: "A container cannot contain itself." };
   if (isContainer(item)) return { ok: false, reason: "Nested containers are deferred from this inventory layer." };
@@ -257,12 +352,131 @@ export async function placeGearInContainer(actor, itemId, containerId) {
     .reduce((sum, other) => sum + gearSlotCost(other), 0);
   const cost = gearSlotCost(item);
   if (used + cost > capacity) return { ok: false, reason: `${container.name} does not have enough pack space (${used}/${capacity} used; item needs ${cost}).` };
+  return { ok: true };
+}
+
+async function writeGearInZone(item, zone) {
+  await item.update({
+    "system.inventory.mode": zone.mode,
+    "system.inventory.location": zone.id,
+    "system.inventory.containerId": ""
+  });
+  return { ok: true };
+}
+
+async function writeGearInContainer(item, container) {
   await item.update({
     "system.inventory.mode": "pack",
     "system.inventory.location": "",
     "system.inventory.containerId": container.id
   });
   return { ok: true };
+}
+
+function withHandoffMeta(result, meta) {
+  return { ...result, m5: Object.freeze({ ...meta }) };
+}
+
+async function legacyZoneDecision(actor, item, zone) {
+  const validation = validateZonePlacementRequest(actor, item, zone);
+  if (!validation.ok) return validation;
+  return writeGearInZone(item, zone);
+}
+
+async function legacyContainerDecision(actor, item, container) {
+  const validation = validateContainerPlacement(actor, item, container);
+  if (!validation.ok) return validation;
+  return writeGearInContainer(item, container);
+}
+
+export async function placeGearInZone(actor, itemId, zoneId) {
+  const item = actor?.items?.get?.(itemId);
+  const zone = zoneById(zoneId);
+  const legacyValidation = validateZonePlacementRequest(actor, item, zone);
+
+  if (!m5InventoryCoreValidationEnabled) {
+    m5InventoryHandoffTelemetry.rollbackDecisions += 1;
+    const result = await legacyZoneDecision(actor, item, zone);
+    recordM5InventoryHandoff({ operation: "PLACE_ZONE", itemId: String(itemId ?? ""), target: String(zoneId ?? ""), outcome: result.ok ? "LEGACY_ACCEPT" : "LEGACY_REJECT", validationAuthority: "LEGACY_MIXED", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", reason: String(result.reason ?? "") });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_MIXED", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true });
+  }
+
+  let coreValidation;
+  try {
+    coreValidation = m5PlacementValidator().validateZone(actor, itemId, zoneId);
+  } catch (error) {
+    m5InventoryHandoffTelemetry.errorFallbacks += 1;
+    tripM5InventoryRollback("CORE_VALIDATION_ERROR");
+    const result = await legacyZoneDecision(actor, item, zone);
+    recordM5InventoryHandoff({ operation: "PLACE_ZONE", itemId: String(itemId ?? ""), target: String(zoneId ?? ""), outcome: "CORE_ERROR_LEGACY_FALLBACK", validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", reason: String(error?.message ?? error) });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true, fallbackReason: "CORE_VALIDATION_ERROR" });
+  }
+
+  m5InventoryHandoffTelemetry.coreDecisions += 1;
+  if (coreValidation.ok) m5InventoryHandoffTelemetry.coreAccepted += 1;
+  else m5InventoryHandoffTelemetry.coreRejected += 1;
+
+  if (Boolean(coreValidation.ok) !== Boolean(legacyValidation.ok)) {
+    m5InventoryHandoffTelemetry.disagreements += 1;
+    tripM5InventoryRollback("VALIDATION_DISAGREEMENT");
+    const result = await legacyZoneDecision(actor, item, zone);
+    recordM5InventoryHandoff({ operation: "PLACE_ZONE", itemId: String(itemId ?? ""), target: String(zoneId ?? ""), outcome: "VALIDATION_DISAGREEMENT_LEGACY_FALLBACK", validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", coreAccepted: Boolean(coreValidation.ok), legacyAccepted: Boolean(legacyValidation.ok), reason: String(result.reason ?? coreValidation.reason ?? "") });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true, fallbackReason: "VALIDATION_DISAGREEMENT", coreAccepted: Boolean(coreValidation.ok), legacyAccepted: Boolean(legacyValidation.ok) });
+  }
+
+  if (!coreValidation.ok) {
+    recordM5InventoryHandoff({ operation: "PLACE_ZONE", itemId: String(itemId ?? ""), target: String(zoneId ?? ""), outcome: "CORE_REJECT", validationAuthority: "CORE_M5", writerAuthority: "NONE", reason: String(coreValidation.reason ?? "") });
+    return withHandoffMeta({ ok: false, reason: coreValidation.reason }, { validationAuthority: "CORE_M5", writerAuthority: "NONE", rollback: false, parityGuard: "MATCH" });
+  }
+
+  const result = await writeGearInZone(item, zone);
+  recordM5InventoryHandoff({ operation: "PLACE_ZONE", itemId: String(itemId ?? ""), target: String(zoneId ?? ""), outcome: "CORE_ACCEPT_WRITE", validationAuthority: "CORE_M5", writerAuthority: "LEGACY_MIXED", reason: "" });
+  return withHandoffMeta(result, { validationAuthority: "CORE_M5", writerAuthority: "LEGACY_MIXED", rollback: false, parityGuard: "MATCH" });
+}
+
+export async function placeGearInContainer(actor, itemId, containerId) {
+  const item = actor?.items?.get?.(itemId);
+  const container = actor?.items?.get?.(containerId);
+  const legacyValidation = validateContainerPlacement(actor, item, container);
+
+  if (!m5InventoryCoreValidationEnabled) {
+    m5InventoryHandoffTelemetry.rollbackDecisions += 1;
+    const result = await legacyContainerDecision(actor, item, container);
+    recordM5InventoryHandoff({ operation: "PLACE_CONTAINER", itemId: String(itemId ?? ""), target: String(containerId ?? ""), outcome: result.ok ? "LEGACY_ACCEPT" : "LEGACY_REJECT", validationAuthority: "LEGACY_MIXED", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", reason: String(result.reason ?? "") });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_MIXED", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true });
+  }
+
+  let coreValidation;
+  try {
+    coreValidation = m5PlacementValidator().validateContainer(actor, itemId, containerId);
+  } catch (error) {
+    m5InventoryHandoffTelemetry.errorFallbacks += 1;
+    tripM5InventoryRollback("CORE_VALIDATION_ERROR");
+    const result = await legacyContainerDecision(actor, item, container);
+    recordM5InventoryHandoff({ operation: "PLACE_CONTAINER", itemId: String(itemId ?? ""), target: String(containerId ?? ""), outcome: "CORE_ERROR_LEGACY_FALLBACK", validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", reason: String(error?.message ?? error) });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true, fallbackReason: "CORE_VALIDATION_ERROR" });
+  }
+
+  m5InventoryHandoffTelemetry.coreDecisions += 1;
+  if (coreValidation.ok) m5InventoryHandoffTelemetry.coreAccepted += 1;
+  else m5InventoryHandoffTelemetry.coreRejected += 1;
+
+  if (Boolean(coreValidation.ok) !== Boolean(legacyValidation.ok)) {
+    m5InventoryHandoffTelemetry.disagreements += 1;
+    tripM5InventoryRollback("VALIDATION_DISAGREEMENT");
+    const result = await legacyContainerDecision(actor, item, container);
+    recordM5InventoryHandoff({ operation: "PLACE_CONTAINER", itemId: String(itemId ?? ""), target: String(containerId ?? ""), outcome: "VALIDATION_DISAGREEMENT_LEGACY_FALLBACK", validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", coreAccepted: Boolean(coreValidation.ok), legacyAccepted: Boolean(legacyValidation.ok), reason: String(result.reason ?? coreValidation.reason ?? "") });
+    return withHandoffMeta(result, { validationAuthority: "LEGACY_FALLBACK", writerAuthority: result.ok ? "LEGACY_MIXED" : "NONE", rollback: true, fallbackReason: "VALIDATION_DISAGREEMENT", coreAccepted: Boolean(coreValidation.ok), legacyAccepted: Boolean(legacyValidation.ok) });
+  }
+
+  if (!coreValidation.ok) {
+    recordM5InventoryHandoff({ operation: "PLACE_CONTAINER", itemId: String(itemId ?? ""), target: String(containerId ?? ""), outcome: "CORE_REJECT", validationAuthority: "CORE_M5", writerAuthority: "NONE", reason: String(coreValidation.reason ?? "") });
+    return withHandoffMeta({ ok: false, reason: coreValidation.reason }, { validationAuthority: "CORE_M5", writerAuthority: "NONE", rollback: false, parityGuard: "MATCH" });
+  }
+
+  const result = await writeGearInContainer(item, container);
+  recordM5InventoryHandoff({ operation: "PLACE_CONTAINER", itemId: String(itemId ?? ""), target: String(containerId ?? ""), outcome: "CORE_ACCEPT_WRITE", validationAuthority: "CORE_M5", writerAuthority: "LEGACY_MIXED", reason: "" });
+  return withHandoffMeta(result, { validationAuthority: "CORE_M5", writerAuthority: "LEGACY_MIXED", rollback: false, parityGuard: "MATCH" });
 }
 
 export async function unassignGear(actor, itemId) {
