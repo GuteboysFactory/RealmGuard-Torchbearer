@@ -1,0 +1,16 @@
+.rg-recruit-native-select{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+.rg-scroll-select{position:relative;width:100%}
+.rg-scroll-select-trigger{box-sizing:border-box;width:100%;min-height:38px;padding:7px 32px 7px 9px;border:1px solid #5d5844;border-radius:5px;background:#0c0f0c;color:#eee2c8;font:14.5px/1.35 Georgia,serif;cursor:pointer;position:relative;display:flex;align-items:center;user-select:none}
+.rg-scroll-select-trigger:after{content:"▾";position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#c8a86d;font-size:12px;pointer-events:none}
+.rg-scroll-select-trigger[aria-expanded="true"]{border-color:#ad8448;box-shadow:0 0 0 1px rgba(185,139,67,.22)}
+.rg-scroll-select-trigger.is-placeholder{color:#8f8c7b}
+.rg-scroll-select-trigger[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+.rg-scroll-select-menu{position:fixed;z-index:100000;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;border:1px solid #756442;border-radius:6px;background:#11140f;box-shadow:0 10px 30px rgba(0,0,0,.55);padding:4px;scrollbar-width:thin;scrollbar-color:#8d7447 #151812}
+.rg-scroll-select-menu[hidden]{display:none!important}
+.rg-scroll-select-menu::-webkit-scrollbar{width:10px}
+.rg-scroll-select-menu::-webkit-scrollbar-track{background:#151812;border-radius:8px}
+.rg-scroll-select-menu::-webkit-scrollbar-thumb{background:#8d7447;border-radius:8px;border:2px solid #151812}
+.rg-scroll-select-option{display:block!important;width:100%!important;min-height:32px!important;margin:0!important;padding:6px 9px!important;text-align:left!important;border:0!important;border-radius:4px!important;background:transparent!important;color:#e8ddc5!important;font:13.5px/1.25 Georgia,serif!important;cursor:pointer!important;white-space:normal!important}
+.rg-scroll-select-option:hover,.rg-scroll-select-option:focus{outline:none!important;background:#2a2b1d!important;color:#f0cf87!important}
+.rg-scroll-select-option.is-selected{background:#35341f!important;color:#f0cf87!important;font-weight:700!important}
+.rg-scroll-select-option:disabled{opacity:.45!important;cursor:not-allowed!important;text-decoration:none!important}
