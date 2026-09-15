@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.equal(manifest.version, "1.7.0-qa.16");
+assert.equal(manifest.version, "1.7.0-qa.17");
 assert.equal(manifest.compatibility.minimum, "13");
 assert.equal(manifest.compatibility.maximum, "14");
 assert.ok(manifest.esmodules[0] === "module/foundry-compat.mjs");
@@ -23,7 +23,11 @@ assert.match(ux, /filePickerApi:\s*"foundry\.applications\.apps\.FilePicker\.imp
 
 const recruitmentUx = fs.readFileSync("module/recruitment-scroll-select.mjs", "utf8");
 assert.match(recruitmentUx, /MIN_OPTIONS = 9/);
-assert.match(recruitmentUx, /overflow-y:auto|rg-scroll-select-menu/);
 assert.match(recruitmentUx, /scrollIntoView/);
+assert.match(recruitmentUx, /addEventListener\("wheel",\s*handleMenuWheel/);
+assert.match(recruitmentUx, /capture:\s*true/);
+assert.match(recruitmentUx, /passive:\s*false/);
+assert.match(recruitmentUx, /event\.preventDefault\(\)/);
+assert.match(recruitmentUx, /menu\.scrollTop\s*=\s*next/);
 
 console.log("PASS m5-foundry-filepicker-compat-smoke");
