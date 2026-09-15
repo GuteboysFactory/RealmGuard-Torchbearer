@@ -1,24 +1,22 @@
-Realm Guard / Torchbearer v1.7.0-qa.7 — Equipment Figure settings cleanup.
+Realm Guard / Torchbearer v1.7.0-qa.8 — final Equipment cosmetic layout pass.
 
-This patch keeps the approved qa.6 gray custom/ancestry figure system, but removes the bulky framing controls from the Inventory page itself.
+This patch closes the current Inventory cosmetic pass by moving Unassigned Gear away from the right side of Equipment and placing it directly beneath Containers in the left rail.
 
-New / corrected in qa.7:
-- Source and Ancestry stay visible in the compact Equipment Figure header
-- a single gear icon opens Equipment Figure Settings
-- Custom image path, Fit, Zoom, Horizontal and Vertical controls now live in that settings dialog
-- Apply saves the visual settings to the existing `flags.realm-guard.equipmentFigure` preferences
-- Cancel is non-destructive
-- Ancestry Figure keeps its fixed ancestry framing; Custom Figure framing remains independently stored
-- built-in gray Custom Figure fallback remains unchanged
-- Human/Dunadan/Elf/Dwarf/Halfling ancestry switching remains unchanged
+New / corrected in qa.8:
+- desktop Inventory layout is now two columns instead of three
+- left rail: Containers first, Unassigned Gear directly below
+- Equipment owns the full main/right column
+- Unassigned Gear no longer sits as a separate right-side panel next to Equipment
+- responsive order below ~900 px is Containers -> Unassigned Gear -> Equipment
+- qa.7 Equipment Figure Source / Ancestry / settings gear button remain unchanged
+- no Inventory interaction, capacity, 2H, container or placement rules are changed
 
 Important preservation:
-- Inventory rules are unchanged
 - M5 Gear / Inventory / Conflict Tool CORE services remain shadow/read-only
 - Legacy Mixed remains sole live Inventory and Conflict authority
-- Token Builder drag/drop and square PC portrait / round token separation remain unchanged
+- Token Builder portrait/token behavior remains unchanged
 - M2, M3 and verified M4 behavior remain unchanged
 
-QA protocol: TEST_PROTOCOL_v1.7.0-qa.7.md
+QA protocol: TEST_PROTOCOL_v1.7.0-qa.8.md
 Foundry target: v13.351.
-Approved visual baseline entering this build: v1.7.0-qa.6 gray Custom/Ancestry Figure system.
+Cosmetic intent: treat this as the closing layout pass unless later player feedback or bugs justify reopening visual work.
