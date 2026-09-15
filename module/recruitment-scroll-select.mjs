@@ -110,6 +110,32 @@ function menuKeydown(event, state) {
   buttons[next].scrollIntoView({ block: "nearest" });
 }
 
+function wheelPixels(event, menu) {
+  const unit = event.deltaMode === 1
+    ? 28
+    : event.deltaMode === 2
+      ? Math.max(120, menu.clientHeight)
+      : 1;
+  return Number(event.deltaY || 0) * unit;
+}
+
+function handleMenuWheel(event) {
+  const state = openState;
+  if (!state || state.menu.hidden || !state.menu.isConnected) return;
+  const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+  const inside = path.includes(state.menu) || state.menu.contains(event.target);
+  if (!inside) return;
+  if (state.menu.scrollHeight <= state.menu.clientHeight) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation?.();
+
+  const max = Math.max(0, state.menu.scrollHeight - state.menu.clientHeight);
+  const next = Math.max(0, Math.min(max, state.menu.scrollTop + wheelPixels(event, state.menu)));
+  state.menu.scrollTop = next;
+}
+
 function buildMenu(select) {
   const wrapper = document.createElement("div");
   wrapper.className = "rg-scroll-select";
@@ -207,10 +233,11 @@ export function installRecruitmentScrollableSelects() {
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && openState) closeMenu(openState, { focusTrigger: true });
   }, true);
+  window.addEventListener("wheel", handleMenuWheel, { capture: true, passive: false });
   window.addEventListener("resize", () => positionMenu(openState));
   document.addEventListener("scroll", () => positionMenu(openState), true);
 
-  return Object.freeze({ selector: SELECTOR, minOptions: MIN_OPTIONS });
+  return Object.freeze({ selector: SELECTOR, minOptions: MIN_OPTIONS, wheelCapture: true });
 }
 
 Hooks.once("ready", () => {
