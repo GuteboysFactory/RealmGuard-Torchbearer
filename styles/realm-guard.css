@@ -1751,7 +1751,7 @@ details.rg-skill-group > summary::-webkit-details-marker { display:none; }
 /* ========================================================================== */
 .rg-conflict-window {
   position: fixed;
-  z-index: 120;
+  z-index: 99;
   left: 50%;
   top: 8vh;
   transform: translateX(-50%);

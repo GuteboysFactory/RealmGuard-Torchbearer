@@ -1,7 +1,7 @@
-Realm Guard / Torchbearer v1.8.0-qa.4 — Exchange-scoped Conflict Weapon / Tool declarations.
+Realm Guard / Torchbearer v1.8.0-qa.5 — Conflict window stacking hotfix.
 
-One Weapon / Tool is now declared per Actor for the entire three-card Exchange. The per-Action selector is removed. The declaration is applied authoritatively when plans lock, including socket-submitted Ranger plans, so stale clients cannot mix weapons across cards. A new Exchange may declare a new tool. Multiple Rangers retain independent declarations.
+Live browser diagnostics captured the intermittent roll-dialog-behind-Conflict bug while active: `.rg-conflict-window` computed to z-index 120 while the Foundry `DialogV2` roll window was z-index 103. The fixed custom Conflict surface therefore outranked Foundry's managed application stack.
 
-M6 qa.3 controlled resolution handoff, M5 tool evaluation handoff and Token Actor resolution remain otherwise unchanged.
+qa.5 changes only the Conflict window stacking level from 120 to 99, allowing Foundry's normal application/dialog focus stack to remain above it. No Conflict rules, state, M6 resolution handoff, qa.4 Exchange Weapon / Tool scope, or Token Actor behavior changes.
 
-QA protocol: TEST_PROTOCOL_v1.8.0-qa.4.md
+QA protocol: TEST_PROTOCOL_v1.8.0-qa.5.md
