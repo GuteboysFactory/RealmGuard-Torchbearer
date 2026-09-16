@@ -75,6 +75,7 @@ function observeResolution(event = {}) {
     rangerMode: pair.rangerMode,
     gmRoll: event.gmRoll,
     rangerRoll: event.rangerRoll,
+    tieResolution: event.tieResolution ?? null,
     gmDisposition: event.beforeDisposition?.gm,
     rangerDisposition: event.beforeDisposition?.ranger
   });

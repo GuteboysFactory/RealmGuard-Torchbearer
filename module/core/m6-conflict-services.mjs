@@ -46,7 +46,7 @@ function resolveIndependent(action, opponentAction, mode, roll) {
   });
 }
 
-export function resolveM6ConflictPair({ gmAction, rangerAction, gmMode, rangerMode, gmRoll, rangerRoll } = {}) {
+export function resolveM6ConflictPair({ gmAction, rangerAction, gmMode, rangerMode, gmRoll, rangerRoll, tieResolution = null } = {}) {
   const versus = gmMode === "versus" || rangerMode === "versus";
   if (!versus) {
     return Object.freeze({
@@ -63,9 +63,22 @@ export function resolveM6ConflictPair({ gmAction, rangerAction, gmMode, rangerMo
   const rangerEffective = rangerBaseRaw + (rangerBaseRaw >= gmBaseRaw ? m6PositiveSuccessBonus(rangerRoll) : 0);
 
   if (gmEffective === rangerEffective && gmMode === "versus" && rangerMode === "versus") {
+    if (tieResolution?.resolved) {
+      const rangerPassed = Boolean(tieResolution.rangerPassed ?? tieResolution.passed);
+      const gmPassed = !rangerPassed;
+      const margin = Math.max(0, num(tieResolution.margin));
+      return Object.freeze({
+        kind: "VERSUS",
+        tiePending: false,
+        tieResolved: true,
+        gm: Object.freeze({ passed: gmPassed, margin: gmPassed ? margin : 0, failureMargin: gmPassed ? 0 : margin, effectiveSuccesses: gmEffective, obstacle: null, trumped: false }),
+        ranger: Object.freeze({ passed: rangerPassed, margin: rangerPassed ? margin : 0, failureMargin: rangerPassed ? 0 : margin, effectiveSuccesses: rangerEffective, obstacle: null, trumped: false })
+      });
+    }
     return Object.freeze({
       kind: "VERSUS",
       tiePending: true,
+      tieResolved: false,
       gm: Object.freeze({ passed: false, margin: 0, failureMargin: 0, effectiveSuccesses: gmEffective, obstacle: null, trumped: false }),
       ranger: Object.freeze({ passed: false, margin: 0, failureMargin: 0, effectiveSuccesses: rangerEffective, obstacle: null, trumped: false })
     });
@@ -118,10 +131,11 @@ export function previewM6ConflictResolution({
   rangerMode,
   gmRoll,
   rangerRoll,
+  tieResolution = null,
   gmDisposition,
   rangerDisposition
 } = {}) {
-  const pair = resolveM6ConflictPair({ gmAction, rangerAction, gmMode, rangerMode, gmRoll, rangerRoll });
+  const pair = resolveM6ConflictPair({ gmAction, rangerAction, gmMode, rangerMode, gmRoll, rangerRoll, tieResolution });
   const dispositions = {
     gm: { start: clamp0(gmDisposition?.start), current: clamp0(gmDisposition?.current) },
     ranger: { start: clamp0(rangerDisposition?.start), current: clamp0(rangerDisposition?.current) }

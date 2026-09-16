@@ -1387,6 +1387,7 @@ async function gmResolveCurrentPair(state) {
   const gmMode = pair.gmMode, rangerMode = pair.rangerMode;
   let gmPassed = false, rPassed = false, gmMargin = 0, rMargin = 0;
   let gmFailureMargin = 0, rFailureMargin = 0, tiePending = false;
+  let resolvedAutomaticTie = null;
   const gmBaseRaw = conflictRawSuccesses(gmRoll), rBaseRaw = conflictRawSuccesses(rr);
   let gmRaw = gmBaseRaw, rRaw = rBaseRaw;
 
@@ -1419,6 +1420,7 @@ async function gmResolveCurrentPair(state) {
         gmMargin = gmPassed ? Math.max(0, Number(tieResolution.margin ?? 0)) : 0;
         rFailureMargin = rPassed ? 0 : Math.max(0, Number(tieResolution.margin ?? 0));
         gmFailureMargin = gmPassed ? 0 : Math.max(0, Number(tieResolution.margin ?? 0));
+        resolvedAutomaticTie = { resolved: true, rangerPassed: rPassed, margin: Math.max(0, Number(tieResolution.margin ?? 0)) };
         pair.resultText = `<b>Versus tie resolved:</b> ${rPassed ? "Rangers" : "GM / Opposition"} wins${Number(tieResolution.margin ?? 0) ? ` · margin ${Number(tieResolution.margin)}` : ""}.`;
       } else {
         pair.resultText = `<b>VERSUS TIE:</b> standard tiebreaker remains unresolved. No disposition change until the table resolves it.`;
@@ -1501,6 +1503,7 @@ async function gmResolveCurrentPair(state) {
       gmDisposition: next.gm.disposition.current,
       rangerDisposition: next.ranger.disposition.current,
       tiePending: false,
+      tieResolution: resolvedAutomaticTie,
       maneuverQueue: maneuverPending
     });
   } catch (_error) { /* M6 shadow observer must never interrupt Conflict */ }
