@@ -8,6 +8,8 @@ import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mj
 import { evaluateM6ConflictResolutionLiveHandoff } from "./m6-conflict-live-handoff.mjs";
 import { resolveConflictActor, inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";
 import { applyExchangeToolScope } from "./core/m6-conflict-tool-scope.mjs";
+import { m6ApplyPostResolutionState, m6AdvanceAfterActionState, m6ApplyManeuverState, m6FinishConflictState } from "./core/m6-conflict-runtime.mjs";
+import { evaluateM6ConflictStateLiveHandoff } from "./m6-conflict-state-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -1478,6 +1480,16 @@ async function gmResolveCurrentPair(state) {
   gmRaw = liveResolution.gmEffectiveSuccesses;
   rRaw = liveResolution.rangerEffectiveSuccesses;
 
+  const corePostResolutionState = m6ApplyPostResolutionState(next, {
+    pair: { gmAction: pair.gmAction, rangerAction: pair.rangerAction, gmMode, rangerMode },
+    result: {
+      gmPassed, rangerPassed: rPassed, gmMargin, rangerMargin: rMargin,
+      gmFailureMargin, rangerFailureMargin: rFailureMargin,
+      gmEffectiveSuccesses: gmRaw, rangerEffectiveSuccesses: rRaw
+    },
+    gmRoll, rangerRoll: rr
+  });
+
   if (gmRoll && !gmRoll.trumped) gmRoll.effectiveSuccesses = gmRaw;
   if (rr && !rr.trumped) rr.effectiveSuccesses = rRaw;
 
@@ -1539,14 +1551,16 @@ async function gmResolveCurrentPair(state) {
   const gmZero = Number(next.gm.disposition.current ?? 0) <= 0, rangerZero = Number(next.ranger.disposition.current ?? 0) <= 0;
   if (gmZero || rangerZero) {
     next.outcome = { winner: gmZero && rangerZero ? "tie" : gmZero ? "ranger" : "gm", endedExchange: next.exchange, endedAction: next.currentIndex + 1 };
-    next.stage = "compromise"; next.pendingManeuver = null; next.rolls = { gm: null, ranger: null };
-    await setPublicState(next); return;
+    next.stage = "compromise"; next.pendingManeuver = null; next.pendingManeuverQueue = []; next.rolls = { gm: null, ranger: null };
+    const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "POST_RESOLUTION_OUTCOME", conflictId: next.id, legacyState: next, coreState: corePostResolutionState });
+    await setPublicState(handoff.state); return;
   }
   if (maneuverPending.length) {
     next.pendingManeuverQueue = maneuverPending; next.pendingManeuver = maneuverPending[0]; next.stage = "maneuver"; next.rolls = { gm: null, ranger: null };
-    await setPublicState(next); return;
+    const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "POST_RESOLUTION_MANEUVER_QUEUE", conflictId: next.id, legacyState: next, coreState: corePostResolutionState });
+    await setPublicState(handoff.state); return;
   }
-  await advanceAfterAction(next);
+  await advanceAfterAction(next, { coreExpected: m6AdvanceAfterActionState(corePostResolutionState) });
 }
 
 async function chooseManeuver(choice, state) {
@@ -1584,8 +1598,9 @@ async function gmApplyManeuverChoice(payload, state = currentState(), sender = n
   }
   const margin = Number(pending.margin ?? 0); const choice = payload.choice;
   if (choice === "impede" && margin < 1 || choice === "position" && margin < 2 || ["disarm","combo"].includes(choice) && margin < 3) return;
+  const coreManeuverBase = clone(state);
   const next = clone(state); const opp = side === "gm" ? "ranger" : "gm";
-  let disarmedName = "";
+  let disarmedName = "", disarmedGearId = "";
   if (choice === "impede" || choice === "combo") next.effects[opp].nextDice = Number(next.effects[opp].nextDice ?? 0) - 1;
   if (choice === "position" || choice === "combo") next.effects[side].nextDice = Number(next.effects[side].nextDice ?? 0) + 2;
   if (choice === "disarm") {
@@ -1595,6 +1610,7 @@ async function gmApplyManeuverChoice(payload, state = currentState(), sender = n
       const selection = await chooseDisarmTarget(targetActor, gear, side === "gm" || game.user?.isGM);
       if (selection) {
         next.effects[opp].disabledGearIds = [...new Set([...(next.effects[opp].disabledGearIds ?? []), selection])];
+        disarmedGearId = selection;
         disarmedName = gear.find(item => item.id === selection)?.name ?? "Gear";
       }
     } else next.log.push(`Maneuver Disarm: ${targetActor?.name ?? "target"} has no equipped Gear Item to disable; adjudicate a natural weapon/trait manually.`);
@@ -1602,7 +1618,13 @@ async function gmApplyManeuverChoice(payload, state = currentState(), sender = n
   next.log.push(`${side === "gm" ? "GM" : "Rangers"} Maneuver: ${choice}.`);
   await postConflictManeuverChat(next, pair, { side, choice, margin, disarmedName });
   const queue = [...(next.pendingManeuverQueue ?? [])]; queue.shift(); next.pendingManeuverQueue = queue; next.pendingManeuver = queue[0] ?? null;
-  if (!next.pendingManeuver) await advanceAfterAction(next); else await setPublicState(next);
+  const coreAfterManeuver = m6ApplyManeuverState(coreManeuverBase, { choice, disarmedGearId });
+  if (!next.pendingManeuver) {
+    await advanceAfterAction(next, { coreExpected: m6AdvanceAfterActionState(coreAfterManeuver) });
+  } else {
+    const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "MANEUVER_EFFECT", conflictId: next.id, legacyState: next, coreState: coreAfterManeuver });
+    await setPublicState(handoff.state);
+  }
 }
 
 async function chooseDisarmTarget(actor, gear) {
@@ -1613,23 +1635,33 @@ async function chooseDisarmTarget(actor, gear) {
   });
 }
 
-async function advanceAfterAction(state) {
+async function advanceAfterAction(state, { coreExpected = null } = {}) {
+  const coreCandidate = coreExpected ?? m6AdvanceAfterActionState(state);
   const next = clone(state); next.rolls = { gm: null, ranger: null }; next.pendingManeuver = null; next.pendingManeuverQueue = [];
-  if (next.currentIndex < 2) { next.currentIndex += 1; next.stage = "ready"; await setPublicState(next); await revealCurrentAction(next); return; }
+  if (next.currentIndex < 2) {
+    next.currentIndex += 1; next.stage = "ready";
+    const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "ACTION_ADVANCEMENT", conflictId: next.id, legacyState: next, coreState: coreCandidate });
+    await setPublicState(handoff.state); await revealCurrentAction(handoff.state); return;
+  }
   next.actionCounts = next.pendingActionCounts ?? next.actionCounts; next.lastRangerActorId = next.pendingLastRangerActorId ?? next.lastRangerActorId;
   next.pendingActionCounts = null; next.pendingLastRangerActorId = null;
   next.exchange += 1; next.currentIndex = 0; next.locks = { gm: false, ranger: false }; next.stage = "gmPlan"; next.revealed = [];
   const p = privateState(); p.gmPlan = []; p.rangerPlan = []; await setPrivateState(p); lockedPlanCache.set(next.id, { gmPlan: [], rangerPlan: [] }); draftPlans.delete(next.id); weaponDrafts.delete(next.id);
-  next.log.push(`Exchange ${next.exchange} begins.`); await setPublicState(next);
+  next.log.push(`Exchange ${next.exchange} begins.`);
+  const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "EXCHANGE_ADVANCEMENT", conflictId: next.id, legacyState: next, coreState: coreCandidate });
+  await setPublicState(handoff.state);
 }
 
 async function finishConflict(state) {
   if (!game.user?.isGM || state.stage !== "compromise") return;
   const text = document.getElementById("rg-conflict-compromise-text")?.value?.trim() || "";
+  const coreFinished = m6FinishConflictState(state, { text });
   const next = clone(state); next.compromise = { text, grade: next.outcome?.winner === "tie" ? "tie" : compromiseGrade((next.outcome?.winner === "ranger" ? next.ranger : next.gm).disposition.start, (next.outcome?.winner === "ranger" ? next.ranger : next.gm).disposition.current) }; next.stage = "complete"; next.active = false;
-  const winner = next.outcome?.winner === "ranger" ? "Rangers" : next.outcome?.winner === "gm" ? "GM / Opposition" : "Tie";
-  await ChatMessage.create({ content: `<div class="realm-guard rg-conflict-chat rg-conflict-complete-card rg-conflict-readable-card"><div class="rg-custom-chat-tag">CONFLICT COMPLETE</div><h3>${esc(next.name)} · ${esc(conflictTypeLabel(next.type))}</h3><div class="rg-conflict-outcome final"><small>WINNER</small><strong>${esc(winner)}</strong></div><div class="rg-conflict-final-disposition"><span><b>Rangers</b><strong>${next.ranger.disposition.current}/${next.ranger.disposition.start}</strong></span><span><b>Opposition</b><strong>${next.gm.disposition.current}/${next.gm.disposition.start}</strong></span></div><div class="rg-conflict-goals-summary"><p><b>Ranger Goal</b><span>${esc(next.ranger.goal || "—")}</span></p><p><b>Opposition Goal</b><span>${esc(next.gm.goal || "—")}</span></p></div>${text ? `<div class="rg-conflict-compromise-summary"><b>Compromise</b><p>${esc(text)}</p></div>` : ""}</div>` });
-  await cleanupTemporaryConflictTools(next); await setPublicState(next); await setPrivateState({}); lockedPlanCache.delete(next.id);
+  const finishHandoff = evaluateM6ConflictStateLiveHandoff({ operation: "COMPROMISE_COMPLETE", conflictId: next.id, legacyState: next, coreState: coreFinished });
+  const committed = finishHandoff.state;
+  const winner = committed.outcome?.winner === "ranger" ? "Rangers" : committed.outcome?.winner === "gm" ? "GM / Opposition" : "Tie";
+  await ChatMessage.create({ content: `<div class="realm-guard rg-conflict-chat rg-conflict-complete-card rg-conflict-readable-card"><div class="rg-custom-chat-tag">CONFLICT COMPLETE</div><h3>${esc(committed.name)} · ${esc(conflictTypeLabel(committed.type))}</h3><div class="rg-conflict-outcome final"><small>WINNER</small><strong>${esc(winner)}</strong></div><div class="rg-conflict-final-disposition"><span><b>Rangers</b><strong>${committed.ranger.disposition.current}/${committed.ranger.disposition.start}</strong></span><span><b>Opposition</b><strong>${committed.gm.disposition.current}/${committed.gm.disposition.start}</strong></span></div><div class="rg-conflict-goals-summary"><p><b>Ranger Goal</b><span>${esc(committed.ranger.goal || "—")}</span></p><p><b>Opposition Goal</b><span>${esc(committed.gm.goal || "—")}</span></p></div>${text ? `<div class="rg-conflict-compromise-summary"><b>Compromise</b><p>${esc(text)}</p></div>` : ""}</div>` });
+  await cleanupTemporaryConflictTools(committed); await setPublicState(committed); await setPrivateState({}); lockedPlanCache.delete(committed.id);
   document.getElementById(WINDOW_ID)?.remove();
   ui.notifications.info("Realm Guard: Conflict complete.");
 }

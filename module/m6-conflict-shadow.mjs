@@ -1,5 +1,7 @@
 import { m6InteractionMode, previewM6ConflictResolution } from "./core/m6-conflict-services.mjs";
 import { getM6ConflictLiveHandoffStatus, getM6ConflictHandoffHistory, resetM6ConflictHandoffTelemetry, setM6CoreResolutionEnabled } from "./m6-conflict-live-handoff.mjs";
+import { getM6ConflictStateHandoffStatus, getM6ConflictStateHandoffHistory, resetM6ConflictStateHandoffTelemetry, setM6CoreStateEnabled } from "./m6-conflict-state-handoff.mjs";
+import { adaptLegacyConflictState } from "./core/m6-conflict-runtime.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -130,7 +132,18 @@ export function installM6ConflictShadow() {
       handoffHistory: () => getM6ConflictHandoffHistory(),
       resetHandoffTelemetry: () => resetM6ConflictHandoffTelemetry(),
       rollback: (reason = "MANUAL_QA_ROLLBACK") => setM6CoreResolutionEnabled(false, { reason }),
-      enableCoreResolution: () => setM6CoreResolutionEnabled(true)
+      enableCoreResolution: () => setM6CoreResolutionEnabled(true),
+      stateHandoffStatus: () => getM6ConflictStateHandoffStatus(),
+      stateHandoffHistory: () => getM6ConflictStateHandoffHistory(),
+      resetStateHandoffTelemetry: () => resetM6ConflictStateHandoffTelemetry(),
+      rollbackCoreState: (reason = "MANUAL_QA_STATE_ROLLBACK") => setM6CoreStateEnabled(false, { reason }),
+      enableCoreState: () => setM6CoreStateEnabled(true),
+      runtimeSnapshot: () => {
+        try {
+          const raw = game.settings.get("realm-guard", "conflictState");
+          return adaptLegacyConflictState(raw ? JSON.parse(raw) : null);
+        } catch (_error) { return null; }
+      }
     });
     console.log("realm-guard | CORE M6 Conflict resolution shadow parity ready", getM6ConflictShadowStatus());
   });
@@ -140,16 +153,18 @@ export function getM6ConflictShadowStatus() {
   const matches = history.filter(e => e.parity === "MATCH").length;
   const mismatches = history.filter(e => e.parity === "MISMATCH").length;
   const handoff = getM6ConflictLiveHandoffStatus();
+  const stateHandoff = getM6ConflictStateHandoffStatus();
   return Object.freeze({
     phase: "M6",
-    buildScope: "CONTROLLED_RESOLUTION_RESULT_HANDOFF",
-    mode: handoff.enabled ? "CORE_RESOLUTION_LEGACY_STATE" : "LEGACY_ROLLBACK_WITH_SHADOW_PARITY",
-    authority: handoff.enabled ? "CORE_M6_RESULT_LEGACY_STATE" : "LEGACY_MIXED",
-    liveApplication: handoff.enabled,
+    buildScope: "RUNTIME_STATE_AUTHORITY_HANDOFF",
+    mode: handoff.enabled && stateHandoff.enabled ? "CORE_RESOLUTION_AND_STATE" : handoff.enabled ? "CORE_RESOLUTION_LEGACY_STATE" : "LEGACY_ROLLBACK_WITH_SHADOW_PARITY",
+    authority: handoff.enabled && stateHandoff.enabled ? "CORE_M6_RESULT_AND_STATE" : handoff.enabled ? "CORE_M6_RESULT_LEGACY_STATE" : "LEGACY_MIXED",
+    liveApplication: handoff.enabled || stateHandoff.enabled,
     observed: history.length,
     matches,
     mismatches,
     latest: history.at(-1) ?? null,
-    handoff
+    handoff,
+    stateHandoff
   });
 }

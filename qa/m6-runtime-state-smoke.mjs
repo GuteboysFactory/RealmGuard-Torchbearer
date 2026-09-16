@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import { adaptLegacyConflictState, projectM6ConflictState, m6ApplyPostResolutionState, m6AdvanceAfterActionState, m6ApplyManeuverState, m6FinishConflictState, m6CompromiseGrade } from "../module/core/m6-conflict-runtime.mjs";
+const base={id:"c1",active:true,name:"Fight",type:"fight",stage:"action",exchange:1,currentIndex:0,ranger:{participantIds:["r1","r2"],captainId:"r1",goal:"Win",disposition:{start:8,current:8}},gm:{actorId:"g1",goal:"Stop",disposition:{start:7,current:7}},locks:{gm:true,ranger:true},revealed:[{index:0,gmAction:"attack",rangerAction:"defend",rangerActorId:"r1"}],rolls:{gm:{},ranger:{}},effects:{gm:{nextDice:0,disabledGearIds:[]},ranger:{nextDice:0,disabledGearIds:[]}},actionCounts:{r1:0,r2:0},pendingActionCounts:{r1:1,r2:0},lastRangerActorId:null,pendingLastRangerActorId:"r1",weaponIds:{r1:"gear:x"},outcome:null,compromise:null,log:[]};
+const runtime=adaptLegacyConflictState(base); assert.equal(runtime.schema,"M6_CONFLICT_RUNTIME_V1"); assert.equal(runtime.participants.length,3);
+const resolved=m6ApplyPostResolutionState(base,{pair:{gmAction:"attack",rangerAction:"defend",gmMode:"versus",rangerMode:"versus"},result:{gmPassed:true,rangerPassed:false,gmMargin:2,rangerMargin:0,gmEffectiveSuccesses:4,rangerEffectiveSuccesses:2}});
+assert.equal(resolved.ranger.disposition.current,6); assert.equal(resolved.stage,"action");
+const advanced=m6AdvanceAfterActionState(resolved); assert.equal(advanced.currentIndex,1); assert.equal(advanced.stage,"ready");
+const manBase={...base,stage:"maneuver",pendingManeuver:{side:"ranger",margin:3},pendingManeuverQueue:[{side:"ranger",margin:3}],effects:{gm:{nextDice:0,disabledGearIds:[]},ranger:{nextDice:0,disabledGearIds:[]}}};
+const man=m6ApplyManeuverState(manBase,{choice:"combo"}); assert.equal(man.effects.gm.nextDice,-1); assert.equal(man.effects.ranger.nextDice,2); assert.equal(man.pendingManeuver,null);
+const dis=m6ApplyManeuverState(manBase,{choice:"disarm",disarmedGearId:"sword"}); assert.deepEqual(dis.effects.gm.disabledGearIds,["sword"]);
+const ended={...base,outcome:{winner:"ranger"},ranger:{...base.ranger,disposition:{start:8,current:4}},stage:"compromise"}; const fin=m6FinishConflictState(ended,{text:"Deal"}); assert.equal(fin.compromise.grade,"compromise"); assert.equal(fin.active,false); assert.equal(m6CompromiseGrade(8,5),"minor");
+assert.equal(projectM6ConflictState(advanced).currentIndex,1); console.log("PASS m6-runtime-state-smoke");
