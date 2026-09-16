@@ -7,6 +7,7 @@ import { traitPositiveStatus } from "./traits.mjs";
 import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mjs";
 import { evaluateM6ConflictResolutionLiveHandoff } from "./m6-conflict-live-handoff.mjs";
 import { resolveConflictActor, inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";
+import { applyExchangeToolScope } from "./core/m6-conflict-tool-scope.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -435,10 +436,10 @@ function planWeaponName(actor, state, side, weaponId) {
   if (!actor) return "Unarmed · −1D";
   return selectedConflictWeapon(actor, state, side, weaponId)?.name ?? "Unarmed · −1D";
 }
-function planWeaponSelect(actor, state, side, index, selectedId = "") {
-  const weapons = availableConflictWeapons(actor, state, side);
-  const validSelected = weapons.some(w => w.id === selectedId) ? selectedId : "";
-  return `<label class="rg-plan-weapon"><span>Weapon / Tool</span><select data-plan-weapon="${index}" data-plan-side="${side}" data-rg-help-label="Weapon / Tool"><option value="" ${!validSelected ? "selected" : ""} data-rg-help="No valid Conflict Weapon / Tool is selected. This Action is Unarmed and takes −1D.">Unarmed · −1D</option>${weapons.map(w => `<option value="${w.id}" ${validSelected === w.id ? "selected" : ""} data-rg-help="Use ${esc(w.name)} as this Action's Conflict Weapon / Tool. Its action-specific bonus or penalty is applied when the test resolves.">${esc(w.name)}</option>`).join("")}</select></label>`;
+function planWeaponSummary(actor, state, side) {
+  const selectedId = weaponDraftFor(actor, state, side);
+  const name = planWeaponName(actor, state, side, selectedId);
+  return `<div class="rg-plan-weapon rg-plan-weapon-locked" data-rg-help="This Actor's Conflict Weapon / Tool is declared once for the entire three-Action Exchange. Change it in the Exchange Weapon / Tool section before locking the cards." data-rg-help-title="Exchange Weapon / Tool"><span>Exchange Weapon / Tool</span><b>${esc(name)}</b></div>`;
 }
 function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) {
   const locked = Boolean(state.locks?.[side]);
@@ -453,7 +454,7 @@ function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) 
     const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
     if (ownSideView && planEntry?.action) {
       const actor = side === "ranger" ? actorById(planEntry.actorId) : actorById(state.gm.actorId);
-      return `<div class="rg-plan-slot locked own-plan"><span class="rg-plan-no">${index + 1}</span>${conflictCard(planEntry.action, side, { small: true })}<div class="rg-plan-summary"><b>${esc(actor?.name ?? "Locked")}</b><span>${esc(planWeaponName(actor, state, side, planEntry.weaponId))}</span></div></div>`;
+      return `<div class="rg-plan-slot locked own-plan"><span class="rg-plan-no">${index + 1}</span>${conflictCard(planEntry.action, side, { small: true })}<div class="rg-plan-summary"><b>${esc(actor?.name ?? "Locked")}</b><span>${esc(planWeaponName(actor, state, side, state?.weaponIds?.[actor?.id] ?? planEntry.weaponId))}</span></div></div>`;
     }
     return `<div class="rg-plan-slot locked"><span class="rg-plan-no">${index + 1}</span>${conflictCard("attack", side, { small: true, faceDown: true })}<div class="rg-plan-summary"><b>PLAN LOCKED</b><span>Hidden until reveal</span></div></div>`;
   }
@@ -469,12 +470,12 @@ function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) 
   const actorSelect = side === "ranger"
     ? `<label class="rg-plan-field"><span>Acting Ranger</span><select class="rg-plan-actor" data-plan-actor="${index}">${(state.ranger.participantIds ?? []).map(id => `<option value="${id}" ${actorId === id ? "selected" : ""}>${esc(actorById(id)?.name ?? id)}</option>`).join("")}</select></label>`
     : `<div class="rg-plan-field rg-plan-fixed-actor"><span>Actor</span><b>${esc(actor?.name ?? "GM / Opposition")}</b></div>`;
-  const defaultWeaponId = planEntry?.weaponId || weaponDraftFor(actor, state, side);
+  const defaultWeaponId = weaponDraftFor(actor, state, side);
   const canCreate = actor && (game.user?.isGM || actor.isOwner);
   const custom = canCreate ? `<button type="button" class="rg-plan-custom-tool" data-conflict-custom-tool-actor="${actor.id}" data-side="${side}" title="Create a custom or improvised Conflict Weapon / Tool"><i class="fa-solid fa-plus"></i> Custom Tool</button>` : "";
   const weaponName = planWeaponName(actor, state, side, defaultWeaponId);
   const unarmed = !defaultWeaponId || weaponName.startsWith("Unarmed");
-  return `<div class="rg-plan-slot editable has-action ${unarmed ? "is-unarmed" : ""}" data-plan-slot="${index}"><span class="rg-plan-no">${index + 1}</span><div class="rg-plan-action-head">${conflictCard(action, side, { small: true })}<div><b>${esc(actionLabel(action))}</b><span>Action ${index + 1}</span></div></div><div class="rg-plan-fields">${actorSelect}${planWeaponSelect(actor, state, side, index, defaultWeaponId)}${custom}${unarmed ? `<div class="rg-plan-unarmed"><i class="fa-solid fa-triangle-exclamation"></i><span>No valid Conflict Weapon / Tool selected · <b>Unarmed −1D</b></span></div>` : ""}</div><button type="button" class="rg-plan-clear" data-clear-plan="${index}" title="Clear this planned Action"><i class="fa-solid fa-xmark"></i></button></div>`;
+  return `<div class="rg-plan-slot editable has-action ${unarmed ? "is-unarmed" : ""}" data-plan-slot="${index}"><span class="rg-plan-no">${index + 1}</span><div class="rg-plan-action-head">${conflictCard(action, side, { small: true })}<div><b>${esc(actionLabel(action))}</b><span>Action ${index + 1}</span></div></div><div class="rg-plan-fields">${actorSelect}${planWeaponSummary(actor, state, side)}${custom}${unarmed ? `<div class="rg-plan-unarmed"><i class="fa-solid fa-triangle-exclamation"></i><span>No valid Conflict Weapon / Tool selected · <b>Unarmed −1D</b></span></div>` : ""}</div><button type="button" class="rg-plan-clear" data-clear-plan="${index}" title="Clear this planned Action"><i class="fa-solid fa-xmark"></i></button></div>`;
 }
 
 function weaponPlannerHtml(side, state, editable) {
@@ -487,7 +488,7 @@ function weaponPlannerHtml(side, state, editable) {
     const canCreate = game.user?.isGM || actor.isOwner;
     return `<div class="rg-conflict-weapon-row rg-conflict-weapon-edit"><b>${esc(actor.name)}</b><select data-conflict-weapon-actor="${actorId}"><option value="" ${!selected ? "selected" : ""}>Unarmed / no tool · −1D</option>${weapons.map(w => `<option value="${w.id}" ${selected === w.id ? "selected" : ""}>${esc(w.name)}${w.kind === "tool" ? " · Conflict Tool" : " · Gear"}</option>`).join("")}</select>${canCreate ? `<button type="button" data-conflict-custom-tool-actor="${actorId}" data-side="${side}" title="Create a custom/improvised Conflict Weapon or Tool"><i class="fa-solid fa-plus"></i> Custom</button>` : ""}</div>`;
   }).join("");
-  return `<details class="rg-conflict-weapon-defaults"><summary><i class="fa-solid fa-wand-sparkles"></i> Optional: set quick Weapon / Tool defaults</summary><div class="rg-conflict-weapons"><small class="rg-conflict-weapon-rule">Defaults prefill new Action slots. Every planned Action can still choose a different Weapon / Tool. No valid tool = Unarmed −1D.</small>${rows}</div></details>`;
+  return `<section class="rg-conflict-weapon-defaults rg-conflict-exchange-tools"><div class="rg-plan-step-head"><div><b><i class="fa-solid fa-wand-sparkles"></i> Exchange Weapon / Tool</b><span>Declare one Weapon / Tool per Actor for this three-Action Exchange.</span></div></div><div class="rg-conflict-weapons"><small class="rg-conflict-weapon-rule"><b>Locked for the Exchange:</b> an Actor uses this same Weapon / Tool on every Action they take in these three cards. A different Weapon / Tool may be declared when the next Exchange begins. No valid tool = Unarmed −1D.</small>${rows}</div></section>`;
 }
 
 function conflictActionGuideHtml() {
@@ -505,7 +506,7 @@ function cardPlannerHtml(side, state, editable) {
   const plan = planFor(side, state);
   const filled = [0,1,2].filter(i => plan[i]?.action).length;
   return `<div class="rg-card-planner ${editable ? "editable" : "readonly"}">
-    ${editable ? `<div class="rg-plan-step-head"><div><b>Choose three Actions</b><span>Select an Action first. Actor and Weapon / Tool controls appear only after that slot is filled.</span></div><strong>${filled}/3</strong></div><div class="rg-card-deck">${ACTIONS.map(action => planActionChoice(action, side)).join("")}</div>${weaponPlannerHtml(side, state, editable)}` : ""}
+    ${editable ? `<div class="rg-plan-step-head"><div><b>Choose three Actions</b><span>Declare each Actor’s Exchange Weapon / Tool above, then choose the three Actions and assign the acting Ranger.</span></div><strong>${filled}/3</strong></div><div class="rg-card-deck">${ACTIONS.map(action => planActionChoice(action, side)).join("")}</div>${weaponPlannerHtml(side, state, editable)}` : ""}
     <div class="rg-plan-row">${[0,1,2].map(i => planSlotHtml(side, state, i, plan[i], { editable })).join("")}</div>
   </div>`;
 }
@@ -677,16 +678,12 @@ function bindWindowEvents(root, state) {
     plan[index] = { ...(plan[index] ?? {}), actorId: select.value, weaponId: weaponDraftFor(actor, state, "ranger") }; setDraft("ranger", state, plan);
     renderConflictWindow(state, { force: true });
   }));
-  root.querySelectorAll("[data-plan-weapon]").forEach(select => select.addEventListener("change", () => {
-    const side = select.dataset.planSide; if (!["gm","ranger"].includes(side)) return;
-    const plan = [...planFor(side, state)]; const index = Number(select.dataset.planWeapon);
-    const actorId = side === "ranger" ? (plan[index]?.actorId || state.ranger.participantIds[index % state.ranger.participantIds.length]) : state.gm.actorId;
-    const actor = actorById(actorId);
-    plan[index] = { ...(plan[index] ?? {}), actorId, weaponId: validateWeaponId(actor, state, side, select.value) };
-    setDraft(side, state, plan);
-  }));
   root.querySelectorAll("[data-conflict-weapon-actor]").forEach(select => select.addEventListener("change", () => {
-    setWeaponDraft(state, select.dataset.conflictWeaponActor, select.value);
+    const actorId = select.dataset.conflictWeaponActor;
+    const side = state.stage === "gmPlan" ? "gm" : "ranger";
+    const actor = actorById(actorId);
+    setWeaponDraft(state, actorId, validateWeaponId(actor, state, side, select.value));
+    renderConflictWindow(state, { force: true });
   }));
   root.querySelectorAll("[data-conflict-custom-tool-actor]").forEach(button => button.addEventListener("click", async event => {
     event.preventDefault();
@@ -790,10 +787,13 @@ async function lockPlan(side, state) {
   if (side === "gm") {
     if (!game.user?.isGM || state.stage !== "gmPlan") return;
     const gmActor = actorById(state.gm.actorId);
-    const p = privateState(); p.conflictId = state.id; p.gmPlan = plan.map(x => ({ action: x.action, actorId: state.gm.actorId, weaponId: validateWeaponId(gmActor, state, "gm", x.weaponId ?? weaponDraftFor(gmActor, state, "gm")) })); await setPrivateState(p);
+    const gmWeaponId = validateWeaponId(gmActor, state, "gm", weaponDraftFor(gmActor, state, "gm"));
+    const gmWeaponIds = { [state.gm.actorId]: gmWeaponId };
+    const gmActionPlan = plan.map(x => ({ action: x.action, actorId: state.gm.actorId }));
+    const p = privateState(); p.conflictId = state.id; p.gmPlan = applyExchangeToolScope(gmActionPlan, gmWeaponIds); await setPrivateState(p);
     lockedPlanCache.set(state.id, { ...(lockedPlanCache.get(state.id) ?? {}), gmPlan: clone(p.gmPlan) });
     const next = clone(state);
-    next.weaponIds = { ...(next.weaponIds ?? {}), [state.gm.actorId]: validateWeaponId(gmActor, state, "gm", weaponDraftFor(gmActor, state, "gm")) };
+    next.weaponIds = { ...(next.weaponIds ?? {}), ...gmWeaponIds };
     next.locks.gm = true; next.stage = "rangerPlan"; next.log.push(`Exchange ${next.exchange}: GM cards locked.`); await setPublicState(next);
     return;
   }
@@ -804,10 +804,7 @@ async function lockPlan(side, state) {
     const actor = actorById(actorId);
     return [actorId, validateWeaponId(actor, state, "ranger", weaponDraftFor(actor, state, "ranger"))];
   }));
-  const validatedPlan = plan.map(entry => {
-    const actor = actorById(entry.actorId);
-    return { ...entry, weaponId: validateWeaponId(actor, state, "ranger", entry.weaponId ?? rangerWeaponIds[entry.actorId] ?? "") };
-  });
+  const validatedPlan = applyExchangeToolScope(plan, rangerWeaponIds);
   if (game.user?.isGM) {
     const p = privateState(); p.conflictId = state.id; p.rangerPlan = validatedPlan; await setPrivateState(p);
     lockedPlanCache.set(state.id, { ...(lockedPlanCache.get(state.id) ?? {}), rangerPlan: clone(validatedPlan) });
@@ -832,10 +829,7 @@ async function gmHandleRangerPlan(message, state) {
     const actor = actorById(actorId);
     return [actorId, validateWeaponId(actor, state, "ranger", message.payload?.weaponIds?.[actorId] ?? "")];
   }));
-  const validatedPlan = plan.map(entry => {
-    const actor = actorById(entry.actorId);
-    return { ...entry, weaponId: validateWeaponId(actor, state, "ranger", entry.weaponId ?? weaponIds[entry.actorId] ?? "") };
-  });
+  const validatedPlan = applyExchangeToolScope(plan, weaponIds);
   const p = privateState(); p.conflictId = state.id; p.rangerPlan = validatedPlan; await setPrivateState(p);
   lockedPlanCache.set(state.id, { ...(lockedPlanCache.get(state.id) ?? {}), rangerPlan: clone(validatedPlan) });
   const next = clone(state); next.weaponIds = { ...(next.weaponIds ?? {}), ...weaponIds }; next.locks.ranger = true; next.stage = "ready"; next.pendingActionCounts = validated.counts; next.pendingLastRangerActorId = validated.lastActorId; next.log.push(`Exchange ${next.exchange}: Ranger cards locked.`); await setPublicState(next);

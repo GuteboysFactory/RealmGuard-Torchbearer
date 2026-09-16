@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { applyExchangeToolScope, exchangeToolScopeIsConsistent } from "../module/core/m6-conflict-tool-scope.mjs";
+const plan=[{action:"defend",actorId:"dev",weaponId:"gear:sword"},{action:"attack",actorId:"dev",weaponId:"gear:axe"},{action:"maneuver",actorId:"other",weaponId:"gear:sword"}];
+const scoped=applyExchangeToolScope(plan,{dev:"gear:shield",other:"gear:bow"});
+assert.deepEqual(scoped.map(p=>p.weaponId),["gear:shield","gear:shield","gear:bow"]);
+assert.equal(exchangeToolScopeIsConsistent(scoped,{dev:"gear:shield",other:"gear:bow"}),true);
+assert.equal(exchangeToolScopeIsConsistent(plan,{dev:"gear:shield",other:"gear:bow"}),false);
+const conflicts=fs.readFileSync("module/conflicts.mjs","utf8");
+assert.ok(conflicts.includes("Exchange Weapon / Tool"));
+assert.ok(conflicts.includes("Locked for the Exchange"));
+assert.ok(conflicts.includes("applyExchangeToolScope(gmActionPlan, gmWeaponIds)"));
+assert.ok(conflicts.includes("const validatedPlan = applyExchangeToolScope(plan, rangerWeaponIds);"));
+assert.ok(conflicts.includes("const validatedPlan = applyExchangeToolScope(plan, weaponIds);"));
+assert.ok(!conflicts.includes("data-plan-weapon="));
+assert.ok(!conflicts.includes("Every planned Action can still choose a different Weapon / Tool"));
+console.log("PASS m6-conflict-tool-scope-smoke · one tool per Actor per Exchange");
