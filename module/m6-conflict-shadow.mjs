@@ -1,4 +1,5 @@
 import { m6InteractionMode, previewM6ConflictResolution } from "./core/m6-conflict-services.mjs";
+import { getM6ConflictLiveHandoffStatus, getM6ConflictHandoffHistory, resetM6ConflictHandoffTelemetry, setM6CoreResolutionEnabled } from "./m6-conflict-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -124,7 +125,12 @@ export function installM6ConflictShadow() {
     game.realmGuard.core.m6 = Object.freeze({
       getStatus: () => getM6ConflictShadowStatus(),
       history: () => Object.freeze([...history]),
-      clear: () => { history.length = 0; return getM6ConflictShadowStatus(); }
+      clear: () => { history.length = 0; return getM6ConflictShadowStatus(); },
+      handoffStatus: () => getM6ConflictLiveHandoffStatus(),
+      handoffHistory: () => getM6ConflictHandoffHistory(),
+      resetHandoffTelemetry: () => resetM6ConflictHandoffTelemetry(),
+      rollback: (reason = "MANUAL_QA_ROLLBACK") => setM6CoreResolutionEnabled(false, { reason }),
+      enableCoreResolution: () => setM6CoreResolutionEnabled(true)
     });
     console.log("realm-guard | CORE M6 Conflict resolution shadow parity ready", getM6ConflictShadowStatus());
   });
@@ -133,15 +139,17 @@ export function installM6ConflictShadow() {
 export function getM6ConflictShadowStatus() {
   const matches = history.filter(e => e.parity === "MATCH").length;
   const mismatches = history.filter(e => e.parity === "MISMATCH").length;
+  const handoff = getM6ConflictLiveHandoffStatus();
   return Object.freeze({
     phase: "M6",
-    buildScope: "CONFLICT_RESOLUTION_SHADOW_FOUNDATION",
-    mode: "SHADOW_PARITY",
-    authority: "LEGACY_MIXED",
-    liveApplication: false,
+    buildScope: "CONTROLLED_RESOLUTION_RESULT_HANDOFF",
+    mode: handoff.enabled ? "CORE_RESOLUTION_LEGACY_STATE" : "LEGACY_ROLLBACK_WITH_SHADOW_PARITY",
+    authority: handoff.enabled ? "CORE_M6_RESULT_LEGACY_STATE" : "LEGACY_MIXED",
+    liveApplication: handoff.enabled,
     observed: history.length,
     matches,
     mismatches,
-    latest: history.at(-1) ?? null
+    latest: history.at(-1) ?? null,
+    handoff
   });
 }

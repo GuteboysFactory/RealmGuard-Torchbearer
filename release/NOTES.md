@@ -1,9 +1,9 @@
-Realm Guard / Torchbearer v1.8.0-qa.2 — M6 Automatic Versus Tie parity.
+Realm Guard / Torchbearer v1.8.0-qa.3 — first controlled M6 Conflict resolution live handoff.
 
-Diagnosed qa.1 mismatch fixed narrowly: Legacy Mixed resolves equal Versus results through its automatic Versus tiebreak procedure, while the first M6 shadow implementation stopped at tiePending.
+After qa.2 verified 18/18 M6 shadow observations with zero mismatches, CORE now becomes live authority for a deliberately narrow result scope: completed action-pair pass/fail, margins, failure margins and effective successes.
 
-qa.2 keeps Legacy as the sole live Conflict authority. When Legacy has completed an automatic Versus tiebreak, it exposes the resolved side and margin to the shadow observer. CORE then independently applies the same Conflict consequences and compares winner/pass-fail, margin, failure margin, effective successes, disposition and tie state.
+Legacy Mixed still computes independently first as a parity guard and remains the sole authority for Conflict state writes, disposition mutation, Learning/Nature writes, Maneuver state, exchange advancement and compromise flow. Any CORE exception or result disagreement immediately falls back to Legacy and disables the handoff for the session. Manual rollback/re-enable APIs are exposed under game.realmGuard.core.m6.
 
-No Conflict state writes move to CORE in this build. M5 live handoffs, Token Actor resolution, current Conflict UX and all prior CORE milestones remain unchanged.
+All previous M5 live handoffs and qa.22 Token Actor resolution remain unchanged.
 
-QA protocol: TEST_PROTOCOL_v1.8.0-qa.2.md
+QA protocol: TEST_PROTOCOL_v1.8.0-qa.3.md

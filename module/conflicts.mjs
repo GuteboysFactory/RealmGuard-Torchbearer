@@ -5,6 +5,7 @@ import { talentOptionViews, resolveTalentUse, commitTalentUse, talentEffectSumma
 import { recordAbilityTest, recordHelperSkillTest } from "./advancement.mjs";
 import { traitPositiveStatus } from "./traits.mjs";
 import { evaluateM5ConflictToolLiveHandoff } from "./m5-conflict-live-handoff.mjs";
+import { evaluateM6ConflictResolutionLiveHandoff } from "./m6-conflict-live-handoff.mjs";
 import { resolveConflictActor, inspectConflictActorResolution } from "./conflict-actor-resolver.mjs";
 
 const SYSTEM_ID = "realm-guard";
@@ -1451,6 +1452,38 @@ async function gmResolveCurrentPair(state) {
     }
   }
 
+  const liveResolution = evaluateM6ConflictResolutionLiveHandoff({
+    conflictId: next.id,
+    exchange: next.exchange,
+    actionIndex: pair.index,
+    gmAction: pair.gmAction,
+    rangerAction: pair.rangerAction,
+    gmMode,
+    rangerMode,
+    gmRoll,
+    rangerRoll: rr,
+    tieResolution: resolvedAutomaticTie,
+    legacy: {
+      gmPassed,
+      rangerPassed: rPassed,
+      gmMargin,
+      rangerMargin: rMargin,
+      gmFailureMargin,
+      rangerFailureMargin: rFailureMargin,
+      gmEffectiveSuccesses: gmRaw,
+      rangerEffectiveSuccesses: rRaw,
+      tiePending: false
+    }
+  });
+  gmPassed = liveResolution.gmPassed;
+  rPassed = liveResolution.rangerPassed;
+  gmMargin = liveResolution.gmMargin;
+  rMargin = liveResolution.rangerMargin;
+  gmFailureMargin = liveResolution.gmFailureMargin;
+  rFailureMargin = liveResolution.rangerFailureMargin;
+  gmRaw = liveResolution.gmEffectiveSuccesses;
+  rRaw = liveResolution.rangerEffectiveSuccesses;
+
   if (gmRoll && !gmRoll.trumped) gmRoll.effectiveSuccesses = gmRaw;
   if (rr && !rr.trumped) rr.effectiveSuccesses = rRaw;
 
@@ -1504,6 +1537,7 @@ async function gmResolveCurrentPair(state) {
       rangerDisposition: next.ranger.disposition.current,
       tiePending: false,
       tieResolution: resolvedAutomaticTie,
+      resolutionAuthority: liveResolution?.m6?.resolutionAuthority ?? "LEGACY_MIXED",
       maneuverQueue: maneuverPending
     });
   } catch (_error) { /* M6 shadow observer must never interrupt Conflict */ }
