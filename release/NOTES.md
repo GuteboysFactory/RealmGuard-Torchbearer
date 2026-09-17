@@ -1,11 +1,14 @@
-Realm Guard / Torchbearer v1.8.0-qa.10 — Skill Roll UX & Beginner's Luck Split.
+Realm Guard / Torchbearer v1.8.0 — GOLD baseline.
 
-This patch adds explicit Quick Roll and Roll Window actions for trained Skills and Untrained / Beginner's Luck Skills, keeps Help / Teamwork visible in the full Roll Window, and separates untrained canonical Skills into Will-based and Health-based groups.
+This stable release promotes the fully verified v1.8.0-qa.10 codebase to the new public GOLD baseline for Foundry VTT v13.351.
 
-Quick Roll keeps the existing live roll authority: automatic Conditions, Turn Manager claims, Fate/Open 6s and advancement/learning remain in the current actor roll pipeline. Cases that require an explicit GM/user decision — Obstacle Approval or ambiguous/unsupported Versus opposition — automatically open the full Roll Window instead of bypassing the workflow.
+The v1.8 line includes the verified M2 Unified Effect Engine, M3 Unified Test Engine, M4 Advancement / Nature / Conditions, M5 Gear / Inventory / Conflict Tools, M6 Conflict Refactor, and the Skill Roll UX / Beginner's Luck split. Legacy Mixed remains the active compatibility profile and existing campaign behavior is preserved.
 
-The active Skills UI no longer shows the ambiguous Will / Health fallback. Custom/unclassified Skills remain explicit and ask for a base ability when first rolled. Farmer is aligned as physical and therefore uses Health for Beginner's Luck.
+Skill rolling includes explicit Quick Roll and Roll Window actions, Teamwork remains available in the full Roll Window, untrained canonical Skills are separated into Will-based and Health-based groups, and ambiguous/custom cases remain explicit rather than silently guessing.
 
-Also removes obsolete one-shot qa26–qa30 patch workflows/patcher scripts while preserving reusable smoke tests. No M6 Conflict resolution/state authority changes.
+This is a promotion release: no new gameplay feature is introduced beyond the verified v1.8.0-qa.10 baseline. v1.9.0-qa.x continues separately as the M7 Session Engine development track.
 
-QA protocol: TEST_PROTOCOL_v1.8.0-qa.10.md
+Foundry compatibility: minimum v13, verified v13.351, maximum v14.
+
+Previous GOLD baseline: v1.3.0.
+New GOLD baseline: v1.8.0.
