@@ -111,6 +111,37 @@ export class RewardEngine {
       authority: this.authority.mode
     });
   }
+
+  previewCommit({
+    currentFate = 0,
+    currentPersona = 0,
+    fateMax = 999,
+    personaMax = 999,
+    proposal = {},
+    approval = {}
+  } = {}) {
+    const beforeFate = Math.max(0, Number(currentFate ?? 0));
+    const beforePersona = Math.max(0, Number(currentPersona ?? 0));
+    const maximumFate = Math.max(beforeFate, Number(fateMax ?? 999));
+    const maximumPersona = Math.max(beforePersona, Number(personaMax ?? 999));
+    const proposedFate = Math.max(0, Number(proposal?.fate ?? 0));
+    const proposedPersona = Math.max(0, Number(proposal?.persona ?? 0));
+    const approvedFate = Boolean(approval?.fate) ? proposedFate : 0;
+    const approvedPersona = Boolean(approval?.persona) ? proposedPersona : 0;
+    const nextFate = Math.min(maximumFate, beforeFate + approvedFate);
+    const nextPersona = Math.min(maximumPersona, beforePersona + approvedPersona);
+    return freeze({
+      beforeFate,
+      beforePersona,
+      approvedFate,
+      approvedPersona,
+      nextFate,
+      nextPersona,
+      actualFate: nextFate - beforeFate,
+      actualPersona: nextPersona - beforePersona,
+      authority: this.authority.mode
+    });
+  }
 }
 
 export class SessionEngine {
