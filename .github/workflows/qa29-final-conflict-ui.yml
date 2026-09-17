@@ -1,0 +1,49 @@
+name: Apply qa.8 Final Conflict UI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tools/qa29_apply.py'
+      - '.github/workflows/qa29-final-conflict-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply v1.8.0-qa.8 final Conflict UI polish
+        run: python tools/qa29_apply.py
+      - name: Verify version and syntax
+        run: |
+          python - <<'PY'
+          import json
+          data=json.load(open('system.json',encoding='utf-8'))
+          assert data['version']=='1.8.0-qa.8'
+          assert data['download'].endswith('/1.8.0-qa.8/realm-guard.zip')
+          css=open('styles/conflict-parchment-prototype.css',encoding='utf-8').read()
+          scroll=open('styles/roll-dialog-scroll.css',encoding='utf-8').read()
+          src=open('module/conflicts.mjs',encoding='utf-8').read()
+          assert 'v1.8.0-qa.8 — final Conflict UI polish' in css
+          assert 'viewport-safe Conflict dialog family' in scroll
+          assert 'class="rg-conflict-primary gm" data-conflict-action="roll" data-side="gm"' in src
+          assert 'class="rg-conflict-primary ranger" data-conflict-action="roll" data-side="ranger"' in src
+          print('qa.8 verification PASS')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "GuteboysFactory"
+          git config user.email "per@guteboy.eu"
+          git add module/conflicts.mjs styles/conflict-parchment-prototype.css styles/roll-dialog-scroll.css system.json realm-guard.mjs RELEASE_NOTES_v1.8.0-qa.8.md TEST_PROTOCOL_v1.8.0-qa.8.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Release v1.8.0-qa.8 final Conflict UI polish"
+            git push
+          fi
