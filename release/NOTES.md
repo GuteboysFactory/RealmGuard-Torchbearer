@@ -1,9 +1,15 @@
-Realm Guard / Torchbearer v1.9.0-qa.2 — M7 Synthetic Participant Parity.
+Realm Guard / Torchbearer v1.9.0-qa.3 — M7 End Session / Reward Shadow Parity.
 
-This QA patch fixes an Actor-resolution bug discovered during M7 live QA when Turn Manager is used with unlinked/synthetic token Actors.
+This QA build adds read-only reward parity observation around the existing Legacy Mixed End Session workflow.
 
-Turn Manager now preserves the displayed participant Actor through Pass Check and Done/Discard instead of falling back to the world Actor by id. M7 session snapshots and previews use the same participant selection path, including synthetic-token state and participant reference provenance.
+Legacy End Session remains the only live authority for reward selection, GM approval, Fate/Persona mutation, duplicate-finalization locking and session reset. CORE M7 now receives the same selected criteria and approval inputs, computes its own proposal/commit preview, and records whether the CORE result matches Legacy.
 
-Legacy Mixed remains the only live authority for Turn Manager, Checks, Free Tests and End Session. CORE M7 remains shadow/read-only. No Check rules, phase rules, reward rules or other gameplay semantics are intentionally changed.
+Added diagnostics:
+- game.realmGuard.core.m7.rewardParity()
+- game.realmGuard.core.m7.rewardParitySummary()
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.2.md
+The shadow records PROPOSAL_PARITY and COMMIT_PARITY rows with Legacy and CORE values. No CORE reward application is enabled.
+
+Legacy Mixed remains live authority. M7 remains SHADOW_READ_ONLY with liveApplication false.
+
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.3.md
