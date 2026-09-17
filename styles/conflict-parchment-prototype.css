@@ -1,0 +1,385 @@
+/* v1.8.0-qa.7 — Conflict & roll parchment UI prototype
+   Visual-only layer: no Conflict rules, state, socket, roll or CORE behavior changes. */
+
+:root {
+  --rgc-paper-ink:#2b2115;
+  --rgc-paper-muted:#66543b;
+  --rgc-paper-line:rgba(92,61,29,.42);
+  --rgc-paper-panel:rgba(246,229,188,.82);
+  --rgc-paper-panel-strong:rgba(249,235,199,.91);
+  --rgc-paper-panel-soft:rgba(236,211,158,.68);
+  --rgc-gold:#9b6a2d;
+  --rgc-gold-bright:#c4934d;
+  --rgc-ranger:#38543a;
+  --rgc-ranger-dark:#253b29;
+  --rgc-gm:#6a352d;
+  --rgc-gm-dark:#48231f;
+  --rgc-shadow:rgba(50,27,11,.30);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Conflict window                                                           */
+/* ------------------------------------------------------------------------- */
+.rg-conflict-window {
+  color:var(--rgc-paper-ink);
+  background:
+    linear-gradient(rgba(244,224,177,.08),rgba(100,57,20,.08)),
+    url("../assets/ui/conflict-parchment.svg") center/cover no-repeat !important;
+  border:2px solid #795126 !important;
+  border-radius:12px !important;
+  box-shadow:0 18px 55px rgba(0,0,0,.48), inset 0 0 0 1px rgba(255,241,199,.5) !important;
+}
+.rg-conflict-window::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:10px;
+  box-shadow:inset 0 0 55px rgba(78,43,16,.20);
+  z-index:0;
+}
+.rg-conflict-window > * { position:relative; z-index:1; }
+
+.rg-conflict-window .rg-conflict-titlebar {
+  color:#f4e4bc;
+  background:
+    linear-gradient(180deg,rgba(45,38,25,.97),rgba(24,24,17,.96)),
+    url("../assets/ui/conflict-parchment.svg") center 18%/cover no-repeat;
+  border-bottom:2px solid #b18545 !important;
+  box-shadow:0 3px 13px rgba(52,29,12,.32);
+}
+.rg-conflict-window .rg-conflict-titlebar span { color:#d6b06c !important; letter-spacing:.18em; font-weight:900; }
+.rg-conflict-window .rg-conflict-titlebar h2 { color:#fff0ca !important; text-shadow:0 2px 3px #000; }
+.rg-conflict-window .rg-conflict-titlebar small { color:#d8c7a4 !important; }
+.rg-conflict-window .rg-conflict-window-actions button {
+  color:#efd7a6 !important;
+  background:rgba(255,255,255,.06) !important;
+  border:1px solid rgba(215,176,105,.38) !important;
+}
+.rg-conflict-window .rg-conflict-window-actions button:hover { background:rgba(215,176,105,.15) !important; }
+
+.rg-conflict-window .rg-conflict-body {
+  color:var(--rgc-paper-ink);
+  background:rgba(245,225,180,.08);
+  scrollbar-color:#8c6336 rgba(90,54,25,.12);
+}
+
+/* Goals become two readable parchment cards rather than dark slabs. */
+.rg-conflict-window .rg-conflict-goals article {
+  color:var(--rgc-paper-ink) !important;
+  background:var(--rgc-paper-panel-strong) !important;
+  border:1px solid var(--rgc-paper-line) !important;
+  box-shadow:0 5px 14px rgba(74,42,17,.13), inset 0 0 0 1px rgba(255,255,255,.26) !important;
+}
+.rg-conflict-window .rg-conflict-goals article.gm { border-left:5px solid var(--rgc-gm) !important; }
+.rg-conflict-window .rg-conflict-goals article.ranger { border-left:5px solid var(--rgc-ranger) !important; }
+.rg-conflict-window .rg-conflict-goals article > b { color:#342315 !important; }
+.rg-conflict-window .rg-conflict-goals article.gm > span { color:var(--rgc-gm) !important; }
+.rg-conflict-window .rg-conflict-goals article.ranger > span { color:var(--rgc-ranger) !important; }
+.rg-conflict-window .rg-conflict-goals article p { color:#493a26 !important; }
+.rg-conflict-window .rg-conflict-emblem {
+  color:#765024 !important;
+  text-shadow:0 1px 0 rgba(255,255,255,.45);
+}
+
+/* Disposition is important table state: high contrast but still parchment. */
+.rg-conflict-window .rg-disposition {
+  color:var(--rgc-paper-ink) !important;
+  background:rgba(249,235,200,.86) !important;
+  border:1px solid rgba(91,60,29,.38) !important;
+  box-shadow:0 3px 10px rgba(75,42,17,.10) !important;
+}
+.rg-conflict-window .rg-disposition-head b { color:#46331e !important; }
+.rg-conflict-window .rg-disposition-head strong { color:#2d2115 !important; }
+.rg-conflict-window .rg-disposition-track { background:rgba(85,58,33,.20) !important; border:1px solid rgba(79,52,26,.20); }
+.rg-conflict-window .rg-disposition-gm .rg-disposition-track span { background:linear-gradient(90deg,var(--rgc-gm-dark),#9b5547) !important; }
+.rg-conflict-window .rg-disposition-ranger .rg-disposition-track span { background:linear-gradient(90deg,var(--rgc-ranger-dark),#577557) !important; }
+
+/* Guidance is deliberately neutral and clear. */
+.rg-conflict-window .rg-conflict-guidance {
+  color:#3b2c1b !important;
+  background:rgba(250,237,204,.80) !important;
+  border:1px solid rgba(105,72,36,.37) !important;
+  border-left:5px solid #a97937 !important;
+  box-shadow:0 3px 10px rgba(75,42,17,.08);
+}
+.rg-conflict-window .rg-conflict-guidance.current { background:rgba(255,241,207,.91) !important; border-left-color:#8a5b25 !important; }
+.rg-conflict-window .rg-conflict-guidance b { color:#382615 !important; }
+.rg-conflict-window .rg-conflict-guidance span { color:#5b4930 !important; }
+
+/* Action Guide follows the same visual language. */
+.rg-conflict-window .rg-conflict-action-guide {
+  background:rgba(244,224,181,.76) !important;
+  border:1px solid rgba(94,61,28,.35) !important;
+  color:#3b2b1b !important;
+}
+.rg-conflict-window .rg-conflict-action-guide summary,
+.rg-conflict-window .rg-conflict-action-guide summary * { color:#46321d !important; }
+.rg-conflict-window .rg-conflict-action-guide-item {
+  background:rgba(255,245,219,.58) !important;
+  border:1px solid rgba(94,61,28,.23) !important;
+  color:#463522 !important;
+}
+.rg-conflict-window .rg-conflict-action-guide-item p,
+.rg-conflict-window .rg-conflict-action-guide-item small { color:#5d4b34 !important; }
+
+/* Planning panels: parchment body + side identity in the header edge. */
+.rg-conflict-window .rg-side-plan {
+  color:var(--rgc-paper-ink) !important;
+  background:rgba(246,228,187,.82) !important;
+  border:1px solid rgba(92,60,28,.38) !important;
+  box-shadow:0 5px 14px rgba(74,42,17,.11) !important;
+}
+.rg-conflict-window .rg-side-plan.gm { border-top:4px solid var(--rgc-gm) !important; }
+.rg-conflict-window .rg-side-plan.ranger { border-top:4px solid var(--rgc-ranger) !important; }
+.rg-conflict-window .rg-side-plan h3,
+.rg-conflict-window .rg-side-plan h3 span,
+.rg-conflict-window .rg-side-plan h3 i { color:#3e2b19 !important; }
+.rg-conflict-window .rg-side-plan h3 small { color:#765f3e !important; }
+.rg-conflict-window .rg-side-plan.gm.is-active-plan { box-shadow:0 0 0 2px rgba(106,53,45,.22),0 7px 18px rgba(74,42,17,.15) !important; }
+.rg-conflict-window .rg-side-plan.ranger.is-active-plan { box-shadow:0 0 0 2px rgba(56,84,58,.22),0 7px 18px rgba(74,42,17,.15) !important; }
+
+.rg-conflict-window .rg-plan-step-head,
+.rg-conflict-window .rg-conflict-exchange-tools,
+.rg-conflict-window .rg-plan-slot,
+.rg-conflict-window .rg-plan-field,
+.rg-conflict-window .rg-plan-weapon,
+.rg-conflict-window .rg-action-tool {
+  color:#3c2c1c !important;
+}
+.rg-conflict-window .rg-conflict-exchange-tools,
+.rg-conflict-window .rg-plan-slot,
+.rg-conflict-window .rg-plan-field,
+.rg-conflict-window .rg-plan-weapon {
+  background:rgba(255,246,219,.55) !important;
+  border-color:rgba(104,69,31,.26) !important;
+}
+.rg-conflict-window .rg-plan-slot.is-empty { border-style:dashed !important; }
+.rg-conflict-window .rg-plan-slot span,
+.rg-conflict-window .rg-plan-slot small,
+.rg-conflict-window .rg-plan-step-head span,
+.rg-conflict-window .rg-conflict-weapon-rule { color:#67553a !important; }
+.rg-conflict-window select,
+.rg-conflict-window input,
+.rg-conflict-window textarea {
+  color:#2c2116 !important;
+  background:rgba(255,248,226,.90) !important;
+  border:1px solid rgba(91,60,29,.42) !important;
+}
+
+/* Preserve action identity: cards remain dark enough to read instantly. */
+.rg-conflict-window .rg-conflict-card,
+.rg-conflict-window .rg-plan-action-choice {
+  box-shadow:0 3px 8px rgba(55,31,13,.20) !important;
+}
+.rg-conflict-window .rg-plan-action-choice { background:rgba(57,46,31,.91) !important; color:#f4e7c9 !important; }
+.rg-conflict-window .rg-plan-action-choice:hover { transform:translateY(-1px); border-color:#d1a35d !important; }
+.rg-conflict-window .rg-plan-action-choice b,
+.rg-conflict-window .rg-plan-action-choice small,
+.rg-conflict-window .rg-plan-action-choice i { color:inherit !important; }
+
+/* Current action is the visual focal point. */
+.rg-conflict-window .rg-current-action {
+  margin-top:15px;
+  padding:14px;
+  color:#302316 !important;
+  background:rgba(250,235,199,.88) !important;
+  border:1px solid rgba(91,60,29,.43) !important;
+  border-radius:9px;
+  box-shadow:0 7px 18px rgba(69,39,16,.15), inset 0 0 0 1px rgba(255,255,255,.24);
+}
+.rg-conflict-window .rg-current-action > header {
+  margin:-14px -14px 13px;
+  padding:10px 13px;
+  color:#efe1bf !important;
+  background:linear-gradient(90deg,#4a281f,#302c21 48%,#263b29);
+  border-radius:8px 8px 0 0;
+  border-bottom:1px solid #9b763f;
+}
+.rg-conflict-window .rg-current-action > header span,
+.rg-conflict-window .rg-current-action > header b { color:inherit !important; }
+.rg-conflict-window .rg-action-side {
+  background:rgba(255,247,222,.69) !important;
+  border:1px solid rgba(91,60,29,.28) !important;
+}
+.rg-conflict-window .rg-action-side.gm { border-top:4px solid var(--rgc-gm) !important; }
+.rg-conflict-window .rg-action-side.ranger { border-top:4px solid var(--rgc-ranger) !important; }
+.rg-conflict-window .rg-action-side h4 { color:#352517 !important; }
+.rg-conflict-window .rg-action-clash { color:#684621 !important; }
+.rg-conflict-window .rg-roll-state { background:rgba(105,72,37,.08) !important; border-color:rgba(91,60,29,.20) !important; color:#51402b !important; }
+.rg-conflict-window .rg-roll-state b { color:#2d2115 !important; }
+.rg-conflict-window .rg-roll-state small { color:#65533a !important; }
+.rg-conflict-window .rg-action-result { color:#392b1b !important; background:rgba(255,244,213,.86) !important; border-color:rgba(105,72,36,.34) !important; }
+
+.rg-conflict-window .rg-interaction { box-shadow:none !important; }
+.rg-conflict-window .rg-interaction.versus { background:#74452e !important; color:#fff0cf !important; border-color:#9f744b !important; }
+.rg-conflict-window .rg-interaction.independent { background:#4c5b3c !important; color:#eff2d8 !important; border-color:#72845d !important; }
+.rg-conflict-window .rg-interaction.trumped { background:#67572c !important; color:#fff0bf !important; border-color:#9f8747 !important; }
+
+/* Controls: high signal, less generic Foundry chrome. */
+.rg-conflict-window .rg-conflict-controls {
+  padding:10px;
+  color:#3f301f !important;
+  background:rgba(246,229,191,.70) !important;
+  border:1px solid rgba(95,63,30,.30) !important;
+  border-radius:8px;
+}
+.rg-conflict-window .rg-conflict-controls small,
+.rg-conflict-window .rg-conflict-controls.waiting { color:#655139 !important; }
+.rg-conflict-window .rg-conflict-primary,
+.rg-conflict-window button.rg-conflict-primary {
+  color:#f7ead0 !important;
+  background:linear-gradient(180deg,#6a5234,#44311f) !important;
+  border:1px solid #8f6b3d !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 5px rgba(68,37,15,.18);
+}
+.rg-conflict-window .rg-conflict-primary.gm { background:linear-gradient(180deg,#7c463c,var(--rgc-gm-dark)) !important; border-color:#955d4e !important; }
+.rg-conflict-window .rg-conflict-primary.ranger { background:linear-gradient(180deg,#526a50,var(--rgc-ranger-dark)) !important; border-color:#6e8669 !important; }
+.rg-conflict-window .rg-conflict-primary:hover { filter:brightness(1.12); }
+
+/* Maneuver / compromise / history remain readable without dominating. */
+.rg-conflict-window .rg-maneuver-panel,
+.rg-conflict-window .rg-conflict-compromise,
+.rg-conflict-window .rg-conflict-history {
+  color:#3e2e1d !important;
+  background:rgba(246,229,190,.78) !important;
+  border-color:rgba(91,60,29,.34) !important;
+}
+.rg-conflict-window .rg-conflict-history summary { color:#604a30 !important; }
+.rg-conflict-window .rg-conflict-history ol,
+.rg-conflict-window .rg-conflict-history li { color:#67543a !important; }
+.rg-conflict-window .rg-conflict-admin button { opacity:.72; }
+
+/* ------------------------------------------------------------------------- */
+/* Conflict roll dialogs                                                      */
+/* ------------------------------------------------------------------------- */
+.application.dialog:has(.rg-conflict-roll-dialog),
+.application:has(.rg-conflict-roll-dialog) {
+  --color-text-primary:#2e2317;
+  --color-text-secondary:#69553a;
+  color:#2e2317 !important;
+  border:1px solid #765028 !important;
+  box-shadow:0 15px 48px rgba(0,0,0,.45) !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .window-header,
+.application:has(.rg-conflict-roll-dialog) .window-header {
+  color:#f6e7c3 !important;
+  background:linear-gradient(180deg,#3e3325,#201d16) !important;
+  border-bottom:2px solid #a5793d !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .window-header *,
+.application:has(.rg-conflict-roll-dialog) .window-header * { color:inherit !important; }
+.application.dialog:has(.rg-conflict-roll-dialog) .window-content,
+.application:has(.rg-conflict-roll-dialog) .window-content {
+  color:#2e2317 !important;
+  background:
+    linear-gradient(rgba(247,231,192,.17),rgba(122,77,31,.08)),
+    url("../assets/ui/conflict-parchment.svg") center/cover no-repeat !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .dialog-content,
+.application:has(.rg-conflict-roll-dialog) .dialog-content { padding:12px !important; }
+
+.rg-conflict-roll-dialog {
+  display:grid;
+  gap:10px;
+  color:#2e2317 !important;
+  padding:2px;
+}
+.rg-conflict-roll-dialog > h3 {
+  margin:0;
+  padding:10px 12px;
+  color:#f5e5c0 !important;
+  background:linear-gradient(90deg,#503025,#3e3526 55%,#31432f);
+  border:1px solid rgba(89,57,27,.52);
+  border-radius:8px;
+  font-size:21px !important;
+  letter-spacing:.025em;
+  text-shadow:0 1px 2px #000;
+}
+.rg-conflict-roll-dialog > label,
+.rg-conflict-roll-dialog fieldset,
+.rg-conflict-roll-dialog .rg-roll-dialog-grid,
+.rg-conflict-roll-dialog .rg-conflict-tactical,
+.rg-conflict-roll-dialog .rg-conflict-gear,
+.rg-conflict-roll-dialog .rg-conflict-nature,
+.rg-conflict-roll-dialog .rg-conflict-requirement {
+  color:#342719 !important;
+  background:rgba(250,238,207,.84) !important;
+  border:1px solid rgba(91,60,29,.34) !important;
+  border-radius:8px;
+  box-shadow:0 3px 9px rgba(67,38,16,.09);
+}
+.rg-conflict-roll-dialog > label { display:grid; gap:5px; padding:9px 10px; font-weight:800; }
+.rg-conflict-roll-dialog > label > small { font-weight:400; }
+.rg-conflict-roll-dialog .rg-roll-dialog-grid { padding:9px 10px; }
+.rg-conflict-roll-dialog fieldset { margin:0 !important; padding:11px 12px 12px !important; }
+.rg-conflict-roll-dialog legend {
+  color:#523a20 !important;
+  background:#ead09b;
+  border:1px solid rgba(91,60,29,.23);
+  border-radius:999px;
+  padding:3px 9px !important;
+}
+.rg-conflict-roll-dialog label { color:#3d2d1d !important; }
+.rg-conflict-roll-dialog small { color:#69573d !important; }
+.rg-conflict-roll-dialog input,
+.rg-conflict-roll-dialog select,
+.rg-conflict-roll-dialog textarea {
+  color:#2d2115 !important;
+  background:rgba(255,250,232,.94) !important;
+  border:1px solid rgba(88,58,28,.42) !important;
+}
+.rg-conflict-roll-dialog .rg-conflict-tactical,
+.rg-conflict-roll-dialog .rg-conflict-gear,
+.rg-conflict-roll-dialog .rg-conflict-nature { margin:0; padding:8px 10px; }
+.rg-conflict-roll-dialog .rg-conflict-tactical { border-left:4px solid #8b6f35 !important; }
+.rg-conflict-roll-dialog .rg-conflict-gear { border-left:4px solid var(--rgc-ranger) !important; }
+.rg-conflict-roll-dialog .rg-conflict-nature { border-left:4px solid #84632e !important; }
+.rg-conflict-roll-dialog .rg-conflict-requirement { padding:9px 10px !important; }
+.rg-conflict-roll-dialog .rg-conflict-tap-nature.is-available { border-color:rgba(69,105,62,.55) !important; }
+.rg-conflict-roll-dialog .rg-conflict-tap-nature.is-unavailable { border-color:rgba(128,69,57,.38) !important; }
+
+.application.dialog:has(.rg-conflict-roll-dialog) .dialog-buttons,
+.application:has(.rg-conflict-roll-dialog) .dialog-buttons {
+  gap:8px;
+  padding:10px 12px 12px !important;
+  background:rgba(231,205,151,.82) !important;
+  border-top:1px solid rgba(91,60,29,.28) !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .dialog-buttons button,
+.application:has(.rg-conflict-roll-dialog) .dialog-buttons button {
+  min-height:38px;
+  color:#f7ead0 !important;
+  background:linear-gradient(180deg,#665039,#3f3020) !important;
+  border:1px solid #8b6738 !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .dialog-buttons button[data-action="roll"],
+.application:has(.rg-conflict-roll-dialog) .dialog-buttons button[data-action="roll"] {
+  background:linear-gradient(180deg,#536b4f,#2b412d) !important;
+  border-color:#71836a !important;
+  font-weight:900;
+}
+
+/* Setup and other conflict-owned dialogs get the parchment treatment too. */
+.application:has(.rg-conflict-setup) .window-content,
+.application:has(.rg-disposition-method) .window-content,
+.application:has(.rg-disarm-dialog) .window-content,
+.application:has(.rg-conflict-tool-editor) .window-content,
+.application:has(.rg-conflict-goal-editor) .window-content {
+  color:#302417 !important;
+  background:
+    linear-gradient(rgba(247,231,192,.15),rgba(122,77,31,.08)),
+    url("../assets/ui/conflict-parchment.svg") center/cover no-repeat !important;
+}
+.application:has(.rg-conflict-setup) .dialog-content,
+.application:has(.rg-disposition-method) .dialog-content,
+.application:has(.rg-disarm-dialog) .dialog-content,
+.application:has(.rg-conflict-tool-editor) .dialog-content,
+.application:has(.rg-conflict-goal-editor) .dialog-content { padding:12px !important; }
+
+@media(max-width:760px) {
+  .rg-conflict-window { border-radius:8px !important; }
+  .rg-conflict-window .rg-current-action { padding:10px; }
+  .rg-conflict-window .rg-current-action > header { margin:-10px -10px 10px; }
+  .rg-conflict-roll-dialog > h3 { font-size:18px !important; }
+}
