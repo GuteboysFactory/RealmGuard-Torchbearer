@@ -1,11 +1,9 @@
-Realm Guard / Torchbearer v1.9.0-qa.1 — M7 Session Engine Foundation.
+Realm Guard / Torchbearer v1.9.0-qa.2 — M7 Synthetic Participant Parity.
 
-This QA build starts M7 with a read-only CORE session foundation. Legacy Mixed remains the only live authority for Turn Manager, Checks, Free Tests and End Session.
+This QA patch fixes an Actor-resolution bug discovered during M7 live QA when Turn Manager is used with unlinked/synthetic token Actors.
 
-Added SessionState, PhaseDefinition, SessionEngine, ActionCurrencyService, PhaseAllowanceService, RewardEngine and RewardAuthority, plus a Legacy session snapshot adapter and `game.realmGuard.core.m7` diagnostics/preview API.
+Turn Manager now preserves the displayed participant Actor through Pass Check and Done/Discard instead of falling back to the world Actor by id. M7 session snapshots and previews use the same participant selection path, including synthetic-token state and participant reference provenance.
 
-The shadow layer can inspect current session state, preview Free Test vs Check cost, alternation/Done/no-Checks/NPC/Free Play paths, preview Check transfer legality, and reproduce current End Session Fate/Persona proposal math including Goal suppression and caps.
+Legacy Mixed remains the only live authority for Turn Manager, Checks, Free Tests and End Session. CORE M7 remains shadow/read-only. No Check rules, phase rules, reward rules or other gameplay semantics are intentionally changed.
 
-M7 live application remains OFF. No Turn Manager or End Session UI rewrite, no CORE resource/session mutation, and no gameplay change is intended.
-
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.1.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.2.md
