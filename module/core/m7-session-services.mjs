@@ -1,3 +1,5 @@
+import { participantActorReference, participantActors } from "../session-participants.mjs";
+
 const SYSTEM_ID = "realm-guard";
 
 function freeze(value) {
@@ -137,14 +139,14 @@ export class SessionEngine {
   }
 }
 
-export function legacySessionSnapshot(gameRef = globalThis.game) {
+export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = globalThis.canvas) {
   const game = gameRef;
   const read = (key, fallback) => {
     try { return game?.settings?.get?.(SYSTEM_ID, key) ?? fallback; }
     catch (_error) { return fallback; }
   };
   const cycleId = Math.max(1, Number(read("turnCycleId", 1) || 1));
-  const actors = (game?.actors ?? []).filter?.(actor => actor.type === "character") ?? [];
+  const actors = participantActors({ gameRef: game, canvasRef });
   return new SessionState({
     enabled: Boolean(read("useTurnManager", true)),
     phase: read("turnPhase", "gm"),
@@ -155,7 +157,9 @@ export function legacySessionSnapshot(gameRef = globalThis.game) {
       const active = Number(raw?.turnId ?? 0) === cycleId;
       return {
         id: actor.id,
+        ref: participantActorReference(actor),
         name: actor.name,
+        isToken: Boolean(actor?.isToken),
         freeUsed: active ? Boolean(raw.freeUsed) : false,
         testsTaken: active ? Math.max(0, Number(raw.testsTaken ?? 0)) : 0,
         checksSpent: active ? Math.max(0, Number(raw.checksSpent ?? 0)) : 0,
