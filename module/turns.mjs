@@ -1,4 +1,5 @@
 import { registerGmDockTool, renderGmDock } from "./gm-dock.mjs";
+import { participantActorReference, participantActors, resolveParticipantActor } from "./session-participants.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -118,24 +119,7 @@ export function recoveryAttempts(actor) {
   return Number(stored.turnId ?? 0) === currentTurnId() && Array.isArray(stored.conditions) ? [...stored.conditions] : [];
 }
 
-export function participantActors() {
-  const seen = new Set();
-  const actors = [];
-  for (const token of canvas?.tokens?.placeables ?? []) {
-    const actor = token.actor;
-    if (!actor || actor.type !== "character" || seen.has(actor.id)) continue;
-    seen.add(actor.id);
-    actors.push(actor);
-  }
-  if (!actors.length) {
-    for (const actor of game.actors.filter(a => a.type === "character")) {
-      if (seen.has(actor.id)) continue;
-      seen.add(actor.id);
-      actors.push(actor);
-    }
-  }
-  return actors.sort((a, b) => a.name.localeCompare(b.name));
-}
+export { participantActors };
 
 export function playerTurnState(actor) {
   const stored = actor?.getFlag(SYSTEM_ID, STATE_FLAG) ?? {};
@@ -281,7 +265,7 @@ export async function openDonateDialog(donor) {
 
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Pass Checks · ${donor.name}`, resizable: true },
-    content: `<div class="rg-pass-checks-dialog"><p><b>${esc(donor.name)}</b> has ${donorChecks} Check${donorChecks === 1 ? "" : "s"}.</p><label>Patrol-mate <select name="recipientId">${candidates.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select></label><label>Checks <input type="number" name="amount" min="1" max="${donorChecks}" value="1"></label><p><small>Checks may be passed to a patrol-mate who has none.</small></p></div>`,
+    content: `<div class="rg-pass-checks-dialog"><p><b>${esc(donor.name)}</b> has ${donorChecks} Check${donorChecks === 1 ? "" : "s"}.</p><label>Patrol-mate <select name="recipientId">${candidates.map(a => `<option value="${esc(participantActorReference(a))}">${esc(a.name)}</option>`).join("")}</select></label><label>Checks <input type="number" name="amount" min="1" max="${donorChecks}" value="1"></label><p><small>Checks may be passed to a patrol-mate who has none.</small></p></div>`,
     modal: false,
     rejectClose: false,
     buttons: [
@@ -290,7 +274,7 @@ export async function openDonateDialog(donor) {
     ]
   });
   if (!result) return;
-  const donation = await donateCheck(donor, game.actors.get(result.recipientId), result.amount);
+  const donation = await donateCheck(donor, resolveParticipantActor(result.recipientId), result.amount);
   if (!donation.ok) ui.notifications.warn(`Realm Guard: ${donation.reason}`);
   else ui.notifications.info("Realm Guard: Check passed.");
 }
@@ -363,7 +347,7 @@ export async function setTurnPhase(phase) {
 }
 
 function optionRows(actors) {
-  return actors.map(actor => `<option value="${actor.id}">${esc(actor.name)}</option>`).join("");
+  return actors.map(actor => `<option value="${esc(participantActorReference(actor))}">${esc(actor.name)}</option>`).join("");
 }
 
 export async function openTurnManager() {
@@ -418,13 +402,13 @@ export async function openTurnManager() {
     return openTurnManager();
   }
   if (result.action === "donate") {
-    const donation = await donateCheck(game.actors.get(result.donorId), game.actors.get(result.recipientId), result.amount);
+    const donation = await donateCheck(resolveParticipantActor(result.donorId), resolveParticipantActor(result.recipientId), result.amount);
     if (!donation.ok) ui.notifications.warn(`Realm Guard: ${donation.reason}`);
     else ui.notifications.info("Realm Guard: Check passed.");
     return openTurnManager();
   }
   if (result.action === "finish") {
-    const actor = game.actors.get(result.actorId);
+    const actor = resolveParticipantActor(result.actorId);
     if (actor) await finishPlayer(actor);
     return openTurnManager();
   }
