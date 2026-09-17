@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.8\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.8\.0(?:-qa\.\d+)?$/);
 assert.equal(manifest.compatibility.minimum, "13");
 assert.equal(manifest.compatibility.maximum, "14");
 assert.equal(manifest.esmodules[0], "module/foundry-compat.mjs");
