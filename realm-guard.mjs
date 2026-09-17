@@ -42,9 +42,10 @@ import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installM6ConflictShadow } from "./module/m6-conflict-shadow.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
 import { installWindowPositionPersistence } from "./module/window-position-service.mjs";
+import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.8.0-qa.9"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.8.0-qa.10"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -61,6 +62,7 @@ Hooks.once("init", () => {
   const { DocumentSheetConfig } = foundry.applications.apps;
   installUntrainedVersusUi(RealmGuardActorSheet);
   installCustomRollParityAction(RealmGuardActorSheet);
+  installSkillRollUx(RealmGuardActorSheet, RealmGuardActor);
   installEquipmentSilhouette(RealmGuardActorSheet);
   installActorSheetScrollPersistence(RealmGuardActorSheet);
   installWindowPositionPersistence();
