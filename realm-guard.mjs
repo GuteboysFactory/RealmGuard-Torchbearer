@@ -40,12 +40,13 @@ import { installM4NatureShadowParity } from "./module/m4-nature-shadow-parity.mj
 import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-recovery-shadow-parity.mjs";
 import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installM6ConflictShadow } from "./module/m6-conflict-shadow.mjs";
+import { installM7SessionShadow } from "./module/m7-session-shadow.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
 import { installWindowPositionPersistence } from "./module/window-position-service.mjs";
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.8.0-qa.10"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.9.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -81,6 +82,7 @@ Hooks.once("init", () => {
   installM4ConditionRecoveryShadowParity(RealmGuardActor, RealmGuardActorSheet);
   installM5CoreServices();
   installM6ConflictShadow();
+  installM7SessionShadow();
 
   installTokenConditionHud();
   installConditionTokenHover();
