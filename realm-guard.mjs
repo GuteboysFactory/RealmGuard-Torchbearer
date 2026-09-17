@@ -41,9 +41,10 @@ import { installM4ConditionRecoveryShadowParity } from "./module/m4-condition-re
 import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installM6ConflictShadow } from "./module/m6-conflict-shadow.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
+import { installWindowPositionPersistence } from "./module/window-position-service.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.8.0-qa.6"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.8.0-qa.9"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -62,6 +63,7 @@ Hooks.once("init", () => {
   installCustomRollParityAction(RealmGuardActorSheet);
   installEquipmentSilhouette(RealmGuardActorSheet);
   installActorSheetScrollPersistence(RealmGuardActorSheet);
+  installWindowPositionPersistence();
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, { types: ["character"], makeDefault: true, label: "Realm Guard / Torchbearer Ranger Sheet" });
 
   installCoreBaseline();

@@ -94,11 +94,10 @@ function manage(element) {
   const key = classify(element);
   if (!key) return;
   element.dataset.rgWindowPositionKey = key;
-  if (!observed.has(element)) {
-    observed.add(element);
-    resizeObserver?.observe(element);
-  }
-  requestAnimationFrame(() => applySaved(element, key));
+  requestAnimationFrame(() => {
+    applySaved(element,key);
+    if(!observed.has(element)){ observed.add(element); resizeObserver?.observe(element); }
+  });
 }
 
 function scan(root = document) {
@@ -135,7 +134,7 @@ export function installWindowPositionPersistence() {
     });
 
     mutationObserver = new MutationObserver(records => {
-      for (const record of records) for (const node of record.addedNodes) if (node instanceof HTMLElement) scan(node);
+      for (const record of records) for (const node of record.addedNodes) if (node instanceof HTMLElement) { scan(node); const shell=node.closest?.(".application"); if(shell) manage(shell); }
     });
     mutationObserver.observe(document.body, { childList: true, subtree: true });
 
