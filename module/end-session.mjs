@@ -2,6 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
 import { resetTalentSessionState } from "./talents.mjs";
 import { resetTraitSessionUses } from "./traits.mjs";
+import { observeM7RewardProposal, observeM7RewardCommit } from "./m7-session-shadow.mjs";
 
 const NS = "realm-guard";
 const CYCLE_KEY = "endSessionCycle";
@@ -118,7 +119,9 @@ async function collectCriteria(actors, cycle) {
               personaAgainstBelief: checked(form, `personaAgainstBelief_${actor.id}`),
               personaEmbodiment: checked(form, `personaEmbodiment_${actor.id}`)
             };
-            return { actor, criteria, proposal: awardProposal(actor, criteria, mvpId, workhorseId) };
+            const proposal = awardProposal(actor, criteria, mvpId, workhorseId);
+            observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal: proposal });
+            return { actor, criteria, proposal };
           });
 
           const embodimentCount = rows.filter(row => row.criteria.personaEmbodiment).length;
@@ -214,6 +217,23 @@ async function applyAwards(result, approval, cycle) {
         "system.resources.persona.value": nextPersona
       });
     }
+    observeM7RewardCommit({
+      actor,
+      proposal: row.proposal,
+      approval: actorApproval,
+      legacy: {
+        beforeFate: currentFate,
+        beforePersona: currentPersona,
+        fateMax,
+        personaMax,
+        approvedFate,
+        approvedPersona,
+        nextFate,
+        nextPersona,
+        actualFate,
+        actualPersona
+      }
+    });
     summaries.push({ actor, row, actorApproval, actualFate, actualPersona, approvedFate, approvedPersona });
   }
 
