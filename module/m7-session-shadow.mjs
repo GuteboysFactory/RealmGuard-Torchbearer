@@ -1,4 +1,5 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
+import { participantActorReference } from "./session-participants.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -50,7 +51,8 @@ export function installM7SessionShadow() {
       current: () => legacySessionSnapshot(),
       previewTestClaim: actor => {
         const state = legacySessionSnapshot();
-        const actorState = state.actors.find(entry => entry.id === actor?.id) ?? {};
+        const ref = participantActorReference(actor);
+        const actorState = state.actors.find(entry => entry.ref === ref) ?? state.actors.find(entry => entry.id === actor?.id) ?? {};
         return services.sessionEngine.previewTestClaim({ actor, actorState, sessionState: state });
       },
       previewCheckTransfer: (donor, recipient, amount = 1) => services.actionCurrency.previewTransfer(donor, recipient, amount),
@@ -80,7 +82,8 @@ export function getM7SessionShadowStatus() {
       "ActionCurrencyService",
       "PhaseAllowanceService",
       "RewardEngine",
-      "RewardAuthority"
+      "RewardAuthority",
+      "ParticipantActorResolver"
     ])
   });
 }
