@@ -158,7 +158,7 @@ export function installM7SessionShadow() {
 export function getM7SessionShadowStatus() {
   return Object.freeze({
     phase: "M7",
-    buildScope: "SESSION_ENGINE_FOUNDATION",
+    buildScope: "REWARD_SHADOW_PARITY",
     mode: "SHADOW_READ_ONLY",
     authority: "LEGACY_MIXED",
     liveApplication: false,
