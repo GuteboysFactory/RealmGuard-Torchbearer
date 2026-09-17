@@ -1,0 +1,129 @@
+/* v1.8.0-qa.10 — Skill Quick Roll / Roll Window + Beginner's Luck grouping */
+.rg-skill-static-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.rg-trained-static-display {
+  min-height: 34px;
+}
+
+.rg-skill-roll-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.rg-skill-roll-choice-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.rg-skill-roll-choice-button[data-action="quickRollRole"],
+.rg-skill-roll-choice-button[data-action="quickRollUntrained"] {
+  border-color: #7e9b69;
+  background: rgba(74, 112, 61, .12);
+}
+
+.rg-skill-roll-choice-button[data-action="rollRole"],
+.rg-skill-roll-choice-button[data-action="rollUntrained"] {
+  border-color: #9b8462;
+  background: rgba(130, 99, 57, .10);
+}
+
+.rg-untrained-skills > .rg-untrained-grid {
+  display: block;
+}
+
+.rg-untrained-ability-group + .rg-untrained-ability-group {
+  margin-top: 12px;
+}
+
+.rg-untrained-ability-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+  padding: 7px 9px;
+  border: 1px solid rgba(96, 78, 51, .35);
+  border-radius: 6px;
+  background: rgba(255,255,255,.20);
+}
+
+.rg-untrained-ability-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rg-untrained-ability-head strong {
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+
+.rg-untrained-ability-head small {
+  opacity: .72;
+}
+
+.rg-untrained-ability-head > span {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.rg-untrained-ability-group.is-will .rg-untrained-ability-head {
+  box-shadow: inset 3px 0 0 #6d6a8f;
+}
+
+.rg-untrained-ability-group.is-health .rg-untrained-ability-head {
+  box-shadow: inset 3px 0 0 #6d8b69;
+}
+
+.rg-untrained-ability-group.is-custom .rg-untrained-ability-head {
+  box-shadow: inset 3px 0 0 #9a7b58;
+}
+
+.rg-untrained-ability-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rg-untrained-static-display {
+  font-weight: 800;
+}
+
+.rg-untrained-roll-actions {
+  margin-top: 6px;
+}
+
+@media (max-width: 720px) {
+  .rg-untrained-ability-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .rg-skill-roll-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .rg-skill-roll-choice-button {
+    white-space: normal;
+  }
+}
