@@ -1,11 +1,11 @@
-Realm Guard / Torchbearer v1.8.0-qa.10 — Skill Roll UX & Beginner's Luck Split.
+Realm Guard / Torchbearer v1.9.0-qa.1 — M7 Session Engine Foundation.
 
-This patch adds explicit Quick Roll and Roll Window actions for trained Skills and Untrained / Beginner's Luck Skills, keeps Help / Teamwork visible in the full Roll Window, and separates untrained canonical Skills into Will-based and Health-based groups.
+This QA build starts M7 with a read-only CORE session foundation. Legacy Mixed remains the only live authority for Turn Manager, Checks, Free Tests and End Session.
 
-Quick Roll keeps the existing live roll authority: automatic Conditions, Turn Manager claims, Fate/Open 6s and advancement/learning remain in the current actor roll pipeline. Cases that require an explicit GM/user decision — Obstacle Approval or ambiguous/unsupported Versus opposition — automatically open the full Roll Window instead of bypassing the workflow.
+Added SessionState, PhaseDefinition, SessionEngine, ActionCurrencyService, PhaseAllowanceService, RewardEngine and RewardAuthority, plus a Legacy session snapshot adapter and `game.realmGuard.core.m7` diagnostics/preview API.
 
-The active Skills UI no longer shows the ambiguous Will / Health fallback. Custom/unclassified Skills remain explicit and ask for a base ability when first rolled. Farmer is aligned as physical and therefore uses Health for Beginner's Luck.
+The shadow layer can inspect current session state, preview Free Test vs Check cost, alternation/Done/no-Checks/NPC/Free Play paths, preview Check transfer legality, and reproduce current End Session Fate/Persona proposal math including Goal suppression and caps.
 
-Also removes obsolete one-shot qa26–qa30 patch workflows/patcher scripts while preserving reusable smoke tests. No M6 Conflict resolution/state authority changes.
+M7 live application remains OFF. No Turn Manager or End Session UI rewrite, no CORE resource/session mutation, and no gameplay change is intended.
 
-QA protocol: TEST_PROTOCOL_v1.8.0-qa.10.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.1.md
