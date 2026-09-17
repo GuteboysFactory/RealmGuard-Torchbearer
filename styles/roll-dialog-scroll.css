@@ -182,3 +182,77 @@
 .rg-free-custom-roll > fieldset + fieldset {
   margin-top: 2px;
 }
+
+
+/* v1.8.0-qa.8 — viewport-safe Conflict dialog family */
+/* DialogV2 keeps its footer outside these content blocks, so Roll/Cancel remain reachable
+   while the form body scrolls on laptops and short viewports. */
+.rg-conflict-roll-dialog,
+.rg-conflict-setup,
+.rg-conflict-goal-editor,
+.rg-disposition-method,
+.rg-disarm-dialog,
+.rg-conflict-tool-editor {
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  max-height:min(68vh,720px);
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding-right:6px;
+}
+
+/* Foundry application shell: never let a Conflict dialog grow beyond the viewport. */
+.application.dialog:has(.rg-conflict-roll-dialog),
+.application.dialog:has(.rg-conflict-setup),
+.application.dialog:has(.rg-conflict-goal-editor),
+.application.dialog:has(.rg-disposition-method),
+.application.dialog:has(.rg-disarm-dialog),
+.application.dialog:has(.rg-conflict-tool-editor) {
+  max-width:calc(100vw - 18px) !important;
+  max-height:calc(100vh - 18px) !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .window-content,
+.application.dialog:has(.rg-conflict-setup) .window-content,
+.application.dialog:has(.rg-conflict-goal-editor) .window-content,
+.application.dialog:has(.rg-disposition-method) .window-content,
+.application.dialog:has(.rg-disarm-dialog) .window-content,
+.application.dialog:has(.rg-conflict-tool-editor) .window-content {
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.application.dialog:has(.rg-conflict-roll-dialog) .form-footer,
+.application.dialog:has(.rg-conflict-setup) .form-footer,
+.application.dialog:has(.rg-conflict-goal-editor) .form-footer,
+.application.dialog:has(.rg-disposition-method) .form-footer,
+.application.dialog:has(.rg-disarm-dialog) .form-footer,
+.application.dialog:has(.rg-conflict-tool-editor) .form-footer {
+  flex:0 0 auto;
+  position:relative;
+  z-index:3;
+}
+
+@media(max-height:800px){
+  .rg-conflict-roll-dialog,.rg-conflict-setup,.rg-conflict-goal-editor,
+  .rg-disposition-method,.rg-disarm-dialog,.rg-conflict-tool-editor { max-height:60vh; }
+}
+@media(max-height:680px){
+  .rg-conflict-roll-dialog,.rg-conflict-setup,.rg-conflict-goal-editor,
+  .rg-disposition-method,.rg-disarm-dialog,.rg-conflict-tool-editor { max-height:52vh; }
+}
+@media(max-height:560px){
+  .rg-conflict-roll-dialog,.rg-conflict-setup,.rg-conflict-goal-editor,
+  .rg-disposition-method,.rg-disarm-dialog,.rg-conflict-tool-editor { max-height:44vh; }
+}
+@media(max-width:760px){
+  .rg-conflict-roll-dialog,.rg-conflict-setup,.rg-conflict-goal-editor,
+  .rg-disposition-method,.rg-disarm-dialog,.rg-conflict-tool-editor {
+    min-width:0 !important;
+    max-width:calc(100vw - 24px) !important;
+  }
+  .rg-conflict-roll-dialog .rg-roll-dialog-grid,
+  .rg-conflict-setup-grid { grid-template-columns:1fr !important; }
+}
