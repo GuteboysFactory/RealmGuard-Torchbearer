@@ -1,0 +1,43 @@
+name: Apply qa.9 Conflict UX Continuity
+
+on:
+  push:
+    paths:
+      - 'tools/qa30_apply.py'
+      - '.github/workflows/qa30-conflict-ux.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply v1.8.0-qa.9 Conflict UX continuity
+        run: python tools/qa30_apply.py
+      - name: Verify syntax and package version
+        run: |
+          node --check module/conflicts.mjs
+          node --check module/teamwork.mjs
+          node --check module/window-position-service.mjs
+          node --check realm-guard.mjs
+          python - <<'PY'
+          import json
+          d=json.load(open('system.json',encoding='utf-8'))
+          assert d['version']=='1.8.0-qa.9', d['version']
+          assert '1.8.0-qa.9' in d['download']
+          print('manifest',d['version'])
+          PY
+          grep -q 'createTeamworkSession' module/conflicts.mjs
+          grep -q 'Afraid — this Condition prevents the Ranger from helping' module/teamwork.mjs
+          grep -q 'data-rg-auto-modifier' module/conflicts.mjs
+          grep -q 'installWindowPositionPersistence' realm-guard.mjs
+      - name: Commit patch
+        run: |
+          git config user.name GuteboysFactory
+          git config user.email per@guteboy.eu
+          git add module/conflicts.mjs module/teamwork.mjs module/window-position-service.mjs realm-guard.mjs styles/conflict-parchment-prototype.css system.json RELEASE_NOTES_v1.8.0-qa.9.md TEST_PROTOCOL_v1.8.0-qa.9.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'Build v1.8.0-qa.9 Conflict UX continuity'
+          git push
