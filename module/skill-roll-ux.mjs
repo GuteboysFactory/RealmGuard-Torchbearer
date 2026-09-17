@@ -1,7 +1,5 @@
 import { baselineObstacle, obstacleMode } from "./obstacles.mjs";
 
-const RG_NS = "realm-guard";
-
 function canonicalBeginnerAbility(actor, role) {
   const saved = String(role?.system?.beginnerAbility ?? "").trim().toLowerCase();
   if (["will", "health"].includes(saved)) return saved;
@@ -123,13 +121,19 @@ async function quickRollUntrained(event, target) {
   else await this.render({ force: true });
 }
 
-function makeActionButton(action, label, icon, title) {
+function makeActionButton(sheet, action, label, icon, title) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "rg-skill-roll-choice-button";
   button.dataset.action = action;
   button.title = title;
   button.innerHTML = `<i class="fa-solid ${icon}"></i><span>${label}</span>`;
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const handler = sheet.constructor.DEFAULT_OPTIONS?.actions?.[action];
+    if (typeof handler === "function") void handler.call(sheet, event, button);
+  });
   return button;
 }
 
@@ -141,7 +145,7 @@ function makeStaticDisplay(button, extraClass = "") {
   return display;
 }
 
-function decorateTrained(root) {
+function decorateTrained(sheet, root) {
   for (const article of root.querySelectorAll(".rg-trained-role[data-item-id]")) {
     if (article.querySelector(".rg-skill-roll-actions")) continue;
     const original = article.querySelector(".rg-role-roll");
@@ -150,8 +154,8 @@ function decorateTrained(root) {
     const actions = document.createElement("div");
     actions.className = "rg-skill-roll-actions";
     actions.append(
-      makeActionButton("quickRollRole", "Quick Roll", "fa-bolt", "Roll immediately with the current automatic rules, no optional pre-roll choices."),
-      makeActionButton("rollRole", "Roll Window", "fa-sliders", "Open the full Roll Window with Teamwork, resources and optional effects.")
+      makeActionButton(sheet, "quickRollRole", "Quick Roll", "fa-bolt", "Roll immediately with the current automatic rules, no optional pre-roll choices."),
+      makeActionButton(sheet, "rollRole", "Roll Window", "fa-sliders", "Open the full Roll Window with Teamwork, resources and optional effects.")
     );
     article.append(actions);
   }
@@ -197,8 +201,8 @@ function decorateUntrained(sheet, root) {
       const actions = document.createElement("div");
       actions.className = "rg-skill-roll-actions rg-untrained-roll-actions";
       actions.append(
-        makeActionButton("quickRollUntrained", "Quick Roll", "fa-bolt", `Quick Beginner's Luck roll for ${role.name}.`),
-        makeActionButton("rollUntrained", "Roll Window", "fa-sliders", `Open the full Beginner's Luck Roll Window for ${role.name}.`)
+        makeActionButton(sheet, "quickRollUntrained", "Quick Roll", "fa-bolt", `Quick Beginner's Luck roll for ${role.name}.`),
+        makeActionButton(sheet, "rollUntrained", "Roll Window", "fa-sliders", `Open the full Beginner's Luck Roll Window for ${role.name}.`)
       );
       card.append(actions);
     }
@@ -215,7 +219,7 @@ function decorateUntrained(sheet, root) {
 function decorateSheet(sheet) {
   const root = sheet.element;
   if (!root || sheet.actor?.type !== "character") return;
-  decorateTrained(root);
+  decorateTrained(sheet, root);
   decorateUntrained(sheet, root);
 }
 
