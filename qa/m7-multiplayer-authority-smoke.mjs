@@ -21,7 +21,7 @@ const playerStatus = turnAuthorityStatus({ users, user: users[0] });
 assert.equal(playerStatus.mode, "GM_PROXY_COMMIT");
 assert.equal(playerStatus.primaryGmId, "G1");
 assert.equal(playerStatus.available, true);
-assert.equal(playerStatus.liveRulesAuthority, "CORE_M7_TURN_CURRENCY_LEGACY_SESSION");
+assert.equal(playerStatus.liveRulesAuthority, "CORE_M7_PLAYER_TURN_LEGACY_SESSION");
 assert.equal(playerStatus.coreLiveApplication, true);
 
 const gmStatus = turnAuthorityStatus({ users, user: users[2] });
@@ -46,7 +46,7 @@ assert.ok(shadow.includes("authorityStatus"));
 assert.ok(shadow.includes("stateFingerprint"));
 assert.ok(shadow.includes("multiplayerState"));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
 console.log("PASS m7-multiplayer-authority-smoke");
