@@ -34,7 +34,7 @@ assert.ok(shadow.includes("observeM7Lifecycle"));
 assert.ok(shadow.includes("lifecycleSummary"));
 assert.ok(shadow.includes('domain: "SESSION_LIFECYCLE"'));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_CLAIM_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
 assert.ok(turns.includes('observeM7Lifecycle("PHASE_CHANGED"'));
