@@ -4004,3 +4004,15 @@ body:has(#join-game) {
 .rg-gm-dock-provider-item:hover:not(:disabled),.rg-gm-dock-provider-item:focus-visible:not(:disabled){border-color:rgba(211,154,88,.3)!important;background:rgba(211,154,88,.08)!important;color:#f4c989!important;outline:none}
 .rg-gm-dock-provider-item:disabled{opacity:.38;cursor:default}
 .rg-gm-dock-provider-separator{padding:7px 8px 3px;color:#8e8474;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+
+
+/* v1.9.0-qa.10 — GM Dock Host contract v2 provider body/footer */
+.rg-gm-dock-provider-body{border-bottom:1px solid rgba(211,154,88,.16);background:rgba(0,0,0,.08)}
+.rg-gm-dock-provider-footer{padding:6px;border-top:1px solid rgba(211,154,88,.18);background:linear-gradient(180deg,rgba(26,25,22,.97),rgba(18,17,15,.99))}
+.rg-gm-dock-provider-footer>button{display:grid!important;grid-template-columns:24px minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:44px!important;margin:0!important;padding:7px 9px!important;border:1px solid rgba(211,154,88,.28)!important;border-radius:7px!important;background:rgba(211,154,88,.08)!important;color:#f1e5d2!important;box-shadow:none!important;text-align:left!important}
+.rg-gm-dock-provider-footer>button:hover:not(:disabled),.rg-gm-dock-provider-footer>button:focus-visible:not(:disabled){border-color:#d39a58!important;background:rgba(211,154,88,.14)!important;outline:none}
+.rg-gm-dock-provider-footer>button>i:first-child{color:#d39a58}
+.rg-gm-dock-provider-footer>button>span{min-width:0;display:grid}
+.rg-gm-dock-provider-footer strong{font-size:11px;color:#f2e2c6}
+.rg-gm-dock-provider-footer small{overflow:hidden;color:#9f9583;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
+.rg-gm-dock-provider-footer b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgba(211,154,88,.16);color:#e2bd84;font-size:9px}

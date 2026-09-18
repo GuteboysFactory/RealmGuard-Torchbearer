@@ -1,38 +1,21 @@
-Realm Guard / Torchbearer v1.9.0-qa.9 — M7 Pass Check Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.10 — GM Dock Host Contract v2.
 
-This build expands the live CORE M7 Session Engine authority boundary.
+This build extends the neutral GuteboysFactory GM Dock Host contract for richer provider UX while preserving all qa.9 M7 rules behavior.
 
-Live CORE M7 scope:
-- PLAYER_TURN_TEST_CLAIM (retained from qa.8)
-- PASS_CHECK (new in qa.9)
+Dock Host v2 adds:
+- provider-owned inline body region
+- provider render callback for wiring compact controls
+- dedicated provider footer action
+- stable host rendering for compact campaign-workspace integrations
+- existing provider items, badges, close behavior and callbacks remain supported
 
-Pass Check now uses a deterministic CORE transfer plan for:
-- transfer legality
-- donor/recipient Check balances
-- donation counters
-- recipient Done reset
+Adventurer's Tome v1.4.0-qa.5 is the reference provider and uses Host v2 for inline Quick Capture plus a persistent Open Tome footer.
 
-Safety:
-- Legacy Mixed computes the same transfer in parallel as a parity guard.
-- On disagreement, only the Pass Check CORE handoff auto-rolls back to Legacy Mixed.
-- CORE transfer-planning errors also fall back safely.
-- The claim and transfer handoffs have independent rollback switches.
-- Player operations remain serialized through the primary-GM authority bridge.
+Rules authority is unchanged from qa.9:
+- CORE M7 PLAYER_TURN_TEST_CLAIM remains live
+- CORE M7 PASS_CHECK remains live
+- all remaining qa.9 Legacy Mixed boundaries remain unchanged
 
-Still Legacy Mixed:
-- Done / Discard
-- phase changes
-- Recovery
-- Trait Against Check awards
-- End Session
-- remaining session/lifecycle commits
+No tabletop rule behavior is intentionally changed.
 
-Diagnostics:
-- game.realmGuard.core.m7.transferHandoffStatus()
-- game.realmGuard.core.m7.transferHandoffHistory()
-- game.realmGuard.core.m7.setCoreTransferEnabled(...)
-- game.realmGuard.core.m7.resetTransferHandoffTelemetry()
-
-No other tabletop rule behavior is intentionally changed.
-
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.9.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.10.md

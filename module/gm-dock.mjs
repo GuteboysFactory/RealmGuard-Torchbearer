@@ -3,7 +3,7 @@ const PROVIDER_REGISTRY = new Map();
 const DOCK_ID = "rg-gm-dock";
 const NS = "realm-guard";
 const HOST_CONTRACT = "gbf-gm-dock-host";
-const HOST_VERSION = 1;
+const HOST_VERSION = 2;
 
 let resizeObserver = null;
 let mutationObserver = null;
@@ -217,6 +217,17 @@ function normalizeMenu(provider) {
     title: String(raw.title || provider.label),
     subtitle: String(raw.subtitle || ""),
     context: String(raw.context || ""),
+    bodyHtml: typeof raw.bodyHtml === "string" ? raw.bodyHtml : "",
+    onRender: typeof raw.onRender === "function" ? raw.onRender : null,
+    footer: raw.footer && typeof raw.footer === "object" ? {
+      id: String(raw.footer.id || "footer"),
+      label: String(raw.footer.label || "Open"),
+      detail: String(raw.footer.detail || ""),
+      icon: String(raw.footer.icon || "fa-solid fa-arrow-up-right-from-square"),
+      badge: Math.max(0, Math.floor(Number(raw.footer.badge || 0) || 0)),
+      disabled: Boolean(raw.footer.disabled),
+      onClick: typeof raw.footer.onClick === "function" ? raw.footer.onClick : null
+    } : null,
     items: items.map((item, index) => {
       if (item?.separator) return { separator: true, label: String(item.label || "") };
       return {
@@ -241,6 +252,7 @@ function providerMenuHtml(provider) {
       <div><small>INTEGRATED GM TOOLS</small><h3>${esc(menu.title)}</h3>${menu.subtitle ? `<p>${esc(menu.subtitle)}</p>` : ""}${menu.context ? `<p class="rg-gm-dock-provider-context">${esc(menu.context)}</p>` : ""}</div>
       <button type="button" class="rg-gm-dock-provider-close" data-rg-provider-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
     </header>
+    ${menu.bodyHtml ? `<div class="rg-gm-dock-provider-body" data-rg-provider-body>${menu.bodyHtml}</div>` : ""}
     <div class="rg-gm-dock-provider-items">
       ${menu.items.map(item => item.separator
         ? `<div class="rg-gm-dock-provider-separator">${esc(item.label)}</div>`
@@ -250,6 +262,7 @@ function providerMenuHtml(provider) {
             ${item.badge ? `<b>${item.badge}</b>` : '<i class="fa-solid fa-chevron-right rg-gm-dock-provider-chevron"></i>'}
           </button>`).join("")}
     </div>
+    ${menu.footer ? `<footer class="rg-gm-dock-provider-footer"><button type="button" data-rg-provider-footer="${esc(menu.footer.id)}"${menu.footer.disabled ? " disabled" : ""}><i class="${esc(menu.footer.icon)}"></i><span><strong>${esc(menu.footer.label)}</strong>${menu.footer.detail ? `<small>${esc(menu.footer.detail)}</small>` : ""}</span>${menu.footer.badge ? `<b>${menu.footer.badge}</b>` : '<i class="fa-solid fa-arrow-up-right-from-square"></i>'}</button></footer>` : ""}
   </section>`;
 }
 
@@ -302,6 +315,30 @@ function wireProviderMenu(dock, provider) {
         renderGmDock();
       }
     });
+  }
+
+  const footerButton = menuElement.querySelector("[data-rg-provider-footer]");
+  footerButton?.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const footer = menu.footer;
+    if (!game.user?.isGM || !footer || footer.disabled || !footer.onClick) return;
+    try {
+      await footer.onClick({ host: providerHostApi(), providerId: provider.id, itemId: footer.id });
+    } catch (error) {
+      console.error(`${NS} | GM Dock provider footer ${provider.id}/${footer.id} failed`, error);
+      ui.notifications?.error?.(`GM Dock: ${provider.label} action failed. See console.`);
+    }
+    openProviderId = "";
+    renderGmDock();
+  });
+
+  if (menu.onRender) {
+    try {
+      menu.onRender(menuElement, { host: providerHostApi(), providerId: provider.id, menu });
+    } catch (error) {
+      console.error(`${NS} | GM Dock provider render hook ${provider.id} failed safely`, error);
+    }
   }
 
   requestAnimationFrame(positionProviderMenu);
