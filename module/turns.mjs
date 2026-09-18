@@ -1,6 +1,7 @@
 import { registerGmDockTool, renderGmDock } from "./gm-dock.mjs";
 import { participantActorReference, participantActors, resolveParticipantActor } from "./session-participants.mjs";
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
+import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -393,11 +394,20 @@ export async function setTurnPhase(phase) {
   const previous = currentTurnPhase();
   if (previous === normalized) return true;
 
+  const previousCycleId = currentTurnId();
   const discarded = normalized === "gm" && previous === "player" ? await discardAllChecks() : [];
   await game.settings.set(SYSTEM_ID, PHASE_KEY, normalized);
-  await game.settings.set(SYSTEM_ID, TURN_ID_KEY, currentTurnId() + 1);
+  await game.settings.set(SYSTEM_ID, TURN_ID_KEY, previousCycleId + 1);
   await game.settings.set(SYSTEM_ID, LAST_ACTOR_KEY, "");
   refreshTurnSheets();
+  observeM7Lifecycle("PHASE_CHANGED", {
+    source: "LEGACY_TURN_MANAGER",
+    fromPhase: previous,
+    toPhase: normalized,
+    previousTurnCycleId: previousCycleId,
+    turnCycleId: currentTurnId(),
+    discardedChecks: Object.freeze([...discarded])
+  });
 
   const detail = normalized === "player"
     ? "Each patrol member has one Free Test. Additional tests cost 1 Check. Recovery uses the same Free Test/Check economy and each Condition gets one recovery attempt per Players' Turn."
