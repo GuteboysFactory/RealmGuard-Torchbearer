@@ -10,7 +10,7 @@ function push(event) {
   const row = Object.freeze({
     at: Date.now(),
     phase: "M7",
-    buildScope: "MULTIPLAYER_STATE_AUTHORITY_HARDENING",
+    buildScope: "SESSION_LIFECYCLE_SHADOW",
     mode: "SHADOW_READ_ONLY",
     liveApplication: false,
     authority: "LEGACY_MIXED",
@@ -57,6 +57,16 @@ function snapshotEvent(services) {
       rewardEngine: "READY",
       rewardAuthority: services.rewardAuthority.mode
     })
+  });
+}
+
+export function observeM7Lifecycle(type, details = {}) {
+  const services = createM7Services();
+  const event = services.lifecycle.create(type, details);
+  return push({
+    domain: "SESSION_LIFECYCLE",
+    operation: event.type,
+    event
   });
 }
 
@@ -159,6 +169,15 @@ export function installM7SessionShadow() {
       },
       previewCheckTransfer: (donor, recipient, amount = 1) => services.actionCurrency.previewTransfer(donor, recipient, amount),
       previewReward: input => services.rewardEngine.proposal(input),
+      lifecycle: () => Object.freeze(history.filter(entry => entry.domain === "SESSION_LIFECYCLE")),
+      lifecycleSummary: () => {
+        const rows = history.filter(entry => entry.domain === "SESSION_LIFECYCLE");
+        return Object.freeze({
+          observed: rows.length,
+          sequence: Object.freeze(rows.map(entry => entry.operation)),
+          latest: rows.at(-1) ?? null
+        });
+      },
       rewardParity: () => Object.freeze(history.filter(entry => entry.domain === "REWARD_ENGINE")),
       rewardParitySummary: () => {
         const rows = history.filter(entry => entry.domain === "REWARD_ENGINE");
@@ -191,7 +210,7 @@ export function installM7SessionShadow() {
 export function getM7SessionShadowStatus() {
   return Object.freeze({
     phase: "M7",
-    buildScope: "REWARD_SHADOW_PARITY",
+    buildScope: "SESSION_LIFECYCLE_SHADOW",
     mode: "SHADOW_READ_ONLY",
     authority: "LEGACY_MIXED",
     liveApplication: false,
@@ -210,7 +229,13 @@ export function getM7SessionShadowStatus() {
       "RewardCommitParity",
       "TurnAuthorityBridge",
       "StaleRequestGuard",
-      "StateFingerprint"
+      "StateFingerprint",
+      "SessionLifecycleService",
+      "SESSION_STARTING",
+      "SESSION_STARTED",
+      "PHASE_CHANGED",
+      "SESSION_ENDING",
+      "SESSION_ENDED"
     ])
   });
 }
