@@ -1,24 +1,25 @@
-Realm Guard / Torchbearer v1.9.0-qa.8 — M7 Player Turn Test Claim Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.9 — M7 Pass Check Live Handoff.
 
-This build performs the first live CORE M7 Session Engine authority handoff.
+This build expands the live CORE M7 Session Engine authority boundary.
 
-Live CORE scope:
-- PLAYER_TURN_TEST_CLAIM
-- Free Test vs Check
-- alternation
-- Done guard
-- no-Checks guard
-- NPC untracked
-- Free Play untracked
+Live CORE M7 scope:
+- PLAYER_TURN_TEST_CLAIM (retained from qa.8)
+- PASS_CHECK (new in qa.9)
+
+Pass Check now uses a deterministic CORE transfer plan for:
+- transfer legality
+- donor/recipient Check balances
+- donation counters
+- recipient Done reset
 
 Safety:
-- Legacy Mixed calculates the same claim in parallel as a parity guard.
-- If CORE M7 and Legacy Mixed disagree, CORE claim authority automatically disables and the Legacy plan is applied.
-- CORE planning errors also fall back to Legacy Mixed.
-- Player requests remain serialized through the existing primary-GM authority bridge.
+- Legacy Mixed computes the same transfer in parallel as a parity guard.
+- On disagreement, only the Pass Check CORE handoff auto-rolls back to Legacy Mixed.
+- CORE transfer-planning errors also fall back safely.
+- The claim and transfer handoffs have independent rollback switches.
+- Player operations remain serialized through the primary-GM authority bridge.
 
 Still Legacy Mixed:
-- Pass Check
 - Done / Discard
 - phase changes
 - Recovery
@@ -27,11 +28,11 @@ Still Legacy Mixed:
 - remaining session/lifecycle commits
 
 Diagnostics:
-- game.realmGuard.core.m7.claimHandoffStatus()
-- game.realmGuard.core.m7.claimHandoffHistory()
-- game.realmGuard.core.m7.setCoreClaimEnabled(...)
-- game.realmGuard.core.m7.resetClaimHandoffTelemetry()
+- game.realmGuard.core.m7.transferHandoffStatus()
+- game.realmGuard.core.m7.transferHandoffHistory()
+- game.realmGuard.core.m7.setCoreTransferEnabled(...)
+- game.realmGuard.core.m7.resetTransferHandoffTelemetry()
 
 No other tabletop rule behavior is intentionally changed.
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.8.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.9.md
