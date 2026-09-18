@@ -89,6 +89,8 @@ function publishHost() {
   const root = globalThis.GuteboysFactory ??= {};
   const previous = root.gmDockHost;
   root.gmDockHost = providerHostApi();
+  game.realmGuard ??= {};
+  game.realmGuard.gmDockHost = root.gmDockHost;
   if (previous && previous !== root.gmDockHost && previous.id !== NS) {
     console.info(`${NS} | GM Dock became the active GuteboysFactory Dock Host (replacing fallback host ${previous.id || "unknown"}).`);
   }
