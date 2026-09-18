@@ -6,6 +6,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const core = fs.readFileSync("module/core/m7-session-services.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const turns = fs.readFileSync("module/turns.mjs", "utf8");
+const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 const documents = fs.readFileSync("module/documents.mjs", "utf8");
 const conditions = fs.readFileSync("module/conditions.mjs", "utf8");
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
@@ -28,7 +29,7 @@ for (const operation of [
   "REFUND_RECOVERY_CHECKS"
 ]) assert.ok(turns.includes(operation), `Missing semantic authority operation: ${operation}`);
 
-assert.ok(turns.includes("gmQueue") === false || true, "Authority serialization remains implemented in the bridge");
+assert.ok(bridge.includes("gmQueue = gmQueue"), "Semantic Action Currency requests must remain serialized on the primary GM");
 assert.ok(documents.includes("awardTraitChecks(this, requested)"));
 assert.ok(documents.includes("awardTraitChecks(this, 2)"));
 assert.ok(conditions.includes("return spendRecoveryChecks(actor, condition?.name ?? \"\")"));
