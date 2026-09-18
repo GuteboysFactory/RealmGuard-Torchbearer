@@ -1,5 +1,6 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
+import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -9,7 +10,7 @@ function push(event) {
   const row = Object.freeze({
     at: Date.now(),
     phase: "M7",
-    buildScope: "REWARD_SHADOW_PARITY",
+    buildScope: "MULTIPLAYER_STATE_AUTHORITY_HARDENING",
     mode: "SHADOW_READ_ONLY",
     liveApplication: false,
     authority: "LEGACY_MIXED",
@@ -19,6 +20,28 @@ function push(event) {
   if (history.length > HISTORY_LIMIT) history.shift();
   try { globalThis.Hooks?.callAll?.("realmGuardM7SessionShadow", row); } catch (_error) { /* observer only */ }
   return row;
+}
+
+function stateFingerprint(snapshot = legacySessionSnapshot()) {
+  return JSON.stringify({
+    enabled: snapshot.enabled,
+    phase: snapshot.phase,
+    cycleId: snapshot.cycleId,
+    lastActorId: snapshot.lastActorId,
+    actors: [...snapshot.actors]
+      .map(actor => ({
+        id: actor.id,
+        ref: actor.ref,
+        freeUsed: actor.freeUsed,
+        testsTaken: actor.testsTaken,
+        checksSpent: actor.checksSpent,
+        donatedGiven: actor.donatedGiven,
+        donatedReceived: actor.donatedReceived,
+        done: actor.done,
+        checks: actor.checks
+      }))
+      .sort((a, b) => String(a.ref).localeCompare(String(b.ref)))
+  });
 }
 
 function snapshotEvent(services) {
@@ -146,6 +169,16 @@ export function installM7SessionShadow() {
           latest: rows.at(-1) ?? null
         });
       },
+      authorityStatus: () => turnAuthorityStatus(),
+      stateFingerprint: () => stateFingerprint(),
+      multiplayerState: () => {
+        const snapshot = legacySessionSnapshot();
+        return Object.freeze({
+          authority: turnAuthorityStatus(),
+          fingerprint: stateFingerprint(snapshot),
+          snapshot
+        });
+      },
       history: () => Object.freeze([...history]),
       clear: () => { history.length = 0; return getM7SessionShadowStatus(); },
       getStatus: () => getM7SessionShadowStatus()
@@ -174,7 +207,10 @@ export function getM7SessionShadowStatus() {
       "RewardAuthority",
       "ParticipantActorResolver",
       "RewardProposalParity",
-      "RewardCommitParity"
+      "RewardCommitParity",
+      "TurnAuthorityBridge",
+      "StaleRequestGuard",
+      "StateFingerprint"
     ])
   });
 }
