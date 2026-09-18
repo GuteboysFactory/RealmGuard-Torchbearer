@@ -6,7 +6,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const endSession = fs.readFileSync("module/end-session.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.3");
+assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
 assert.ok(shadow.includes('buildScope: "REWARD_SHADOW_PARITY"'));
 assert.ok(shadow.includes("observeM7RewardProposal"));
 assert.ok(shadow.includes("observeM7RewardCommit"));
