@@ -148,6 +148,80 @@ export async function markRecoveryAttempt(actor, conditionName) {
   return Array.isArray(result.conditions) ? result.conditions : [];
 }
 
+async function awardTraitChecksLocal(actor, amount = 1, { requester = game.user } = {}) {
+  if (!turnManagerEnabled() || currentTurnPhase() !== "gm") return { ok: true, earned: 0, before: Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0)), after: Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0)) };
+  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  const requested = Math.max(0, Math.min(2, Math.floor(Number(amount ?? 0))));
+  const before = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
+  const maximum = Math.max(before, Number(actor.system.resources?.checks?.max ?? 9));
+  const after = Math.min(maximum, before + requested);
+  const earned = Math.max(0, after - before);
+  if (earned) await actor.update({ "system.resources.checks.value": after });
+  return { ok: true, earned, before, after };
+}
+
+export async function awardTraitChecks(actor, amount = 1) {
+  if (game.user?.isGM) return awardTraitChecksLocal(actor, amount, { requester: game.user });
+  return requestTurnAuthority("AWARD_TRAIT_CHECKS", {
+    actorRef: participantActorReference(actor),
+    amount: Math.max(0, Math.min(2, Math.floor(Number(amount ?? 0)))),
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
+
+async function spendRecoveryChecksLocal(actor, conditionName = "", { requester = game.user } = {}) {
+  if (!turnManagerEnabled() || currentTurnPhase() !== "gm") {
+    const checks = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+    return { ok: true, phase: currentTurnPhase(), source: "no-gm-recovery-cost", cost: 0, before: checks, after: checks, turnId: currentTurnId() };
+  }
+  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  const before = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
+  if (before < 2) return { ok: false, reason: `GM Turn recovery costs 2 Checks; ${actor.name} has ${before}.` };
+  const after = before - 2;
+  await actor.update({ "system.resources.checks.value": after });
+  return { ok: true, phase: "gm", source: "gm-checks", cost: 2, before, after, turnId: currentTurnId(), conditionName: String(conditionName ?? "") };
+}
+
+export async function spendRecoveryChecks(actor, conditionName = "") {
+  if (game.user?.isGM) return spendRecoveryChecksLocal(actor, conditionName, { requester: game.user });
+  return requestTurnAuthority("SPEND_RECOVERY_CHECKS", {
+    actorRef: participantActorReference(actor),
+    conditionName: String(conditionName ?? ""),
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
+
+async function refundRecoveryChecksLocal(actor, receipt = {}, { requester = game.user } = {}) {
+  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  if (Number(receipt?.cost ?? 0) !== 2 || String(receipt?.phase ?? "") !== "gm") return { ok: false, reason: "Invalid Recovery refund receipt." };
+  if (Number(receipt?.turnId ?? 0) !== currentTurnId() || currentTurnPhase() !== "gm") return { ok: false, stale: true, reason: "Turn state changed before the Recovery refund could be committed." };
+  const expectedAfter = Math.max(0, Number(receipt?.after ?? 0));
+  const restore = Math.max(expectedAfter, Number(receipt?.before ?? expectedAfter));
+  const current = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
+  if (current !== expectedAfter) return { ok: false, reason: "Recovery refund state no longer matches the original spend." };
+  await actor.update({ "system.resources.checks.value": restore });
+  return { ok: true, refunded: restore - current, before: current, after: restore };
+}
+
+export async function refundRecoveryChecks(actor, receipt = {}) {
+  if (game.user?.isGM) return refundRecoveryChecksLocal(actor, receipt, { requester: game.user });
+  return requestTurnAuthority("REFUND_RECOVERY_CHECKS", {
+    actorRef: participantActorReference(actor),
+    receipt: {
+      phase: String(receipt?.phase ?? ""),
+      cost: Number(receipt?.cost ?? 0),
+      before: Number(receipt?.before ?? 0),
+      after: Number(receipt?.after ?? 0),
+      turnId: Number(receipt?.turnId ?? 0),
+      conditionName: String(receipt?.conditionName ?? "")
+    },
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
+
 export function recoveryAttempts(actor) {
   if (!turnManagerEnabled()) return [];
   const stored = actor?.getFlag(SYSTEM_ID, RECOVERY_FLAG) ?? {};
@@ -500,6 +574,27 @@ export function installTurnManager() {
       if (!requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not control ${actor.name}.` };
       const conditions = await markRecoveryAttemptLocal(actor, payload.conditionName, { requester });
       return { ok: true, conditions };
+    },
+    AWARD_TRAIT_CHECKS: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Trait Against award is no longer available." };
+      return awardTraitChecksLocal(actor, payload.amount, { requester });
+    },
+    SPEND_RECOVERY_CHECKS: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Recovery spend is no longer available." };
+      return spendRecoveryChecksLocal(actor, payload.conditionName, { requester });
+    },
+    REFUND_RECOVERY_CHECKS: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Recovery refund is no longer available." };
+      return refundRecoveryChecksLocal(actor, payload.receipt ?? {}, { requester });
     },
     CLAIM_TEST: async (payload, { requester } = {}) => {
       const stale = staleTurnAuthorityRequest(payload);
