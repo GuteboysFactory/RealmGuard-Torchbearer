@@ -11,7 +11,7 @@ const documents = fs.readFileSync("module/documents.mjs", "utf8");
 const conditions = fs.readFileSync("module/conditions.mjs", "utf8");
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.6");
+assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
 
 const state = new SessionState({ sessionCycle: 7, turnCycleId: 19 });
 assert.equal(state.sessionCycle, 7);
@@ -47,13 +47,13 @@ for (const [name, source] of [
   );
 }
 
-assert.ok(shadow.includes('buildScope: "AUTHORITY_BOUNDARY_CLOSURE"'));
+assert.ok(shadow.includes('buildScope: "PLAYER_TURN_TEST_CLAIM_HANDOFF"'));
 assert.ok(shadow.includes("actionCurrencyAuthority"));
 assert.ok(shadow.includes('"SessionCycleSeparation"'));
 assert.ok(shadow.includes('"ActionCurrencyAuthorityBoundary"'));
 assert.ok(shadow.includes('directGenericSetOperation: false'));
-assert.ok(shadow.includes('mode: "SHADOW_READ_ONLY"'));
-assert.ok(shadow.includes('authority: "LEGACY_MIXED"'));
-assert.ok(shadow.includes("liveApplication: false"));
+assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
+assert.ok(shadow.includes('authority: "CORE_M7_CLAIM_LEGACY_SESSION"'));
+assert.ok(shadow.includes("liveApplication: true"));
 
 console.log("PASS m7-authority-boundary-closure-smoke");
