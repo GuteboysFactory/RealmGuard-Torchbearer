@@ -249,6 +249,54 @@ export class SessionEngine {
   previewTestClaim(input = {}) {
     return this.planTestClaim(input);
   }
+
+  planCheckTransfer({
+    donor,
+    recipient,
+    amount = 1,
+    donorState = {},
+    recipientState = {},
+    sessionState
+  } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const qty = Math.max(1, Math.floor(Number(amount || 1)));
+    const donorBefore = this.actionCurrency.current(donor, "checks");
+    const recipientBefore = this.actionCurrency.current(recipient, "checks");
+    const base = {
+      amount: qty,
+      donorBefore,
+      donorAfter: donorBefore,
+      recipientBefore,
+      recipientAfter: recipientBefore,
+      donorStatePatch: null,
+      recipientStatePatch: null
+    };
+
+    if (!state.enabled) return freeze({ ...base, ok: false, reasonCode: "turn-disabled" });
+    if (state.phase !== "player") return freeze({ ...base, ok: false, reasonCode: "wrong-phase" });
+    if (!donor || !recipient || donor?.id === recipient?.id) return freeze({ ...base, ok: false, reasonCode: "invalid-participants" });
+    if (donorBefore < qty) return freeze({ ...base, ok: false, reasonCode: "donor-insufficient" });
+    if (recipientBefore > 0) return freeze({ ...base, ok: false, reasonCode: "recipient-has-checks" });
+
+    return freeze({
+      ...base,
+      ok: true,
+      reasonCode: "",
+      donorAfter: donorBefore - qty,
+      recipientAfter: recipientBefore + qty,
+      donorStatePatch: {
+        donatedGiven: Math.max(0, Number(donorState?.donatedGiven ?? 0)) + qty
+      },
+      recipientStatePatch: {
+        donatedReceived: Math.max(0, Number(recipientState?.donatedReceived ?? 0)) + qty,
+        done: false
+      }
+    });
+  }
+
+  previewCheckTransfer(input = {}) {
+    return this.planCheckTransfer(input);
+  }
 }
 
 export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = globalThis.canvas) {
