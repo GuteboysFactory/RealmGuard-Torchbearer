@@ -105,9 +105,9 @@ assert.ok(turns.includes("applyCheckTransferPlan"));
 assert.ok(turns.includes('requestTurnAuthority("DONATE_CHECK"'), "Player transfers must still commit through the GM bridge");
 assert.ok(bridge.includes("gmQueue = gmQueue"), "Player transfer requests must remain serialized on the primary GM");
 
-assert.ok(shadow.includes('buildScope: "PLAYER_TURN_ACTION_CURRENCY_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'));
-assert.ok(shadow.includes('liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK"])'));
+assert.ok(shadow.includes('buildScope: "PLAYER_TURN_HANDOFFS"'));
+assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
+assert.ok(shadow.includes('liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER"])'));
 assert.ok(shadow.includes("transferHandoffStatus"));
 assert.ok(shadow.includes("setCoreTransferEnabled"));
 assert.ok(shadow.includes('"PassCheckLiveHandoff"'));
