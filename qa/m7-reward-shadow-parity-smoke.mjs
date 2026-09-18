@@ -13,7 +13,7 @@ assert.ok(shadow.includes("observeM7RewardProposal"));
 assert.ok(shadow.includes("observeM7RewardCommit"));
 assert.ok(shadow.includes("rewardParitySummary"));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
 assert.ok(endSession.includes("observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal: proposal })"));
