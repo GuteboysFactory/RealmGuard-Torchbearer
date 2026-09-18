@@ -1,7 +1,7 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
 import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
-import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled } from "./m7-session-live-handoff.mjs";
+import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled } from "./m7-session-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -11,10 +11,10 @@ function push(event) {
   const row = Object.freeze({
     at: Date.now(),
     phase: "M7",
-    buildScope: "PLAYER_TURN_TEST_CLAIM_HANDOFF",
+    buildScope: "PLAYER_TURN_ACTION_CURRENCY_HANDOFF",
     mode: "PARTIAL_LIVE_HANDOFF",
     liveApplication: true,
-    authority: "CORE_M7_CLAIM_LEGACY_SESSION",
+    authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION",
     ...event
   });
   history.push(row);
@@ -196,6 +196,10 @@ export function installM7SessionShadow() {
       claimHandoffHistory: () => getM7PlayerTurnClaimHandoffHistory(),
       resetClaimHandoffTelemetry: () => resetM7PlayerTurnClaimHandoffTelemetry(),
       setCoreClaimEnabled: enabled => setM7CoreClaimEnabled(Boolean(enabled)),
+      transferHandoffStatus: () => getM7CheckTransferHandoffStatus(),
+      transferHandoffHistory: () => getM7CheckTransferHandoffHistory(),
+      resetTransferHandoffTelemetry: () => resetM7CheckTransferHandoffTelemetry(),
+      setCoreTransferEnabled: enabled => setM7CoreTransferEnabled(Boolean(enabled)),
       actionCurrencyAuthority: () => Object.freeze({
         technicalCommit: turnAuthorityStatus(),
         serializedByPrimaryGm: true,
@@ -208,9 +212,9 @@ export function installM7SessionShadow() {
           "REFUND_RECOVERY_CHECKS"
         ]),
         directGenericSetOperation: false,
-        liveRulesAuthority: "CORE_M7_CLAIM_LEGACY_SESSION",
+        liveRulesAuthority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION",
         coreLiveApplication: true,
-        liveCoreScope: Object.freeze(["CLAIM_TEST"])
+        liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK"])
       }),
       stateFingerprint: () => stateFingerprint(),
       multiplayerState: () => {
@@ -233,9 +237,9 @@ export function installM7SessionShadow() {
 export function getM7SessionShadowStatus() {
   return Object.freeze({
     phase: "M7",
-    buildScope: "PLAYER_TURN_TEST_CLAIM_HANDOFF",
+    buildScope: "PLAYER_TURN_ACTION_CURRENCY_HANDOFF",
     mode: "PARTIAL_LIVE_HANDOFF",
-    authority: "CORE_M7_CLAIM_LEGACY_SESSION",
+    authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION",
     liveApplication: true,
     observed: history.length,
     latest: history.at(-1) ?? null,
@@ -262,7 +266,9 @@ export function getM7SessionShadowStatus() {
       "SessionCycleSeparation",
       "ActionCurrencyAuthorityBoundary",
       "PlayerTurnTestClaimLiveHandoff",
-      "AutoRollbackOnClaimDisagreement"
+      "AutoRollbackOnClaimDisagreement",
+      "PassCheckLiveHandoff",
+      "AutoRollbackOnTransferDisagreement"
     ])
   });
 }
