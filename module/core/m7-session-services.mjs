@@ -29,10 +29,21 @@ export class PhaseDefinition {
 }
 
 export class SessionState {
-  constructor({ enabled = true, phase = "gm", cycleId = 1, lastActorId = "", actors = [] } = {}) {
+  constructor({
+    enabled = true,
+    phase = "gm",
+    sessionCycle = 1,
+    turnCycleId = 1,
+    cycleId = null,
+    lastActorId = "",
+    actors = []
+  } = {}) {
     this.enabled = Boolean(enabled);
     this.phase = String(phase || "gm") === "player" ? "player" : "gm";
-    this.cycleId = Math.max(1, Number(cycleId || 1));
+    this.sessionCycle = Math.max(1, Number(sessionCycle || 1));
+    this.turnCycleId = Math.max(1, Number(turnCycleId ?? cycleId ?? 1));
+    // Compatibility alias for qa.1-qa.5 diagnostics. New code must use turnCycleId explicitly.
+    this.cycleId = this.turnCycleId;
     this.lastActorId = String(lastActorId ?? "");
     this.actors = freeze(actors);
     Object.freeze(this);
@@ -200,16 +211,18 @@ export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = glo
     try { return game?.settings?.get?.(SYSTEM_ID, key) ?? fallback; }
     catch (_error) { return fallback; }
   };
-  const cycleId = Math.max(1, Number(read("turnCycleId", 1) || 1));
+  const sessionCycle = Math.max(1, Number(read("endSessionCycle", 1) || 1));
+  const turnCycleId = Math.max(1, Number(read("turnCycleId", 1) || 1));
   const actors = participantActors({ gameRef: game, canvasRef });
   return new SessionState({
     enabled: Boolean(read("useTurnManager", true)),
     phase: read("turnPhase", "gm"),
-    cycleId,
+    sessionCycle,
+    turnCycleId,
     lastActorId: String(read("playerTurnLastActor", "") || ""),
     actors: actors.map(actor => {
       const raw = actor?.getFlag?.(SYSTEM_ID, "playerTurnState") ?? {};
-      const active = Number(raw?.turnId ?? 0) === cycleId;
+      const active = Number(raw?.turnId ?? 0) === turnCycleId;
       return {
         id: actor.id,
         ref: participantActorReference(actor),
