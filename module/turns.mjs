@@ -2,6 +2,8 @@ import { registerGmDockTool, renderGmDock } from "./gm-dock.mjs";
 import { participantActorReference, participantActors, resolveParticipantActor } from "./session-participants.mjs";
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
+import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -290,42 +292,86 @@ export function playerTurnStatus(actor) {
   };
 }
 
-async function claimPlayerTurnTestLocal(actor, { label = "Test", allowUntracked = false } = {}, { requester = game.user } = {}) {
-  if (!turnManagerEnabled()) return { ok: true, tracked: false, source: "free-play", cost: 0 };
-  // NPC tests never consume a Ranger's Players' Turn Free Test or Checks.
-  if (actor?.type !== "character") return { ok: true, tracked: false, source: "npc", cost: 0 };
-  if (!actor || currentTurnPhase() !== "player") return { ok: true, tracked: false, source: "none", cost: 0 };
-  if (allowUntracked) return { ok: true, tracked: false, source: "untracked", cost: 0 };
-  if (!requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not own ${actor.name}.` };
+function legacyPlayerTurnClaimPlan(actor, { label = "Test", allowUntracked = false } = {}) {
+  const checks = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+  const base = { label, actorStatePatch: null, lastActorId: "" };
+  if (!turnManagerEnabled()) return { ...base, ok: true, tracked: false, source: "free-play", cost: 0, before: checks, after: checks, reasonCode: "" };
+  if (actor?.type !== "character") return { ...base, ok: true, tracked: false, source: "npc", cost: 0, before: checks, after: checks, reasonCode: "" };
+  if (!actor || currentTurnPhase() !== "player") return { ...base, ok: true, tracked: false, source: "none", cost: 0, before: checks, after: checks, reasonCode: "" };
+  if (allowUntracked) return { ...base, ok: true, tracked: false, source: "untracked", cost: 0, before: checks, after: checks, reasonCode: "" };
 
   const state = playerTurnState(actor);
-  if (state.done) return { ok: false, reason: `${actor.name} is marked Done for this Players' Turn.` };
+  if (state.done) return { ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: checks, after: checks, reasonCode: "done" };
 
   const activeActors = participantActors().filter(a => !playerTurnState(a).done);
   const solo = activeActors.length <= 1;
   if (!solo && lastPlayerTurnActorId() === actor.id) {
-    return { ok: false, reason: `${actor.name} cannot take two tests in a row. Let another patrol member act, pass a Check, or finish the turn.` };
+    return { ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: checks, after: checks, reasonCode: "alternation" };
   }
 
-  const checks = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-  let source = "free";
-  let before = checks;
-  let after = checks;
-  const updateState = { testsTaken: state.testsTaken + 1, done: false };
+  const actorStatePatch = {
+    testsTaken: state.testsTaken + 1,
+    freeUsed: state.freeUsed,
+    checksSpent: state.checksSpent,
+    done: false
+  };
 
   if (!state.freeUsed) {
-    updateState.freeUsed = true;
-  } else {
-    if (checks < 1) return { ok: false, reason: `${actor.name} has used the free test and has no Checks left.` };
-    source = "check";
-    after = checks - 1;
-    updateState.checksSpent = state.checksSpent + 1;
-    await actor.update({ "system.resources.checks.value": after });
+    actorStatePatch.freeUsed = true;
+    return { ...base, ok: true, tracked: true, source: "free", cost: 0, before: checks, after: checks, reasonCode: "", actorStatePatch, lastActorId: actor.id };
   }
 
-  await savePlayerTurnState(actor, updateState);
-  await game.settings.set(SYSTEM_ID, LAST_ACTOR_KEY, actor.id);
-  return { ok: true, tracked: true, source, cost: source === "check" ? 1 : 0, before, after, label };
+  if (checks < 1) return { ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: checks, after: checks, reasonCode: "no-checks" };
+
+  actorStatePatch.checksSpent += 1;
+  return { ...base, ok: true, tracked: true, source: "check", cost: 1, before: checks, after: checks - 1, reasonCode: "", actorStatePatch, lastActorId: actor.id };
+}
+
+function playerTurnClaimReason(plan, actor) {
+  if (plan?.reasonCode === "done") return `${actor.name} is marked Done for this Players' Turn.`;
+  if (plan?.reasonCode === "alternation") return `${actor.name} cannot take two tests in a row. Let another patrol member act, pass a Check, or finish the turn.`;
+  if (plan?.reasonCode === "no-checks") return `${actor.name} has used the free test and has no Checks left.`;
+  return "The Players' Turn test could not be claimed.";
+}
+
+async function applyPlayerTurnClaimPlan(actor, plan) {
+  if (!plan?.ok || !plan?.tracked) return plan;
+  if (plan.source === "check") await actor.update({ "system.resources.checks.value": plan.after });
+  await savePlayerTurnState(actor, plan.actorStatePatch ?? {});
+  await game.settings.set(SYSTEM_ID, LAST_ACTOR_KEY, String(plan.lastActorId || actor.id));
+  return plan;
+}
+
+async function claimPlayerTurnTestLocal(actor, { label = "Test", allowUntracked = false } = {}, { requester = game.user } = {}) {
+  const legacyPlan = legacyPlayerTurnClaimPlan(actor, { label, allowUntracked });
+
+  // Preserve Legacy Mixed permission behavior: only a tracked character claim in Players' Turn
+  // requires ownership. Free Play, NPC, GM Turn and explicitly untracked tests remain untouched.
+  if (legacyPlan.tracked || legacyPlan.reasonCode) {
+    if (!requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not own ${actor.name}.` };
+  }
+
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const ref = participantActorReference(actor);
+  const actorState = sessionState.actors.find(entry => entry.ref === ref) ?? sessionState.actors.find(entry => entry.id === actor?.id) ?? {};
+
+  const plan = evaluateM7PlayerTurnClaimLiveHandoff({
+    actorId: actor?.id ?? "",
+    label,
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planTestClaim({
+      actor,
+      actorState,
+      sessionState,
+      allowUntracked,
+      label
+    })
+  });
+
+  if (!plan.ok) return { ...plan, reason: playerTurnClaimReason(plan, actor) };
+  await applyPlayerTurnClaimPlan(actor, plan);
+  return plan;
 }
 
 export async function claimPlayerTurnTest(actor, { label = "Test", allowUntracked = false } = {}) {
