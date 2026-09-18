@@ -10,7 +10,7 @@ function push(event) {
   const row = Object.freeze({
     at: Date.now(),
     phase: "M7",
-    buildScope: "SESSION_LIFECYCLE_SHADOW",
+    buildScope: "AUTHORITY_BOUNDARY_CLOSURE",
     mode: "SHADOW_READ_ONLY",
     liveApplication: false,
     authority: "LEGACY_MIXED",
@@ -26,6 +26,8 @@ function stateFingerprint(snapshot = legacySessionSnapshot()) {
   return JSON.stringify({
     enabled: snapshot.enabled,
     phase: snapshot.phase,
+    sessionCycle: snapshot.sessionCycle,
+    turnCycleId: snapshot.turnCycleId,
     cycleId: snapshot.cycleId,
     lastActorId: snapshot.lastActorId,
     actors: [...snapshot.actors]
@@ -189,6 +191,21 @@ export function installM7SessionShadow() {
         });
       },
       authorityStatus: () => turnAuthorityStatus(),
+      actionCurrencyAuthority: () => Object.freeze({
+        technicalCommit: turnAuthorityStatus(),
+        serializedByPrimaryGm: true,
+        semanticOperations: Object.freeze([
+          "CLAIM_TEST",
+          "DONATE_CHECK",
+          "FINISH_PLAYER",
+          "AWARD_TRAIT_CHECKS",
+          "SPEND_RECOVERY_CHECKS",
+          "REFUND_RECOVERY_CHECKS"
+        ]),
+        directGenericSetOperation: false,
+        liveRulesAuthority: "LEGACY_MIXED",
+        coreLiveApplication: false
+      }),
       stateFingerprint: () => stateFingerprint(),
       multiplayerState: () => {
         const snapshot = legacySessionSnapshot();
@@ -210,7 +227,7 @@ export function installM7SessionShadow() {
 export function getM7SessionShadowStatus() {
   return Object.freeze({
     phase: "M7",
-    buildScope: "SESSION_LIFECYCLE_SHADOW",
+    buildScope: "AUTHORITY_BOUNDARY_CLOSURE",
     mode: "SHADOW_READ_ONLY",
     authority: "LEGACY_MIXED",
     liveApplication: false,
@@ -235,7 +252,9 @@ export function getM7SessionShadowStatus() {
       "SESSION_STARTED",
       "PHASE_CHANGED",
       "SESSION_ENDING",
-      "SESSION_ENDED"
+      "SESSION_ENDED",
+      "SessionCycleSeparation",
+      "ActionCurrencyAuthorityBoundary"
     ])
   });
 }
