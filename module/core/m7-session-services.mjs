@@ -2,6 +2,14 @@ import { participantActorReference, participantActors } from "../session-partici
 
 const SYSTEM_ID = "realm-guard";
 
+export const SESSION_LIFECYCLE_EVENTS = Object.freeze([
+  "SESSION_STARTING",
+  "SESSION_STARTED",
+  "PHASE_CHANGED",
+  "SESSION_ENDING",
+  "SESSION_ENDED"
+]);
+
 function freeze(value) {
   if (Array.isArray(value)) return Object.freeze(value.map(freeze));
   if (value && typeof value === "object") {
@@ -74,6 +82,22 @@ export class PhaseAllowanceService {
       used: used ? 1 : 0,
       remaining: playerPhase && !used ? this.playerFreeTests : 0,
       available: playerPhase && !used
+    });
+  }
+}
+
+export class SessionLifecycleService {
+  constructor({ events = SESSION_LIFECYCLE_EVENTS } = {}) {
+    this.events = Object.freeze([...events].map(event => String(event)));
+    Object.freeze(this);
+  }
+
+  create(type, details = {}) {
+    const event = String(type ?? "").toUpperCase();
+    if (!this.events.includes(event)) throw new Error(`Unknown Session lifecycle event: ${event || "(empty)"}`);
+    return freeze({
+      ...details,
+      type: event
     });
   }
 }
@@ -209,5 +233,6 @@ export function createM7Services() {
   const rewardAuthority = new RewardAuthority();
   const rewardEngine = new RewardEngine({ authority: rewardAuthority });
   const sessionEngine = new SessionEngine({ actionCurrency, phaseAllowance });
-  return Object.freeze({ actionCurrency, phaseAllowance, rewardAuthority, rewardEngine, sessionEngine });
+  const lifecycle = new SessionLifecycleService();
+  return Object.freeze({ actionCurrency, phaseAllowance, rewardAuthority, rewardEngine, sessionEngine, lifecycle });
 }
