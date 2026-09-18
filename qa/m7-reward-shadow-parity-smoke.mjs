@@ -12,9 +12,9 @@ assert.ok(shadow.includes('"RewardCommitParity"'));
 assert.ok(shadow.includes("observeM7RewardProposal"));
 assert.ok(shadow.includes("observeM7RewardCommit"));
 assert.ok(shadow.includes("rewardParitySummary"));
-assert.ok(shadow.includes('mode: "SHADOW_READ_ONLY"'));
-assert.ok(shadow.includes('authority: "LEGACY_MIXED"'));
-assert.ok(shadow.includes("liveApplication: false"));
+assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
+assert.ok(shadow.includes('authority: "CORE_M7_CLAIM_LEGACY_SESSION"'));
+assert.ok(shadow.includes("liveApplication: true"));
 
 assert.ok(endSession.includes("observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal: proposal })"));
 assert.ok(endSession.includes("observeM7RewardCommit({"));
