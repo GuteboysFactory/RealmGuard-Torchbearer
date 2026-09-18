@@ -3974,3 +3974,33 @@ body:has(#join-game) {
   .realm-guard.chat-roll .rg-roll-breakdown-grid,
   .realm-guard.chat-roll .rg-roll-final-count { grid-template-columns:1fr; }
 }
+
+
+/* v1.9.0-qa.7 — neutral integrated GM Dock provider host */
+.rg-gm-dock-provider-divider{width:1px;height:28px;margin:0 2px;background:rgba(211,154,88,.28)}
+.rg-gm-dock-provider{position:relative}
+.rg-gm-dock-provider.is-open{border-color:#d39a58;color:#f3b86e;background:rgba(92,69,42,.92)}
+.rg-gm-dock-provider-badge{position:absolute;top:-3px;right:-3px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border:1px solid #2d2116;border-radius:9px;background:#d39a58;color:#17120e;font:800 9px/1 Arial,sans-serif;pointer-events:none}
+.rg-gm-dock-provider-menu{position:absolute;z-index:100003;bottom:calc(100% + 8px);left:0;width:min(330px,calc(100vw - 16px));overflow:hidden;border:1px solid rgba(211,154,88,.48);border-radius:9px;background:linear-gradient(180deg,rgba(30,31,28,.99),rgba(18,19,17,.99));box-shadow:0 14px 34px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.04);color:#eee8da;backdrop-filter:blur(8px)}
+.rg-gm-dock-provider-menu.is-below{bottom:auto;top:calc(100% + 8px)}
+.rg-gm-dock-provider-menu.is-align-right{left:auto;right:0}
+.rg-gm-dock-provider-menu.is-align-left{left:0;right:auto}
+.rg-gm-dock-provider-menu>header{display:grid;grid-template-columns:34px minmax(0,1fr) 28px;align-items:start;gap:8px;padding:10px 10px 9px;border-bottom:1px solid rgba(211,154,88,.18);background:rgba(211,154,88,.045)}
+.rg-gm-dock-provider-mark{display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(211,154,88,.28);border-radius:7px;color:#d8ad71;background:rgba(0,0,0,.14)}
+.rg-gm-dock-provider-menu>header small{display:block;margin:0 0 2px;color:#9d927e;font-size:8px;letter-spacing:.12em}
+.rg-gm-dock-provider-menu>header h3{margin:0;color:#f1dfc2;font-size:14px}
+.rg-gm-dock-provider-menu>header p{margin:2px 0 0;color:#b2aa98;font-size:10px;line-height:1.25}
+.rg-gm-dock-provider-menu>header .rg-gm-dock-provider-context{color:#d4b37b}
+.rg-gm-dock-provider-close{display:grid;place-items:center;width:28px;min-width:28px;height:28px;margin:0;padding:0;border:0;border-radius:5px;background:transparent;color:#a9a18f;box-shadow:none}
+.rg-gm-dock-provider-close:hover{color:#f1c37e;background:rgba(255,255,255,.05)}
+.rg-gm-dock-provider-items{display:grid;gap:2px;max-height:min(440px,65vh);overflow:auto;padding:6px}
+.rg-gm-dock-provider-item{display:grid!important;grid-template-columns:25px minmax(0,1fr) auto!important;align-items:center!important;gap:7px!important;width:100%!important;min-height:42px!important;margin:0!important;padding:6px 8px!important;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;color:#e9e2d4!important;box-shadow:none!important;text-align:left!important}
+.rg-gm-dock-provider-item>i:first-child{color:#d39a58}
+.rg-gm-dock-provider-item>span{min-width:0;display:grid}
+.rg-gm-dock-provider-item strong{overflow:hidden;color:#eee5d5;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.rg-gm-dock-provider-item small{overflow:hidden;color:#948b7a;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
+.rg-gm-dock-provider-item>b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgba(211,154,88,.16);color:#e2bd84;font-size:9px}
+.rg-gm-dock-provider-chevron{color:#777064!important;font-size:9px}
+.rg-gm-dock-provider-item:hover:not(:disabled),.rg-gm-dock-provider-item:focus-visible:not(:disabled){border-color:rgba(211,154,88,.3)!important;background:rgba(211,154,88,.08)!important;color:#f4c989!important;outline:none}
+.rg-gm-dock-provider-item:disabled{opacity:.38;cursor:default}
+.rg-gm-dock-provider-separator{padding:7px 8px 3px;color:#8e8474;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
