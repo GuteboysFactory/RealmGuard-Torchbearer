@@ -3,7 +3,7 @@ import { participantActorReference, participantActors, resolveParticipantActor }
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
-import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff } from "./m7-session-live-handoff.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -519,18 +519,80 @@ export async function openDonateDialog(donor) {
   else ui.notifications.info("Realm Guard: Check passed.");
 }
 
-async function finishPlayerLocal(actor, { requester = game.user } = {}) {
-  if (!turnManagerEnabled()) return false;
-  if (!actor || currentTurnPhase() !== "player") return false;
-  if (!requesterCanControlActor(requester, actor)) return false;
-  const checks = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-  if (checks > 0) await actor.update({ "system.resources.checks.value": 0 });
-  await savePlayerTurnState(actor, { done: true });
+function legacyFinishPlayerPlan(actor) {
+  const checks = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+  const base = {
+    ok: false,
+    reasonCode: "",
+    checksBefore: checks,
+    checksAfter: checks,
+    discarded: 0,
+    actorStatePatch: null
+  };
+
+  if (!turnManagerEnabled()) return { ...base, reasonCode: "turn-disabled" };
+  if (!actor) return { ...base, reasonCode: "missing-actor" };
+  if (currentTurnPhase() !== "player") return { ...base, reasonCode: "wrong-phase" };
+
+  const state = playerTurnState(actor);
+  return {
+    ...base,
+    ok: true,
+    checksAfter: 0,
+    discarded: checks,
+    actorStatePatch: {
+      done: true,
+      freeUsed: state.freeUsed,
+      testsTaken: state.testsTaken,
+      checksSpent: state.checksSpent,
+      donatedGiven: state.donatedGiven,
+      donatedReceived: state.donatedReceived
+    }
+  };
+}
+
+function finishPlayerReason(plan) {
+  if (plan?.reasonCode === "turn-disabled") return "Turn Manager is disabled in this world.";
+  if (plan?.reasonCode === "missing-actor") return "The Ranger for this Done action is no longer available.";
+  if (plan?.reasonCode === "wrong-phase") return "Rangers can be marked Done during the Players' Turn.";
+  return "The Ranger could not be marked Done.";
+}
+
+async function applyFinishPlayerPlan(actor, plan) {
+  if (!plan?.ok) return plan;
+  if (plan.checksBefore !== plan.checksAfter) {
+    await actor.update({ "system.resources.checks.value": plan.checksAfter });
+  }
+  await savePlayerTurnState(actor, plan.actorStatePatch ?? { done: true });
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="realm-guard rg-turn-chat"><div class="rg-turn-chat-tag">PLAYERS' TURN</div><p><b>${esc(actor.name)}</b> is Done.${checks ? ` ${checks} unused Check${checks === 1 ? "" : "s"} discarded.` : ""}</p></div>`
+    content: `<div class="realm-guard rg-turn-chat"><div class="rg-turn-chat-tag">PLAYERS' TURN</div><p><b>${esc(actor.name)}</b> is Done.${plan.discarded ? ` ${plan.discarded} unused Check${plan.discarded === 1 ? "" : "s"} discarded.` : ""}</p></div>`
   });
-  return true;
+  return plan;
+}
+
+async function finishPlayerLocal(actor, { requester = game.user } = {}) {
+  if (actor && !requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not control ${actor.name}.` };
+
+  const legacyPlan = legacyFinishPlayerPlan(actor);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const ref = participantActorReference(actor);
+  const actorState = sessionState.actors.find(entry => entry.ref === ref) ?? sessionState.actors.find(entry => entry.id === actor?.id) ?? {};
+
+  const plan = evaluateM7FinishPlayerLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planFinishPlayer({
+      actor,
+      actorState,
+      sessionState
+    })
+  });
+
+  if (!plan.ok) return { ...plan, reason: finishPlayerReason(plan) };
+  await applyFinishPlayerPlan(actor, plan);
+  return plan;
 }
 
 
@@ -725,8 +787,7 @@ export function installTurnManager() {
       if (stale) return stale;
       const actor = resolveParticipantActor(payload.actorRef);
       if (!actor) return { ok: false, reason: "The Ranger for this Done action is no longer available." };
-      const ok = await finishPlayerLocal(actor, { requester });
-      return ok ? { ok: true } : { ok: false, reason: "The Ranger could not be marked Done." };
+      return finishPlayerLocal(actor, { requester });
     }
   });
   Hooks.on("updateSetting", setting => {
