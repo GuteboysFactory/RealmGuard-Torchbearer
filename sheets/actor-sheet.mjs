@@ -1,6 +1,6 @@
 import { isDefaultSkill } from "../module/default-skills.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
-import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled } from "../module/turns.mjs";
+import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
@@ -1077,7 +1077,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     // A Players' Turn roll may still be blocked by alternation or lack of Free Test/Checks. In that case no recovery attempt is recorded.
     if (!result) {
       if (spent.phase === "gm" && spent.cost === 2) {
-        await this.actor.update({ "system.resources.checks.value": spent.before });
+        const refund = await refundRecoveryChecks(this.actor, spent);
+        if (!refund?.ok && refund?.reason) ui.notifications.warn(`Realm Guard: ${refund.reason}`);
       }
       return;
     }
