@@ -1,21 +1,37 @@
-Realm Guard / Torchbearer v1.9.0-qa.7 — Unified GM Dock Host.
+Realm Guard / Torchbearer v1.9.0-qa.8 — M7 Player Turn Test Claim Live Handoff.
 
-This QA build adds a neutral GuteboysFactory GM Dock Host/provider contract without changing tabletop rules.
+This build performs the first live CORE M7 Session Engine authority handoff.
 
-Changes:
-- keeps the existing Realm Guard GM Dock as the single host surface
-- allows compatible GuteboysFactory products to register provider menus into the Dock
-- Adventurer's Tome v1.4.0-qa.2 is the first reference provider
-- adds provider badges, compact integrated menus, outside-click close and safe callback handling
-- preserves existing Realm Guard tools, drag/reset and per-user Dock position
-- exposes the host through globalThis.GuteboysFactory.gmDockHost and game.realmGuard.gmDockHost
-- the Host receives action callbacks/presentation metadata only; it does not copy Tome campaign data
+Live CORE scope:
+- PLAYER_TURN_TEST_CLAIM
+- Free Test vs Check
+- alternation
+- Done guard
+- no-Checks guard
+- NPC untracked
+- Free Play untracked
 
-Legacy Mixed remains live rules authority.
-CORE M7 remains SHADOW_READ_ONLY with liveApplication false.
-No tabletop rules are intentionally changed.
+Safety:
+- Legacy Mixed calculates the same claim in parallel as a parity guard.
+- If CORE M7 and Legacy Mixed disagree, CORE claim authority automatically disables and the Legacy plan is applied.
+- CORE planning errors also fall back to Legacy Mixed.
+- Player requests remain serialized through the existing primary-GM authority bridge.
 
-Companion Tome QA build:
-- Adventurer's Tome v1.4.0-qa.2
+Still Legacy Mixed:
+- Pass Check
+- Done / Discard
+- phase changes
+- Recovery
+- Trait Against Check awards
+- End Session
+- remaining session/lifecycle commits
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.7.md
+Diagnostics:
+- game.realmGuard.core.m7.claimHandoffStatus()
+- game.realmGuard.core.m7.claimHandoffHistory()
+- game.realmGuard.core.m7.setCoreClaimEnabled(...)
+- game.realmGuard.core.m7.resetClaimHandoffTelemetry()
+
+No other tabletop rule behavior is intentionally changed.
+
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.8.md
