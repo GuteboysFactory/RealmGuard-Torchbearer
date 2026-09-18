@@ -185,23 +185,69 @@ export class SessionEngine {
     this.phaseAllowance = phaseAllowance;
   }
 
-  previewTestClaim({ actor, actorState = {}, sessionState } = {}) {
+  planTestClaim({ actor, actorState = {}, sessionState, allowUntracked = false, label = "Test" } = {}) {
     const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
-    if (!state.enabled) return freeze({ ok: true, tracked: false, source: "free-play", cost: 0 });
-    if (actor?.type !== "character") return freeze({ ok: true, tracked: false, source: "npc", cost: 0 });
-    if (state.phase !== "player") return freeze({ ok: true, tracked: false, source: "none", cost: 0 });
-    if (Boolean(actorState?.done)) return freeze({ ok: false, reason: "done" });
+    const checks = this.actionCurrency.current(actor, "checks");
+    const base = { label: String(label ?? "Test"), actorStatePatch: null, lastActorId: "" };
+
+    if (!state.enabled) return freeze({ ...base, ok: true, tracked: false, source: "free-play", cost: 0, before: checks, after: checks, reasonCode: "" });
+    if (actor?.type !== "character") return freeze({ ...base, ok: true, tracked: false, source: "npc", cost: 0, before: checks, after: checks, reasonCode: "" });
+    if (state.phase !== "player") return freeze({ ...base, ok: true, tracked: false, source: "none", cost: 0, before: checks, after: checks, reasonCode: "" });
+    if (allowUntracked) return freeze({ ...base, ok: true, tracked: false, source: "untracked", cost: 0, before: checks, after: checks, reasonCode: "" });
+    if (Boolean(actorState?.done)) return freeze({ ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: checks, after: checks, reasonCode: "done" });
 
     const active = state.actors.filter(entry => !entry.done);
     const solo = active.length <= 1;
-    if (!solo && state.lastActorId && state.lastActorId === actor?.id) return freeze({ ok: false, reason: "alternation" });
+    if (!solo && state.lastActorId && state.lastActorId === actor?.id) {
+      return freeze({ ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: checks, after: checks, reasonCode: "alternation" });
+    }
 
     const allowance = this.phaseAllowance.preview(actorState, state.phase);
-    if (allowance.available) return freeze({ ok: true, tracked: true, source: "free", cost: 0 });
+    const actorStatePatch = {
+      testsTaken: Math.max(0, Number(actorState?.testsTaken ?? 0)) + 1,
+      done: false,
+      freeUsed: Boolean(actorState?.freeUsed),
+      checksSpent: Math.max(0, Number(actorState?.checksSpent ?? 0))
+    };
+
+    if (allowance.available) {
+      actorStatePatch.freeUsed = true;
+      return freeze({
+        ...base,
+        ok: true,
+        tracked: true,
+        source: "free",
+        cost: 0,
+        before: checks,
+        after: checks,
+        reasonCode: "",
+        actorStatePatch,
+        lastActorId: String(actor?.id ?? "")
+      });
+    }
 
     const spend = this.actionCurrency.previewSpend(actor, 1, "checks");
-    if (!spend.affordable) return freeze({ ok: false, reason: "no-checks" });
-    return freeze({ ok: true, tracked: true, source: "check", cost: 1, before: spend.current, after: spend.after });
+    if (!spend.affordable) {
+      return freeze({ ...base, ok: false, tracked: false, source: "blocked", cost: 0, before: spend.current, after: spend.current, reasonCode: "no-checks" });
+    }
+
+    actorStatePatch.checksSpent += 1;
+    return freeze({
+      ...base,
+      ok: true,
+      tracked: true,
+      source: "check",
+      cost: 1,
+      before: spend.current,
+      after: spend.after,
+      reasonCode: "",
+      actorStatePatch,
+      lastActorId: String(actor?.id ?? "")
+    });
+  }
+
+  previewTestClaim(input = {}) {
+    return this.planTestClaim(input);
   }
 }
 
