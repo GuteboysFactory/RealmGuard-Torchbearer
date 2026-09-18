@@ -1,21 +1,39 @@
-Realm Guard / Torchbearer v1.9.0-qa.10 — GM Dock Host Contract v2.
+Realm Guard / Torchbearer v1.9.0-qa.11 — M7 Done / Discard Live Handoff.
 
-This build extends the neutral GuteboysFactory GM Dock Host contract for richer provider UX while preserving all qa.9 M7 rules behavior.
+Live CORE M7 Players' Turn scope:
+- PLAYER_TURN_TEST_CLAIM
+- PASS_CHECK
+- DONE_DISCARD (new)
 
-Dock Host v2 adds:
-- provider-owned inline body region
-- provider render callback for wiring compact controls
-- dedicated provider footer action
-- stable host rendering for compact campaign-workspace integrations
-- existing provider items, badges, close behavior and callbacks remain supported
+Done / Discard now uses a deterministic CORE plan for:
+- marking the Ranger Done
+- discarding unused Checks to 0
+- preserving the existing Players' Turn state fields
+- retaining existing chat behavior
 
-Adventurer's Tome v1.4.0-qa.5 is the reference provider and uses Host v2 for inline Quick Capture plus a persistent Open Tome footer.
+Safety:
+- Legacy Mixed computes the same finish plan in parallel as a parity guard.
+- On disagreement, only the Done / Discard CORE handoff auto-rolls back to Legacy Mixed.
+- CORE planning errors fall back safely.
+- Claim, Pass Check and Done / Discard each have independent rollback switches.
+- Player operations remain serialized through the primary-GM authority bridge.
 
-Rules authority is unchanged from qa.9:
-- CORE M7 PLAYER_TURN_TEST_CLAIM remains live
-- CORE M7 PASS_CHECK remains live
-- all remaining qa.9 Legacy Mixed boundaries remain unchanged
+Still Legacy Mixed:
+- phase changes
+- Recovery
+- Trait Against Check awards
+- End Session
+- remaining session/lifecycle commits
 
-No tabletop rule behavior is intentionally changed.
+Diagnostics:
+- game.realmGuard.core.m7.finishHandoffStatus()
+- game.realmGuard.core.m7.finishHandoffHistory()
+- game.realmGuard.core.m7.setCoreFinishEnabled(...)
+- game.realmGuard.core.m7.resetFinishHandoffTelemetry()
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.10.md
+Packaging note:
+- qa.11 also carries the current-main GM Dock Host Contract v2 changes that had been prepared as qa.10.
+- qa.10 itself was not published because the release pipeline was stopped by an obsolete exact-version assertion in the qa.9 Pass Check smoke.
+- That smoke guard is corrected in qa.11.
+
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.11.md
