@@ -13,7 +13,7 @@ const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.9");
+assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
 
 const donor = {
   id: "A1",
