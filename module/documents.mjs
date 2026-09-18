@@ -1,5 +1,5 @@
 import { conditionRollData, hasActiveCondition } from "./conditions.mjs";
-import { claimPlayerTurnTest, playerTurnSpendHtml, currentTurnPhase, turnManagerEnabled } from "./turns.mjs";
+import { claimPlayerTurnTest, playerTurnSpendHtml, currentTurnPhase, turnManagerEnabled, awardTraitChecks } from "./turns.mjs";
 import { resolveTokenPowerUse, tokenPowerChatText } from "./tokens-of-power.mjs";
 import { spendTrackedResource } from "./progression.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
@@ -101,12 +101,8 @@ export class RealmGuardActor extends Actor {
   async _awardTraitChecks(assist) {
     const requested = Math.max(0, Number(assist?.checks ?? 0));
     if (!requested || !turnManagerEnabled() || currentTurnPhase() !== "gm") return 0;
-    const current = Math.max(0, Number(this.system.resources?.checks?.value ?? 0));
-    const maximum = Math.max(current, Number(this.system.resources?.checks?.max ?? 9));
-    const next = Math.min(maximum, current + requested);
-    const earned = Math.max(0, next - current);
-    if (earned) await this.update({ "system.resources.checks.value": next });
-    return earned;
+    const result = await awardTraitChecks(this, requested);
+    return result?.ok ? Math.max(0, Number(result.earned ?? 0)) : 0;
   }
 
   _traitChatText(assist, earnedChecks = 0) {
@@ -285,10 +281,8 @@ export class RealmGuardActor extends Actor {
 
     if (decision.action === "trait") {
       const trait = decision.traitId ? this.items.get(decision.traitId) : null;
-      const currentChecks = Number(this.system.resources.checks.value ?? 0);
-      const maxChecks = Number(this.system.resources.checks.max ?? 9);
-      const earnedChecks = turnManagerEnabled() && currentTurnPhase() === "gm" ? Math.max(0, Math.min(2, maxChecks - currentChecks)) : 0;
-      if (earnedChecks) await this.update({ "system.resources.checks.value": currentChecks + earnedChecks });
+      const award = turnManagerEnabled() && currentTurnPhase() === "gm" ? await awardTraitChecks(this, 2) : { ok: true, earned: 0 };
+      const earnedChecks = award?.ok ? Math.max(0, Number(award.earned ?? 0)) : 0;
       return { resolved: true, tied: false, outcome: "FAIL", passed: false, method: "trait", traitName: trait?.name ?? "Trait", earnedChecks, learningResult: false, margin: 0 };
     }
 
@@ -328,10 +322,8 @@ export class RealmGuardActor extends Actor {
 
     const second = await this._secondTieDecision({ opponent, ownFaces: ownTieFaces, fateAlreadySpent: fateSpent });
     if (second?.action === "trait") {
-      const currentChecks = Number(this.system.resources.checks.value ?? 0);
-      const maxChecks = Number(this.system.resources.checks.max ?? 9);
-      const earnedChecks = turnManagerEnabled() && currentTurnPhase() === "gm" ? Math.max(0, Math.min(2, maxChecks - currentChecks)) : 0;
-      if (earnedChecks) await this.update({ "system.resources.checks.value": currentChecks + earnedChecks });
+      const award = turnManagerEnabled() && currentTurnPhase() === "gm" ? await awardTraitChecks(this, 2) : { ok: true, earned: 0 };
+      const earnedChecks = award?.ok ? Math.max(0, Number(award.earned ?? 0)) : 0;
       return { resolved: true, tied: false, outcome: "FAIL", passed: false, method: "second-trait", earnedChecks, learningResult: null, margin: 0, ownAbility: ownPool.label, oppAbility: oppPool.label, ownTieFaces, oppTieFaces, ownTieSuccesses, oppTieSuccesses };
     }
     if (second?.action === "fate") {
