@@ -342,6 +342,59 @@ Superseded by v1.0.8.2 before GOLD promotion.
 3. New content remains editable/extensible by GM.
 4. Regression against the latest verified GOLD build before promotion.
 
+
+## v1.1.6 - Cinematic Realm Entrance
+
+**Status:** PLANNED PRESENTATION / IMMERSION FEATURE.
+
+### Goal
+- Add a full-screen **Realm Entrance** after the user has completed Foundry's normal Join flow and the Realm Guard world/system has loaded.
+- Keep Foundry's native `/join` page untouched; the experience begins only after successful login so it can live entirely inside the Realm Guard system and remain resilient across Foundry updates.
+- Treat the entrance as presentation only. It must never alter rules, Actor data, session state, permissions, or gameplay authority.
+
+### Entrance experience
+- Show a cinematic full-screen overlay before normal world interaction.
+- Primary headline: **ARE YOU READY FOR THE REALM?**
+- Primary action: **ENTER THE REALM**.
+- Secondary invitation: *Or linger a while and listen to The Road Beneath the Stars.*
+- Support a Realm Guard-themed animated/video/WebP background with dark vignette/fades and branding.
+- The Foundry world should already be loaded behind the overlay so Enter can transition directly into play without another login/navigation step.
+
+### Music
+- Use **The Road Beneath the Stars** as the featured Realm Guard theme where the required project audio asset is available.
+- Do not rely on browser audio autoplay. Music starts only after an explicit user gesture such as **Play Theme**.
+- Start at a restrained default presentation volume (target roughly 15–20%) with a soft fade-in.
+- **Enter the Realm** fades music and the overlay out smoothly before handing control to the normal Foundry UI.
+- Music playback and local volume are client-side presentation preferences and do not change world/game state.
+
+### Settings
+- Add a GM world setting to enable/disable the Realm Entrance for the campaign.
+- Add a per-user/client preference for how often the entrance is shown:
+  - Every login
+  - Once per browser/session
+  - First login only
+  - Never
+- A player preference may suppress the entrance locally, but may not change campaign rules or shared world state.
+- Provide a safe way to reopen the Realm Entrance/theme from the normal UI for users who want to revisit it.
+
+### Compatibility / implementation constraints
+- Do not replace, patch or proxy Foundry's native Join Page as part of this feature.
+- Do not require Nginx/Caddy/reverse-proxy configuration.
+- Build the entrance from normal Realm Guard client hooks after the authenticated world has loaded.
+- Keep media paths local to the system/world package where practical.
+- Provide graceful fallback to a static background when video/animated media cannot be played.
+- Audio/video failure must never block entry into the world.
+
+### v1.1.6 release gate
+1. Native Foundry `/join` remains untouched and functional.
+2. Realm Entrance appears only after successful world login and does not interrupt world loading.
+3. **Enter the Realm** always dismisses the overlay and gives immediate access to Foundry.
+4. Browser autoplay restrictions are respected; audio begins only from a user action.
+5. Every login / once per session / first login / never preferences persist correctly per client.
+6. GM enable/disable setting applies campaign-wide without overriding a player's local **Never** preference.
+7. Media failure degrades safely to a usable static entrance.
+8. Foundry v13.351 regression PASS; re-check on v14 migration.
+
 ---
 
 # v1.2.0 Working Target
