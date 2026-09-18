@@ -143,7 +143,7 @@ function withAuthority(plan, claimAuthority, meta = {}) {
     ...normalizeClaim(plan),
     m7: Object.freeze({
       claimAuthority,
-      remainingSessionAuthority: "LEGACY_MIXED",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
       ...meta
     })
   };
@@ -219,7 +219,7 @@ export function evaluateM7PlayerTurnClaimLiveHandoff({
     actorId: String(actorId ?? ""),
     label: String(label ?? "Test"),
     claimAuthority: "CORE_M7",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     parityGuard: "MATCH",
     result: comparison.core
   });
@@ -227,7 +227,7 @@ export function evaluateM7PlayerTurnClaimLiveHandoff({
     ...comparison.core,
     m7: Object.freeze({
       claimAuthority: "CORE_M7",
-      remainingSessionAuthority: "LEGACY_MIXED",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
       rollback: false,
       parityGuard: "MATCH",
       eventAt: event.at
@@ -257,7 +257,7 @@ export function evaluateM7CheckTransferLiveHandoff({
       ...normalizeTransfer(legacy),
       m7: Object.freeze({
         transferAuthority: "LEGACY_MIXED",
-        remainingSessionAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
         rollback: true,
         reason: transferRollbackReason,
         eventAt: event.at
@@ -284,7 +284,7 @@ export function evaluateM7CheckTransferLiveHandoff({
       ...normalizeTransfer(legacy),
       m7: Object.freeze({
         transferAuthority: "LEGACY_FALLBACK",
-        remainingSessionAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
         rollback: true,
         reason: "CORE_TRANSFER_ERROR",
         eventAt: event.at
@@ -312,7 +312,7 @@ export function evaluateM7CheckTransferLiveHandoff({
       ...comparison.legacy,
       m7: Object.freeze({
         transferAuthority: "LEGACY_FALLBACK",
-        remainingSessionAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
         rollback: true,
         reason: "TRANSFER_DISAGREEMENT",
         mismatchedFields: comparison.mismatchedFields,
@@ -328,7 +328,7 @@ export function evaluateM7CheckTransferLiveHandoff({
     donorId: String(donorId ?? ""),
     recipientId: String(recipientId ?? ""),
     transferAuthority: "CORE_M7",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     parityGuard: "MATCH",
     result: comparison.core
   });
@@ -337,7 +337,7 @@ export function evaluateM7CheckTransferLiveHandoff({
     ...comparison.core,
     m7: Object.freeze({
       transferAuthority: "CORE_M7",
-      remainingSessionAuthority: "LEGACY_MIXED",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
       rollback: false,
       parityGuard: "MATCH",
       eventAt: event.at
@@ -352,7 +352,7 @@ export function setM7CoreTransferEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK
     operation: "AUTHORITY_SWITCH",
     outcome: coreTransferEnabled ? "CORE_TRANSFER_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
     transferAuthority: coreTransferEnabled ? "CORE_M7" : "LEGACY_MIXED",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     reason: transferRollbackReason
   });
   return getM7CheckTransferHandoffStatus();
@@ -380,7 +380,7 @@ export function getM7CheckTransferHandoffStatus() {
     enabled: coreTransferEnabled,
     mode: coreTransferEnabled ? "CORE_TRANSFER_LEGACY_SESSION" : "LEGACY_ROLLBACK",
     transferAuthority: coreTransferEnabled ? "CORE_M7" : "LEGACY_MIXED",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     autoRollbackOnDisagreement: true,
     fallbackOnCoreError: true,
     rollbackReason: transferRollbackReason,
@@ -405,7 +405,7 @@ export function setM7CoreClaimEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" }
     operation: "AUTHORITY_SWITCH",
     outcome: coreClaimEnabled ? "CORE_CLAIM_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
     claimAuthority: coreClaimEnabled ? "CORE_M7" : "LEGACY_MIXED",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     reason: rollbackReason
   });
   return getM7PlayerTurnClaimHandoffStatus();
@@ -433,7 +433,7 @@ export function getM7PlayerTurnClaimHandoffStatus() {
     enabled: coreClaimEnabled,
     mode: coreClaimEnabled ? "CORE_CLAIM_LEGACY_SESSION" : "LEGACY_ROLLBACK",
     claimAuthority: coreClaimEnabled ? "CORE_M7" : "LEGACY_MIXED",
-    remainingSessionAuthority: "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
     autoRollbackOnDisagreement: true,
     fallbackOnCoreError: true,
     rollbackReason,
