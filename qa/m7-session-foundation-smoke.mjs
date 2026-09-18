@@ -27,7 +27,7 @@ must(core.includes("participantActors({ gameRef: game, canvasRef })"), "M7 snaps
 must(core.includes("participantActorReference(actor)"), "M7 snapshot must retain participant reference provenance");
 must(core.includes('source: "free-play"'), "Missing Free Play preview path");
 must(core.includes('source: "npc"'), "Missing NPC untracked preview path");
-must(core.includes('reason: "alternation"'), "Missing no-two-tests-in-a-row preview guard");
+must(core.includes('reasonCode: "alternation"'), "Missing no-two-tests-in-a-row preview guard");
 must(core.includes("persona: Math.min(4, personaRaw)"), "Missing Persona cap parity");
 must(core.includes("goalFateSuppressed"), "Missing Goal Fate suppression parity");
 
