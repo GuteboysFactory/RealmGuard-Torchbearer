@@ -297,6 +297,42 @@ export class SessionEngine {
   previewCheckTransfer(input = {}) {
     return this.planCheckTransfer(input);
   }
+
+  planFinishPlayer({ actor, actorState = {}, sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const checks = this.actionCurrency.current(actor, "checks");
+    const base = {
+      ok: false,
+      reasonCode: "",
+      checksBefore: checks,
+      checksAfter: checks,
+      discarded: 0,
+      actorStatePatch: null
+    };
+
+    if (!state.enabled) return freeze({ ...base, reasonCode: "turn-disabled" });
+    if (!actor) return freeze({ ...base, reasonCode: "missing-actor" });
+    if (state.phase !== "player") return freeze({ ...base, reasonCode: "wrong-phase" });
+
+    return freeze({
+      ...base,
+      ok: true,
+      checksAfter: 0,
+      discarded: checks,
+      actorStatePatch: {
+        done: true,
+        freeUsed: Boolean(actorState?.freeUsed),
+        testsTaken: Math.max(0, Number(actorState?.testsTaken ?? 0)),
+        checksSpent: Math.max(0, Number(actorState?.checksSpent ?? 0)),
+        donatedGiven: Math.max(0, Number(actorState?.donatedGiven ?? 0)),
+        donatedReceived: Math.max(0, Number(actorState?.donatedReceived ?? 0))
+      }
+    });
+  }
+
+  previewFinishPlayer(input = {}) {
+    return this.planFinishPlayer(input);
+  }
 }
 
 export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = globalThis.canvas) {
