@@ -1,21 +1,20 @@
-This QA build completes the planned M7 Session Engine shadow contract with explicit lifecycle observation.
+Realm Guard / Torchbearer v1.9.0-qa.6 — M7 Authority Boundary Closure.
 
-Added CORE lifecycle definitions:
-- SESSION_STARTING
-- SESSION_STARTED
-- PHASE_CHANGED
-- SESSION_ENDING
-- SESSION_ENDED
+This QA build closes the remaining Action Currency authority leaks before the first CORE M7 live handoff.
 
-Legacy Mixed phase changes and End Session flows now emit read-only M7 lifecycle observations. These observations do not control or mutate gameplay state.
+Changes:
+- separates real session cycle from GM/Players' Turn cycle/revision
+- preserves cycleId as a temporary compatibility alias for turnCycleId
+- routes Trait Against Check awards through the serialized primary-GM authority bridge
+- routes GM Turn Recovery Check spend through the same authority bridge
+- routes Recovery rollback/refund through the same authority bridge with stale/state validation
+- adds M7 Action Currency authority diagnostics
 
-New diagnostics:
-- `game.realmGuard.core.m7.lifecycle()`
-- `game.realmGuard.core.m7.lifecycleSummary()`
+Legacy Mixed remains live rules authority.
+CORE M7 remains SHADOW_READ_ONLY with liveApplication false.
+No tabletop rules are intentionally changed.
 
-Legacy Mixed remains the only live rules authority.
-CORE M7 remains `SHADOW_READ_ONLY` with `liveApplication: false`.
+New diagnostic:
+- game.realmGuard.core.m7.actionCurrencyAuthority()
 
-This build is intended to close the final missing M7 shadow-contract element before any separate, explicitly approved live-authority handoff work begins.
-
-QA protocol: `TEST_PROTOCOL_v1.9.0-qa.5.md`
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.6.md
