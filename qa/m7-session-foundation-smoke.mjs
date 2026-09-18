@@ -37,15 +37,15 @@ must(turns.includes("resolveParticipantActor(result.donorId)"), "Turn Manager do
 must(turns.includes("resolveParticipantActor(result.recipientId)"), "Turn Manager recipient must resolve the displayed participant Actor");
 must(turns.includes("resolveParticipantActor(result.actorId)"), "Turn Manager Done action must resolve the displayed participant Actor");
 
-must(shadow.includes('mode: "SHADOW_READ_ONLY"'), "M7 must remain shadow/read-only in M7");
-must(shadow.includes('authority: "LEGACY_MIXED"'), "Legacy Mixed must remain live authority in M7");
-must(shadow.includes("liveApplication: false"), "M7 M7 must not apply CORE live");
+must(shadow.includes('mode: "SHADOW_READ_ONLY"'), "M7 must remain shadow/read-only");
+must(shadow.includes('authority: "LEGACY_MIXED"'), "Legacy Mixed must remain live authority");
+must(shadow.includes("liveApplication: false"), "M7 must not apply CORE live");
 must(shadow.includes("game.realmGuard.core.m7"), "Missing M7 diagnostics API");
 must(shadow.includes("entry.ref === ref"), "M7 preview must prefer participant reference parity");
 
 must(entry.includes('installM7SessionShadow'), "M7 shadow installer not wired");
 must(entry.includes('installM7SessionShadow();'), "M7 shadow installer not invoked");
 must(manifest.id === "realm-guard", "System id changed unexpectedly");
-must(manifest.version === "1.9.0-M7", `Unexpected manifest version: ${manifest.version}`);
+must(/^1\\.9\\.0-qa\\.\\d+$/.test(manifest.version), `Unexpected manifest version: ${manifest.version}`);
 
 console.log("PASS m7-session-foundation-smoke");
