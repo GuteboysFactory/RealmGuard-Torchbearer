@@ -2,8 +2,10 @@ const HISTORY_LIMIT = 120;
 
 let coreClaimEnabled = true;
 let coreTransferEnabled = true;
+let coreFinishEnabled = true;
 let rollbackReason = "";
 let transferRollbackReason = "";
+let finishRollbackReason = "";
 
 const telemetry = {
   evaluations: 0,
@@ -16,6 +18,16 @@ const telemetry = {
 };
 
 const transferTelemetry = {
+  evaluations: 0,
+  matches: 0,
+  mismatches: 0,
+  errorFallbacks: 0,
+  rollbackEvaluations: 0,
+  lastDecision: null,
+  history: []
+};
+
+const finishTelemetry = {
   evaluations: 0,
   matches: 0,
   mismatches: 0,
@@ -100,6 +112,42 @@ export function compareM7CheckTransfer({ legacy = {}, core = {} } = {}) {
   });
 }
 
+function normalizeFinishPatch(patch = null) {
+  if (!patch) return null;
+  return Object.freeze({
+    done: Boolean(patch.done),
+    freeUsed: Boolean(patch.freeUsed),
+    testsTaken: num(patch.testsTaken),
+    checksSpent: num(patch.checksSpent),
+    donatedGiven: num(patch.donatedGiven),
+    donatedReceived: num(patch.donatedReceived)
+  });
+}
+
+function normalizeFinish(plan = {}) {
+  return Object.freeze({
+    ok: Boolean(plan.ok),
+    reasonCode: String(plan.reasonCode ?? ""),
+    checksBefore: num(plan.checksBefore),
+    checksAfter: num(plan.checksAfter),
+    discarded: num(plan.discarded),
+    actorStatePatch: normalizeFinishPatch(plan.actorStatePatch)
+  });
+}
+
+export function compareM7FinishPlayer({ legacy = {}, core = {} } = {}) {
+  const live = normalizeFinish(legacy);
+  const candidate = normalizeFinish(core);
+  const fields = ["ok", "reasonCode", "checksBefore", "checksAfter", "discarded", "actorStatePatch"];
+  const mismatchedFields = fields.filter(key => JSON.stringify(live[key]) !== JSON.stringify(candidate[key]));
+  return Object.freeze({
+    match: mismatchedFields.length === 0,
+    mismatchedFields: Object.freeze(mismatchedFields),
+    legacy: live,
+    core: candidate
+  });
+}
+
 function record(entry = {}) {
   const event = Object.freeze({
     at: Date.now(),
@@ -136,6 +184,25 @@ function recordTransfer(entry = {}) {
 function tripTransferRollback(reason) {
   coreTransferEnabled = false;
   transferRollbackReason = String(reason || "TRANSFER_SAFETY_ROLLBACK");
+}
+
+function recordFinish(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M7",
+    scope: "DONE_DISCARD_HANDOFF",
+    ...entry
+  });
+  finishTelemetry.lastDecision = event;
+  finishTelemetry.history.push(event);
+  if (finishTelemetry.history.length > HISTORY_LIMIT) finishTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM7DoneDiscardHandoff", event); } catch (_error) { /* telemetry only */ }
+  return event;
+}
+
+function tripFinishRollback(reason) {
+  coreFinishEnabled = false;
+  finishRollbackReason = String(reason || "FINISH_SAFETY_ROLLBACK");
 }
 
 function withAuthority(plan, claimAuthority, meta = {}) {
@@ -343,6 +410,163 @@ export function evaluateM7CheckTransferLiveHandoff({
       eventAt: event.at
     })
   };
+}
+
+export function evaluateM7FinishPlayerLiveHandoff({
+  actorId = "",
+  legacy = {},
+  corePlan = null
+} = {}) {
+  const operation = "DONE_DISCARD";
+
+  if (!coreFinishEnabled) {
+    finishTelemetry.rollbackEvaluations += 1;
+    const event = recordFinish({
+      operation,
+      outcome: "LEGACY_ROLLBACK",
+      actorId: String(actorId ?? ""),
+      finishAuthority: "LEGACY_MIXED",
+      reason: finishRollbackReason
+    });
+    return {
+      ...normalizeFinish(legacy),
+      m7: Object.freeze({
+        finishAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: finishRollbackReason,
+        eventAt: event.at
+      })
+    };
+  }
+
+  let core;
+  try {
+    if (typeof corePlan !== "function") throw new Error("Missing CORE M7 Done/Discard planner.");
+    core = corePlan();
+  } catch (error) {
+    finishTelemetry.errorFallbacks += 1;
+    tripFinishRollback("CORE_FINISH_ERROR");
+    const event = recordFinish({
+      operation,
+      outcome: "CORE_ERROR_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      finishAuthority: "LEGACY_FALLBACK",
+      reason: String(error?.message ?? error)
+    });
+    return {
+      ...normalizeFinish(legacy),
+      m7: Object.freeze({
+        finishAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "CORE_FINISH_ERROR",
+        eventAt: event.at
+      })
+    };
+  }
+
+  finishTelemetry.evaluations += 1;
+  const comparison = compareM7FinishPlayer({ legacy, core });
+  if (!comparison.match) {
+    finishTelemetry.mismatches += 1;
+    tripFinishRollback("FINISH_DISAGREEMENT");
+    const event = recordFinish({
+      operation,
+      outcome: "FINISH_DISAGREEMENT_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      finishAuthority: "LEGACY_FALLBACK",
+      mismatchedFields: comparison.mismatchedFields,
+      legacy: comparison.legacy,
+      core: comparison.core,
+      reason: "CORE M7 and Legacy Mixed Done/Discard plans did not agree."
+    });
+    return {
+      ...comparison.legacy,
+      m7: Object.freeze({
+        finishAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "FINISH_DISAGREEMENT",
+        mismatchedFields: comparison.mismatchedFields,
+        eventAt: event.at
+      })
+    };
+  }
+
+  finishTelemetry.matches += 1;
+  const event = recordFinish({
+    operation,
+    outcome: "CORE_FINISH_APPLIED",
+    actorId: String(actorId ?? ""),
+    finishAuthority: "CORE_M7",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    parityGuard: "MATCH",
+    result: comparison.core
+  });
+  return {
+    ...comparison.core,
+    m7: Object.freeze({
+      finishAuthority: "CORE_M7",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+      rollback: false,
+      parityGuard: "MATCH",
+      eventAt: event.at
+    })
+  };
+}
+
+export function setM7CoreFinishEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
+  coreFinishEnabled = Boolean(enabled);
+  finishRollbackReason = coreFinishEnabled ? "" : String(reason || "MANUAL_QA_ROLLBACK");
+  recordFinish({
+    operation: "AUTHORITY_SWITCH",
+    outcome: coreFinishEnabled ? "CORE_FINISH_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    finishAuthority: coreFinishEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    reason: finishRollbackReason
+  });
+  return getM7FinishPlayerHandoffStatus();
+}
+
+export function resetM7FinishPlayerHandoffTelemetry() {
+  finishTelemetry.evaluations = 0;
+  finishTelemetry.matches = 0;
+  finishTelemetry.mismatches = 0;
+  finishTelemetry.errorFallbacks = 0;
+  finishTelemetry.rollbackEvaluations = 0;
+  finishTelemetry.lastDecision = null;
+  finishTelemetry.history.length = 0;
+  return getM7FinishPlayerHandoffStatus();
+}
+
+export function getM7FinishPlayerHandoffHistory() {
+  return Object.freeze([...finishTelemetry.history]);
+}
+
+export function getM7FinishPlayerHandoffStatus() {
+  return Object.freeze({
+    phase: "M7",
+    scope: "DONE_DISCARD_HANDOFF",
+    enabled: coreFinishEnabled,
+    mode: coreFinishEnabled ? "CORE_FINISH_LEGACY_SESSION" : "LEGACY_ROLLBACK",
+    finishAuthority: coreFinishEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    autoRollbackOnDisagreement: true,
+    fallbackOnCoreError: true,
+    rollbackReason: finishRollbackReason,
+    liveScope: Object.freeze(["DONE_DISCARD"]),
+    deferredScope: Object.freeze(["PHASE_CHANGE", "RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    telemetry: Object.freeze({
+      evaluations: finishTelemetry.evaluations,
+      matches: finishTelemetry.matches,
+      mismatches: finishTelemetry.mismatches,
+      errorFallbacks: finishTelemetry.errorFallbacks,
+      rollbackEvaluations: finishTelemetry.rollbackEvaluations,
+      historyCount: finishTelemetry.history.length,
+      lastDecision: finishTelemetry.lastDecision
+    })
+  });
 }
 
 export function setM7CoreTransferEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
