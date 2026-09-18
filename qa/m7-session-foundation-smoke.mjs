@@ -38,7 +38,7 @@ must(turns.includes("resolveParticipantActor(result.recipientId)"), "Turn Manage
 must(turns.includes("resolveParticipantActor(result.actorId)"), "Turn Manager Done action must resolve the displayed participant Actor");
 
 must(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'), "M7 must report the partial live handoff");
-must(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'), "M7 Turn-currency authority must be CORE while remaining session authority stays Legacy Mixed");
+must(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'), "M7 Turn-currency authority must be CORE while remaining session authority stays Legacy Mixed");
 must(shadow.includes("liveApplication: true"), "M7 must report the live claim scope");
 must(shadow.includes("game.realmGuard.core.m7"), "Missing M7 diagnostics API");
 must(shadow.includes("entry.ref === ref"), "M7 preview must prefer participant reference parity");
