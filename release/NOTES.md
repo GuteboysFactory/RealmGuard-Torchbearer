@@ -1,14 +1,21 @@
-Realm Guard / Torchbearer v1.9.0-qa.4 — M7 Multiplayer State Authority Hardening.
+This QA build completes the planned M7 Session Engine shadow contract with explicit lifecycle observation.
 
-This QA build hardens the existing Legacy Mixed structured Turn workflow across multiple connected Foundry clients.
+Added CORE lifecycle definitions:
+- SESSION_STARTING
+- SESSION_STARTED
+- PHASE_CHANGED
+- SESSION_ENDING
+- SESSION_ENDED
 
-Player-initiated Turn mutations are technically committed by one deterministic active GM and serialized there. Free Test/Check claims, Pass Check, Done/Discard and Recovery-attempt state use this authority path. Requests from stale Turn cycles/phases are rejected before mutation.
+Legacy Mixed phase changes and End Session flows now emit read-only M7 lifecycle observations. These observations do not control or mutate gameplay state.
 
-M7 adds read-only authority/state diagnostics for comparing GM and player clients:
-- game.realmGuard.core.m7.authorityStatus()
-- game.realmGuard.core.m7.stateFingerprint()
-- game.realmGuard.core.m7.multiplayerState()
+New diagnostics:
+- `game.realmGuard.core.m7.lifecycle()`
+- `game.realmGuard.core.m7.lifecycleSummary()`
 
-Legacy Mixed remains live rules authority. CORE M7 remains shadow/read-only with liveApplication false. No tabletop Turn, Check, Reward or Conflict rules are intentionally changed.
+Legacy Mixed remains the only live rules authority.
+CORE M7 remains `SHADOW_READ_ONLY` with `liveApplication: false`.
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.4.md
+This build is intended to close the final missing M7 shadow-contract element before any separate, explicitly approved live-authority handoff work begins.
+
+QA protocol: `TEST_PROTOCOL_v1.9.0-qa.5.md`
