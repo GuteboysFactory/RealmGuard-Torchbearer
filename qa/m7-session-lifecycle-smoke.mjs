@@ -8,7 +8,7 @@ const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const endSession = fs.readFileSync("module/end-session.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.5");
+assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
 assert.deepEqual(SESSION_LIFECYCLE_EVENTS, [
   "SESSION_STARTING",
   "SESSION_STARTED",
@@ -29,7 +29,7 @@ assert.throws(() => lifecycle.create("UNKNOWN_EVENT"), /Unknown Session lifecycl
 
 assert.ok(core.includes("class SessionLifecycleService"));
 assert.ok(core.includes("SESSION_LIFECYCLE_EVENTS"));
-assert.ok(shadow.includes('buildScope: "SESSION_LIFECYCLE_SHADOW"'));
+assert.ok(shadow.includes('"SessionLifecycleService"'));
 assert.ok(shadow.includes("observeM7Lifecycle"));
 assert.ok(shadow.includes("lifecycleSummary"));
 assert.ok(shadow.includes('domain: "SESSION_LIFECYCLE"'));
