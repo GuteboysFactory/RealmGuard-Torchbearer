@@ -1,4 +1,4 @@
-import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled } from "./turns.mjs";
+import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
   { name: "Angry", icon: "systems/realm-guard/assets/conditions/angry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 2, recoveryNote: "Recover with an Ob 2 Will test. While Angry, beneficial Trait and Wise effects are unavailable; precision/social Ob increases remain GM-adjudicated.", description: "Angry subtracts 1 from disposition for conflicts that use Will as their base. Supplementary Torchbearer alignment also blocks beneficial Trait/Wise effects while Angry." },
@@ -98,12 +98,9 @@ export function recoveryMethods(actor, condition) {
 export async function beginRecoveryAttempt(actor, condition) {
   const valid = validateRecoveryAttempt(actor, condition);
   if (!valid.ok) return valid;
-  if (!turnManagerEnabled()) return { ok: true, phase: "free", source: "free-play", cost: 0 };
-  if (currentTurnPhase() !== "gm") return { ok: true, phase: "player", source: "player-turn", cost: null };
-  const before = Math.max(0, Number(actor.system?.resources?.checks?.value ?? 0));
-  const after = before - 2;
-  await actor.update({ "system.resources.checks.value": after });
-  return { ok: true, phase: "gm", source: "gm-checks", cost: 2, before, after };
+  if (!turnManagerEnabled()) return { ok: true, phase: "free", source: "free-play", cost: 0, turnId: 0, conditionName: String(condition?.name ?? "") };
+  if (currentTurnPhase() !== "gm") return { ok: true, phase: "player", source: "player-turn", cost: null, turnId: 0, conditionName: String(condition?.name ?? "") };
+  return spendRecoveryChecks(actor, condition?.name ?? "");
 }
 
 export async function finishRecoveryAttempt(actor, condition, { spent = null, result = null } = {}) {
