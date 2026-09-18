@@ -3,7 +3,7 @@ import { participantActorReference, participantActors, resolveParticipantActor }
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
-import { evaluateM7PlayerTurnClaimLiveHandoff } from "./m7-session-live-handoff.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -392,30 +392,93 @@ export function playerTurnSpendHtml(spend) {
     : `<p class="rg-chat-turn-spend"><b>Players' Turn:</b> Check ${spend.before} → ${spend.after} (-1).</p>`;
 }
 
-async function donateCheckLocal(donor, recipient, amount = 1, { requester = game.user } = {}) {
-  if (!turnManagerEnabled()) return { ok: false, reason: "Turn Manager is disabled in this world." };
-  if (currentTurnPhase() !== "player") return { ok: false, reason: "Checks can be passed during the Players' Turn." };
-  if (!donor || !recipient || donor.id === recipient.id) return { ok: false, reason: "Choose two different patrol members." };
-  if (!requesterCanControlActor(requester, donor)) return { ok: false, reason: `You do not control ${donor.name}.` };
-
+function legacyCheckTransferPlan(donor, recipient, amount = 1) {
   const qty = Math.max(1, Math.floor(Number(amount || 1)));
-  const donorChecks = Math.max(0, Number(donor.system.resources?.checks?.value ?? 0));
-  const recipientChecks = Math.max(0, Number(recipient.system.resources?.checks?.value ?? 0));
-  if (donorChecks < qty) return { ok: false, reason: `${donor.name} only has ${donorChecks} Check${donorChecks === 1 ? "" : "s"}.` };
-  if (recipientChecks > 0) return { ok: false, reason: `${recipient.name} already has Checks. Passing Checks is for a patrol-mate who has none.` };
+  const donorChecks = Math.max(0, Number(donor?.system?.resources?.checks?.value ?? 0));
+  const recipientChecks = Math.max(0, Number(recipient?.system?.resources?.checks?.value ?? 0));
+  const base = {
+    amount: qty,
+    donorBefore: donorChecks,
+    donorAfter: donorChecks,
+    recipientBefore: recipientChecks,
+    recipientAfter: recipientChecks,
+    donorStatePatch: null,
+    recipientStatePatch: null
+  };
+
+  if (!turnManagerEnabled()) return { ...base, ok: false, reasonCode: "turn-disabled" };
+  if (currentTurnPhase() !== "player") return { ...base, ok: false, reasonCode: "wrong-phase" };
+  if (!donor || !recipient || donor.id === recipient.id) return { ...base, ok: false, reasonCode: "invalid-participants" };
+  if (donorChecks < qty) return { ...base, ok: false, reasonCode: "donor-insufficient" };
+  if (recipientChecks > 0) return { ...base, ok: false, reasonCode: "recipient-has-checks" };
 
   const donorState = playerTurnState(donor);
   const recipientState = playerTurnState(recipient);
-  await donor.update({ "system.resources.checks.value": donorChecks - qty });
-  await recipient.update({ "system.resources.checks.value": recipientChecks + qty });
-  await savePlayerTurnState(donor, { donatedGiven: donorState.donatedGiven + qty });
-  await savePlayerTurnState(recipient, { donatedReceived: recipientState.donatedReceived + qty, done: false });
+  return {
+    ...base,
+    ok: true,
+    reasonCode: "",
+    donorAfter: donorChecks - qty,
+    recipientAfter: recipientChecks + qty,
+    donorStatePatch: { donatedGiven: donorState.donatedGiven + qty },
+    recipientStatePatch: { donatedReceived: recipientState.donatedReceived + qty, done: false }
+  };
+}
+
+function checkTransferReason(plan, donor, recipient) {
+  if (plan?.reasonCode === "turn-disabled") return "Turn Manager is disabled in this world.";
+  if (plan?.reasonCode === "wrong-phase") return "Checks can be passed during the Players' Turn.";
+  if (plan?.reasonCode === "invalid-participants") return "Choose two different patrol members.";
+  if (plan?.reasonCode === "donor-insufficient") {
+    const checks = Math.max(0, Number(plan?.donorBefore ?? 0));
+    return `${donor?.name ?? "The Ranger"} only has ${checks} Check${checks === 1 ? "" : "s"}.`;
+  }
+  if (plan?.reasonCode === "recipient-has-checks") return `${recipient?.name ?? "The Ranger"} already has Checks. Passing Checks is for a patrol-mate who has none.`;
+  return "The Check could not be passed.";
+}
+
+async function applyCheckTransferPlan(donor, recipient, plan) {
+  if (!plan?.ok) return plan;
+  await donor.update({ "system.resources.checks.value": plan.donorAfter });
+  await recipient.update({ "system.resources.checks.value": plan.recipientAfter });
+  await savePlayerTurnState(donor, plan.donorStatePatch ?? {});
+  await savePlayerTurnState(recipient, plan.recipientStatePatch ?? {});
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: donor }),
-    content: `<div class="realm-guard rg-turn-chat"><div class="rg-turn-chat-tag">PASSING THE CHECKS</div><h3>${esc(donor.name)} → ${esc(recipient.name)}</h3><p><b>${qty} Check${qty === 1 ? "" : "s"}</b> passed.</p></div>`
+    content: `<div class="realm-guard rg-turn-chat"><div class="rg-turn-chat-tag">PASSING THE CHECKS</div><h3>${esc(donor.name)} → ${esc(recipient.name)}</h3><p><b>${plan.amount} Check${plan.amount === 1 ? "" : "s"}</b> passed.</p></div>`
   });
-  return { ok: true };
+  return plan;
+}
+
+async function donateCheckLocal(donor, recipient, amount = 1, { requester = game.user } = {}) {
+  if (donor && !requesterCanControlActor(requester, donor)) return { ok: false, reason: `You do not control ${donor.name}.` };
+
+  const legacyPlan = legacyCheckTransferPlan(donor, recipient, amount);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const donorRef = participantActorReference(donor);
+  const recipientRef = participantActorReference(recipient);
+  const donorState = sessionState.actors.find(entry => entry.ref === donorRef) ?? sessionState.actors.find(entry => entry.id === donor?.id) ?? {};
+  const recipientState = sessionState.actors.find(entry => entry.ref === recipientRef) ?? sessionState.actors.find(entry => entry.id === recipient?.id) ?? {};
+
+  const plan = evaluateM7CheckTransferLiveHandoff({
+    donorId: donor?.id ?? "",
+    recipientId: recipient?.id ?? "",
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planCheckTransfer({
+      donor,
+      recipient,
+      amount,
+      donorState,
+      recipientState,
+      sessionState
+    })
+  });
+
+  if (!plan.ok) return { ...plan, reason: checkTransferReason(plan, donor, recipient) };
+  await applyCheckTransferPlan(donor, recipient, plan);
+  return plan;
 }
 
 
