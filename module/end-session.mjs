@@ -2,7 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
 import { resetTalentSessionState } from "./talents.mjs";
 import { resetTraitSessionUses } from "./traits.mjs";
-import { observeM7RewardProposal, observeM7RewardCommit } from "./m7-session-shadow.mjs";
+import { observeM7RewardProposal, observeM7RewardCommit, observeM7Lifecycle } from "./m7-session-shadow.mjs";
 
 const NS = "realm-guard";
 const CYCLE_KEY = "endSessionCycle";
@@ -195,6 +195,12 @@ async function applyAwards(result, approval, cycle) {
     return false;
   }
 
+  observeM7Lifecycle("SESSION_ENDING", {
+    source: "LEGACY_END_SESSION",
+    sessionCycle: cycle,
+    participantActorIds: Object.freeze(result.rows.map(row => String(row.actor?.id ?? "")).filter(Boolean))
+  });
+
   const summaries = [];
   for (const row of result.rows) {
     const actor = game.actors.get(row.actor.id);
@@ -265,6 +271,13 @@ async function applyAwards(result, approval, cycle) {
       <p class="rg-eos-chat-lock"><i class="fa-solid fa-lock"></i> Cycle locked against duplicate rewards.${traitUsesReset ? ` Trait benefit uses reset for the next session.` : ""}</p>
     </div>`
   });
+  observeM7Lifecycle("SESSION_ENDED", {
+    source: "LEGACY_END_SESSION",
+    sessionCycle: cycle,
+    finalized: Boolean(game.settings.get(NS, FINALIZED_KEY)),
+    participantActorIds: Object.freeze(summaries.map(summary => String(summary.actor?.id ?? "")).filter(Boolean)),
+    traitUsesReset
+  });
   ui.notifications.info(`Realm Guard: End of Session cycle ${cycle} finalized.${traitUsesReset ? ` ${traitUsesReset} Trait benefit use${traitUsesReset === 1 ? "" : "s"} reset.` : ""}`);
   return true;
 }
@@ -281,6 +294,11 @@ async function confirmNextCycle(cycle) {
     ]
   });
   if (!result) return false;
+  observeM7Lifecycle("SESSION_STARTING", {
+    source: "LEGACY_END_SESSION",
+    previousSessionCycle: cycle,
+    sessionCycle: cycle + 1
+  });
   await game.settings.set(NS, CYCLE_KEY, cycle + 1);
   await game.settings.set(NS, FINALIZED_KEY, false);
   let recharged = 0;
@@ -289,6 +307,13 @@ async function confirmNextCycle(cycle) {
     recharged += await resetTokenPowerSessionState(actor);
     if (actor.type === "character") talentsReset += await resetTalentSessionState(actor);
   }
+  observeM7Lifecycle("SESSION_STARTED", {
+    source: "LEGACY_END_SESSION",
+    sessionCycle: cycle + 1,
+    finalized: Boolean(game.settings.get(NS, FINALIZED_KEY)),
+    tokenPowerUsesRecharged: recharged,
+    talentUsesReset: talentsReset
+  });
   ui.notifications.info(`Realm Guard: End of Session cycle ${cycle + 1} is ready.${recharged ? ` ${recharged} Token of Power use${recharged === 1 ? "" : "s"} recharged.` : ""}${talentsReset ? ` ${talentsReset} Talent use${talentsReset === 1 ? "" : "s"} reset.` : ""}`);
   return true;
 }
