@@ -1,15 +1,14 @@
-Realm Guard / Torchbearer v1.9.0-qa.3 — M7 End Session / Reward Shadow Parity.
+Realm Guard / Torchbearer v1.9.0-qa.4 — M7 Multiplayer State Authority Hardening.
 
-This QA build adds read-only reward parity observation around the existing Legacy Mixed End Session workflow.
+This QA build hardens the existing Legacy Mixed structured Turn workflow across multiple connected Foundry clients.
 
-Legacy End Session remains the only live authority for reward selection, GM approval, Fate/Persona mutation, duplicate-finalization locking and session reset. CORE M7 now receives the same selected criteria and approval inputs, computes its own proposal/commit preview, and records whether the CORE result matches Legacy.
+Player-initiated Turn mutations are technically committed by one deterministic active GM and serialized there. Free Test/Check claims, Pass Check, Done/Discard and Recovery-attempt state use this authority path. Requests from stale Turn cycles/phases are rejected before mutation.
 
-Added diagnostics:
-- game.realmGuard.core.m7.rewardParity()
-- game.realmGuard.core.m7.rewardParitySummary()
+M7 adds read-only authority/state diagnostics for comparing GM and player clients:
+- game.realmGuard.core.m7.authorityStatus()
+- game.realmGuard.core.m7.stateFingerprint()
+- game.realmGuard.core.m7.multiplayerState()
 
-The shadow records PROPOSAL_PARITY and COMMIT_PARITY rows with Legacy and CORE values. No CORE reward application is enabled.
+Legacy Mixed remains live rules authority. CORE M7 remains shadow/read-only with liveApplication false. No tabletop Turn, Check, Reward or Conflict rules are intentionally changed.
 
-Legacy Mixed remains live authority. M7 remains SHADOW_READ_ONLY with liveApplication false.
-
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.3.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.4.md
