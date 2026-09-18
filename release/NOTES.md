@@ -1,20 +1,21 @@
-Realm Guard / Torchbearer v1.9.0-qa.6 — M7 Authority Boundary Closure.
+Realm Guard / Torchbearer v1.9.0-qa.7 — Unified GM Dock Host.
 
-This QA build closes the remaining Action Currency authority leaks before the first CORE M7 live handoff.
+This QA build adds a neutral GuteboysFactory GM Dock Host/provider contract without changing tabletop rules.
 
 Changes:
-- separates real session cycle from GM/Players' Turn cycle/revision
-- preserves cycleId as a temporary compatibility alias for turnCycleId
-- routes Trait Against Check awards through the serialized primary-GM authority bridge
-- routes GM Turn Recovery Check spend through the same authority bridge
-- routes Recovery rollback/refund through the same authority bridge with stale/state validation
-- adds M7 Action Currency authority diagnostics
+- keeps the existing Realm Guard GM Dock as the single host surface
+- allows compatible GuteboysFactory products to register provider menus into the Dock
+- Adventurer's Tome v1.4.0-qa.2 is the first reference provider
+- adds provider badges, compact integrated menus, outside-click close and safe callback handling
+- preserves existing Realm Guard tools, drag/reset and per-user Dock position
+- exposes the host through globalThis.GuteboysFactory.gmDockHost and game.realmGuard.gmDockHost
+- the Host receives action callbacks/presentation metadata only; it does not copy Tome campaign data
 
 Legacy Mixed remains live rules authority.
 CORE M7 remains SHADOW_READ_ONLY with liveApplication false.
 No tabletop rules are intentionally changed.
 
-New diagnostic:
-- game.realmGuard.core.m7.actionCurrencyAuthority()
+Companion Tome QA build:
+- Adventurer's Tome v1.4.0-qa.2
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.6.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.7.md
