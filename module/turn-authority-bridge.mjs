@@ -75,6 +75,7 @@ function onSocket(message) {
   if (message.type !== "REQUEST" || !globalThis.game?.user?.isGM) return;
   const primary = primaryActiveGm();
   if (!primary || String(primary.id) !== String(globalThis.game.user.id)) return;
+  if (message.targetGmId && String(message.targetGmId) !== String(globalThis.game.user.id)) return;
 
   // Serialize Legacy Mixed session mutations on one active GM so simultaneous player
   // requests cannot race the shared phase/alternation state.
@@ -87,7 +88,10 @@ export function installTurnAuthorityBridge(nextHandlers = {}) {
   handlers = { ...handlers, ...nextHandlers };
   if (installed) return;
   installed = true;
-  globalThis.game?.socket?.on?.(CHANNEL, onSocket);
+
+  const attach = () => globalThis.game?.socket?.on?.(CHANNEL, onSocket);
+  if (globalThis.game?.ready) attach();
+  else globalThis.Hooks?.once?.("ready", attach);
 }
 
 export async function requestTurnAuthority(operation, payload = {}, { timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
