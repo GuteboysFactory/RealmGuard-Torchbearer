@@ -120,8 +120,9 @@ export function recoveryAttempted(actor, conditionName) {
   return Array.isArray(state.conditions) && state.conditions.includes(String(conditionName));
 }
 
-export async function markRecoveryAttempt(actor, conditionName) {
+async function markRecoveryAttemptLocal(actor, conditionName, { requester = game.user } = {}) {
   if (!turnManagerEnabled()) return [];
+  if (!requesterCanControlActor(requester, actor)) return [];
   const stored = actor?.getFlag(SYSTEM_ID, RECOVERY_FLAG) ?? {};
   const conditions = Number(stored.turnId ?? 0) === currentTurnId() && Array.isArray(stored.conditions) ? [...stored.conditions] : [];
   const name = String(conditionName);
@@ -129,6 +130,21 @@ export async function markRecoveryAttempt(actor, conditionName) {
   await actor.setFlag(SYSTEM_ID, RECOVERY_FLAG, { turnId: currentTurnId(), conditions });
   refreshTurnSheets();
   return conditions;
+}
+
+export async function markRecoveryAttempt(actor, conditionName) {
+  if (game.user?.isGM) return markRecoveryAttemptLocal(actor, conditionName, { requester: game.user });
+  const result = await requestTurnAuthority("MARK_RECOVERY", {
+    actorRef: participantActorReference(actor),
+    conditionName: String(conditionName ?? ""),
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+  if (!result?.ok) {
+    if (result?.reason) ui.notifications.warn(`Realm Guard: ${result.reason}`);
+    return [];
+  }
+  return Array.isArray(result.conditions) ? result.conditions : [];
 }
 
 export function recoveryAttempts(actor) {
@@ -466,6 +482,15 @@ export async function openTurnManager() {
 export function installTurnManager() {
   registerTurnSettings();
   installTurnAuthorityBridge({
+    MARK_RECOVERY: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Recovery action is no longer available." };
+      if (!requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not control ${actor.name}.` };
+      const conditions = await markRecoveryAttemptLocal(actor, payload.conditionName, { requester });
+      return { ok: true, conditions };
+    },
     CLAIM_TEST: async (payload, { requester } = {}) => {
       const stale = staleTurnAuthorityRequest(payload);
       if (stale) return stale;
