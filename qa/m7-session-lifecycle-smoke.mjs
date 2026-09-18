@@ -33,9 +33,9 @@ assert.ok(shadow.includes('"SessionLifecycleService"'));
 assert.ok(shadow.includes("observeM7Lifecycle"));
 assert.ok(shadow.includes("lifecycleSummary"));
 assert.ok(shadow.includes('domain: "SESSION_LIFECYCLE"'));
-assert.ok(shadow.includes('mode: "SHADOW_READ_ONLY"'));
-assert.ok(shadow.includes('authority: "LEGACY_MIXED"'));
-assert.ok(shadow.includes("liveApplication: false"));
+assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
+assert.ok(shadow.includes('authority: "CORE_M7_CLAIM_LEGACY_SESSION"'));
+assert.ok(shadow.includes("liveApplication: true"));
 
 assert.ok(turns.includes('observeM7Lifecycle("PHASE_CHANGED"'));
 assert.ok(turns.includes('source: "LEGACY_TURN_MANAGER"'));
