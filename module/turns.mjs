@@ -1,5 +1,6 @@
 import { registerGmDockTool, renderGmDock } from "./gm-dock.mjs";
 import { participantActorReference, participantActors, resolveParticipantActor } from "./session-participants.mjs";
+import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -8,6 +9,23 @@ const TURN_ID_KEY = "turnCycleId";
 const LAST_ACTOR_KEY = "playerTurnLastActor";
 const STATE_FLAG = "playerTurnState";
 const RECOVERY_FLAG = "recoveryAttempts";
+
+function requesterCanControlActor(requester, actor) {
+  if (requester?.isGM) return true;
+  return Boolean(actor?.testUserPermission?.(requester, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER));
+}
+
+function staleTurnAuthorityRequest(payload = {}) {
+  const expectedTurnId = Number(payload.turnId ?? 0);
+  const expectedPhase = String(payload.phase ?? "");
+  if (expectedTurnId && expectedTurnId !== currentTurnId()) {
+    return { ok: false, stale: true, reason: "Turn state changed before this action reached the GM. Refresh and try again." };
+  }
+  if (expectedPhase && expectedPhase !== currentTurnPhase()) {
+    return { ok: false, stale: true, reason: "Turn phase changed before this action reached the GM. Refresh and try again." };
+  }
+  return null;
+}
 
 function esc(value) {
   return foundry.utils.escapeHTML(String(value ?? ""));
@@ -181,13 +199,13 @@ export function playerTurnStatus(actor) {
   };
 }
 
-export async function claimPlayerTurnTest(actor, { label = "Test", allowUntracked = false } = {}) {
+async function claimPlayerTurnTestLocal(actor, { label = "Test", allowUntracked = false } = {}, { requester = game.user } = {}) {
   if (!turnManagerEnabled()) return { ok: true, tracked: false, source: "free-play", cost: 0 };
   // NPC tests never consume a Ranger's Players' Turn Free Test or Checks.
   if (actor?.type !== "character") return { ok: true, tracked: false, source: "npc", cost: 0 };
   if (!actor || currentTurnPhase() !== "player") return { ok: true, tracked: false, source: "none", cost: 0 };
   if (allowUntracked) return { ok: true, tracked: false, source: "untracked", cost: 0 };
-  if (!actor.isOwner && !game.user.isGM) return { ok: false, reason: `You do not own ${actor.name}.` };
+  if (!requesterCanControlActor(requester, actor)) return { ok: false, reason: `You do not own ${actor.name}.` };
 
   const state = playerTurnState(actor);
   if (state.done) return { ok: false, reason: `${actor.name} is marked Done for this Players' Turn.` };
@@ -219,6 +237,17 @@ export async function claimPlayerTurnTest(actor, { label = "Test", allowUntracke
   return { ok: true, tracked: true, source, cost: source === "check" ? 1 : 0, before, after, label };
 }
 
+export async function claimPlayerTurnTest(actor, { label = "Test", allowUntracked = false } = {}) {
+  if (game.user?.isGM) return claimPlayerTurnTestLocal(actor, { label, allowUntracked }, { requester: game.user });
+  return requestTurnAuthority("CLAIM_TEST", {
+    actorRef: participantActorReference(actor),
+    label,
+    allowUntracked,
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
+
 export function playerTurnSpendHtml(spend) {
   if (!spend?.tracked) return "";
   return spend.source === "free"
@@ -226,11 +255,11 @@ export function playerTurnSpendHtml(spend) {
     : `<p class="rg-chat-turn-spend"><b>Players' Turn:</b> Check ${spend.before} → ${spend.after} (-1).</p>`;
 }
 
-export async function donateCheck(donor, recipient, amount = 1) {
+async function donateCheckLocal(donor, recipient, amount = 1, { requester = game.user } = {}) {
   if (!turnManagerEnabled()) return { ok: false, reason: "Turn Manager is disabled in this world." };
   if (currentTurnPhase() !== "player") return { ok: false, reason: "Checks can be passed during the Players' Turn." };
   if (!donor || !recipient || donor.id === recipient.id) return { ok: false, reason: "Choose two different patrol members." };
-  if (!game.user.isGM && !donor.isOwner) return { ok: false, reason: `You do not control ${donor.name}.` };
+  if (!requesterCanControlActor(requester, donor)) return { ok: false, reason: `You do not control ${donor.name}.` };
 
   const qty = Math.max(1, Math.floor(Number(amount || 1)));
   const donorChecks = Math.max(0, Number(donor.system.resources?.checks?.value ?? 0));
@@ -252,6 +281,17 @@ export async function donateCheck(donor, recipient, amount = 1) {
   return { ok: true };
 }
 
+
+export async function donateCheck(donor, recipient, amount = 1) {
+  if (game.user?.isGM) return donateCheckLocal(donor, recipient, amount, { requester: game.user });
+  return requestTurnAuthority("DONATE_CHECK", {
+    donorRef: participantActorReference(donor),
+    recipientRef: participantActorReference(recipient),
+    amount,
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
 export async function openDonateDialog(donor) {
   if (!turnManagerEnabled()) return ui.notifications.warn("Realm Guard: Turn Manager is disabled (Free Play mode).");
   if (!donor) return;
@@ -279,10 +319,10 @@ export async function openDonateDialog(donor) {
   else ui.notifications.info("Realm Guard: Check passed.");
 }
 
-export async function finishPlayer(actor) {
+async function finishPlayerLocal(actor, { requester = game.user } = {}) {
   if (!turnManagerEnabled()) return false;
   if (!actor || currentTurnPhase() !== "player") return false;
-  if (!game.user.isGM && !actor.isOwner) return false;
+  if (!requesterCanControlActor(requester, actor)) return false;
   const checks = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
   if (checks > 0) await actor.update({ "system.resources.checks.value": 0 });
   await savePlayerTurnState(actor, { done: true });
@@ -293,6 +333,15 @@ export async function finishPlayer(actor) {
   return true;
 }
 
+
+export async function finishPlayer(actor) {
+  if (game.user?.isGM) return finishPlayerLocal(actor, { requester: game.user });
+  return requestTurnAuthority("FINISH_PLAYER", {
+    actorRef: participantActorReference(actor),
+    turnId: currentTurnId(),
+    phase: currentTurnPhase()
+  });
+}
 export async function confirmFinishPlayer(actor) {
   if (!turnManagerEnabled()) return ui.notifications.warn("Realm Guard: Turn Manager is disabled (Free Play mode).");
   if (!actor || currentTurnPhase() !== "player") return;
@@ -416,6 +465,31 @@ export async function openTurnManager() {
 
 export function installTurnManager() {
   registerTurnSettings();
+  installTurnAuthorityBridge({
+    CLAIM_TEST: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Turn action is no longer available." };
+      return claimPlayerTurnTestLocal(actor, { label: payload.label, allowUntracked: Boolean(payload.allowUntracked) }, { requester });
+    },
+    DONATE_CHECK: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const donor = resolveParticipantActor(payload.donorRef);
+      const recipient = resolveParticipantActor(payload.recipientRef);
+      if (!donor || !recipient) return { ok: false, reason: "A Ranger for this Check transfer is no longer available." };
+      return donateCheckLocal(donor, recipient, payload.amount, { requester });
+    },
+    FINISH_PLAYER: async (payload, { requester } = {}) => {
+      const stale = staleTurnAuthorityRequest(payload);
+      if (stale) return stale;
+      const actor = resolveParticipantActor(payload.actorRef);
+      if (!actor) return { ok: false, reason: "The Ranger for this Done action is no longer available." };
+      const ok = await finishPlayerLocal(actor, { requester });
+      return ok ? { ok: true } : { ok: false, reason: "The Ranger could not be marked Done." };
+    }
+  });
   Hooks.on("updateSetting", setting => {
     const key = String(setting?.key ?? "");
     if ([`${SYSTEM_ID}.${ENABLED_KEY}`, `${SYSTEM_ID}.${PHASE_KEY}`, `${SYSTEM_ID}.${TURN_ID_KEY}`, `${SYSTEM_ID}.${LAST_ACTOR_KEY}`].includes(key)) {
