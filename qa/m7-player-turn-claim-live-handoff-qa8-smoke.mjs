@@ -85,9 +85,9 @@ assert.ok(turns.includes("applyPlayerTurnClaimPlan"));
 assert.ok(turns.includes('requestTurnAuthority("CLAIM_TEST"'), "Player requests must still commit through the GM bridge");
 assert.ok(bridge.includes("gmQueue = gmQueue"), "Player claim requests must remain serialized on the primary GM");
 
-assert.ok(shadow.includes('buildScope: "PLAYER_TURN_ACTION_CURRENCY_HANDOFF"'));
+assert.ok(shadow.includes('buildScope: "PLAYER_TURN_HANDOFFS"'));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_TURN_CURRENCY_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
 assert.ok(shadow.includes("liveApplication: true"));
 assert.ok(shadow.includes("claimHandoffStatus"));
 assert.ok(shadow.includes("setCoreClaimEnabled"));
