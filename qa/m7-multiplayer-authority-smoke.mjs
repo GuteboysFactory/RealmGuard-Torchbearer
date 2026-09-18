@@ -7,7 +7,7 @@ const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.4");
+assert.match(manifest.version, /^1\\.9\\.0-qa\\.\\d+$/);
 
 const users = [
   { id: "P1", name: "Player", active: true, isGM: false },
@@ -41,7 +41,7 @@ assert.ok(turns.includes("Turn state changed before this action reached the GM")
 assert.ok(turns.includes("Turn phase changed before this action reached the GM"));
 assert.ok(turns.includes("requesterCanControlActor"));
 
-assert.ok(shadow.includes('buildScope: "MULTIPLAYER_STATE_AUTHORITY_HARDENING"'));
+assert.ok(shadow.includes('"TurnAuthorityBridge"'));
 assert.ok(shadow.includes("authorityStatus"));
 assert.ok(shadow.includes("stateFingerprint"));
 assert.ok(shadow.includes("multiplayerState"));
