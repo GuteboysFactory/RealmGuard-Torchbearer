@@ -136,8 +136,9 @@ async function collectCriteria(actors, cycle) {
               personaAgainstBelief: checked(form, `personaAgainstBelief_${actor.id}`),
               personaEmbodiment: checked(form, `personaEmbodiment_${actor.id}`)
             };
+            const legacyProposal = legacyAwardProposal(actor, criteria, mvpId, workhorseId);
             const proposal = awardProposal(actor, criteria, mvpId, workhorseId);
-            observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal: proposal });
+            observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal });
             return { actor, criteria, proposal };
           });
 
