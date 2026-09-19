@@ -47,13 +47,13 @@ for (const [name, source] of [
   );
 }
 
-assert.ok(shadow.includes('buildScope: "PLAYER_TURN_HANDOFFS"'));
+assert.ok(shadow.includes('buildScope: "TURN_SESSION_HANDOFFS"'));
 assert.ok(shadow.includes("actionCurrencyAuthority"));
 assert.ok(shadow.includes('"SessionCycleSeparation"'));
 assert.ok(shadow.includes('"ActionCurrencyAuthorityBoundary"'));
 assert.ok(shadow.includes('directGenericSetOperation: false'));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
 console.log("PASS m7-authority-boundary-closure-smoke");
