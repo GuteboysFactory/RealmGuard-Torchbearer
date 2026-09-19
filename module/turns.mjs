@@ -3,7 +3,7 @@ import { participantActorReference, participantActors, resolveParticipantActor }
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
-import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff, evaluateM7PhaseChangeLiveHandoff } from "./m7-session-live-handoff.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff, evaluateM7PhaseChangeLiveHandoff, evaluateM7RecoverySpendLiveHandoff, evaluateM7RecoveryRefundLiveHandoff, evaluateM7RecoveryAttemptLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -123,16 +123,70 @@ export function recoveryAttempted(actor, conditionName) {
   return Array.isArray(state.conditions) && state.conditions.includes(String(conditionName));
 }
 
-async function markRecoveryAttemptLocal(actor, conditionName, { requester = game.user } = {}) {
-  if (!turnManagerEnabled()) return [];
-  if (!requesterCanControlActor(requester, actor)) return [];
-  const stored = actor?.getFlag(SYSTEM_ID, RECOVERY_FLAG) ?? {};
-  const conditions = Number(stored.turnId ?? 0) === currentTurnId() && Array.isArray(stored.conditions) ? [...stored.conditions] : [];
-  const name = String(conditionName);
-  if (!conditions.includes(name)) conditions.push(name);
-  await actor.setFlag(SYSTEM_ID, RECOVERY_FLAG, { turnId: currentTurnId(), conditions });
+function legacyRecoveryAttemptPlan(actor, conditionName = "") {
+  const name = String(conditionName ?? "");
+  const turnId = currentTurnId();
+  const base = {
+    ok: true,
+    tracked: false,
+    changed: false,
+    reasonCode: "",
+    turnId,
+    conditionName: name,
+    beforeConditions: [],
+    afterConditions: []
+  };
+  if (!turnManagerEnabled()) return base;
+  if (!actor) return { ...base, ok: false, reasonCode: "missing-actor" };
+
+  const stored = actor.getFlag(SYSTEM_ID, RECOVERY_FLAG) ?? {};
+  const beforeConditions = Number(stored.turnId ?? 0) === turnId && Array.isArray(stored.conditions)
+    ? [...stored.conditions].map(String)
+    : [];
+  const afterConditions = [...beforeConditions];
+  if (!afterConditions.includes(name)) afterConditions.push(name);
+
+  return {
+    ...base,
+    tracked: true,
+    changed: afterConditions.length !== beforeConditions.length,
+    beforeConditions,
+    afterConditions
+  };
+}
+
+async function applyRecoveryAttemptPlan(actor, plan) {
+  if (!plan?.ok || !plan?.tracked) return plan;
+  await actor.setFlag(SYSTEM_ID, RECOVERY_FLAG, {
+    turnId: plan.turnId,
+    conditions: [...(plan.afterConditions ?? [])]
+  });
   refreshTurnSheets();
-  return conditions;
+  return plan;
+}
+
+async function markRecoveryAttemptLocal(actor, conditionName, { requester = game.user } = {}) {
+  if (turnManagerEnabled() && (!actor || !requesterCanControlActor(requester, actor))) return [];
+  const legacyPlan = legacyRecoveryAttemptPlan(actor, conditionName);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const ref = participantActorReference(actor);
+  const actorState = sessionState.actors.find(entry => entry.ref === ref) ?? sessionState.actors.find(entry => entry.id === actor?.id) ?? {};
+
+  const plan = evaluateM7RecoveryAttemptLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planRecoveryAttempt({
+      actor,
+      actorState,
+      conditionName,
+      sessionState
+    })
+  });
+
+  if (!plan.ok) return [];
+  await applyRecoveryAttemptPlan(actor, plan);
+  return [...(plan.afterConditions ?? [])];
 }
 
 export async function markRecoveryAttempt(actor, conditionName) {
@@ -172,17 +226,62 @@ export async function awardTraitChecks(actor, amount = 1) {
   });
 }
 
-async function spendRecoveryChecksLocal(actor, conditionName = "", { requester = game.user } = {}) {
-  if (!turnManagerEnabled() || currentTurnPhase() !== "gm") {
-    const checks = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
-    return { ok: true, phase: currentTurnPhase(), source: "no-gm-recovery-cost", cost: 0, before: checks, after: checks, turnId: currentTurnId() };
+function legacyRecoverySpendPlan(actor, conditionName = "") {
+  const before = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+  const phase = currentTurnPhase();
+  const base = {
+    ok: false,
+    reasonCode: "",
+    phase,
+    source: "",
+    cost: 0,
+    before,
+    after: before,
+    turnId: currentTurnId(),
+    conditionName: String(conditionName ?? "")
+  };
+
+  if (!turnManagerEnabled() || phase !== "gm") return { ...base, ok: true, source: "no-gm-recovery-cost" };
+  if (!actor) return { ...base, reasonCode: "missing-actor" };
+  if (before < 2) return { ...base, reasonCode: "insufficient-checks" };
+  return { ...base, ok: true, source: "gm-checks", cost: 2, after: before - 2 };
+}
+
+function recoverySpendReason(plan, actor) {
+  if (plan?.reasonCode === "insufficient-checks") return `GM Turn recovery costs 2 Checks; ${actor?.name ?? "Ranger"} has ${plan.before ?? 0}.`;
+  if (plan?.reasonCode === "missing-actor") return "Missing Ranger.";
+  return "Recovery Checks could not be spent.";
+}
+
+async function applyRecoverySpendPlan(actor, plan) {
+  if (!plan?.ok || Number(plan.cost ?? 0) <= 0) return plan;
+  if (Number(plan.before ?? 0) !== Number(plan.after ?? 0)) {
+    await actor.update({ "system.resources.checks.value": Number(plan.after ?? 0) });
   }
-  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
-  const before = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-  if (before < 2) return { ok: false, reason: `GM Turn recovery costs 2 Checks; ${actor.name} has ${before}.` };
-  const after = before - 2;
-  await actor.update({ "system.resources.checks.value": after });
-  return { ok: true, phase: "gm", source: "gm-checks", cost: 2, before, after, turnId: currentTurnId(), conditionName: String(conditionName ?? "") };
+  return plan;
+}
+
+async function spendRecoveryChecksLocal(actor, conditionName = "", { requester = game.user } = {}) {
+  if (turnManagerEnabled() && currentTurnPhase() === "gm" && (!actor || !requesterCanControlActor(requester, actor))) {
+    return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  }
+
+  const legacyPlan = legacyRecoverySpendPlan(actor, conditionName);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const plan = evaluateM7RecoverySpendLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planRecoverySpend({
+      actor,
+      conditionName,
+      sessionState
+    })
+  });
+
+  if (!plan.ok) return { ...plan, reason: recoverySpendReason(plan, actor) };
+  await applyRecoverySpendPlan(actor, plan);
+  return plan;
 }
 
 export async function spendRecoveryChecks(actor, conditionName = "") {
@@ -195,16 +294,72 @@ export async function spendRecoveryChecks(actor, conditionName = "") {
   });
 }
 
-async function refundRecoveryChecksLocal(actor, receipt = {}, { requester = game.user } = {}) {
-  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
-  if (Number(receipt?.cost ?? 0) !== 2 || String(receipt?.phase ?? "") !== "gm") return { ok: false, reason: "Invalid Recovery refund receipt." };
-  if (Number(receipt?.turnId ?? 0) !== currentTurnId() || currentTurnPhase() !== "gm") return { ok: false, stale: true, reason: "Turn state changed before the Recovery refund could be committed." };
+function legacyRecoveryRefundPlan(actor, receipt = {}) {
+  const current = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
   const expectedAfter = Math.max(0, Number(receipt?.after ?? 0));
   const restore = Math.max(expectedAfter, Number(receipt?.before ?? expectedAfter));
-  const current = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-  if (current !== expectedAfter) return { ok: false, reason: "Recovery refund state no longer matches the original spend." };
-  await actor.update({ "system.resources.checks.value": restore });
-  return { ok: true, refunded: restore - current, before: current, after: restore };
+  const base = {
+    ok: false,
+    stale: false,
+    reasonCode: "",
+    refunded: 0,
+    before: current,
+    after: current,
+    expectedAfter,
+    restore,
+    turnId: currentTurnId(),
+    conditionName: String(receipt?.conditionName ?? "")
+  };
+
+  if (!actor) return { ...base, reasonCode: "missing-actor" };
+  if (Number(receipt?.cost ?? 0) !== 2 || String(receipt?.phase ?? "") !== "gm") {
+    return { ...base, reasonCode: "invalid-receipt" };
+  }
+  if (Number(receipt?.turnId ?? 0) !== currentTurnId() || currentTurnPhase() !== "gm") {
+    return { ...base, stale: true, reasonCode: "stale-turn" };
+  }
+  if (current !== expectedAfter) return { ...base, reasonCode: "state-mismatch" };
+
+  return { ...base, ok: true, refunded: restore - current, after: restore };
+}
+
+function recoveryRefundReason(plan) {
+  if (plan?.reasonCode === "invalid-receipt") return "Invalid Recovery refund receipt.";
+  if (plan?.reasonCode === "stale-turn") return "Turn state changed before the Recovery refund could be committed.";
+  if (plan?.reasonCode === "state-mismatch") return "Recovery refund state no longer matches the original spend.";
+  if (plan?.reasonCode === "missing-actor") return "Missing Ranger.";
+  return "Recovery refund could not be committed.";
+}
+
+async function applyRecoveryRefundPlan(actor, plan) {
+  if (!plan?.ok) return plan;
+  if (Number(plan.before ?? 0) !== Number(plan.after ?? 0)) {
+    await actor.update({ "system.resources.checks.value": Number(plan.after ?? 0) });
+  }
+  return plan;
+}
+
+async function refundRecoveryChecksLocal(actor, receipt = {}, { requester = game.user } = {}) {
+  if (!actor || !requesterCanControlActor(requester, actor)) {
+    return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  }
+
+  const legacyPlan = legacyRecoveryRefundPlan(actor, receipt);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+  const plan = evaluateM7RecoveryRefundLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planRecoveryRefund({
+      actor,
+      receipt,
+      sessionState
+    })
+  });
+
+  if (!plan.ok) return { ...plan, reason: recoveryRefundReason(plan) };
+  await applyRecoveryRefundPlan(actor, plan);
+  return plan;
 }
 
 export async function refundRecoveryChecks(actor, receipt = {}) {
