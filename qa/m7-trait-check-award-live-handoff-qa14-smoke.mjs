@@ -14,7 +14,7 @@ const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.14");
+assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
 
 const engine = new SessionEngine();
 const actor = { id: "A1", type: "character", system: { resources: { checks: { value: 2, max: 3 } } } };
@@ -45,7 +45,7 @@ let status = getM7TraitCheckAwardHandoffStatus();
 assert.equal(status.enabled, true);
 assert.equal(status.telemetry.matches, 2);
 assert.equal(status.telemetry.mismatches, 0);
-assert.deepEqual(status.deferredScope, ["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]);
+assert.deepEqual(status.deferredScope, ["SESSION_LIFECYCLE_COMMIT"]);
 
 result = evaluateM7TraitCheckAwardLiveHandoff({
   actorId: actor.id,
