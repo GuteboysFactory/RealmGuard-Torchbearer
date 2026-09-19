@@ -1,7 +1,7 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
 import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
-import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled, getM7RecoveryHandoffStatus, getM7RecoveryHandoffHistory, resetM7RecoveryHandoffTelemetry, setM7CoreRecoveryEnabled, getM7TraitCheckAwardHandoffStatus, getM7TraitCheckAwardHandoffHistory, resetM7TraitCheckAwardHandoffTelemetry, setM7CoreTraitAwardEnabled, getM7RewardHandoffStatus, getM7RewardHandoffHistory, resetM7RewardHandoffTelemetry, setM7CoreRewardEnabled } from "./m7-session-live-handoff.mjs";
+import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled, getM7RecoveryHandoffStatus, getM7RecoveryHandoffHistory, resetM7RecoveryHandoffTelemetry, setM7CoreRecoveryEnabled, getM7TraitCheckAwardHandoffStatus, getM7TraitCheckAwardHandoffHistory, resetM7TraitCheckAwardHandoffTelemetry, setM7CoreTraitAwardEnabled, getM7RewardHandoffStatus, getM7RewardHandoffHistory, resetM7RewardHandoffTelemetry, setM7CoreRewardEnabled, evaluateM7LifecycleCommitLiveHandoff, getM7LifecycleHandoffStatus, getM7LifecycleHandoffHistory, resetM7LifecycleHandoffTelemetry, setM7CoreLifecycleEnabled } from "./m7-session-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -65,11 +65,19 @@ function snapshotEvent(services) {
 
 export function observeM7Lifecycle(type, details = {}) {
   const services = createM7Services();
-  const event = services.lifecycle.create(type, details);
+  const legacyEvent = Object.freeze({
+    ...details,
+    type: String(type ?? "").toUpperCase()
+  });
+  const event = evaluateM7LifecycleCommitLiveHandoff({
+    legacy: legacyEvent,
+    corePlan: () => services.lifecycle.planCommit(type, details)
+  });
   return push({
     domain: "SESSION_LIFECYCLE",
     operation: event.type,
-    event
+    event,
+    lifecycleAuthority: event?.m7?.lifecycleAuthority ?? "LEGACY_MIXED"
   });
 }
 
@@ -220,6 +228,10 @@ export function installM7SessionShadow() {
       rewardHandoffHistory: () => getM7RewardHandoffHistory(),
       resetRewardHandoffTelemetry: () => resetM7RewardHandoffTelemetry(),
       setCoreRewardEnabled: enabled => setM7CoreRewardEnabled(Boolean(enabled)),
+      lifecycleHandoffStatus: () => getM7LifecycleHandoffStatus(),
+      lifecycleHandoffHistory: () => getM7LifecycleHandoffHistory(),
+      resetLifecycleHandoffTelemetry: () => resetM7LifecycleHandoffTelemetry(),
+      setCoreLifecycleEnabled: enabled => setM7CoreLifecycleEnabled(Boolean(enabled)),
       actionCurrencyAuthority: () => Object.freeze({
         technicalCommit: turnAuthorityStatus(),
         serializedByPrimaryGm: true,
@@ -299,7 +311,9 @@ export function getM7SessionShadowStatus() {
       "TraitCheckAwardLiveHandoff",
       "AutoRollbackOnTraitAwardDisagreement",
       "EndSessionRewardLiveHandoff",
-      "AutoRollbackOnRewardDisagreement"
+      "AutoRollbackOnRewardDisagreement",
+      "SessionLifecycleLiveHandoff",
+      "AutoRollbackOnLifecycleDisagreement"
     ])
   });
 }
