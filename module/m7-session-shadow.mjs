@@ -219,6 +219,7 @@ export function installM7SessionShadow() {
           "CLAIM_TEST",
           "DONATE_CHECK",
           "FINISH_PLAYER",
+          "MARK_RECOVERY",
           "AWARD_TRAIT_CHECKS",
           "SPEND_RECOVERY_CHECKS",
           "REFUND_RECOVERY_CHECKS"
