@@ -1,37 +1,27 @@
-Realm Guard / Torchbearer v1.9.0-qa.13 — M7 Recovery Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.14 — M7 Trait Check Award Live Handoff.
 
-New live CORE M7 Recovery scope:
-- SPEND_RECOVERY_CHECKS
-- REFUND_RECOVERY_CHECKS
-- MARK_RECOVERY
+New live CORE M7 operation:
+- AWARD_TRAIT_CHECKS
 
 CORE M7 now deterministically plans:
-- GM Turn Recovery cost: 2 Checks
-- no direct GM-Recovery charge outside GM Turn
-- Recovery spend before/after state
-- valid refund receipts
-- stale refund rejection
-- state-mismatch refund rejection
-- turn-scoped Recovery attempt marking
-- duplicate-attempt state protection
+- GM Turn eligibility
+- requested Trait Against award clamp (0–2)
+- Check maximum/cap handling
+- exact before/after state
+- exact earned amount
+- zero structured award outside GM Turn / in Free Play
 
 Safety:
-- Legacy Mixed computes independent read-only Recovery plans.
-- Any Recovery disagreement auto-rolls back only Recovery to Legacy Mixed.
-- CORE Recovery planner errors fall back safely.
-- Claim, Pass Check, Done / Discard and Phase Change remain independently controlled.
-- Existing player -> primary GM authority bridge remains the technical commit path.
-- Recovery attempt state remains keyed by turnCycleId.
+- Legacy Mixed computes an independent read-only award plan.
+- Any disagreement auto-rolls back only Trait Check Award.
+- CORE planner errors fall back only Trait Check Award.
+- Claim, Pass Check, Done / Discard, Phase Change and Recovery remain independent live handoffs.
+- Player requests continue through the primary-GM technical authority bridge.
 
 Still Legacy Mixed:
-- Trait Against Check awards
-- End Session
-- remaining session/lifecycle commits
+- End Session live commit
+- Session Lifecycle live commit
 
-Diagnostics:
-- game.realmGuard.core.m7.recoveryHandoffStatus()
-- game.realmGuard.core.m7.recoveryHandoffHistory()
-- game.realmGuard.core.m7.setCoreRecoveryEnabled(...)
-- game.realmGuard.core.m7.resetRecoveryHandoffTelemetry()
+qa.13 Recovery Live Handoff is VERIFIED.
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.13.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.14.md
