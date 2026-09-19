@@ -74,3 +74,20 @@ Re-check Free Test / paid test / alternation, Pass Check, Done / Discard, phase 
 
 ## PASS criteria
 qa.14 passes when Trait Against Check awards preserve verified Legacy Mixed behavior, cap/clamp behavior is exact, player commits remain serialized through primary GM, normal QA shows no parity mismatches, independent Trait Award rollback works, and previous M7 live handoffs remain regression-safe.
+
+
+## Verification result — 2026-09-19
+
+**VERIFIED.**
+
+Manual Foundry v13.351 QA completed successfully:
+- startup gate PASS
+- normal GM Turn Trait Against -> Check PASS
+- +2 award and cap handling PASS
+- no structured Trait Check award outside GM Turn PASS
+- multiplayer primary-GM authority PASS
+- independent Trait Award rollback PASS
+- prior M7 live-handoff regression PASS
+- End Session + lifecycle + reload regression PASS
+
+No normal-QA Trait Award mismatches or CORE error fallbacks remained at verification.
