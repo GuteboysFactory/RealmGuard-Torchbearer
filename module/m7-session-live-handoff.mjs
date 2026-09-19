@@ -782,7 +782,7 @@ export function getM7FinishPlayerHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: finishRollbackReason,
     liveScope: Object.freeze(["DONE_DISCARD"]),
-    deferredScope: Object.freeze(["PHASE_CHANGE", "RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: finishTelemetry.evaluations,
       matches: finishTelemetry.matches,
@@ -835,7 +835,7 @@ export function getM7CheckTransferHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: transferRollbackReason,
     liveScope: Object.freeze(["PASS_CHECK"]),
-    deferredScope: Object.freeze(["DONE_DISCARD", "PHASE_CHANGE", "RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: transferTelemetry.evaluations,
       matches: transferTelemetry.matches,
