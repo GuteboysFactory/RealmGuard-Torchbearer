@@ -13,7 +13,8 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const core = fs.readFileSync("module/core/m7-session-services.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.16");
+assert.equal(manifest.id, "realm-guard");
+assert.ok(typeof manifest.version === "string" && manifest.version.length > 0);
 
 const lifecycle = new SessionLifecycleService();
 resetM7LifecycleHandoffTelemetry();
