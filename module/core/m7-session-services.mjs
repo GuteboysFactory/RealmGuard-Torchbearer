@@ -381,6 +381,113 @@ export class SessionEngine {
   previewPhaseChange(input = {}) {
     return this.planPhaseChange(input);
   }
+
+  planRecoverySpend({ actor, conditionName = "", sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const before = this.actionCurrency.current(actor, "checks");
+    const base = {
+      ok: false,
+      reasonCode: "",
+      phase: state.phase,
+      source: "",
+      cost: 0,
+      before,
+      after: before,
+      turnId: state.turnCycleId,
+      conditionName: String(conditionName ?? "")
+    };
+
+    if (!state.enabled || state.phase !== "gm") {
+      return freeze({ ...base, ok: true, source: "no-gm-recovery-cost" });
+    }
+    if (!actor) return freeze({ ...base, reasonCode: "missing-actor" });
+    if (before < 2) return freeze({ ...base, reasonCode: "insufficient-checks" });
+
+    return freeze({
+      ...base,
+      ok: true,
+      source: "gm-checks",
+      cost: 2,
+      after: before - 2
+    });
+  }
+
+  previewRecoverySpend(input = {}) {
+    return this.planRecoverySpend(input);
+  }
+
+  planRecoveryRefund({ actor, receipt = {}, sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const current = this.actionCurrency.current(actor, "checks");
+    const base = {
+      ok: false,
+      stale: false,
+      reasonCode: "",
+      refunded: 0,
+      before: current,
+      after: current,
+      expectedAfter: Math.max(0, Number(receipt?.after ?? 0)),
+      restore: Math.max(
+        Math.max(0, Number(receipt?.after ?? 0)),
+        Number(receipt?.before ?? Math.max(0, Number(receipt?.after ?? 0)))
+      ),
+      turnId: state.turnCycleId,
+      conditionName: String(receipt?.conditionName ?? "")
+    };
+
+    if (!actor) return freeze({ ...base, reasonCode: "missing-actor" });
+    if (Number(receipt?.cost ?? 0) !== 2 || String(receipt?.phase ?? "") !== "gm") {
+      return freeze({ ...base, reasonCode: "invalid-receipt" });
+    }
+    if (Number(receipt?.turnId ?? 0) !== state.turnCycleId || state.phase !== "gm") {
+      return freeze({ ...base, stale: true, reasonCode: "stale-turn" });
+    }
+    if (current !== base.expectedAfter) return freeze({ ...base, reasonCode: "state-mismatch" });
+
+    return freeze({
+      ...base,
+      ok: true,
+      refunded: base.restore - current,
+      after: base.restore
+    });
+  }
+
+  previewRecoveryRefund(input = {}) {
+    return this.planRecoveryRefund(input);
+  }
+
+  planRecoveryAttempt({ actor, actorState = {}, conditionName = "", sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const name = String(conditionName ?? "");
+    const beforeConditions = Array.isArray(actorState?.recoveryAttempts) ? [...actorState.recoveryAttempts].map(String) : [];
+    const base = {
+      ok: false,
+      tracked: false,
+      changed: false,
+      reasonCode: "",
+      turnId: state.turnCycleId,
+      conditionName: name,
+      beforeConditions,
+      afterConditions: [...beforeConditions]
+    };
+
+    if (!state.enabled) return freeze({ ...base, ok: true });
+    if (!actor) return freeze({ ...base, reasonCode: "missing-actor" });
+
+    const afterConditions = [...beforeConditions];
+    if (!afterConditions.includes(name)) afterConditions.push(name);
+    return freeze({
+      ...base,
+      ok: true,
+      tracked: true,
+      changed: afterConditions.length !== beforeConditions.length,
+      afterConditions
+    });
+  }
+
+  previewRecoveryAttempt(input = {}) {
+    return this.planRecoveryAttempt(input);
+  }
 }
 
 export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = globalThis.canvas) {
@@ -412,6 +519,12 @@ export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = glo
         donatedGiven: active ? Math.max(0, Number(raw.donatedGiven ?? 0)) : 0,
         donatedReceived: active ? Math.max(0, Number(raw.donatedReceived ?? 0)) : 0,
         done: active ? Boolean(raw.done) : false,
+        recoveryAttempts: (() => {
+          const recovery = actor?.getFlag?.(SYSTEM_ID, "recoveryAttempts") ?? {};
+          return Number(recovery?.turnId ?? 0) === turnCycleId && Array.isArray(recovery?.conditions)
+            ? [...recovery.conditions].map(String)
+            : [];
+        })(),
         checks: Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0))
       };
     })
