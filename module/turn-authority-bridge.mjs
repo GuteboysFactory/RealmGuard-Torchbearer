@@ -27,7 +27,7 @@ export function turnAuthorityStatus(gameRef = globalThis.game) {
     available: Boolean(gameRef?.user?.isGM || primary),
     liveRulesAuthority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER",
     coreLiveApplication: true,
-    liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"])
+    liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY", "AWARD_TRAIT_CHECKS"])
   });
 }
 
