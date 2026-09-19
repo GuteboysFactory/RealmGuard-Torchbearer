@@ -38,7 +38,7 @@ assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'))
 assert.ok(shadow.includes("liveApplication: true"));
 
 assert.ok(turns.includes('observeM7Lifecycle("PHASE_CHANGED"'));
-assert.ok(turns.includes('source: "LEGACY_TURN_MANAGER"'));
+assert.ok(turns.includes('"CORE_M7_PHASE_HANDOFF"') && turns.includes('"LEGACY_TURN_MANAGER"'));
 assert.ok(endSession.includes('observeM7Lifecycle("SESSION_ENDING"'));
 assert.ok(endSession.includes('observeM7Lifecycle("SESSION_ENDED"'));
 assert.ok(endSession.includes('observeM7Lifecycle("SESSION_STARTING"'));
