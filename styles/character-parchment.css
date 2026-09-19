@@ -1,0 +1,18 @@
+/* v1.9.0-qa.17 — Character sheet adaptive parchment background
+   Visual-only. Uses the user-selected parchment artwork and scales it to the
+   current character-window dimensions without tiling. */
+.realm-guard .window-content:has(> .rg-sheet.character),
+.realm-guard .window-content:has(.rg-sheet.character) {
+  background-image:
+    linear-gradient(rgba(244,224,177,.035), rgba(76,45,18,.07)),
+    url("../assets/ui/character-parchment.webp") !important;
+  background-position:center center !important;
+  background-size:100% 100% !important;
+  background-repeat:no-repeat !important;
+  background-color:#c79d57 !important;
+}
+
+.realm-guard .window-content:has(> .rg-sheet.character) > .rg-sheet.character,
+.realm-guard .window-content:has(.rg-sheet.character) .rg-sheet.character {
+  background:transparent;
+}
