@@ -6,12 +6,14 @@ let coreFinishEnabled = true;
 let corePhaseEnabled = true;
 let coreRecoveryEnabled = true;
 let coreTraitAwardEnabled = true;
+let coreRewardEnabled = true;
 let rollbackReason = "";
 let transferRollbackReason = "";
 let finishRollbackReason = "";
 let phaseRollbackReason = "";
 let recoveryRollbackReason = "";
 let traitAwardRollbackReason = "";
+let rewardRollbackReason = "";
 
 const telemetry = {
   evaluations: 0,
@@ -64,6 +66,16 @@ const recoveryTelemetry = {
 };
 
 const traitAwardTelemetry = {
+  evaluations: 0,
+  matches: 0,
+  mismatches: 0,
+  errorFallbacks: 0,
+  rollbackEvaluations: 0,
+  lastDecision: null,
+  history: []
+};
+
+const rewardTelemetry = {
   evaluations: 0,
   matches: 0,
   mismatches: 0,
@@ -320,6 +332,44 @@ export function compareM7TraitCheckAward({ legacy = {}, core = {} } = {}) {
   );
 }
 
+function normalizeRewardProposal(plan = {}) {
+  return Object.freeze({
+    fate: num(plan.fate),
+    persona: num(plan.persona),
+    personaRaw: num(plan.personaRaw),
+    goalFateSuppressed: Boolean(plan.goalFateSuppressed)
+  });
+}
+
+function normalizeRewardCommit(plan = {}) {
+  return Object.freeze({
+    beforeFate: num(plan.beforeFate),
+    beforePersona: num(plan.beforePersona),
+    approvedFate: num(plan.approvedFate),
+    approvedPersona: num(plan.approvedPersona),
+    nextFate: num(plan.nextFate),
+    nextPersona: num(plan.nextPersona),
+    actualFate: num(plan.actualFate),
+    actualPersona: num(plan.actualPersona)
+  });
+}
+
+export function compareM7RewardProposal({ legacy = {}, core = {} } = {}) {
+  return compareNormalized(
+    normalizeRewardProposal(legacy),
+    normalizeRewardProposal(core),
+    ["fate", "persona", "personaRaw", "goalFateSuppressed"]
+  );
+}
+
+export function compareM7RewardCommit({ legacy = {}, core = {} } = {}) {
+  return compareNormalized(
+    normalizeRewardCommit(legacy),
+    normalizeRewardCommit(core),
+    ["beforeFate", "beforePersona", "approvedFate", "approvedPersona", "nextFate", "nextPersona", "actualFate", "actualPersona"]
+  );
+}
+
 function record(entry = {}) {
   const event = Object.freeze({
     at: Date.now(),
@@ -567,6 +617,148 @@ export function evaluateM7TraitCheckAwardLiveHandoff({ actorId = "", legacy = {}
   traitAwardTelemetry.matches += 1;
   const event = recordTraitAward({ operation, outcome: "CORE_TRAIT_AWARD_APPLIED", actorId: String(actorId ?? ""), traitAwardAuthority: "CORE_M7", remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS", parityGuard: "MATCH", result: comparison.core });
   return { ...comparison.core, m7: Object.freeze({ traitAwardAuthority: "CORE_M7", remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS", rollback: false, parityGuard: "MATCH", eventAt: event.at }) };
+}
+
+function recordReward(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M7",
+    scope: "END_SESSION_REWARD_HANDOFF",
+    ...entry
+  });
+  rewardTelemetry.lastDecision = event;
+  rewardTelemetry.history.push(event);
+  if (rewardTelemetry.history.length > HISTORY_LIMIT) rewardTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM7EndSessionRewardHandoff", event); } catch (_error) { /* telemetry only */ }
+  return event;
+}
+
+function tripRewardRollback(reason) {
+  coreRewardEnabled = false;
+  rewardRollbackReason = String(reason || "REWARD_SAFETY_ROLLBACK");
+}
+
+function evaluateRewardPlan({
+  operation,
+  actorId = "",
+  legacy = {},
+  corePlan = null,
+  compare,
+  normalize
+} = {}) {
+  if (!coreRewardEnabled) {
+    rewardTelemetry.rollbackEvaluations += 1;
+    const event = recordReward({
+      operation,
+      outcome: "LEGACY_ROLLBACK",
+      actorId: String(actorId ?? ""),
+      rewardAuthority: "LEGACY_MIXED",
+      reason: rewardRollbackReason
+    });
+    return {
+      ...normalize(legacy),
+      m7: Object.freeze({
+        rewardAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+        rollback: true,
+        reason: rewardRollbackReason,
+        eventAt: event.at
+      })
+    };
+  }
+
+  let core;
+  try {
+    if (typeof corePlan !== "function") throw new Error(`Missing CORE M7 ${operation} planner.`);
+    core = corePlan();
+  } catch (error) {
+    rewardTelemetry.errorFallbacks += 1;
+    tripRewardRollback("CORE_REWARD_ERROR");
+    const event = recordReward({
+      operation,
+      outcome: "CORE_ERROR_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      rewardAuthority: "LEGACY_FALLBACK",
+      reason: String(error?.message ?? error)
+    });
+    return {
+      ...normalize(legacy),
+      m7: Object.freeze({
+        rewardAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+        rollback: true,
+        reason: "CORE_REWARD_ERROR",
+        eventAt: event.at
+      })
+    };
+  }
+
+  rewardTelemetry.evaluations += 1;
+  const comparison = compare({ legacy, core });
+  if (!comparison.match) {
+    rewardTelemetry.mismatches += 1;
+    tripRewardRollback("REWARD_DISAGREEMENT");
+    const event = recordReward({
+      operation,
+      outcome: "REWARD_DISAGREEMENT_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      rewardAuthority: "LEGACY_FALLBACK",
+      mismatchedFields: comparison.mismatchedFields,
+      legacy: comparison.legacy,
+      core: comparison.core,
+      reason: `CORE M7 and Legacy Mixed ${operation} plans did not agree.`
+    });
+    return {
+      ...comparison.legacy,
+      m7: Object.freeze({
+        rewardAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+        rollback: true,
+        reason: "REWARD_DISAGREEMENT",
+        mismatchedFields: comparison.mismatchedFields,
+        eventAt: event.at
+      })
+    };
+  }
+
+  rewardTelemetry.matches += 1;
+  const event = recordReward({
+    operation,
+    outcome: "CORE_REWARD_APPLIED",
+    actorId: String(actorId ?? ""),
+    rewardAuthority: "CORE_M7",
+    remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+    parityGuard: "MATCH",
+    result: comparison.core
+  });
+  return {
+    ...comparison.core,
+    m7: Object.freeze({
+      rewardAuthority: "CORE_M7",
+      remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+      rollback: false,
+      parityGuard: "MATCH",
+      eventAt: event.at
+    })
+  };
+}
+
+export function evaluateM7RewardProposalLiveHandoff(input = {}) {
+  return evaluateRewardPlan({
+    operation: "END_SESSION_REWARD_PROPOSAL",
+    ...input,
+    compare: compareM7RewardProposal,
+    normalize: normalizeRewardProposal
+  });
+}
+
+export function evaluateM7RewardCommitLiveHandoff(input = {}) {
+  return evaluateRewardPlan({
+    operation: "END_SESSION_REWARD_COMMIT",
+    ...input,
+    compare: compareM7RewardCommit,
+    normalize: normalizeRewardCommit
+  });
 }
 
 function withAuthority(plan, claimAuthority, meta = {}) {
@@ -1024,7 +1216,7 @@ export function getM7PhaseChangeHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: phaseRollbackReason,
     liveScope: Object.freeze(["PHASE_CHANGE"]),
-    deferredScope: Object.freeze(["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: phaseTelemetry.evaluations,
       matches: phaseTelemetry.matches,
@@ -1033,6 +1225,60 @@ export function getM7PhaseChangeHandoffStatus() {
       rollbackEvaluations: phaseTelemetry.rollbackEvaluations,
       historyCount: phaseTelemetry.history.length,
       lastDecision: phaseTelemetry.lastDecision
+    })
+  });
+}
+
+export function setM7CoreRewardEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
+  coreRewardEnabled = Boolean(enabled);
+  rewardRollbackReason = coreRewardEnabled ? "" : String(reason || "MANUAL_QA_ROLLBACK");
+  recordReward({
+    operation: "AUTHORITY_SWITCH",
+    outcome: coreRewardEnabled ? "CORE_REWARD_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    rewardAuthority: coreRewardEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+    reason: rewardRollbackReason
+  });
+  return getM7RewardHandoffStatus();
+}
+
+export function resetM7RewardHandoffTelemetry() {
+  rewardTelemetry.evaluations = 0;
+  rewardTelemetry.matches = 0;
+  rewardTelemetry.mismatches = 0;
+  rewardTelemetry.errorFallbacks = 0;
+  rewardTelemetry.rollbackEvaluations = 0;
+  rewardTelemetry.lastDecision = null;
+  rewardTelemetry.history.length = 0;
+  return getM7RewardHandoffStatus();
+}
+
+export function getM7RewardHandoffHistory() {
+  return Object.freeze([...rewardTelemetry.history]);
+}
+
+export function getM7RewardHandoffStatus() {
+  return Object.freeze({
+    phase: "M7",
+    scope: "END_SESSION_REWARD_HANDOFF",
+    enabled: coreRewardEnabled,
+    mode: coreRewardEnabled ? "CORE_REWARD_LEGACY_LIFECYCLE" : "LEGACY_ROLLBACK",
+    rewardAuthority: coreRewardEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    approvalAuthority: "GROUP_CONSENSUS_GM_COMMIT",
+    remainingSessionAuthority: "LEGACY_MIXED_LIFECYCLE",
+    autoRollbackOnDisagreement: true,
+    fallbackOnCoreError: true,
+    rollbackReason: rewardRollbackReason,
+    liveScope: Object.freeze(["END_SESSION_REWARD_PROPOSAL", "END_SESSION_REWARD_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    telemetry: Object.freeze({
+      evaluations: rewardTelemetry.evaluations,
+      matches: rewardTelemetry.matches,
+      mismatches: rewardTelemetry.mismatches,
+      errorFallbacks: rewardTelemetry.errorFallbacks,
+      rollbackEvaluations: rewardTelemetry.rollbackEvaluations,
+      historyCount: rewardTelemetry.history.length,
+      lastDecision: rewardTelemetry.lastDecision
     })
   });
 }
@@ -1069,7 +1315,7 @@ export function getM7TraitCheckAwardHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: traitAwardRollbackReason,
     liveScope: Object.freeze(["AWARD_TRAIT_CHECKS"]),
-    deferredScope: Object.freeze(["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: traitAwardTelemetry.evaluations,
       matches: traitAwardTelemetry.matches,
@@ -1149,7 +1395,7 @@ export function getM7RecoveryHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: recoveryRollbackReason,
     liveScope: Object.freeze(["SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"]),
-    deferredScope: Object.freeze(["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: recoveryTelemetry.evaluations,
       matches: recoveryTelemetry.matches,
@@ -1202,7 +1448,7 @@ export function getM7FinishPlayerHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: finishRollbackReason,
     liveScope: Object.freeze(["DONE_DISCARD"]),
-    deferredScope: Object.freeze(["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: finishTelemetry.evaluations,
       matches: finishTelemetry.matches,
@@ -1255,7 +1501,7 @@ export function getM7CheckTransferHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: transferRollbackReason,
     liveScope: Object.freeze(["PASS_CHECK"]),
-    deferredScope: Object.freeze(["END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: transferTelemetry.evaluations,
       matches: transferTelemetry.matches,
