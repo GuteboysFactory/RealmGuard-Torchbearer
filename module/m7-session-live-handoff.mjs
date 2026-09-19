@@ -7,6 +7,7 @@ let corePhaseEnabled = true;
 let coreRecoveryEnabled = true;
 let coreTraitAwardEnabled = true;
 let coreRewardEnabled = true;
+let coreLifecycleEnabled = true;
 let rollbackReason = "";
 let transferRollbackReason = "";
 let finishRollbackReason = "";
@@ -14,6 +15,7 @@ let phaseRollbackReason = "";
 let recoveryRollbackReason = "";
 let traitAwardRollbackReason = "";
 let rewardRollbackReason = "";
+let lifecycleRollbackReason = "";
 
 const telemetry = {
   evaluations: 0,
@@ -76,6 +78,16 @@ const traitAwardTelemetry = {
 };
 
 const rewardTelemetry = {
+  evaluations: 0,
+  matches: 0,
+  mismatches: 0,
+  errorFallbacks: 0,
+  rollbackEvaluations: 0,
+  lastDecision: null,
+  history: []
+};
+
+const lifecycleTelemetry = {
   evaluations: 0,
   matches: 0,
   mismatches: 0,
@@ -368,6 +380,36 @@ export function compareM7RewardCommit({ legacy = {}, core = {} } = {}) {
     normalizeRewardCommit(core),
     ["beforeFate", "beforePersona", "approvedFate", "approvedPersona", "nextFate", "nextPersona", "actualFate", "actualPersona"]
   );
+}
+
+function normalizeLifecycleValue(value) {
+  if (Array.isArray(value)) return Object.freeze(value.map(normalizeLifecycleValue));
+  if (value && typeof value === "object") {
+    return Object.freeze(Object.fromEntries(
+      Object.keys(value).sort().map(key => [key, normalizeLifecycleValue(value[key])])
+    ));
+  }
+  return value;
+}
+
+function normalizeLifecycleEvent(event = {}) {
+  const normalized = normalizeLifecycleValue(event);
+  return Object.freeze({
+    ...normalized,
+    type: String(event?.type ?? "").toUpperCase()
+  });
+}
+
+export function compareM7LifecycleCommit({ legacy = {}, core = {} } = {}) {
+  const live = normalizeLifecycleEvent(legacy);
+  const candidate = normalizeLifecycleEvent(core);
+  const match = JSON.stringify(live) === JSON.stringify(candidate);
+  return Object.freeze({
+    match,
+    mismatchedFields: Object.freeze(match ? [] : ["event"]),
+    legacy: live,
+    core: candidate
+  });
 }
 
 function record(entry = {}) {
@@ -759,6 +801,116 @@ export function evaluateM7RewardCommitLiveHandoff(input = {}) {
     compare: compareM7RewardCommit,
     normalize: normalizeRewardCommit
   });
+}
+
+function recordLifecycle(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M7",
+    scope: "SESSION_LIFECYCLE_HANDOFF",
+    ...entry
+  });
+  lifecycleTelemetry.lastDecision = event;
+  lifecycleTelemetry.history.push(event);
+  if (lifecycleTelemetry.history.length > HISTORY_LIMIT) lifecycleTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM7SessionLifecycleHandoff", event); } catch (_error) { /* telemetry only */ }
+  return event;
+}
+
+function tripLifecycleRollback(reason) {
+  coreLifecycleEnabled = false;
+  lifecycleRollbackReason = String(reason || "LIFECYCLE_SAFETY_ROLLBACK");
+}
+
+export function evaluateM7LifecycleCommitLiveHandoff({ legacy = {}, corePlan = null } = {}) {
+  const operation = String(legacy?.type ?? "SESSION_LIFECYCLE_COMMIT").toUpperCase();
+
+  if (!coreLifecycleEnabled) {
+    lifecycleTelemetry.rollbackEvaluations += 1;
+    const event = recordLifecycle({
+      operation,
+      outcome: "LEGACY_ROLLBACK",
+      lifecycleAuthority: "LEGACY_MIXED",
+      reason: lifecycleRollbackReason
+    });
+    return {
+      ...normalizeLifecycleEvent(legacy),
+      m7: Object.freeze({
+        lifecycleAuthority: "LEGACY_MIXED",
+        rollback: true,
+        reason: lifecycleRollbackReason,
+        eventAt: event.at
+      })
+    };
+  }
+
+  let core;
+  try {
+    if (typeof corePlan !== "function") throw new Error("Missing CORE M7 lifecycle planner.");
+    core = corePlan();
+  } catch (error) {
+    lifecycleTelemetry.errorFallbacks += 1;
+    tripLifecycleRollback("CORE_LIFECYCLE_ERROR");
+    const event = recordLifecycle({
+      operation,
+      outcome: "CORE_ERROR_LEGACY_FALLBACK",
+      lifecycleAuthority: "LEGACY_FALLBACK",
+      reason: String(error?.message ?? error)
+    });
+    return {
+      ...normalizeLifecycleEvent(legacy),
+      m7: Object.freeze({
+        lifecycleAuthority: "LEGACY_FALLBACK",
+        rollback: true,
+        reason: "CORE_LIFECYCLE_ERROR",
+        eventAt: event.at
+      })
+    };
+  }
+
+  lifecycleTelemetry.evaluations += 1;
+  const comparison = compareM7LifecycleCommit({ legacy, core });
+  if (!comparison.match) {
+    lifecycleTelemetry.mismatches += 1;
+    tripLifecycleRollback("LIFECYCLE_DISAGREEMENT");
+    const event = recordLifecycle({
+      operation,
+      outcome: "LIFECYCLE_DISAGREEMENT_LEGACY_FALLBACK",
+      lifecycleAuthority: "LEGACY_FALLBACK",
+      mismatchedFields: comparison.mismatchedFields,
+      legacy: comparison.legacy,
+      core: comparison.core,
+      reason: "CORE M7 and Legacy Mixed lifecycle events did not agree."
+    });
+    return {
+      ...comparison.legacy,
+      m7: Object.freeze({
+        lifecycleAuthority: "LEGACY_FALLBACK",
+        rollback: true,
+        reason: "LIFECYCLE_DISAGREEMENT",
+        mismatchedFields: comparison.mismatchedFields,
+        eventAt: event.at
+      })
+    };
+  }
+
+  lifecycleTelemetry.matches += 1;
+  const event = recordLifecycle({
+    operation,
+    outcome: "CORE_LIFECYCLE_COMMITTED",
+    lifecycleAuthority: "CORE_M7",
+    parityGuard: "MATCH",
+    result: comparison.core
+  });
+  return {
+    ...comparison.core,
+    m7: Object.freeze({
+      lifecycleAuthority: "CORE_M7",
+      rollback: false,
+      parityGuard: "MATCH",
+      eventAt: event.at
+    })
+  };
 }
 
 function withAuthority(plan, claimAuthority, meta = {}) {
@@ -1216,7 +1368,7 @@ export function getM7PhaseChangeHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: phaseRollbackReason,
     liveScope: Object.freeze(["PHASE_CHANGE"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: phaseTelemetry.evaluations,
       matches: phaseTelemetry.matches,
@@ -1225,6 +1377,57 @@ export function getM7PhaseChangeHandoffStatus() {
       rollbackEvaluations: phaseTelemetry.rollbackEvaluations,
       historyCount: phaseTelemetry.history.length,
       lastDecision: phaseTelemetry.lastDecision
+    })
+  });
+}
+
+export function setM7CoreLifecycleEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
+  coreLifecycleEnabled = Boolean(enabled);
+  lifecycleRollbackReason = coreLifecycleEnabled ? "" : String(reason || "MANUAL_QA_ROLLBACK");
+  recordLifecycle({
+    operation: "AUTHORITY_SWITCH",
+    outcome: coreLifecycleEnabled ? "CORE_LIFECYCLE_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    lifecycleAuthority: coreLifecycleEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    reason: lifecycleRollbackReason
+  });
+  return getM7LifecycleHandoffStatus();
+}
+
+export function resetM7LifecycleHandoffTelemetry() {
+  lifecycleTelemetry.evaluations = 0;
+  lifecycleTelemetry.matches = 0;
+  lifecycleTelemetry.mismatches = 0;
+  lifecycleTelemetry.errorFallbacks = 0;
+  lifecycleTelemetry.rollbackEvaluations = 0;
+  lifecycleTelemetry.lastDecision = null;
+  lifecycleTelemetry.history.length = 0;
+  return getM7LifecycleHandoffStatus();
+}
+
+export function getM7LifecycleHandoffHistory() {
+  return Object.freeze([...lifecycleTelemetry.history]);
+}
+
+export function getM7LifecycleHandoffStatus() {
+  return Object.freeze({
+    phase: "M7",
+    scope: "SESSION_LIFECYCLE_HANDOFF",
+    enabled: coreLifecycleEnabled,
+    mode: coreLifecycleEnabled ? "CORE_SESSION_LIFECYCLE" : "LEGACY_ROLLBACK",
+    lifecycleAuthority: coreLifecycleEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    autoRollbackOnDisagreement: true,
+    fallbackOnCoreError: true,
+    rollbackReason: lifecycleRollbackReason,
+    liveScope: Object.freeze(["SESSION_STARTING", "SESSION_STARTED", "PHASE_CHANGED", "SESSION_ENDING", "SESSION_ENDED"]),
+    deferredScope: Object.freeze([]),
+    telemetry: Object.freeze({
+      evaluations: lifecycleTelemetry.evaluations,
+      matches: lifecycleTelemetry.matches,
+      mismatches: lifecycleTelemetry.mismatches,
+      errorFallbacks: lifecycleTelemetry.errorFallbacks,
+      rollbackEvaluations: lifecycleTelemetry.rollbackEvaluations,
+      historyCount: lifecycleTelemetry.history.length,
+      lastDecision: lifecycleTelemetry.lastDecision
     })
   });
 }
@@ -1270,7 +1473,7 @@ export function getM7RewardHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: rewardRollbackReason,
     liveScope: Object.freeze(["END_SESSION_REWARD_PROPOSAL", "END_SESSION_REWARD_COMMIT"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: rewardTelemetry.evaluations,
       matches: rewardTelemetry.matches,
@@ -1315,7 +1518,7 @@ export function getM7TraitCheckAwardHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: traitAwardRollbackReason,
     liveScope: Object.freeze(["AWARD_TRAIT_CHECKS"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: traitAwardTelemetry.evaluations,
       matches: traitAwardTelemetry.matches,
@@ -1395,7 +1598,7 @@ export function getM7RecoveryHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: recoveryRollbackReason,
     liveScope: Object.freeze(["SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: recoveryTelemetry.evaluations,
       matches: recoveryTelemetry.matches,
@@ -1448,7 +1651,7 @@ export function getM7FinishPlayerHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: finishRollbackReason,
     liveScope: Object.freeze(["DONE_DISCARD"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: finishTelemetry.evaluations,
       matches: finishTelemetry.matches,
@@ -1501,7 +1704,7 @@ export function getM7CheckTransferHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: transferRollbackReason,
     liveScope: Object.freeze(["PASS_CHECK"]),
-    deferredScope: Object.freeze(["SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze([]),
     telemetry: Object.freeze({
       evaluations: transferTelemetry.evaluations,
       matches: transferTelemetry.matches,
