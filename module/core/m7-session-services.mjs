@@ -382,6 +382,39 @@ export class SessionEngine {
     return this.planPhaseChange(input);
   }
 
+  planTraitCheckAward({ actor, amount = 1, sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const before = this.actionCurrency.current(actor, "checks");
+    const requested = Math.max(0, Math.min(2, Math.floor(Number(amount ?? 0))));
+    const maximum = Math.max(before, Number(actor?.system?.resources?.checks?.max ?? 9));
+    const base = {
+      ok: false,
+      reasonCode: "",
+      phase: state.phase,
+      requested,
+      earned: 0,
+      before,
+      after: before,
+      maximum,
+      turnId: state.turnCycleId
+    };
+
+    if (!state.enabled || state.phase !== "gm") return freeze({ ...base, ok: true });
+    if (!actor) return freeze({ ...base, reasonCode: "missing-actor" });
+
+    const after = Math.min(maximum, before + requested);
+    return freeze({
+      ...base,
+      ok: true,
+      earned: Math.max(0, after - before),
+      after
+    });
+  }
+
+  previewTraitCheckAward(input = {}) {
+    return this.planTraitCheckAward(input);
+  }
+
   planRecoverySpend({ actor, conditionName = "", sessionState } = {}) {
     const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
     const before = this.actionCurrency.current(actor, "checks");
