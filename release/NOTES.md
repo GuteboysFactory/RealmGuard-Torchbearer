@@ -1,27 +1,28 @@
-Realm Guard / Torchbearer v1.9.0-qa.14 — M7 Trait Check Award Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.15 — M7 End Session / Reward Live Handoff.
 
-New live CORE M7 operation:
-- AWARD_TRAIT_CHECKS
+New CORE M7 reward scope:
+- END_SESSION_REWARD_PROPOSAL
+- END_SESSION_REWARD_COMMIT
 
-CORE M7 now deterministically plans:
-- GM Turn eligibility
-- requested Trait Against award clamp (0–2)
-- Check maximum/cap handling
-- exact before/after state
-- exact earned amount
-- zero structured award outside GM Turn / in Free Play
+CORE M7 now owns:
+- Fate / Persona proposal calculation
+- Goal-progress Fate suppression when Goal is accomplished
+- Persona proposal cap
+- approval-aware reward commit planning
+- Fate / Persona resource cap handling
+- exact before / after / actual award values
 
 Safety:
-- Legacy Mixed computes an independent read-only award plan.
-- Any disagreement auto-rolls back only Trait Check Award.
-- CORE planner errors fall back only Trait Check Award.
-- Claim, Pass Check, Done / Discard, Phase Change and Recovery remain independent live handoffs.
-- Player requests continue through the primary-GM technical authority bridge.
+- Legacy Mixed computes independent read-only proposal/commit plans.
+- Any disagreement auto-rolls back only Reward authority.
+- CORE Reward errors fall back only Reward.
+- Existing End Session UI and approval flow are preserved.
+- Duplicate-finalization guard remains Legacy-compatible.
+- Previous M7 handoffs remain independently controlled.
 
 Still Legacy Mixed:
-- End Session live commit
-- Session Lifecycle live commit
+- SESSION_LIFECYCLE_COMMIT
 
-qa.13 Recovery Live Handoff is VERIFIED.
+qa.14 Trait Check Award Live Handoff is VERIFIED.
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.14.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.15.md
