@@ -1,8 +1,10 @@
-Realm Guard / Torchbearer v1.9.0-qa.17 — Character Parchment Background.
+Realm Guard / Torchbearer v1.9.0-qa.18 — Character Parchment Surface Harmony.
 
 Visual-only:
-- selected parchment artwork is now the Character sheet background
-- background adapts to the current window size without tiling
-- no rules, Actor data, CORE authority or M8 Social Network behavior changed
+- Character information panels now use translucent parchment surfaces
+- editable Character fields use light writing-paper styling
+- Wises / Traits and Relationships are integrated into the parchment visual language
+- navigation and interactive controls retain dark forest/brass identity
+- no rules, Actor data, CORE authority or M8 behavior changed
 
-QA: resize the Character sheet and verify full-window parchment coverage and normal controls.
+QA: TEST_PROTOCOL_v1.9.0-qa.18.md
