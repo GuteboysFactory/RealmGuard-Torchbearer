@@ -123,3 +123,35 @@ Re-check:
 
 ## PASS criteria
 qa.16 passes when all five lifecycle event types are CORE-authoritative with zero normal-QA mismatches/error fallbacks, lifecycle order and state transitions remain exact, independent Lifecycle rollback works, and all prior M7 handoffs remain regression-safe.
+
+
+## Verification result — 2026-09-19
+
+**VERIFIED.**
+
+Manual Foundry v13.351 QA completed successfully:
+
+- startup gate PASS
+- PHASE_CHANGED lifecycle PASS
+- SESSION_ENDING / SESSION_ENDED PASS
+- SESSION_STARTING / SESSION_STARTED PASS
+- lifecycle sequence integrity PASS
+- multiplayer observation PASS
+- independent Lifecycle rollback PASS
+- final M7 regression / closure gate PASS
+
+Verified final state:
+
+- Claim handoff enabled
+- Transfer handoff enabled
+- Finish handoff enabled
+- Phase handoff enabled
+- Recovery handoff enabled
+- Trait Award handoff enabled
+- Reward handoff enabled
+- Lifecycle handoff enabled
+- no deferred M7 semantic authority remains
+- no normal-QA lifecycle mismatches or CORE error fallbacks remained at verification
+- reload and multi-client synchronization remained regression-safe
+
+**M7 — Session Engine, Turn Manager & End Session = VERIFIED / CLOSED.**
