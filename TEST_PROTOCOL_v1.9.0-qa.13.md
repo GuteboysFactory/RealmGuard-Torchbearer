@@ -209,3 +209,22 @@ Quickly re-check:
 ## PASS criteria
 
 qa.13 passes when Recovery spend, refund and attempt marking preserve verified Legacy Mixed behavior, CORE parity shows no normal-QA mismatches, stale/state-mismatch refund guards hold, one-attempt-per-Condition-per-turn remains correct, multi-client commits exactly once, independent Recovery rollback works, and previous M7 handoffs remain regression-safe.
+
+
+## Verification result — 2026-09-19
+
+**VERIFIED.**
+
+Manual Foundry v13.351 QA completed successfully:
+- startup gate PASS
+- Gates A–J PASS
+- Players' Turn Free Test / paid test / alternation regression PASS
+- Pass Check + Done / Discard regression PASS
+- Phase Change + turnCycleId/sessionCycle regression PASS
+- Trait Against -> Check regression PASS
+- End Session + Reward parity regression PASS
+- Session Lifecycle + reset/recharge/reload regression PASS
+- multi-client Recovery authority/synchronization PASS
+- independent Recovery rollback PASS
+
+No normal-QA Recovery mismatches or CORE error fallbacks remained at verification.
