@@ -1,28 +1,22 @@
-Realm Guard / Torchbearer v1.9.0-qa.15 — M7 End Session / Reward Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.16 — M7 Session Lifecycle Live Handoff.
 
-New CORE M7 reward scope:
-- END_SESSION_REWARD_PROPOSAL
-- END_SESSION_REWARD_COMMIT
+New CORE lifecycle scope:
+- SESSION_STARTING
+- SESSION_STARTED
+- PHASE_CHANGED
+- SESSION_ENDING
+- SESSION_ENDED
 
-CORE M7 now owns:
-- Fate / Persona proposal calculation
-- Goal-progress Fate suppression when Goal is accomplished
-- Persona proposal cap
-- approval-aware reward commit planning
-- Fate / Persona resource cap handling
-- exact before / after / actual award values
+CORE M7 now owns the canonical lifecycle event semantics. Existing controllers continue to perform Foundry document/settings mutations.
 
 Safety:
-- Legacy Mixed computes independent read-only proposal/commit plans.
-- Any disagreement auto-rolls back only Reward authority.
-- CORE Reward errors fall back only Reward.
-- Existing End Session UI and approval flow are preserved.
-- Duplicate-finalization guard remains Legacy-compatible.
-- Previous M7 handoffs remain independently controlled.
+- Legacy Mixed independently constructs lifecycle events for parity.
+- Lifecycle disagreement auto-rolls back only Lifecycle authority.
+- CORE lifecycle planner errors fall back only Lifecycle.
+- All previous M7 handoffs remain independently controlled.
 
-Still Legacy Mixed:
-- SESSION_LIFECYCLE_COMMIT
+After this build there is no deferred M7 semantic authority remaining.
 
-qa.14 Trait Check Award Live Handoff is VERIFIED.
+qa.15 End Session / Reward Live Handoff is VERIFIED.
 
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.15.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.16.md
