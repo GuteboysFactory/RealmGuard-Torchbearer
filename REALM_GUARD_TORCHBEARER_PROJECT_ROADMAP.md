@@ -1,10 +1,50 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.0.8.44 - Roll & Conflict Readability Polish  
-**Next major feature build after hotfix line:** v1.1.0 - Circles & Contacts - PLANNED  
+**Current GOLD baseline:** v1.8.0  
+**Current QA build:** v1.9.0-qa.16 - M7 Session Lifecycle Live Handoff — VERIFIED  
+**Current CORE milestone:** M7 — Session Engine, Turn Manager & End Session — VERIFIED / CLOSED  
+**Next CORE milestone:** M8 — Social Network Migration  
 **Internal system id:** `realm-guard` (do not rename)
+
+## MG-family CORE migration status
+
+### M7 — Session Engine, Turn Manager & End Session
+
+**Status:** ✅ VERIFIED / CLOSED on `v1.9.0-qa.16`.
+
+CORE live authority now covers the complete M7 semantic surface:
+
+- Player Turn Test Claim / Free Test / Check spend
+- Pass Check / Check transfer
+- Done / Discard
+- Phase Change
+- Recovery spend / refund / attempt tracking
+- Trait Against -> Check award
+- End Session Reward Proposal
+- End Session Reward Commit
+- Session Lifecycle:
+  - `SESSION_STARTING`
+  - `SESSION_STARTED`
+  - `PHASE_CHANGED`
+  - `SESSION_ENDING`
+  - `SESSION_ENDED`
+
+Closure gate verified in Foundry VTT 13.351:
+
+- all eight M7 handoffs enabled
+- zero normal-QA mismatches
+- zero normal-QA CORE error fallbacks
+- independent rollback verified per handoff
+- duplicate End Session reward protection preserved
+- `sessionCycle` remains separate from `turnCycleId`
+- reload verified
+- GM + Player multi-client synchronization verified
+- no deferred M7 semantic authority remains
+
+The Turn Manager and End Session UI remain presentation/control clients over CORE services. Foundry-side document/settings mutations remain in their bounded controllers.
+
+**Next:** M8 — Social Network Migration.
 
 ## Rule-source precedence
 
