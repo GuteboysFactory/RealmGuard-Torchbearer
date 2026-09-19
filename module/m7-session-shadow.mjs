@@ -1,7 +1,7 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
 import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
-import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled } from "./m7-session-live-handoff.mjs";
+import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled } from "./m7-session-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -11,10 +11,10 @@ function push(event) {
   const row = Object.freeze({
     at: Date.now(),
     phase: "M7",
-    buildScope: "PLAYER_TURN_HANDOFFS",
+    buildScope: "TURN_SESSION_HANDOFFS",
     mode: "PARTIAL_LIVE_HANDOFF",
     liveApplication: true,
-    authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION",
+    authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER",
     ...event
   });
   history.push(row);
@@ -204,6 +204,10 @@ export function installM7SessionShadow() {
       finishHandoffHistory: () => getM7FinishPlayerHandoffHistory(),
       resetFinishHandoffTelemetry: () => resetM7FinishPlayerHandoffTelemetry(),
       setCoreFinishEnabled: enabled => setM7CoreFinishEnabled(Boolean(enabled)),
+      phaseHandoffStatus: () => getM7PhaseChangeHandoffStatus(),
+      phaseHandoffHistory: () => getM7PhaseChangeHandoffHistory(),
+      resetPhaseHandoffTelemetry: () => resetM7PhaseChangeHandoffTelemetry(),
+      setCorePhaseEnabled: enabled => setM7CorePhaseEnabled(Boolean(enabled)),
       actionCurrencyAuthority: () => Object.freeze({
         technicalCommit: turnAuthorityStatus(),
         serializedByPrimaryGm: true,
@@ -241,9 +245,9 @@ export function installM7SessionShadow() {
 export function getM7SessionShadowStatus() {
   return Object.freeze({
     phase: "M7",
-    buildScope: "PLAYER_TURN_HANDOFFS",
+    buildScope: "TURN_SESSION_HANDOFFS",
     mode: "PARTIAL_LIVE_HANDOFF",
-    authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION",
+    authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER",
     liveApplication: true,
     observed: history.length,
     latest: history.at(-1) ?? null,
@@ -274,7 +278,9 @@ export function getM7SessionShadowStatus() {
       "PassCheckLiveHandoff",
       "AutoRollbackOnTransferDisagreement",
       "DoneDiscardLiveHandoff",
-      "AutoRollbackOnFinishDisagreement"
+      "AutoRollbackOnFinishDisagreement",
+      "PhaseChangeLiveHandoff",
+      "AutoRollbackOnPhaseDisagreement"
     ])
   });
 }
