@@ -1,7 +1,7 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
 import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
-import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled } from "./m7-session-live-handoff.mjs";
+import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled, getM7RecoveryHandoffStatus, getM7RecoveryHandoffHistory, resetM7RecoveryHandoffTelemetry, setM7CoreRecoveryEnabled } from "./m7-session-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -208,6 +208,10 @@ export function installM7SessionShadow() {
       phaseHandoffHistory: () => getM7PhaseChangeHandoffHistory(),
       resetPhaseHandoffTelemetry: () => resetM7PhaseChangeHandoffTelemetry(),
       setCorePhaseEnabled: enabled => setM7CorePhaseEnabled(Boolean(enabled)),
+      recoveryHandoffStatus: () => getM7RecoveryHandoffStatus(),
+      recoveryHandoffHistory: () => getM7RecoveryHandoffHistory(),
+      resetRecoveryHandoffTelemetry: () => resetM7RecoveryHandoffTelemetry(),
+      setCoreRecoveryEnabled: enabled => setM7CoreRecoveryEnabled(Boolean(enabled)),
       actionCurrencyAuthority: () => Object.freeze({
         technicalCommit: turnAuthorityStatus(),
         serializedByPrimaryGm: true,
@@ -220,9 +224,9 @@ export function installM7SessionShadow() {
           "REFUND_RECOVERY_CHECKS"
         ]),
         directGenericSetOperation: false,
-        liveRulesAuthority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION",
+        liveRulesAuthority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER",
         coreLiveApplication: true,
-        liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER"])
+        liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"])
       }),
       stateFingerprint: () => stateFingerprint(),
       multiplayerState: () => {
@@ -280,7 +284,9 @@ export function getM7SessionShadowStatus() {
       "DoneDiscardLiveHandoff",
       "AutoRollbackOnFinishDisagreement",
       "PhaseChangeLiveHandoff",
-      "AutoRollbackOnPhaseDisagreement"
+      "AutoRollbackOnPhaseDisagreement",
+      "RecoveryLiveHandoff",
+      "AutoRollbackOnRecoveryDisagreement"
     ])
   });
 }
