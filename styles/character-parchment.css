@@ -1,19 +1,34 @@
-/* v1.9.0-qa.17 — Character sheet adaptive parchment background
-   Visual-only. Uses the user-selected parchment artwork and scales it to the
-   current character-window dimensions without tiling. */
+/* v1.9.0-qa.19 — adaptive 9-slice Character parchment frame
+   The parchment artwork is rendered as a pseudo-element so corners keep their
+   proportions while edges/centre stretch with the Foundry window. */
 .realm-guard .window-content:has(> .rg-sheet.character),
 .realm-guard .window-content:has(.rg-sheet.character) {
-  background-image:
-    linear-gradient(rgba(244,224,177,.035), rgba(76,45,18,.07)),
-    url("../assets/ui/character-parchment.webp") !important;
-  background-position:center center !important;
-  background-size:100% 100% !important;
-  background-repeat:no-repeat !important;
-  background-color:#c79d57 !important;
+  position:relative;
+  isolation:isolate;
+  background:#e7c88f !important;
+}
+
+.realm-guard .window-content:has(> .rg-sheet.character)::before,
+.realm-guard .window-content:has(.rg-sheet.character)::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  box-sizing:border-box;
+  border-style:solid;
+  border-width:44px 32px;
+  border-image-source:url("../assets/ui/character-parchment.webp");
+  border-image-slice:13% 10% 13% 10% fill;
+  border-image-width:44px 32px;
+  border-image-repeat:stretch;
+  background:#ead09a;
 }
 
 .realm-guard .window-content:has(> .rg-sheet.character) > .rg-sheet.character,
 .realm-guard .window-content:has(.rg-sheet.character) .rg-sheet.character {
+  position:relative;
+  z-index:1;
   background:transparent;
 }
 
