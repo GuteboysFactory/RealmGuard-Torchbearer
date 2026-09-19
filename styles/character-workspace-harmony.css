@@ -1,0 +1,293 @@
+/* v1.9.0-qa.21 — Skills + Inventory/Gear parchment harmony
+   Visual-only. The framed parchment is the document surface.
+   Skills become ink-on-paper; Gear keeps its approved dark paper-doll stage
+   while its surrounding inventory panels are integrated with the parchment. */
+
+/* -------------------------------------------------------------------------- */
+/* SKILLS                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] > .rg-roles {
+  color:#342719 !important;
+  border:1px solid rgba(104,69,31,.42) !important;
+  background:
+    linear-gradient(rgba(255,249,229,.18),rgba(122,78,31,.035)),
+    rgba(246,229,190,.82) !important;
+  box-shadow:0 4px 13px rgba(69,39,16,.14),inset 0 0 0 1px rgba(255,255,255,.24) !important;
+}
+
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] > .rg-roles > .rg-panel-title {
+  border-bottom-color:rgba(105,72,36,.30) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] > .rg-roles > .rg-panel-title h2 {
+  color:#68451f !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] > .rg-roles > .rg-panel-title button {
+  color:#f2e2bf !important;
+  background:linear-gradient(180deg,#4b4b31,#2b2e20) !important;
+  border-color:#806a45 !important;
+}
+
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-group {
+  overflow:hidden;
+  border:1px solid rgba(115,77,35,.37) !important;
+  background:rgba(255,244,214,.46) !important;
+  box-shadow:0 2px 7px rgba(74,43,18,.08) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-group-title {
+  color:#f1dfba !important;
+  background:linear-gradient(180deg,rgba(73,78,44,.94),rgba(42,49,27,.94)) !important;
+  border-bottom:1px solid rgba(117,87,45,.50) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-group-title strong {
+  color:#f1dfba !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-group-title small {
+  color:#c7b995 !important;
+  opacity:1 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-count {
+  color:#f0dfb8 !important;
+  background:rgba(25,29,17,.50) !important;
+  border-color:rgba(207,165,88,.45) !important;
+}
+
+/* Trained Skill cards: paper cards with forest identity and gold rating. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role {
+  border:1px solid rgba(104,72,36,.42) !important;
+  border-radius:6px !important;
+  background:rgba(250,239,208,.80) !important;
+  color:#342719 !important;
+  box-shadow:inset 3px 0 0 rgba(93,112,56,.48),0 1px 4px rgba(73,42,17,.10) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top {
+  background:rgba(255,248,224,.68) !important;
+  border-bottom:1px solid rgba(103,69,32,.22) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-roll {
+  color:#382a1a !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-roll:hover .role-name {
+  color:#50602e !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .role-name {
+  color:#382a1a !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .role-rating {
+  color:#2b2013 !important;
+  background:linear-gradient(180deg,#d5ad62,#b9853e) !important;
+  border:1px solid rgba(107,72,31,.35) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.28) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-actions {
+  color:#5f4b31 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-versus {
+  color:#5e4b32 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-actions button {
+  color:#f0dfbd !important;
+  background:linear-gradient(180deg,#4a4b32,#2a2e20) !important;
+  border-color:#806a45 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-max-rating {
+  color:#76501f !important;
+  border-color:rgba(122,83,37,.34) !important;
+  background:rgba(192,148,73,.10) !important;
+}
+
+/* Learning row stays compact but no longer reads as a black bar. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learning {
+  color:#5c4930 !important;
+  background:rgba(218,193,145,.38) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learn-track span {
+  color:#5c4930 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learn-track i {
+  background:rgba(90,67,38,.18) !important;
+  border-color:rgba(91,63,35,.31) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learning > button {
+  color:#f0dfbd !important;
+  background:#3d402a !important;
+  border-color:#786541 !important;
+}
+
+/* Beginner's Luck / Untrained: lighter, intentionally lower emphasis. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-skill {
+  border:1px solid rgba(104,72,36,.28) !important;
+  background:rgba(246,232,195,.57) !important;
+  color:#57452f !important;
+  box-shadow:inset 2px 0 0 rgba(138,101,49,.22) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-roll {
+  color:#4c3a27 !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-roll:hover {
+  color:#53622f !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-meta {
+  color:#78654a !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-badge {
+  color:#725020 !important;
+  background:rgba(180,132,59,.09) !important;
+  border-color:rgba(150,103,43,.38) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-untrained-actions button {
+  color:#f0dfbd !important;
+  background:#3d402a !important;
+  border-color:#786541 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-divider span {
+  background:#d7bb83 !important;
+  border-color:#9e7137 !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* INVENTORY & GEAR                                                           */
+/* -------------------------------------------------------------------------- */
+
+/* The surrounding inventory panels become parchment surfaces. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] > .rg-token-power-inventory,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-panel,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-panel,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel {
+  color:#342719 !important;
+  border:1px solid rgba(104,69,31,.44) !important;
+  background:
+    linear-gradient(rgba(255,249,229,.16),rgba(122,78,31,.035)),
+    rgba(244,226,188,.84) !important;
+  box-shadow:0 4px 13px rgba(69,39,16,.14),inset 0 0 0 1px rgba(255,255,255,.22) !important;
+}
+
+/* Section headers keep the dark forest/brass system identity. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] > .rg-token-power-inventory .rg-panel-title,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-panel .rg-panel-title,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-panel .rg-panel-title,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel .rg-panel-title {
+  margin:-10px -10px 9px !important;
+  padding:8px 10px !important;
+  border-bottom:1px solid #725d33 !important;
+  border-radius:7px 7px 0 0 !important;
+  background:linear-gradient(180deg,#48501e,#2b3217) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-panel-title h2,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-panel-title small {
+  color:#f0dfb8 !important;
+}
+
+/* Tokens stay as dark relic cards, but the large enclosing slab is gone. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-token-power-card {
+  border-color:#79643d !important;
+  background:linear-gradient(145deg,#2a2c1f,#171a13) !important;
+  box-shadow:inset 3px 0 0 #667737,0 2px 5px rgba(63,38,18,.15) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-token-scale-note {
+  color:#5f4a31 !important;
+  background:rgba(100,84,45,.08) !important;
+  border-color:rgba(91,60,29,.28) !important;
+}
+
+/* Containers: paper cards with dark draggable chips. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-card {
+  color:#392b1c !important;
+  border:1px solid rgba(111,76,36,.38) !important;
+  background:rgba(255,244,211,.58) !important;
+  box-shadow:inset 3px 0 0 rgba(104,119,53,.42) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-card.is-active {
+  border-color:rgba(102,117,49,.58) !important;
+  box-shadow:inset 3px 0 0 #667733 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-head > span {
+  color:#3d2d1b !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-head > small {
+  color:#756148 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-chip {
+  border-color:#6f603f !important;
+  background:linear-gradient(180deg,#40412c,#292c20) !important;
+  color:#efe0bd !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-card .rg-inventory-drop-hint {
+  background:rgba(127,100,58,.07) !important;
+  border-color:rgba(109,78,42,.28) !important;
+  color:#806c50 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-container-rail-card .rg-container-inactive-note {
+  color:#705e45 !important;
+  background:rgba(109,88,54,.08) !important;
+  border-left-color:#806d49 !important;
+}
+
+/* Unassigned now reads as an inventory tray on the parchment. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-unassigned-help {
+  color:#66533a !important;
+  background:rgba(100,84,45,.07) !important;
+  border-left-color:#71813f !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-unassigned-item {
+  border-color:#9c7e4d !important;
+  background:linear-gradient(180deg,rgba(250,236,204,.94),rgba(222,198,153,.94)) !important;
+  box-shadow:0 1px 3px rgba(72,43,18,.10) !important;
+}
+
+/* Figure controls become paper-based; the actual paper-doll stage stays dark. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-control {
+  border:1px solid rgba(110,74,35,.38) !important;
+  background:rgba(249,235,201,.66) !important;
+  box-shadow:0 2px 7px rgba(70,40,17,.10),inset 0 0 0 1px rgba(255,255,255,.18) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-copy > span {
+  color:#704a20 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-copy small,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-control label {
+  color:#6b583e !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-control input,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-control select {
+  color:#2f2418 !important;
+  background:rgba(255,248,225,.90) !important;
+  border-color:rgba(104,70,34,.40) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-resolved {
+  color:#645037 !important;
+  background:rgba(112,91,54,.08) !important;
+  border-color:rgba(104,70,34,.25) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-figure-resolved b {
+  color:#3c2d1c !important;
+}
+
+/* Deliberately preserved: dark Equipment stage + dark equipment slots.
+   This is the approved paper-doll focal workspace, not a general information panel. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-equipment-stage {
+  border-color:#6f5a35 !important;
+  box-shadow:inset 0 0 50px rgba(0,0,0,.58),0 3px 10px rgba(67,39,17,.16) !important;
+}
+
+/* Slot legend gets a lighter parchment tray while preserving icon hierarchy. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-slot-guide {
+  border-color:rgba(103,69,33,.34) !important;
+  background:rgba(236,215,173,.64) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-slot-guide > div {
+  border-right-color:rgba(105,72,36,.22) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-slot-guide b {
+  color:#5a4020 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-slot-guide small {
+  color:#756148 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="gear"] .rg-slot-guide i {
+  color:#88632f !important;
+}

@@ -1,10 +1,9 @@
-Realm Guard / Torchbearer v1.9.0-qa.20 — Character Sub-Navigation.
+Realm Guard / Torchbearer v1.9.0-qa.21 — Skills + Inventory/Gear Parchment Harmony.
 
-UX-only:
-- CHARACTER now contains Overview / Background / Relationships / Notes
-- secondary menu disappears on Skills and Inventory & Gear
-- returning to Character remembers the last subsection
-- existing Actor fields and gameplay are unchanged
-- no M8 Social Network migration is active yet
+Visual-only:
+- Skills now use parchment cards and ink-on-paper hierarchy
+- Gear outer panels integrate with parchment
+- approved dark Equipment paper-doll stage is intentionally preserved
+- no rules, Actor data, CORE authority or M8 behavior changed
 
-QA: TEST_PROTOCOL_v1.9.0-qa.20.md
+QA: TEST_PROTOCOL_v1.9.0-qa.21.md
