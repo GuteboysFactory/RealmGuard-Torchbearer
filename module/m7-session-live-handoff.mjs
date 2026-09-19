@@ -4,10 +4,12 @@ let coreClaimEnabled = true;
 let coreTransferEnabled = true;
 let coreFinishEnabled = true;
 let corePhaseEnabled = true;
+let coreRecoveryEnabled = true;
 let rollbackReason = "";
 let transferRollbackReason = "";
 let finishRollbackReason = "";
 let phaseRollbackReason = "";
+let recoveryRollbackReason = "";
 
 const telemetry = {
   evaluations: 0,
@@ -40,6 +42,16 @@ const finishTelemetry = {
 };
 
 const phaseTelemetry = {
+  evaluations: 0,
+  matches: 0,
+  mismatches: 0,
+  errorFallbacks: 0,
+  rollbackEvaluations: 0,
+  lastDecision: null,
+  history: []
+};
+
+const recoveryTelemetry = {
   evaluations: 0,
   matches: 0,
   mismatches: 0,
@@ -198,6 +210,82 @@ export function compareM7PhaseChange({ legacy = {}, core = {} } = {}) {
   });
 }
 
+function normalizeRecoverySpend(plan = {}) {
+  return Object.freeze({
+    ok: Boolean(plan.ok),
+    reasonCode: String(plan.reasonCode ?? ""),
+    phase: String(plan.phase ?? ""),
+    source: String(plan.source ?? ""),
+    cost: num(plan.cost),
+    before: num(plan.before),
+    after: num(plan.after),
+    turnId: num(plan.turnId),
+    conditionName: String(plan.conditionName ?? "")
+  });
+}
+
+function normalizeRecoveryRefund(plan = {}) {
+  return Object.freeze({
+    ok: Boolean(plan.ok),
+    stale: Boolean(plan.stale),
+    reasonCode: String(plan.reasonCode ?? ""),
+    refunded: num(plan.refunded),
+    before: num(plan.before),
+    after: num(plan.after),
+    expectedAfter: num(plan.expectedAfter),
+    restore: num(plan.restore),
+    turnId: num(plan.turnId),
+    conditionName: String(plan.conditionName ?? "")
+  });
+}
+
+function normalizeRecoveryAttempt(plan = {}) {
+  return Object.freeze({
+    ok: Boolean(plan.ok),
+    tracked: Boolean(plan.tracked),
+    changed: Boolean(plan.changed),
+    reasonCode: String(plan.reasonCode ?? ""),
+    turnId: num(plan.turnId),
+    conditionName: String(plan.conditionName ?? ""),
+    beforeConditions: Object.freeze([...(plan.beforeConditions ?? [])].map(String)),
+    afterConditions: Object.freeze([...(plan.afterConditions ?? [])].map(String))
+  });
+}
+
+function compareNormalized(legacy, core, fields) {
+  const mismatchedFields = fields.filter(key => JSON.stringify(legacy[key]) !== JSON.stringify(core[key]));
+  return Object.freeze({
+    match: mismatchedFields.length === 0,
+    mismatchedFields: Object.freeze(mismatchedFields),
+    legacy,
+    core
+  });
+}
+
+export function compareM7RecoverySpend({ legacy = {}, core = {} } = {}) {
+  return compareNormalized(
+    normalizeRecoverySpend(legacy),
+    normalizeRecoverySpend(core),
+    ["ok", "reasonCode", "phase", "source", "cost", "before", "after", "turnId", "conditionName"]
+  );
+}
+
+export function compareM7RecoveryRefund({ legacy = {}, core = {} } = {}) {
+  return compareNormalized(
+    normalizeRecoveryRefund(legacy),
+    normalizeRecoveryRefund(core),
+    ["ok", "stale", "reasonCode", "refunded", "before", "after", "expectedAfter", "restore", "turnId", "conditionName"]
+  );
+}
+
+export function compareM7RecoveryAttempt({ legacy = {}, core = {} } = {}) {
+  return compareNormalized(
+    normalizeRecoveryAttempt(legacy),
+    normalizeRecoveryAttempt(core),
+    ["ok", "tracked", "changed", "reasonCode", "turnId", "conditionName", "beforeConditions", "afterConditions"]
+  );
+}
+
 function record(entry = {}) {
   const event = Object.freeze({
     at: Date.now(),
@@ -272,6 +360,130 @@ function recordPhase(entry = {}) {
 function tripPhaseRollback(reason) {
   corePhaseEnabled = false;
   phaseRollbackReason = String(reason || "PHASE_SAFETY_ROLLBACK");
+}
+
+function recordRecovery(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M7",
+    scope: "RECOVERY_HANDOFF",
+    ...entry
+  });
+  recoveryTelemetry.lastDecision = event;
+  recoveryTelemetry.history.push(event);
+  if (recoveryTelemetry.history.length > HISTORY_LIMIT) recoveryTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM7RecoveryHandoff", event); } catch (_error) { /* telemetry only */ }
+  return event;
+}
+
+function tripRecoveryRollback(reason) {
+  coreRecoveryEnabled = false;
+  recoveryRollbackReason = String(reason || "RECOVERY_SAFETY_ROLLBACK");
+}
+
+function evaluateRecoveryPlan({
+  operation,
+  actorId = "",
+  legacy = {},
+  corePlan = null,
+  compare,
+  normalize
+} = {}) {
+  if (!coreRecoveryEnabled) {
+    recoveryTelemetry.rollbackEvaluations += 1;
+    const event = recordRecovery({
+      operation,
+      outcome: "LEGACY_ROLLBACK",
+      actorId: String(actorId ?? ""),
+      recoveryAuthority: "LEGACY_MIXED",
+      reason: recoveryRollbackReason
+    });
+    return {
+      ...normalize(legacy),
+      m7: Object.freeze({
+        recoveryAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: recoveryRollbackReason,
+        eventAt: event.at
+      })
+    };
+  }
+
+  let core;
+  try {
+    if (typeof corePlan !== "function") throw new Error(`Missing CORE M7 ${operation} planner.`);
+    core = corePlan();
+  } catch (error) {
+    recoveryTelemetry.errorFallbacks += 1;
+    tripRecoveryRollback("CORE_RECOVERY_ERROR");
+    const event = recordRecovery({
+      operation,
+      outcome: "CORE_ERROR_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      recoveryAuthority: "LEGACY_FALLBACK",
+      reason: String(error?.message ?? error)
+    });
+    return {
+      ...normalize(legacy),
+      m7: Object.freeze({
+        recoveryAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "CORE_RECOVERY_ERROR",
+        eventAt: event.at
+      })
+    };
+  }
+
+  recoveryTelemetry.evaluations += 1;
+  const comparison = compare({ legacy, core });
+  if (!comparison.match) {
+    recoveryTelemetry.mismatches += 1;
+    tripRecoveryRollback("RECOVERY_DISAGREEMENT");
+    const event = recordRecovery({
+      operation,
+      outcome: "RECOVERY_DISAGREEMENT_LEGACY_FALLBACK",
+      actorId: String(actorId ?? ""),
+      recoveryAuthority: "LEGACY_FALLBACK",
+      mismatchedFields: comparison.mismatchedFields,
+      legacy: comparison.legacy,
+      core: comparison.core,
+      reason: `CORE M7 and Legacy Mixed ${operation} plans did not agree.`
+    });
+    return {
+      ...comparison.legacy,
+      m7: Object.freeze({
+        recoveryAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "RECOVERY_DISAGREEMENT",
+        mismatchedFields: comparison.mismatchedFields,
+        eventAt: event.at
+      })
+    };
+  }
+
+  recoveryTelemetry.matches += 1;
+  const event = recordRecovery({
+    operation,
+    outcome: "CORE_RECOVERY_APPLIED",
+    actorId: String(actorId ?? ""),
+    recoveryAuthority: "CORE_M7",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    parityGuard: "MATCH",
+    result: comparison.core
+  });
+  return {
+    ...comparison.core,
+    m7: Object.freeze({
+      recoveryAuthority: "CORE_M7",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+      rollback: false,
+      parityGuard: "MATCH",
+      eventAt: event.at
+    })
+  };
 }
 
 function withAuthority(plan, claimAuthority, meta = {}) {
@@ -729,7 +941,7 @@ export function getM7PhaseChangeHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: phaseRollbackReason,
     liveScope: Object.freeze(["PHASE_CHANGE"]),
-    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: phaseTelemetry.evaluations,
       matches: phaseTelemetry.matches,
@@ -738,6 +950,86 @@ export function getM7PhaseChangeHandoffStatus() {
       rollbackEvaluations: phaseTelemetry.rollbackEvaluations,
       historyCount: phaseTelemetry.history.length,
       lastDecision: phaseTelemetry.lastDecision
+    })
+  });
+}
+
+export function evaluateM7RecoverySpendLiveHandoff(input = {}) {
+  return evaluateRecoveryPlan({
+    operation: "SPEND_RECOVERY_CHECKS",
+    ...input,
+    compare: compareM7RecoverySpend,
+    normalize: normalizeRecoverySpend
+  });
+}
+
+export function evaluateM7RecoveryRefundLiveHandoff(input = {}) {
+  return evaluateRecoveryPlan({
+    operation: "REFUND_RECOVERY_CHECKS",
+    ...input,
+    compare: compareM7RecoveryRefund,
+    normalize: normalizeRecoveryRefund
+  });
+}
+
+export function evaluateM7RecoveryAttemptLiveHandoff(input = {}) {
+  return evaluateRecoveryPlan({
+    operation: "MARK_RECOVERY",
+    ...input,
+    compare: compareM7RecoveryAttempt,
+    normalize: normalizeRecoveryAttempt
+  });
+}
+
+export function setM7CoreRecoveryEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
+  coreRecoveryEnabled = Boolean(enabled);
+  recoveryRollbackReason = coreRecoveryEnabled ? "" : String(reason || "MANUAL_QA_ROLLBACK");
+  recordRecovery({
+    operation: "AUTHORITY_SWITCH",
+    outcome: coreRecoveryEnabled ? "CORE_RECOVERY_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    recoveryAuthority: coreRecoveryEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    reason: recoveryRollbackReason
+  });
+  return getM7RecoveryHandoffStatus();
+}
+
+export function resetM7RecoveryHandoffTelemetry() {
+  recoveryTelemetry.evaluations = 0;
+  recoveryTelemetry.matches = 0;
+  recoveryTelemetry.mismatches = 0;
+  recoveryTelemetry.errorFallbacks = 0;
+  recoveryTelemetry.rollbackEvaluations = 0;
+  recoveryTelemetry.lastDecision = null;
+  recoveryTelemetry.history.length = 0;
+  return getM7RecoveryHandoffStatus();
+}
+
+export function getM7RecoveryHandoffHistory() {
+  return Object.freeze([...recoveryTelemetry.history]);
+}
+
+export function getM7RecoveryHandoffStatus() {
+  return Object.freeze({
+    phase: "M7",
+    scope: "RECOVERY_HANDOFF",
+    enabled: coreRecoveryEnabled,
+    mode: coreRecoveryEnabled ? "CORE_RECOVERY_LEGACY_SESSION" : "LEGACY_ROLLBACK",
+    recoveryAuthority: coreRecoveryEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    autoRollbackOnDisagreement: true,
+    fallbackOnCoreError: true,
+    rollbackReason: recoveryRollbackReason,
+    liveScope: Object.freeze(["SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"]),
+    deferredScope: Object.freeze(["TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    telemetry: Object.freeze({
+      evaluations: recoveryTelemetry.evaluations,
+      matches: recoveryTelemetry.matches,
+      mismatches: recoveryTelemetry.mismatches,
+      errorFallbacks: recoveryTelemetry.errorFallbacks,
+      rollbackEvaluations: recoveryTelemetry.rollbackEvaluations,
+      historyCount: recoveryTelemetry.history.length,
+      lastDecision: recoveryTelemetry.lastDecision
     })
   });
 }
@@ -782,7 +1074,7 @@ export function getM7FinishPlayerHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: finishRollbackReason,
     liveScope: Object.freeze(["DONE_DISCARD"]),
-    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: finishTelemetry.evaluations,
       matches: finishTelemetry.matches,
@@ -835,7 +1127,7 @@ export function getM7CheckTransferHandoffStatus() {
     fallbackOnCoreError: true,
     rollbackReason: transferRollbackReason,
     liveScope: Object.freeze(["PASS_CHECK"]),
-    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    deferredScope: Object.freeze(["TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
     telemetry: Object.freeze({
       evaluations: transferTelemetry.evaluations,
       matches: transferTelemetry.matches,
