@@ -191,3 +191,84 @@
   min-height:120px;
   background:rgba(255,249,228,.82) !important;
 }
+
+
+/* v1.9.0-qa.20 — nested Character navigation
+   All personal Ranger information stays under CHARACTER; the secondary menu
+   disappears automatically whenever Skills or Inventory & Gear is active. */
+.realm-guard .rg-sheet.character .rg-character-tabs {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+  margin:8px 0 10px;
+  padding:5px;
+  border:1px solid rgba(117,80,39,.42);
+  border-radius:7px;
+  background:rgba(236,209,160,.52);
+  box-shadow:0 2px 8px rgba(69,39,16,.10),inset 0 0 0 1px rgba(255,255,255,.18);
+}
+.realm-guard .rg-sheet.character .rg-character-tab-button {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:31px;
+  padding:5px 8px;
+  border:1px solid rgba(104,73,40,.38) !important;
+  border-radius:4px !important;
+  background:rgba(250,236,201,.56) !important;
+  color:#5b4328 !important;
+  font-family:Georgia,serif;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.075em;
+  text-shadow:none !important;
+  box-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-character-tab-button i {
+  color:#8a6531;
+  font-size:11px;
+}
+.realm-guard .rg-sheet.character .rg-character-tab-button:hover {
+  background:rgba(255,243,213,.78) !important;
+  border-color:rgba(127,85,37,.62) !important;
+}
+.realm-guard .rg-sheet.character .rg-character-tab-button.active {
+  background:linear-gradient(180deg,#58632f,#35401f) !important;
+  border-color:#96713a !important;
+  color:#f4e5c5 !important;
+  box-shadow:inset 0 -2px 0 #c2954b !important;
+}
+.realm-guard .rg-sheet.character .rg-character-tab-button.active i {
+  color:#d8b46f;
+}
+.realm-guard .rg-sheet.character .rg-character-subpage {
+  display:none;
+}
+.realm-guard .rg-sheet.character .rg-character-subpage.active {
+  display:block;
+}
+.realm-guard .rg-sheet.character .rg-character-section-grid {
+  min-height:0;
+}
+.realm-guard .rg-sheet.character .rg-character-subpage[data-rg-character-page="background"] .rg-ranger-details,
+.realm-guard .rg-sheet.character .rg-character-subpage[data-rg-character-page="relationships"] .rg-relations,
+.realm-guard .rg-sheet.character .rg-character-subpage[data-rg-character-page="notes"] .rg-notes {
+  margin-top:0;
+}
+.realm-guard .rg-sheet.character .rg-character-subpage[data-rg-character-page="background"] .rg-detail-biography textarea {
+  min-height:220px;
+}
+.realm-guard .rg-sheet.character .rg-character-subpage[data-rg-character-page="notes"] .rg-notes-field {
+  min-height:320px;
+}
+@media(max-width:720px) {
+  .realm-guard .rg-sheet.character .rg-character-tabs {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:440px) {
+  .realm-guard .rg-sheet.character .rg-character-tabs {
+    grid-template-columns:1fr;
+  }
+}

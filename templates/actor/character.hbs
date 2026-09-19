@@ -93,58 +93,82 @@
   </nav>
   <div class="rg-tab-pages">
     <section class="rg-tab-page active" data-rg-page="character">
-      <main class="rg-character-grid">
-        <section class="rg-panel rg-drives"><div class="rg-panel-title"><h2>Belief · Goal · Instinct</h2></div><label>Belief<textarea name="system.belief">{{system.belief}}</textarea></label><label>Goal<textarea name="system.goal">{{system.goal}}</textarea></label><label>Instinct<textarea name="system.instinct">{{system.instinct}}</textarea></label></section>
-        <section class="rg-character-support-grid">
-          <section class="rg-panel"><div class="rg-panel-title"><h2>Wises</h2><button type="button" data-action="createWise">+ Wise</button></div>{{#each wises as |item|}}<div class="rg-line" data-item-id="{{item.id}}"><span>{{item.name}}</span><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No wises.</p>{{/each}}</section>
-          <section class="rg-panel"><div class="rg-panel-title"><h2>Traits</h2><button type="button" data-action="createTrait">+ Trait</button></div>{{#each traits as |trait|}}<div class="rg-line" data-item-id="{{trait.id}}"><span>{{trait.name}}</span><b>{{trait.system.rating}}</b><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No traits.</p>{{/each}}</section>
-        </section>
-        <section class="rg-panel rg-progression-panel">
-          <div class="rg-panel-title">
-            <div><h2><i class="fa-solid fa-sparkles"></i> Level &amp; Talents</h2><small>Long-term Realm Guard progression driven by Fate and Persona actually spent in play.</small></div>
-            <div class="rg-progression-actions">{{#if progression.pendingTalents}}{{#if canChooseTalent}}<button type="button" class="rg-talent-ready-button" data-action="chooseTalent"><i class="fa-solid fa-star"></i> Choose Talent {{#if progression.pendingTalents}}({{progression.pendingTalents}}){{/if}}</button>{{/if}}{{/if}}{{#if isGM}}<button type="button" data-action="manageProgression" title="Credit historical Fate/Persona spend"><i class="fa-solid fa-sliders"></i></button><button type="button" data-action="createTalent" title="Create a custom Talent"><i class="fa-solid fa-plus"></i> Talent</button>{{/if}}</div>
-          </div>
-          <div class="rg-progression-summary">
-            <div class="rg-level-medallion"><span>LEVEL</span><strong>{{progression.level}}</strong><small>{{progression.talentCount}} / {{progression.talentSlots}} Talents</small></div>
-            <div class="rg-progression-tracks">
-              <div class="rg-progression-track"><header><span>SPENT FATE</span><b>{{progression.spentFate}}{{#if progression.next}} / {{progression.next.fate}}{{/if}}</b></header><i><em style="width:{{progression.fateProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.fateRemaining}} more Fate toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
-              <div class="rg-progression-track"><header><span>SPENT PERSONA</span><b>{{progression.spentPersona}}{{#if progression.next}} / {{progression.next.persona}}{{/if}}</b></header><i><em style="width:{{progression.personaProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.personaRemaining}} more Persona toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
-            </div>
-          </div>
-          <div class="rg-progression-note"><i class="fa-solid fa-circle-info"></i><span>Only <b>committed resource spending</b> counts. Awards and manual +/- buttons do not. Both Fate and Persona thresholds must be reached. This progression layer is a Realm Guard / Torchbearer Foundry expansion inspired by Torchbearer 2E; it does not add Torchbearer classes or Town phases.</span></div>
-          <div class="rg-talent-list">
-            {{#each talents as |talent|}}
-            <article class="rg-talent-card {{#if talent.used}}is-used{{/if}}" data-item-id="{{talent.id}}">
-              <div class="rg-talent-card-icon"><i class="fa-solid fa-sparkles"></i></div>
-              <div class="rg-talent-card-body"><div><strong>{{talent.name}}</strong><span class="rg-talent-state">{{talent.stateLabel}}</span></div><small><b>{{talent.linkSummary}}</b> · {{talent.effectSummary}}</small>{{#if talent.descriptionText}}<p class="rg-talent-description">{{talent.descriptionText}}</p>{{/if}}</div>
-              {{#if talent.canManage}}<div class="rg-talent-card-actions"><button type="button" data-action="editItem" title="Edit Talent"><i class="fa-solid fa-pen"></i></button><button type="button" data-action="deleteItem" title="Delete Talent"><i class="fa-solid fa-xmark"></i></button></div>{{/if}}
-            </article>
-            {{else}}<p class="rg-empty">No Talents yet. Level 2 unlocks the first Talent choice.</p>{{/each}}
-          </div>
+      <nav class="rg-character-tabs" aria-label="Character sections">
+        <button type="button" class="rg-character-tab-button active" data-rg-character-tab="overview"><i class="fa-solid fa-id-card"></i><span>OVERVIEW</span></button>
+        <button type="button" class="rg-character-tab-button" data-rg-character-tab="background"><i class="fa-solid fa-scroll"></i><span>BACKGROUND</span></button>
+        <button type="button" class="rg-character-tab-button" data-rg-character-tab="relationships"><i class="fa-solid fa-people-group"></i><span>RELATIONSHIPS</span></button>
+        <button type="button" class="rg-character-tab-button" data-rg-character-tab="notes"><i class="fa-solid fa-feather-pointed"></i><span>NOTES</span></button>
+      </nav>
+
+      <div class="rg-character-subpages">
+        <section class="rg-character-subpage active" data-rg-character-page="overview">
+          <main class="rg-character-grid">
+            <section class="rg-panel rg-drives"><div class="rg-panel-title"><h2>Belief · Goal · Instinct</h2></div><label>Belief<textarea name="system.belief">{{system.belief}}</textarea></label><label>Goal<textarea name="system.goal">{{system.goal}}</textarea></label><label>Instinct<textarea name="system.instinct">{{system.instinct}}</textarea></label></section>
+            <section class="rg-character-support-grid">
+              <section class="rg-panel"><div class="rg-panel-title"><h2>Wises</h2><button type="button" data-action="createWise">+ Wise</button></div>{{#each wises as |item|}}<div class="rg-line" data-item-id="{{item.id}}"><span>{{item.name}}</span><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No wises.</p>{{/each}}</section>
+              <section class="rg-panel"><div class="rg-panel-title"><h2>Traits</h2><button type="button" data-action="createTrait">+ Trait</button></div>{{#each traits as |trait|}}<div class="rg-line" data-item-id="{{trait.id}}"><span>{{trait.name}}</span><b>{{trait.system.rating}}</b><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No traits.</p>{{/each}}</section>
+            </section>
+
+            <section class="rg-panel rg-progression-panel">
+              <div class="rg-panel-title">
+                <div><h2><i class="fa-solid fa-sparkles"></i> Level &amp; Talents</h2><small>Long-term Realm Guard progression driven by Fate and Persona actually spent in play.</small></div>
+                <div class="rg-progression-actions">{{#if progression.pendingTalents}}{{#if canChooseTalent}}<button type="button" class="rg-talent-ready-button" data-action="chooseTalent"><i class="fa-solid fa-star"></i> Choose Talent {{#if progression.pendingTalents}}({{progression.pendingTalents}}){{/if}}</button>{{/if}}{{/if}}{{#if isGM}}<button type="button" data-action="manageProgression" title="Credit historical Fate/Persona spend"><i class="fa-solid fa-sliders"></i></button><button type="button" data-action="createTalent" title="Create a custom Talent"><i class="fa-solid fa-plus"></i> Talent</button>{{/if}}</div>
+              </div>
+              <div class="rg-progression-summary">
+                <div class="rg-level-medallion"><span>LEVEL</span><strong>{{progression.level}}</strong><small>{{progression.talentCount}} / {{progression.talentSlots}} Talents</small></div>
+                <div class="rg-progression-tracks">
+                  <div class="rg-progression-track"><header><span>SPENT FATE</span><b>{{progression.spentFate}}{{#if progression.next}} / {{progression.next.fate}}{{/if}}</b></header><i><em style="width:{{progression.fateProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.fateRemaining}} more Fate toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
+                  <div class="rg-progression-track"><header><span>SPENT PERSONA</span><b>{{progression.spentPersona}}{{#if progression.next}} / {{progression.next.persona}}{{/if}}</b></header><i><em style="width:{{progression.personaProgress}}%"></em></i>{{#if progression.next}}<small>{{progression.personaRemaining}} more Persona toward Level {{progression.next.level}}</small>{{else}}<small>Maximum progression threshold reached.</small>{{/if}}</div>
+                </div>
+              </div>
+              <div class="rg-progression-note"><i class="fa-solid fa-circle-info"></i><span>Only <b>committed resource spending</b> counts. Awards and manual +/- buttons do not. Both Fate and Persona thresholds must be reached. This progression layer is a Realm Guard / Torchbearer Foundry expansion inspired by Torchbearer 2E; it does not add Torchbearer classes or Town phases.</span></div>
+              <div class="rg-talent-list">
+                {{#each talents as |talent|}}
+                <article class="rg-talent-card {{#if talent.used}}is-used{{/if}}" data-item-id="{{talent.id}}">
+                  <div class="rg-talent-card-icon"><i class="fa-solid fa-sparkles"></i></div>
+                  <div class="rg-talent-card-body"><div><strong>{{talent.name}}</strong><span class="rg-talent-state">{{talent.stateLabel}}</span></div><small><b>{{talent.linkSummary}}</b> · {{talent.effectSummary}}</small>{{#if talent.descriptionText}}<p class="rg-talent-description">{{talent.descriptionText}}</p>{{/if}}</div>
+                  {{#if talent.canManage}}<div class="rg-talent-card-actions"><button type="button" data-action="editItem" title="Edit Talent"><i class="fa-solid fa-pen"></i></button><button type="button" data-action="deleteItem" title="Delete Talent"><i class="fa-solid fa-xmark"></i></button></div>{{/if}}
+                </article>
+                {{else}}<p class="rg-empty">No Talents yet. Level 2 unlocks the first Talent choice.</p>{{/each}}
+              </div>
+            </section>
+          </main>
         </section>
 
-        <section class="rg-character-detail-grid">
-          <section class="rg-panel rg-ranger-details">
-            <div class="rg-panel-title"><div><h2>Ranger Details</h2><small>Background, lineage and house identity</small></div></div>
-            <label class="rg-detail-biography">Biography / Background<textarea name="system.biography" placeholder="Who is this Ranger? Where did they come from, what shaped them, and how are they known?">{{system.biography}}</textarea></label>
-            <div class="rg-detail-fields">
-              <label>Lineage / House<input name="system.lineage" value="{{system.lineage}}" placeholder="e.g. House of Ruor" /></label>
-              <label>House Insignia<input name="system.insignia" value="{{system.insignia}}" placeholder="e.g. Standard of Ruor" /></label>
-            </div>
-          </section>
-          <section class="rg-panel rg-relations">
-            <div class="rg-panel-title"><div><h2>Relationships</h2><small>Recurring people tied to the Ranger</small></div></div>
-            <div class="rg-relationship-grid">
-              <label class="rg-relation-card"><span><i class="fa-solid fa-people-roof"></i> Parents</span><input name="system.parents" value="{{system.parents}}" placeholder="Names, trade or home" /><small>Family or guardians from the Ranger's background.</small></label>
-              <label class="rg-relation-card"><span><i class="fa-solid fa-hammer"></i> Senior Artisan</span><input name="system.seniorArtisan" value="{{system.seniorArtisan}}" placeholder="Name and craft / trade" /><small>The artisan or teacher from the Ranger's earlier training.</small></label>
-              <label class="rg-relation-card"><span><i class="fa-solid fa-compass"></i> Mentor</span><input name="system.mentor" value="{{system.mentor}}" placeholder="Name, station and status" /><small>The Ranger who guided their early service.</small></label>
-              <label class="rg-relation-card"><span><i class="fa-solid fa-handshake"></i> Friend / Ally</span><input name="system.friend" value="{{system.friend}}" placeholder="Name, role / trade and location" /><small>A recurring ally who can be found and asked for aid.</small></label>
-              <label class="rg-relation-card rg-relation-wide"><span><i class="fa-solid fa-user-slash"></i> Enemy / Rival</span><input name="system.enemy" value="{{system.enemy}}" placeholder="Name, role / people and location" /><small>A recurring rival or enemy controlled by the GM in play.</small></label>
-            </div>
-          </section>
+        <section class="rg-character-subpage" data-rg-character-page="background">
+          <main class="rg-character-grid rg-character-section-grid">
+            <section class="rg-panel rg-ranger-details">
+              <div class="rg-panel-title"><div><h2>Ranger Details</h2><small>Background, lineage and house identity</small></div></div>
+              <label class="rg-detail-biography">Biography / Background<textarea name="system.biography" placeholder="Who is this Ranger? Where did they come from, what shaped them, and how are they known?">{{system.biography}}</textarea></label>
+              <div class="rg-detail-fields">
+                <label>Lineage / House<input name="system.lineage" value="{{system.lineage}}" placeholder="e.g. House of Ruor" /></label>
+                <label>House Insignia<input name="system.insignia" value="{{system.insignia}}" placeholder="e.g. Standard of Ruor" /></label>
+              </div>
+            </section>
+          </main>
         </section>
-        <section class="rg-panel rg-notes"><div class="rg-panel-title"><h2>Character Notes</h2></div><textarea class="rg-notes-field" name="system.notes" placeholder="Private notes, reminders and details that do not belong elsewhere...">{{system.notes}}</textarea></section>
-      </main>
+
+        <section class="rg-character-subpage" data-rg-character-page="relationships">
+          <main class="rg-character-grid rg-character-section-grid">
+            <section class="rg-panel rg-relations">
+              <div class="rg-panel-title"><div><h2>Relationships</h2><small>Recurring people tied to the Ranger</small></div></div>
+              <div class="rg-relationship-grid">
+                <label class="rg-relation-card"><span><i class="fa-solid fa-people-roof"></i> Parents</span><input name="system.parents" value="{{system.parents}}" placeholder="Names, trade or home" /><small>Family or guardians from the Ranger's background.</small></label>
+                <label class="rg-relation-card"><span><i class="fa-solid fa-hammer"></i> Senior Artisan</span><input name="system.seniorArtisan" value="{{system.seniorArtisan}}" placeholder="Name and craft / trade" /><small>The artisan or teacher from the Ranger's earlier training.</small></label>
+                <label class="rg-relation-card"><span><i class="fa-solid fa-compass"></i> Mentor</span><input name="system.mentor" value="{{system.mentor}}" placeholder="Name, station and status" /><small>The Ranger who guided their early service.</small></label>
+                <label class="rg-relation-card"><span><i class="fa-solid fa-handshake"></i> Friend / Ally</span><input name="system.friend" value="{{system.friend}}" placeholder="Name, role / trade and location" /><small>A recurring ally who can be found and asked for aid.</small></label>
+                <label class="rg-relation-card rg-relation-wide"><span><i class="fa-solid fa-user-slash"></i> Enemy / Rival</span><input name="system.enemy" value="{{system.enemy}}" placeholder="Name, role / people and location" /><small>A recurring rival or enemy controlled by the GM in play.</small></label>
+              </div>
+            </section>
+          </main>
+        </section>
+
+        <section class="rg-character-subpage" data-rg-character-page="notes">
+          <main class="rg-character-grid rg-character-section-grid">
+            <section class="rg-panel rg-notes"><div class="rg-panel-title"><div><h2>Character Notes</h2><small>Private reminders and personal details</small></div></div><textarea class="rg-notes-field" name="system.notes" placeholder="Private notes, reminders and details that do not belong elsewhere...">{{system.notes}}</textarea></section>
+          </main>
+        </section>
+      </div>
     </section>
     <section class="rg-tab-page" data-rg-page="skills">
     <section class="rg-panel rg-roles">

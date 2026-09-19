@@ -136,6 +136,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
 
   _rgActiveTab = "character";
+  _rgCharacterTab = "overview";
   _rgConditionsOpen = false;
 
   _onRender(context, options) {
@@ -199,6 +200,15 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     };
     activate(this._rgActiveTab);
 
+    const characterTabs = new Set(["overview", "background", "relationships", "notes"]);
+    const activateCharacter = (tab) => {
+      const next = characterTabs.has(tab) ? tab : "overview";
+      this._rgCharacterTab = next;
+      for (const b of root.querySelectorAll("[data-rg-character-tab]")) b.classList.toggle("active", b.dataset.rgCharacterTab === next);
+      for (const p of root.querySelectorAll("[data-rg-character-page]")) p.classList.toggle("active", p.dataset.rgCharacterPage === next);
+    };
+    activateCharacter(this._rgCharacterTab);
+
     const conditionToggle = root.querySelector("[data-rg-conditions-toggle]");
     const conditionDropdown = root.querySelector("[data-rg-conditions-dropdown]");
     const setConditionsOpen = (open) => {
@@ -227,6 +237,13 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       button.addEventListener("click", event => {
         event.preventDefault();
         activate(button.dataset.rgTab);
+      });
+    }
+
+    for (const button of root.querySelectorAll("[data-rg-character-tab]")) {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        activateCharacter(button.dataset.rgCharacterTab);
       });
     }
 

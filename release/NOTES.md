@@ -1,10 +1,10 @@
-Realm Guard / Torchbearer v1.9.0-qa.19 — Framed Character Parchment.
+Realm Guard / Torchbearer v1.9.0-qa.20 — Character Sub-Navigation.
 
-Visual-only:
-- cleaner framed parchment replaces the previous Character background
-- 9-slice-style rendering preserves ornate corners during window resize
-- centre remains calm and readable
-- qa.18 parchment/ink surface harmony is preserved
-- no rules, Actor data, CORE authority or M8 behavior changed
+UX-only:
+- CHARACTER now contains Overview / Background / Relationships / Notes
+- secondary menu disappears on Skills and Inventory & Gear
+- returning to Character remembers the last subsection
+- existing Actor fields and gameplay are unchanged
+- no M8 Social Network migration is active yet
 
-QA: TEST_PROTOCOL_v1.9.0-qa.19.md
+QA: TEST_PROTOCOL_v1.9.0-qa.20.md
