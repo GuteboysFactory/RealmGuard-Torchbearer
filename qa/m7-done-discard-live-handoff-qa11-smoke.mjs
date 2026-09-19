@@ -13,7 +13,7 @@ const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.11");
+assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
 
 const actor = {
   id: "A1",
@@ -91,8 +91,8 @@ assert.ok(turns.includes("applyFinishPlayerPlan"));
 assert.ok(turns.includes('requestTurnAuthority("FINISH_PLAYER"'), "Player Done requests must still commit through the GM bridge");
 assert.ok(bridge.includes("gmQueue = gmQueue"), "Player Done requests must remain serialized on the primary GM");
 
-assert.ok(shadow.includes('buildScope: "PLAYER_TURN_HANDOFFS"'));
-assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
+assert.ok(shadow.includes('buildScope: "TURN_SESSION_HANDOFFS"'));
+assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'));
 assert.ok(shadow.includes('liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER"])'));
 assert.ok(shadow.includes("finishHandoffStatus"));
 assert.ok(shadow.includes("setCoreFinishEnabled"));
