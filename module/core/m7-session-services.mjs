@@ -333,6 +333,54 @@ export class SessionEngine {
   previewFinishPlayer(input = {}) {
     return this.planFinishPlayer(input);
   }
+
+  planPhaseChange({ targetPhase = "gm", sessionState } = {}) {
+    const state = sessionState instanceof SessionState ? sessionState : new SessionState(sessionState);
+    const toPhase = targetPhase === "player" ? "player" : "gm";
+    const fromPhase = state.phase;
+    const base = {
+      ok: false,
+      changed: false,
+      reasonCode: "",
+      fromPhase,
+      toPhase,
+      previousTurnCycleId: state.turnCycleId,
+      turnCycleId: state.turnCycleId,
+      lastActorId: state.lastActorId,
+      discardedChecks: [],
+      actorCheckPatches: []
+    };
+
+    if (!state.enabled) return freeze({ ...base, reasonCode: "turn-disabled" });
+    if (fromPhase === toPhase) return freeze({ ...base, ok: true });
+
+    const discardChecks = fromPhase === "player" && toPhase === "gm";
+    const actorCheckPatches = discardChecks
+      ? state.actors
+        .filter(entry => Math.max(0, Number(entry?.checks ?? 0)) > 0)
+        .map(entry => ({
+          id: String(entry?.id ?? ""),
+          ref: String(entry?.ref ?? ""),
+          name: String(entry?.name ?? ""),
+          before: Math.max(0, Number(entry?.checks ?? 0)),
+          after: 0
+        }))
+      : [];
+
+    return freeze({
+      ...base,
+      ok: true,
+      changed: true,
+      turnCycleId: state.turnCycleId + 1,
+      lastActorId: "",
+      actorCheckPatches,
+      discardedChecks: actorCheckPatches.map(entry => `${entry.name}: ${entry.before}`)
+    });
+  }
+
+  previewPhaseChange(input = {}) {
+    return this.planPhaseChange(input);
+  }
 }
 
 export function legacySessionSnapshot(gameRef = globalThis.game, canvasRef = globalThis.canvas) {
