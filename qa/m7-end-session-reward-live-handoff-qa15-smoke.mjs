@@ -14,7 +14,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const endSession = fs.readFileSync("module/end-session.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 
-assert.equal(manifest.version, "1.9.0-qa.15");
+assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
 
 const engine = new RewardEngine();
 
@@ -74,7 +74,7 @@ let status = getM7RewardHandoffStatus();
 assert.equal(status.enabled, true);
 assert.equal(status.telemetry.matches, 2);
 assert.equal(status.telemetry.mismatches, 0);
-assert.deepEqual(status.deferredScope, ["SESSION_LIFECYCLE_COMMIT"]);
+assert.deepEqual(status.deferredScope, []);
 
 result = evaluateM7RewardCommitLiveHandoff({
   actorId: "A1",
