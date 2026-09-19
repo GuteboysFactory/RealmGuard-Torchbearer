@@ -46,7 +46,7 @@ assert.ok(shadow.includes("authorityStatus"));
 assert.ok(shadow.includes("stateFingerprint"));
 assert.ok(shadow.includes("multiplayerState"));
 assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
-assert.ok(shadow.includes('authority: "CORE_M7_PLAYER_TURN_LEGACY_SESSION"'));
+assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
 console.log("PASS m7-multiplayer-authority-smoke");
