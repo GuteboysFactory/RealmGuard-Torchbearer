@@ -1,7 +1,7 @@
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
 import { participantActorReference } from "./session-participants.mjs";
 import { turnAuthorityStatus } from "./turn-authority-bridge.mjs";
-import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled, getM7RecoveryHandoffStatus, getM7RecoveryHandoffHistory, resetM7RecoveryHandoffTelemetry, setM7CoreRecoveryEnabled } from "./m7-session-live-handoff.mjs";
+import { getM7PlayerTurnClaimHandoffStatus, getM7PlayerTurnClaimHandoffHistory, resetM7PlayerTurnClaimHandoffTelemetry, setM7CoreClaimEnabled, getM7CheckTransferHandoffStatus, getM7CheckTransferHandoffHistory, resetM7CheckTransferHandoffTelemetry, setM7CoreTransferEnabled, getM7FinishPlayerHandoffStatus, getM7FinishPlayerHandoffHistory, resetM7FinishPlayerHandoffTelemetry, setM7CoreFinishEnabled, getM7PhaseChangeHandoffStatus, getM7PhaseChangeHandoffHistory, resetM7PhaseChangeHandoffTelemetry, setM7CorePhaseEnabled, getM7RecoveryHandoffStatus, getM7RecoveryHandoffHistory, resetM7RecoveryHandoffTelemetry, setM7CoreRecoveryEnabled, getM7TraitCheckAwardHandoffStatus, getM7TraitCheckAwardHandoffHistory, resetM7TraitCheckAwardHandoffTelemetry, setM7CoreTraitAwardEnabled } from "./m7-session-live-handoff.mjs";
 
 const HISTORY_LIMIT = 120;
 const history = [];
@@ -212,6 +212,10 @@ export function installM7SessionShadow() {
       recoveryHandoffHistory: () => getM7RecoveryHandoffHistory(),
       resetRecoveryHandoffTelemetry: () => resetM7RecoveryHandoffTelemetry(),
       setCoreRecoveryEnabled: enabled => setM7CoreRecoveryEnabled(Boolean(enabled)),
+      traitAwardHandoffStatus: () => getM7TraitCheckAwardHandoffStatus(),
+      traitAwardHandoffHistory: () => getM7TraitCheckAwardHandoffHistory(),
+      resetTraitAwardHandoffTelemetry: () => resetM7TraitCheckAwardHandoffTelemetry(),
+      setCoreTraitAwardEnabled: enabled => setM7CoreTraitAwardEnabled(Boolean(enabled)),
       actionCurrencyAuthority: () => Object.freeze({
         technicalCommit: turnAuthorityStatus(),
         serializedByPrimaryGm: true,
@@ -227,7 +231,7 @@ export function installM7SessionShadow() {
         directGenericSetOperation: false,
         liveRulesAuthority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER",
         coreLiveApplication: true,
-        liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"])
+        liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY", "AWARD_TRAIT_CHECKS"])
       }),
       stateFingerprint: () => stateFingerprint(),
       multiplayerState: () => {
@@ -287,7 +291,9 @@ export function getM7SessionShadowStatus() {
       "PhaseChangeLiveHandoff",
       "AutoRollbackOnPhaseDisagreement",
       "RecoveryLiveHandoff",
-      "AutoRollbackOnRecoveryDisagreement"
+      "AutoRollbackOnRecoveryDisagreement",
+      "TraitCheckAwardLiveHandoff",
+      "AutoRollbackOnTraitAwardDisagreement"
     ])
   });
 }
