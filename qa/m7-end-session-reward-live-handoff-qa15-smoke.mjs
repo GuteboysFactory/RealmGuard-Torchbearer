@@ -29,7 +29,7 @@ const criteria = {
   personaAgainstBelief: true,
   personaEmbodiment: true
 };
-const legacyProposal = { fate: 2, persona: 4, personaRaw: 5, goalFateSuppressed: true };
+const legacyProposal = { fate: 2, persona: 4, personaRaw: 4, goalFateSuppressed: true };
 let result = evaluateM7RewardProposalLiveHandoff({
   actorId: "A1",
   legacy: legacyProposal,
@@ -38,7 +38,7 @@ let result = evaluateM7RewardProposalLiveHandoff({
 assert.equal(result.m7.rewardAuthority, "CORE_M7");
 assert.equal(result.fate, 2);
 assert.equal(result.persona, 4);
-assert.equal(result.personaRaw, 5);
+assert.equal(result.personaRaw, 4);
 assert.equal(result.goalFateSuppressed, true);
 
 const proposal = result;
