@@ -16,7 +16,7 @@ assert.ok(shadow.includes('mode: "PARTIAL_LIVE_HANDOFF"'));
 assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'));
 assert.ok(shadow.includes("liveApplication: true"));
 
-assert.ok(endSession.includes("observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal: proposal })"));
+assert.ok(endSession.includes("observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal })"));
 assert.ok(endSession.includes("observeM7RewardCommit({"));
 assert.ok(endSession.includes("proposal: row.proposal"));
 assert.ok(endSession.includes("approval: actorApproval"));
