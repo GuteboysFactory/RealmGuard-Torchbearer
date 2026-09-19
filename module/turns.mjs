@@ -3,7 +3,7 @@ import { participantActorReference, participantActors, resolveParticipantActor }
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
-import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff } from "./m7-session-live-handoff.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff, evaluateM7PhaseChangeLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -621,38 +621,102 @@ export async function confirmFinishPlayer(actor) {
   if (result) await finishPlayer(actor);
 }
 
-async function discardAllChecks() {
-  const discarded = [];
-  for (const actor of participantActors()) {
-    const checks = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-    if (!checks) continue;
-    discarded.push(`${actor.name}: ${checks}`);
-    await actor.update({ "system.resources.checks.value": 0 });
+function legacyPhaseChangePlan(targetPhase = "gm") {
+  const state = legacySessionSnapshot();
+  const toPhase = targetPhase === "player" ? "player" : "gm";
+  const fromPhase = state.phase;
+  const base = {
+    ok: false,
+    changed: false,
+    reasonCode: "",
+    fromPhase,
+    toPhase,
+    previousTurnCycleId: state.turnCycleId,
+    turnCycleId: state.turnCycleId,
+    lastActorId: state.lastActorId,
+    discardedChecks: [],
+    actorCheckPatches: []
+  };
+
+  if (!state.enabled) return { ...base, reasonCode: "turn-disabled" };
+  if (fromPhase === toPhase) return { ...base, ok: true };
+
+  const discardChecks = fromPhase === "player" && toPhase === "gm";
+  const actorCheckPatches = discardChecks
+    ? state.actors
+      .filter(entry => Math.max(0, Number(entry?.checks ?? 0)) > 0)
+      .map(entry => ({
+        id: String(entry?.id ?? ""),
+        ref: String(entry?.ref ?? ""),
+        name: String(entry?.name ?? ""),
+        before: Math.max(0, Number(entry?.checks ?? 0)),
+        after: 0
+      }))
+    : [];
+
+  return {
+    ...base,
+    ok: true,
+    changed: true,
+    turnCycleId: state.turnCycleId + 1,
+    lastActorId: "",
+    actorCheckPatches,
+    discardedChecks: actorCheckPatches.map(entry => `${entry.name}: ${entry.before}`)
+  };
+}
+
+async function applyPhaseChangePlan(plan) {
+  if (!plan?.ok || !plan?.changed) return plan;
+
+  for (const patch of plan.actorCheckPatches ?? []) {
+    const actor = resolveParticipantActor(patch.ref || patch.id);
+    if (!actor) continue;
+    const current = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
+    if (current !== Number(patch.after ?? 0)) {
+      await actor.update({ "system.resources.checks.value": Number(patch.after ?? 0) });
+    }
   }
-  return discarded;
+
+  await game.settings.set(SYSTEM_ID, PHASE_KEY, plan.toPhase);
+  await game.settings.set(SYSTEM_ID, TURN_ID_KEY, plan.turnCycleId);
+  await game.settings.set(SYSTEM_ID, LAST_ACTOR_KEY, plan.lastActorId ?? "");
+  refreshTurnSheets();
+
+  observeM7Lifecycle("PHASE_CHANGED", {
+    source: plan?.m7?.phaseAuthority === "CORE_M7" ? "CORE_M7_PHASE_HANDOFF" : "LEGACY_TURN_MANAGER",
+    fromPhase: plan.fromPhase,
+    toPhase: plan.toPhase,
+    previousTurnCycleId: plan.previousTurnCycleId,
+    turnCycleId: plan.turnCycleId,
+    discardedChecks: Object.freeze([...(plan.discardedChecks ?? [])])
+  });
+
+  return plan;
 }
 
 export async function setTurnPhase(phase) {
   if (!turnManagerEnabled()) return false;
   if (!game.user.isGM) return false;
-  const normalized = phase === "player" ? "player" : "gm";
-  const previous = currentTurnPhase();
-  if (previous === normalized) return true;
 
-  const previousCycleId = currentTurnId();
-  const discarded = normalized === "gm" && previous === "player" ? await discardAllChecks() : [];
-  await game.settings.set(SYSTEM_ID, PHASE_KEY, normalized);
-  await game.settings.set(SYSTEM_ID, TURN_ID_KEY, previousCycleId + 1);
-  await game.settings.set(SYSTEM_ID, LAST_ACTOR_KEY, "");
-  refreshTurnSheets();
-  observeM7Lifecycle("PHASE_CHANGED", {
-    source: "LEGACY_TURN_MANAGER",
-    fromPhase: previous,
-    toPhase: normalized,
-    previousTurnCycleId: previousCycleId,
-    turnCycleId: currentTurnId(),
-    discardedChecks: Object.freeze([...discarded])
+  const normalized = phase === "player" ? "player" : "gm";
+  const legacyPlan = legacyPhaseChangePlan(normalized);
+  const services = createM7Services();
+  const sessionState = legacySessionSnapshot();
+
+  const plan = evaluateM7PhaseChangeLiveHandoff({
+    targetPhase: normalized,
+    legacy: legacyPlan,
+    corePlan: () => services.sessionEngine.planPhaseChange({
+      targetPhase: normalized,
+      sessionState
+    })
   });
+
+  if (!plan.ok) return false;
+  if (!plan.changed) return true;
+
+  await applyPhaseChangePlan(plan);
+  const discarded = [...(plan.discardedChecks ?? [])];
 
   const detail = normalized === "player"
     ? "Each patrol member has one Free Test. Additional tests cost 1 Check. Recovery uses the same Free Test/Check economy and each Condition gets one recovery attempt per Players' Turn."
