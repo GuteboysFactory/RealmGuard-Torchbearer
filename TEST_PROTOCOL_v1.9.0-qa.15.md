@@ -99,3 +99,20 @@ Re-check prior M7 handoffs, rewardParitySummary(), lifecycle observation, sessio
 
 ## PASS criteria
 qa.15 passes when reward proposal/commit behavior matches verified Legacy Mixed, caps and approvals remain exact, duplicate awards remain impossible, normal QA has zero reward mismatches/error fallbacks, independent Reward rollback works, and all prior M7 handoffs remain regression-safe.
+
+
+## Verification result — 2026-09-19
+
+**VERIFIED.**
+
+Manual Foundry v13.351 QA completed successfully:
+- startup gate PASS
+- Reward Proposal parity PASS
+- Reward Commit PASS
+- partial approval PASS
+- resource cap PASS
+- duplicate finalization guard PASS
+- independent Reward rollback PASS
+- lifecycle / Start Next Session / reload regression PASS
+
+No normal-QA Reward mismatches or CORE error fallbacks remained at verification.
