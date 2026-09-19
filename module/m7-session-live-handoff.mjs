@@ -3,9 +3,11 @@ const HISTORY_LIMIT = 120;
 let coreClaimEnabled = true;
 let coreTransferEnabled = true;
 let coreFinishEnabled = true;
+let corePhaseEnabled = true;
 let rollbackReason = "";
 let transferRollbackReason = "";
 let finishRollbackReason = "";
+let phaseRollbackReason = "";
 
 const telemetry = {
   evaluations: 0,
@@ -28,6 +30,16 @@ const transferTelemetry = {
 };
 
 const finishTelemetry = {
+  evaluations: 0,
+  matches: 0,
+  mismatches: 0,
+  errorFallbacks: 0,
+  rollbackEvaluations: 0,
+  lastDecision: null,
+  history: []
+};
+
+const phaseTelemetry = {
   evaluations: 0,
   matches: 0,
   mismatches: 0,
@@ -148,6 +160,44 @@ export function compareM7FinishPlayer({ legacy = {}, core = {} } = {}) {
   });
 }
 
+function normalizePhaseCheckPatch(entry = {}) {
+  return Object.freeze({
+    id: String(entry?.id ?? ""),
+    ref: String(entry?.ref ?? ""),
+    name: String(entry?.name ?? ""),
+    before: num(entry?.before),
+    after: num(entry?.after)
+  });
+}
+
+function normalizePhase(plan = {}) {
+  return Object.freeze({
+    ok: Boolean(plan.ok),
+    changed: Boolean(plan.changed),
+    reasonCode: String(plan.reasonCode ?? ""),
+    fromPhase: String(plan.fromPhase ?? ""),
+    toPhase: String(plan.toPhase ?? ""),
+    previousTurnCycleId: num(plan.previousTurnCycleId),
+    turnCycleId: num(plan.turnCycleId),
+    lastActorId: String(plan.lastActorId ?? ""),
+    discardedChecks: Object.freeze([...(plan.discardedChecks ?? [])].map(value => String(value))),
+    actorCheckPatches: Object.freeze([...(plan.actorCheckPatches ?? [])].map(normalizePhaseCheckPatch))
+  });
+}
+
+export function compareM7PhaseChange({ legacy = {}, core = {} } = {}) {
+  const live = normalizePhase(legacy);
+  const candidate = normalizePhase(core);
+  const fields = ["ok", "changed", "reasonCode", "fromPhase", "toPhase", "previousTurnCycleId", "turnCycleId", "lastActorId", "discardedChecks", "actorCheckPatches"];
+  const mismatchedFields = fields.filter(key => JSON.stringify(live[key]) !== JSON.stringify(candidate[key]));
+  return Object.freeze({
+    match: mismatchedFields.length === 0,
+    mismatchedFields: Object.freeze(mismatchedFields),
+    legacy: live,
+    core: candidate
+  });
+}
+
 function record(entry = {}) {
   const event = Object.freeze({
     at: Date.now(),
@@ -203,6 +253,25 @@ function recordFinish(entry = {}) {
 function tripFinishRollback(reason) {
   coreFinishEnabled = false;
   finishRollbackReason = String(reason || "FINISH_SAFETY_ROLLBACK");
+}
+
+function recordPhase(entry = {}) {
+  const event = Object.freeze({
+    at: Date.now(),
+    phase: "M7",
+    scope: "PHASE_CHANGE_HANDOFF",
+    ...entry
+  });
+  phaseTelemetry.lastDecision = event;
+  phaseTelemetry.history.push(event);
+  if (phaseTelemetry.history.length > HISTORY_LIMIT) phaseTelemetry.history.shift();
+  try { globalThis.Hooks?.callAll?.("realmGuardM7PhaseChangeHandoff", event); } catch (_error) { /* telemetry only */ }
+  return event;
+}
+
+function tripPhaseRollback(reason) {
+  corePhaseEnabled = false;
+  phaseRollbackReason = String(reason || "PHASE_SAFETY_ROLLBACK");
 }
 
 function withAuthority(plan, claimAuthority, meta = {}) {
@@ -514,6 +583,163 @@ export function evaluateM7FinishPlayerLiveHandoff({
       eventAt: event.at
     })
   };
+}
+
+export function evaluateM7PhaseChangeLiveHandoff({
+  targetPhase = "gm",
+  legacy = {},
+  corePlan = null
+} = {}) {
+  const operation = "PHASE_CHANGE";
+
+  if (!corePhaseEnabled) {
+    phaseTelemetry.rollbackEvaluations += 1;
+    const event = recordPhase({
+      operation,
+      outcome: "LEGACY_ROLLBACK",
+      targetPhase: String(targetPhase ?? ""),
+      phaseAuthority: "LEGACY_MIXED",
+      reason: phaseRollbackReason
+    });
+    return {
+      ...normalizePhase(legacy),
+      m7: Object.freeze({
+        phaseAuthority: "LEGACY_MIXED",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: phaseRollbackReason,
+        eventAt: event.at
+      })
+    };
+  }
+
+  let core;
+  try {
+    if (typeof corePlan !== "function") throw new Error("Missing CORE M7 phase-change planner.");
+    core = corePlan();
+  } catch (error) {
+    phaseTelemetry.errorFallbacks += 1;
+    tripPhaseRollback("CORE_PHASE_ERROR");
+    const event = recordPhase({
+      operation,
+      outcome: "CORE_ERROR_LEGACY_FALLBACK",
+      targetPhase: String(targetPhase ?? ""),
+      phaseAuthority: "LEGACY_FALLBACK",
+      reason: String(error?.message ?? error)
+    });
+    return {
+      ...normalizePhase(legacy),
+      m7: Object.freeze({
+        phaseAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "CORE_PHASE_ERROR",
+        eventAt: event.at
+      })
+    };
+  }
+
+  phaseTelemetry.evaluations += 1;
+  const comparison = compareM7PhaseChange({ legacy, core });
+  if (!comparison.match) {
+    phaseTelemetry.mismatches += 1;
+    tripPhaseRollback("PHASE_DISAGREEMENT");
+    const event = recordPhase({
+      operation,
+      outcome: "PHASE_DISAGREEMENT_LEGACY_FALLBACK",
+      targetPhase: String(targetPhase ?? ""),
+      phaseAuthority: "LEGACY_FALLBACK",
+      mismatchedFields: comparison.mismatchedFields,
+      legacy: comparison.legacy,
+      core: comparison.core,
+      reason: "CORE M7 and Legacy Mixed phase-change plans did not agree."
+    });
+    return {
+      ...comparison.legacy,
+      m7: Object.freeze({
+        phaseAuthority: "LEGACY_FALLBACK",
+        remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+        rollback: true,
+        reason: "PHASE_DISAGREEMENT",
+        mismatchedFields: comparison.mismatchedFields,
+        eventAt: event.at
+      })
+    };
+  }
+
+  phaseTelemetry.matches += 1;
+  const event = recordPhase({
+    operation,
+    outcome: "CORE_PHASE_APPLIED",
+    targetPhase: String(targetPhase ?? ""),
+    phaseAuthority: "CORE_M7",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    parityGuard: "MATCH",
+    result: comparison.core
+  });
+  return {
+    ...comparison.core,
+    m7: Object.freeze({
+      phaseAuthority: "CORE_M7",
+      remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+      rollback: false,
+      parityGuard: "MATCH",
+      eventAt: event.at
+    })
+  };
+}
+
+export function setM7CorePhaseEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
+  corePhaseEnabled = Boolean(enabled);
+  phaseRollbackReason = corePhaseEnabled ? "" : String(reason || "MANUAL_QA_ROLLBACK");
+  recordPhase({
+    operation: "AUTHORITY_SWITCH",
+    outcome: corePhaseEnabled ? "CORE_PHASE_ENABLED" : "LEGACY_ROLLBACK_ENABLED",
+    phaseAuthority: corePhaseEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    reason: phaseRollbackReason
+  });
+  return getM7PhaseChangeHandoffStatus();
+}
+
+export function resetM7PhaseChangeHandoffTelemetry() {
+  phaseTelemetry.evaluations = 0;
+  phaseTelemetry.matches = 0;
+  phaseTelemetry.mismatches = 0;
+  phaseTelemetry.errorFallbacks = 0;
+  phaseTelemetry.rollbackEvaluations = 0;
+  phaseTelemetry.lastDecision = null;
+  phaseTelemetry.history.length = 0;
+  return getM7PhaseChangeHandoffStatus();
+}
+
+export function getM7PhaseChangeHandoffHistory() {
+  return Object.freeze([...phaseTelemetry.history]);
+}
+
+export function getM7PhaseChangeHandoffStatus() {
+  return Object.freeze({
+    phase: "M7",
+    scope: "PHASE_CHANGE_HANDOFF",
+    enabled: corePhaseEnabled,
+    mode: corePhaseEnabled ? "CORE_PHASE_LEGACY_SESSION" : "LEGACY_ROLLBACK",
+    phaseAuthority: corePhaseEnabled ? "CORE_M7" : "LEGACY_MIXED",
+    remainingSessionAuthority: "LEGACY_MIXED_WITH_OTHER_CORE_M7_HANDOFFS",
+    autoRollbackOnDisagreement: true,
+    fallbackOnCoreError: true,
+    rollbackReason: phaseRollbackReason,
+    liveScope: Object.freeze(["PHASE_CHANGE"]),
+    deferredScope: Object.freeze(["RECOVERY", "TRAIT_CHECK_AWARD", "END_SESSION", "SESSION_LIFECYCLE_COMMIT"]),
+    telemetry: Object.freeze({
+      evaluations: phaseTelemetry.evaluations,
+      matches: phaseTelemetry.matches,
+      mismatches: phaseTelemetry.mismatches,
+      errorFallbacks: phaseTelemetry.errorFallbacks,
+      rollbackEvaluations: phaseTelemetry.rollbackEvaluations,
+      historyCount: phaseTelemetry.history.length,
+      lastDecision: phaseTelemetry.lastDecision
+    })
+  });
 }
 
 export function setM7CoreFinishEnabled(enabled, { reason = "MANUAL_QA_ROLLBACK" } = {}) {
