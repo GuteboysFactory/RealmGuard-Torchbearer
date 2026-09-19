@@ -3,6 +3,8 @@ import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
 import { resetTalentSessionState } from "./talents.mjs";
 import { resetTraitSessionUses } from "./traits.mjs";
 import { observeM7RewardProposal, observeM7RewardCommit, observeM7Lifecycle } from "./m7-session-shadow.mjs";
+import { createM7Services } from "./core/m7-session-services.mjs";
+import { evaluateM7RewardProposalLiveHandoff, evaluateM7RewardCommitLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const NS = "realm-guard";
 const CYCLE_KEY = "endSessionCycle";
@@ -26,7 +28,7 @@ function participantActors() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function awardProposal(actor, criteria, mvpId, workhorseId) {
+function legacyAwardProposal(actor, criteria, mvpId, workhorseId) {
   const accomplishedGoal = Boolean(criteria.personaGoal);
   const fate = Math.min(3,
     Number(Boolean(criteria.fateBelief)) +
@@ -47,6 +49,21 @@ function awardProposal(actor, criteria, mvpId, workhorseId) {
     personaRaw,
     goalFateSuppressed: Boolean(criteria.fateGoal) && accomplishedGoal
   };
+}
+
+function awardProposal(actor, criteria, mvpId, workhorseId) {
+  const legacy = legacyAwardProposal(actor, criteria, mvpId, workhorseId);
+  const services = createM7Services();
+  return evaluateM7RewardProposalLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy,
+    corePlan: () => services.rewardEngine.proposal({
+      actorId: actor?.id ?? "",
+      criteria,
+      mvpId,
+      workhorseId
+    })
+  });
 }
 
 function actorCard(actor) {
@@ -212,15 +229,35 @@ async function applyAwards(result, approval, cycle) {
     const personaMax = Number(actor.system.resources?.persona?.max ?? 999);
     const approvedFate = actorApproval.fate ? row.proposal.fate : 0;
     const approvedPersona = actorApproval.persona ? row.proposal.persona : 0;
-    const nextFate = Math.min(fateMax, currentFate + approvedFate);
-    const nextPersona = Math.min(personaMax, currentPersona + approvedPersona);
-    const actualFate = nextFate - currentFate;
-    const actualPersona = nextPersona - currentPersona;
+    const legacyCommit = {
+      beforeFate: currentFate,
+      beforePersona: currentPersona,
+      approvedFate,
+      approvedPersona,
+      nextFate: Math.min(fateMax, currentFate + approvedFate),
+      nextPersona: Math.min(personaMax, currentPersona + approvedPersona)
+    };
+    legacyCommit.actualFate = legacyCommit.nextFate - currentFate;
+    legacyCommit.actualPersona = legacyCommit.nextPersona - currentPersona;
 
-    if (actualFate || actualPersona) {
+    const services = createM7Services();
+    const commitPlan = evaluateM7RewardCommitLiveHandoff({
+      actorId: actor.id,
+      legacy: legacyCommit,
+      corePlan: () => services.rewardEngine.previewCommit({
+        currentFate,
+        currentPersona,
+        fateMax,
+        personaMax,
+        proposal: row.proposal,
+        approval: actorApproval
+      })
+    });
+
+    if (commitPlan.actualFate || commitPlan.actualPersona) {
       await actor.update({
-        "system.resources.fate.value": nextFate,
-        "system.resources.persona.value": nextPersona
+        "system.resources.fate.value": commitPlan.nextFate,
+        "system.resources.persona.value": commitPlan.nextPersona
       });
     }
     observeM7RewardCommit({
@@ -228,19 +265,20 @@ async function applyAwards(result, approval, cycle) {
       proposal: row.proposal,
       approval: actorApproval,
       legacy: {
-        beforeFate: currentFate,
-        beforePersona: currentPersona,
+        ...legacyCommit,
         fateMax,
-        personaMax,
-        approvedFate,
-        approvedPersona,
-        nextFate,
-        nextPersona,
-        actualFate,
-        actualPersona
+        personaMax
       }
     });
-    summaries.push({ actor, row, actorApproval, actualFate, actualPersona, approvedFate, approvedPersona });
+    summaries.push({
+      actor,
+      row,
+      actorApproval,
+      actualFate: commitPlan.actualFate,
+      actualPersona: commitPlan.actualPersona,
+      approvedFate: commitPlan.approvedFate,
+      approvedPersona: commitPlan.approvedPersona
+    });
   }
 
   await game.settings.set(NS, FINALIZED_KEY, true);
