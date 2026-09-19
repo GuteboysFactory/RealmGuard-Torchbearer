@@ -3,7 +3,7 @@ import { participantActorReference, participantActors, resolveParticipantActor }
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
 import { observeM7Lifecycle } from "./m7-session-shadow.mjs";
 import { createM7Services, legacySessionSnapshot } from "./core/m7-session-services.mjs";
-import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff, evaluateM7PhaseChangeLiveHandoff, evaluateM7RecoverySpendLiveHandoff, evaluateM7RecoveryRefundLiveHandoff, evaluateM7RecoveryAttemptLiveHandoff } from "./m7-session-live-handoff.mjs";
+import { evaluateM7PlayerTurnClaimLiveHandoff, evaluateM7CheckTransferLiveHandoff, evaluateM7FinishPlayerLiveHandoff, evaluateM7PhaseChangeLiveHandoff, evaluateM7RecoverySpendLiveHandoff, evaluateM7RecoveryRefundLiveHandoff, evaluateM7RecoveryAttemptLiveHandoff, evaluateM7TraitCheckAwardLiveHandoff } from "./m7-session-live-handoff.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const ENABLED_KEY = "useTurnManager";
@@ -204,16 +204,41 @@ export async function markRecoveryAttempt(actor, conditionName) {
   return Array.isArray(result.conditions) ? result.conditions : [];
 }
 
-async function awardTraitChecksLocal(actor, amount = 1, { requester = game.user } = {}) {
-  if (!turnManagerEnabled() || currentTurnPhase() !== "gm") return { ok: true, earned: 0, before: Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0)), after: Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0)) };
-  if (!actor || !requesterCanControlActor(requester, actor)) return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+function legacyTraitCheckAwardPlan(actor, amount = 1) {
+  const phase = currentTurnPhase();
   const requested = Math.max(0, Math.min(2, Math.floor(Number(amount ?? 0))));
-  const before = Math.max(0, Number(actor.system.resources?.checks?.value ?? 0));
-  const maximum = Math.max(before, Number(actor.system.resources?.checks?.max ?? 9));
+  const before = Math.max(0, Number(actor?.system?.resources?.checks?.value ?? 0));
+  const maximum = Math.max(before, Number(actor?.system?.resources?.checks?.max ?? 9));
+  const base = { ok: false, reasonCode: "", phase, requested, earned: 0, before, after: before, maximum, turnId: currentTurnId() };
+  if (!turnManagerEnabled() || phase !== "gm") return { ...base, ok: true };
+  if (!actor) return { ...base, reasonCode: "missing-actor" };
   const after = Math.min(maximum, before + requested);
-  const earned = Math.max(0, after - before);
-  if (earned) await actor.update({ "system.resources.checks.value": after });
-  return { ok: true, earned, before, after };
+  return { ...base, ok: true, earned: Math.max(0, after - before), after };
+}
+
+async function applyTraitCheckAwardPlan(actor, plan = {}) {
+  if (!plan?.ok) return plan;
+  if (actor && Number(plan.earned ?? 0) > 0) await actor.update({ "system.resources.checks.value": Math.max(0, Number(plan.after ?? 0)) });
+  return plan;
+}
+
+async function awardTraitChecksLocal(actor, amount = 1, { requester = game.user } = {}) {
+  if (turnManagerEnabled() && currentTurnPhase() === "gm" && (!actor || !requesterCanControlActor(requester, actor))) {
+    return { ok: false, reason: actor ? `You do not control ${actor.name}.` : "Missing Ranger." };
+  }
+  const legacy = legacyTraitCheckAwardPlan(actor, amount);
+  const sessionState = legacySessionSnapshot();
+  const services = createM7Services();
+  const plan = evaluateM7TraitCheckAwardLiveHandoff({
+    actorId: actor?.id ?? "",
+    legacy,
+    corePlan: () => services.sessionEngine.planTraitCheckAward({ actor, amount, sessionState })
+  });
+  if (!plan?.ok) {
+    const reason = plan?.reasonCode === "missing-actor" ? "Missing Ranger." : "Trait Against Check award is not available.";
+    return { ...plan, reason };
+  }
+  return applyTraitCheckAwardPlan(actor, plan);
 }
 
 export async function awardTraitChecks(actor, amount = 1) {
