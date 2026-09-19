@@ -16,3 +16,163 @@
 .realm-guard .window-content:has(.rg-sheet.character) .rg-sheet.character {
   background:transparent;
 }
+
+
+/* v1.9.0-qa.18 — Character parchment surface harmony pass
+   Visual-only. Parchment is the information surface; dark forest/brass is
+   reserved for controls, navigation and high-signal interactive elements. */
+
+.realm-guard .rg-sheet.character {
+  --rgp-ink:#342719;
+  --rgp-muted:#6c593d;
+  --rgp-line:rgba(104,69,31,.42);
+  --rgp-paper:rgba(246,229,190,.82);
+  --rgp-paper-strong:rgba(251,239,207,.90);
+  --rgp-paper-soft:rgba(232,206,157,.72);
+  --rgp-dark:rgba(24,25,17,.90);
+  --rgp-dark-soft:rgba(35,36,24,.82);
+  --rgp-forest:#46512c;
+  --rgp-forest-dark:#29331d;
+  --rgp-gold:#a87835;
+  --rgp-gold-bright:#d0a358;
+}
+
+/* Keep the top identity area as the visual anchor, but remove the hard black slab. */
+.realm-guard .rg-sheet.character .rg-header {
+  background:
+    linear-gradient(180deg,rgba(39,34,23,.94),rgba(20,22,15,.90)) !important;
+  border-color:rgba(147,103,48,.78) !important;
+  border-bottom-color:#b9853d !important;
+  box-shadow:0 5px 15px rgba(58,35,15,.24),inset 0 0 0 1px rgba(255,236,185,.06) !important;
+}
+.realm-guard .rg-sheet.character .rg-resource {
+  background:linear-gradient(180deg,rgba(47,46,31,.92),rgba(24,26,18,.90)) !important;
+  border-color:rgba(150,113,62,.48) !important;
+}
+
+/* Ability cards should read as part of the parchment, not detached white tiles. */
+.realm-guard .rg-sheet.character .rg-statbar label {
+  background:linear-gradient(180deg,rgba(247,234,204,.91),rgba(222,196,145,.86)) !important;
+  border-color:rgba(116,78,34,.56) !important;
+  box-shadow:0 2px 6px rgba(73,43,18,.16),inset 0 0 0 1px rgba(255,255,255,.30) !important;
+}
+
+/* Utility strip and main navigation stay dark because they are controls. */
+.realm-guard .rg-sheet.character .rg-global-tools,
+.realm-guard .rg-sheet.character .rg-sheet-tabs {
+  background:linear-gradient(180deg,rgba(42,42,28,.86),rgba(22,24,16,.82)) !important;
+  border-color:rgba(122,91,51,.55) !important;
+  box-shadow:0 3px 10px rgba(65,39,17,.13) !important;
+}
+.realm-guard .rg-sheet.character .rg-sheet-tabs .rg-tab-button {
+  background:linear-gradient(rgba(57,56,38,.92),rgba(29,31,21,.92)) !important;
+  border-color:rgba(129,98,57,.48) !important;
+}
+.realm-guard .rg-sheet.character .rg-sheet-tabs .rg-tab-button.active {
+  background:linear-gradient(#606b34,#39431f) !important;
+  border-color:#9c7b3e !important;
+}
+
+/* Character information panels become translucent parchment surfaces. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel {
+  color:var(--rgp-ink) !important;
+  background:
+    linear-gradient(rgba(255,249,229,.18),rgba(122,78,31,.035)),
+    var(--rgp-paper) !important;
+  border:1px solid var(--rgp-line) !important;
+  box-shadow:
+    0 4px 13px rgba(69,39,16,.14),
+    inset 0 0 0 1px rgba(255,255,255,.24) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel-title {
+  border-bottom-color:rgba(105,72,36,.30) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel-title h2,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel-title h2 i {
+  color:#68451f !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel-title small {
+  color:var(--rgp-muted) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel label,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel p,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel .rg-empty {
+  color:var(--rgp-muted) !important;
+}
+
+/* Editable text should look like writing areas on paper rather than black holes. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] input,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] textarea {
+  color:#2c2116 !important;
+  background:rgba(255,249,228,.88) !important;
+  border:1px solid rgba(102,68,31,.42) !important;
+  box-shadow:inset 0 1px 3px rgba(80,48,20,.08) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] input::placeholder,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] textarea::placeholder {
+  color:#88745a !important;
+}
+
+/* Wises / Traits become ink-on-paper rows; their actions remain dark controls. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-line {
+  border-bottom-color:rgba(91,61,31,.27) !important;
+  color:#342719 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-line span,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-line b {
+  color:#342719 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel button {
+  color:#f2e2bf !important;
+  background:linear-gradient(180deg,#4b4b31,#2b2e20) !important;
+  border-color:#806a45 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-panel button:hover {
+  border-color:#b18545 !important;
+  filter:brightness(1.08);
+}
+
+/* Relationships read as individual parchment notes instead of dark cards. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-relation-card {
+  background:rgba(255,244,211,.52) !important;
+  border:1px solid rgba(125,86,39,.34) !important;
+  box-shadow:inset 3px 0 0 rgba(151,105,46,.33) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-relation-card > span {
+  color:#704a20 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-relation-card > small {
+  color:#756148 !important;
+}
+
+/* Progression outer surface follows parchment; its medallion/talent cards remain dark focal controls. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-track header,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-track header span {
+  color:#5d4a31 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-track header b {
+  color:#65451e !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-track small {
+  color:#766249 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-track > i {
+  background:rgba(91,64,34,.18) !important;
+  border-color:rgba(92,61,29,.34) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-note {
+  color:#58472f !important;
+  background:rgba(100,84,45,.08) !important;
+  border-color:rgba(91,60,29,.28) !important;
+  border-left:4px solid #76834c !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-progression-note b {
+  color:#392b1b !important;
+}
+
+/* Notes get a little extra paper depth so the bottom of the sheet still feels intentional. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-notes-field {
+  min-height:120px;
+  background:rgba(255,249,228,.82) !important;
+}
