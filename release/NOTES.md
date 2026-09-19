@@ -1,39 +1,41 @@
-Realm Guard / Torchbearer v1.9.0-qa.11 — M7 Done / Discard Live Handoff.
+Realm Guard / Torchbearer v1.9.0-qa.12 — M7 Phase Change Live Handoff.
 
-Live CORE M7 Players' Turn scope:
+Live CORE M7 scope now includes:
 - PLAYER_TURN_TEST_CLAIM
 - PASS_CHECK
-- DONE_DISCARD (new)
+- DONE_DISCARD
+- PHASE_CHANGE (new)
 
-Done / Discard now uses a deterministic CORE plan for:
-- marking the Ranger Done
-- discarding unused Checks to 0
-- preserving the existing Players' Turn state fields
-- retaining existing chat behavior
+CORE M7 now decides phase transitions for:
+- GM Turn -> Players' Turn
+- Players' Turn -> GM Turn
+- no-op same-phase requests
+- turnCycleId increment
+- last-actor reset
+- discard of remaining Checks when Players' Turn ends
 
 Safety:
-- Legacy Mixed computes the same finish plan in parallel as a parity guard.
-- On disagreement, only the Done / Discard CORE handoff auto-rolls back to Legacy Mixed.
+- Legacy Mixed computes an independent read-only phase plan as parity guard.
+- On disagreement, only Phase Change auto-rolls back to Legacy Mixed.
 - CORE planning errors fall back safely.
-- Claim, Pass Check and Done / Discard each have independent rollback switches.
-- Player operations remain serialized through the primary-GM authority bridge.
+- Claim, Pass Check, Done / Discard and Phase Change have independent rollback switches.
+- sessionCycle remains separate from turnCycleId.
+- phase commit remains GM-side and uses the existing Foundry world settings / Actor updates.
+
+Lifecycle:
+- PHASE_CHANGED remains observed once after a committed real phase transition.
+- CORE-authoritative phase changes are tagged CORE_M7_PHASE_HANDOFF in lifecycle telemetry.
 
 Still Legacy Mixed:
-- phase changes
 - Recovery
 - Trait Against Check awards
 - End Session
 - remaining session/lifecycle commits
 
 Diagnostics:
-- game.realmGuard.core.m7.finishHandoffStatus()
-- game.realmGuard.core.m7.finishHandoffHistory()
-- game.realmGuard.core.m7.setCoreFinishEnabled(...)
-- game.realmGuard.core.m7.resetFinishHandoffTelemetry()
+- game.realmGuard.core.m7.phaseHandoffStatus()
+- game.realmGuard.core.m7.phaseHandoffHistory()
+- game.realmGuard.core.m7.setCorePhaseEnabled(...)
+- game.realmGuard.core.m7.resetPhaseHandoffTelemetry()
 
-Packaging note:
-- qa.11 also carries the current-main GM Dock Host Contract v2 changes that had been prepared as qa.10.
-- qa.10 itself was not published because the release pipeline was stopped by an obsolete exact-version assertion in the qa.9 Pass Check smoke.
-- That smoke guard is corrected in qa.11.
-
-QA protocol: TEST_PROTOCOL_v1.9.0-qa.11.md
+QA protocol: TEST_PROTOCOL_v1.9.0-qa.12.md
