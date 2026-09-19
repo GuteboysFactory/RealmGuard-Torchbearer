@@ -45,7 +45,7 @@ let status = getM7TraitCheckAwardHandoffStatus();
 assert.equal(status.enabled, true);
 assert.equal(status.telemetry.matches, 2);
 assert.equal(status.telemetry.mismatches, 0);
-assert.deepEqual(status.deferredScope, ["SESSION_LIFECYCLE_COMMIT"]);
+assert.deepEqual(status.deferredScope, []);
 
 result = evaluateM7TraitCheckAwardLiveHandoff({
   actorId: actor.id,
