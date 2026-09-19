@@ -111,6 +111,14 @@ export class SessionLifecycleService {
       type: event
     });
   }
+
+  planCommit(type, details = {}) {
+    return this.create(type, details);
+  }
+
+  previewCommit(type, details = {}) {
+    return this.planCommit(type, details);
+  }
 }
 
 export class RewardAuthority {
