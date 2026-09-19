@@ -107,7 +107,7 @@ assert.ok(bridge.includes("gmQueue = gmQueue"), "Player transfer requests must r
 
 assert.ok(shadow.includes('buildScope: "TURN_SESSION_HANDOFFS"'));
 assert.ok(shadow.includes('authority: "CORE_M7_TURN_SESSION_LEGACY_REMAINDER"'));
-assert.ok(shadow.includes('liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER"])'));
+assert.ok(shadow.includes('liveCoreScope: Object.freeze(["CLAIM_TEST", "DONATE_CHECK", "FINISH_PLAYER", "PHASE_CHANGE", "SPEND_RECOVERY_CHECKS", "REFUND_RECOVERY_CHECKS", "MARK_RECOVERY"])'));
 assert.ok(shadow.includes("transferHandoffStatus"));
 assert.ok(shadow.includes("setCoreTransferEnabled"));
 assert.ok(shadow.includes('"PassCheckLiveHandoff"'));
