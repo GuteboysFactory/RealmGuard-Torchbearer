@@ -29,3 +29,10 @@ assert.ok(contextHelp.includes("rg-smart-select-menu"));
 assert.ok(contextHelp.includes('window.addEventListener("scroll", () => closeSmartSelect(activeSmartSelect), true)'));
 
 console.log("PASS m5-foundry-filepicker-compat-smoke");
+
+const actorSheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
+const tokenBuilder = fs.readFileSync("module/token-builder.mjs", "utf8");
+assert.ok(actorSheet.includes("modernFilePickerImplementation"));
+assert.ok(tokenBuilder.includes("modernFilePickerImplementation"));
+assert.ok(!actorSheet.includes("globalThis.FilePicker"));
+assert.ok(!tokenBuilder.includes("globalThis.FilePicker"));
