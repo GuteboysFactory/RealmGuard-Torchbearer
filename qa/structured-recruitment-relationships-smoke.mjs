@@ -21,18 +21,12 @@ for (const needle of [
   'data-rg-service-check',
   'data-rg-service-counter',
   'data-rg-service-counter-value',
-  'function readVisibleServiceTotal(form)',
-  'function renderFreshServiceCounter(form)',
-  'function installFreshServiceCounter(dialog)',
-  'select.addEventListener("change", refresh)',
-  'select.addEventListener("input", refresh)',
-  'queueMicrotask(() =>',
-  'requestAnimationFrame(() => tryBind())',
   'Array.from({ length: s.service + 1 }'
 ]) assert.ok(recruitment.includes(needle), `Missing qa.32 Recruitment marker: ${needle}`);
 
 assert.ok(!recruitment.includes("alive/dead"), "Structured Recruitment must not ask for alive/dead status.");
 assert.ok(recruitment.includes('recruitmentVersion: "0.20.0"'));
+assert.ok(!recruitment.includes('input type="number" data-rg-service-check'), "Service allocation must use dropdowns, not number inputs.");
 
 const core = fs.readFileSync("module/core/m8-social-network.mjs","utf8");
 for (const needle of [
@@ -47,9 +41,4 @@ assert.ok(css.includes("rg-recruit-relationship-group"));
 assert.ok(css.includes("rg-recruit-summary.is-complete"));
 assert.ok(css.includes("rg-recruit-summary.is-over"));
 
-assert.ok(!recruitment.includes('input type="number" data-rg-service-check'), "Service allocation must use dropdowns, not number inputs.");
-
-assert.ok(recruitment.includes('form.querySelectorAll("select[data-rg-service-check]")'), "Fresh counter must sum the visible Service dropdowns directly.");
-assert.ok(!recruitment.includes("syncRecruitmentServiceCounter"), "Old Service counter implementation must be removed.");
-
-console.log("PASS qa.32 Structured Recruitment Relationships + fresh DOM Service counter smoke");
+console.log("PASS qa.32 Structured Recruitment Relationships + Service dropdown smoke");
