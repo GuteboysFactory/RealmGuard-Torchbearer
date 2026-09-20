@@ -1,6 +1,6 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { modernFilePickerImplementation } from "./foundry-compat.mjs";
-import { quickNpcMetadataFromIndex, scoreQuickNpcEntry, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
+import { quickNpcMetadataFromIndex, scoreQuickNpcEntry, QUICK_NPC_LIBRARY_VERSION, QUICK_NPC_GROUP_LIBRARY_VERSION, QUICK_NPC_GROUP_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
 
 const NS = "realm-guard";
 export const QUICK_NPC_PACK_ID = "world.realm-guard-starter-npc-templates";
@@ -106,7 +106,7 @@ async function uploadNpcImage(file) {
   return path;
 }
 
-export async function createNpcFromTemplate(templateId, { imageFile = null, canvasDrop = null, openSheet = true, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null } = {}) {
+export async function createNpcFromTemplate(templateId, { imageFile = null, canvasDrop = null, openSheet = true, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", folderId = "", onCreated = null, notify = true } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
   if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
@@ -116,7 +116,10 @@ export async function createNpcFromTemplate(templateId, { imageFile = null, canv
   let imagePath = null;
   if (imageFile) imagePath = await uploadNpcImage(imageFile);
 
-  const folder = await ensureNpcFolder({ name: folderName, flagKey: folderFlag });
+  const folder = folderId
+    ? game.folders?.get?.(String(folderId))
+    : await ensureNpcFolder({ name: folderName, flagKey: folderFlag });
+  if (!folder || folder.type !== "Actor") throw new Error("Quick NPC destination Actor folder is unavailable.");
   const source = template.toObject();
   delete source._id;
   delete source.folder;
@@ -148,11 +151,13 @@ export async function createNpcFromTemplate(templateId, { imageFile = null, canv
 
   if (typeof onCreated === "function") await onCreated(actor, template);
 
-  if (canvasDrop && token) {
-    ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name} and placed on the Scene.`);
-  } else {
-    if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
-    ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
+  if (notify) {
+    if (canvasDrop && token) {
+      ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name} and placed on the Scene.`);
+    } else {
+      if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
+      ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
+    }
   }
   if (openSheet) actor.sheet?.render(true);
   return actor;
@@ -292,6 +297,193 @@ function bindCardActions(root, createOptions = {}, { afterCreate = null } = {}) 
   });
 }
 
+
+function groupMemberLine(member) {
+  const count = Math.max(1, Number(member?.count || 1));
+  return `${count}× ${esc(member?.label || "NPC")} · ${esc(member?.competence || "Any")}`;
+}
+
+function groupTemplateCard(spec) {
+  const total = (spec.members ?? []).reduce((sum, member) => sum + Math.max(1, Number(member?.count || 1)), 0);
+  return `<article class="rg-npc-group-card" data-rg-npc-group="${esc(spec.id)}">
+    <div class="rg-npc-group-card-head">
+      <span>${esc(spec.category || "Group")}</span>
+      <strong>${total} NPC${total === 1 ? "" : "s"}</strong>
+    </div>
+    <h3>${esc(spec.name)}</h3>
+    <p>${esc(spec.concept || "Quick NPC group template")}</p>
+    <div class="rg-npc-group-members">${(spec.members ?? []).map(member => `<small>${groupMemberLine(member)}</small>`).join("")}</div>
+    <button type="button" data-rg-group-create="${esc(spec.id)}"><i class="fa-solid fa-people-group"></i> Review Group</button>
+  </article>`;
+}
+
+function parentFolderId(folder) {
+  return String(folder?.folder?.id ?? folder?.folder ?? "");
+}
+
+async function createNpcGroupFolder(groupName, groupInstanceId) {
+  const parent = await ensureNpcFolder({ name: "NPCs Groups", flagKey: "npcGroupsFolder" });
+  const base = String(groupName || "NPC Group").trim() || "NPC Group";
+  const siblings = (game.folders?.contents ?? []).filter(folder =>
+    folder.type === "Actor" && parentFolderId(folder) === String(parent.id)
+  );
+  const occupied = new Set(siblings.map(folder => String(folder.name ?? "").trim().toLowerCase()));
+  let name = base;
+  let suffix = 2;
+  while (occupied.has(name.toLowerCase())) {
+    name = `${base} (${suffix})`;
+    suffix += 1;
+  }
+  return Folder.create({
+    name,
+    type: "Actor",
+    folder: parent.id,
+    color: "#4e5b38",
+    flags: { [NS]: { npcGroupInstance: { id: groupInstanceId, name: base } } }
+  });
+}
+
+async function resolveNpcGroupMembers(spec) {
+  const resolved = [];
+  for (const member of spec.members ?? []) {
+    const suggestion = await resolveBestQuickNpcTemplate({
+      query: member.query,
+      preferredCompetence: member.competence,
+      limit: 12
+    });
+    if (!suggestion) throw new Error(`No Quick NPC template matched ${member.label || member.query}.`);
+    const count = Math.max(1, Number(member.count || 1));
+    for (let index = 0; index < count; index += 1) {
+      resolved.push(Object.freeze({
+        label: String(member.label || suggestion.metadata?.occupation || suggestion.name).trim(),
+        memberIndex: index + 1,
+        memberCount: count,
+        suggestion
+      }));
+    }
+  }
+  return resolved;
+}
+
+function resolvedGroupRows(entries) {
+  return entries.map(entry => {
+    const actorName = entry.memberCount > 1 ? `${entry.label} ${entry.memberIndex}` : entry.label;
+    return `<div class="rg-npc-group-review-row">
+      <span><b>${esc(actorName)}</b><small>${esc(entry.suggestion.metadata?.competence || "")}</small></span>
+      <span><small>Template</small><b>${esc(entry.suggestion.name)}</b></span>
+    </div>`;
+  }).join("");
+}
+
+async function createNpcGroupFromTemplate(spec, { groupName = "" } = {}) {
+  if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Group Templates are GM only.");
+  const resolved = await resolveNpcGroupMembers(spec);
+  const instanceId = `npc-group-${foundry.utils.randomID(12)}`;
+  const requestedName = String(groupName || spec.name || "NPC Group").trim() || "NPC Group";
+  const folder = await createNpcGroupFolder(requestedName, instanceId);
+  const created = [];
+
+  for (const entry of resolved) {
+    const actorName = entry.memberCount > 1 ? `${entry.label} ${entry.memberIndex}` : entry.label;
+    try {
+      const actor = await createNpcFromTemplate(entry.suggestion.id, {
+        actorName,
+        folderId: folder.id,
+        openSheet: false,
+        notify: false,
+        onCreated: async createdActor => {
+          await createdActor.setFlag?.(NS, "quickNpcGroup", {
+            groupInstanceId: instanceId,
+            groupTemplateId: spec.id,
+            groupTemplateName: spec.name,
+            groupName: folder.name,
+            memberRole: entry.label,
+            memberIndex: entry.memberIndex,
+            memberCount: entry.memberCount,
+            sourceTemplateId: entry.suggestion.metadata?.templateId || "",
+            sourceTemplateName: entry.suggestion.name
+          });
+        }
+      });
+      if (actor) created.push(actor);
+    } catch (error) {
+      console.error(`${NS} | Quick NPC Group member creation failed`, error);
+      ui.notifications.error(`Realm Guard: Could not create ${actorName}. ${error?.message || ""}`);
+    }
+  }
+
+  if (created.length) {
+    ui.notifications.info(`Realm Guard: Created ${folder.name} with ${created.length} NPC${created.length === 1 ? "" : "s"} in Actors > NPCs Groups.`);
+  }
+  if (created.length !== resolved.length) {
+    ui.notifications.warn(`Realm Guard: ${folder.name} is incomplete (${created.length}/${resolved.length} NPCs created).`);
+  }
+  return Object.freeze({ folder, actors: Object.freeze(created), requested: resolved.length });
+}
+
+async function reviewNpcGroupTemplate(spec) {
+  const resolved = await resolveNpcGroupMembers(spec);
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Realm Guard · ${spec.name}`, resizable: true },
+    position: { width: 760, height: 650 },
+    content: `<form class="realm-guard rg-npc-group-review">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
+      <h2>${esc(spec.name)}</h2>
+      <p>${esc(spec.concept || "")}</p>
+      <label class="rg-npc-group-name"><span>Group Name</span><input type="text" name="groupName" value="${esc(spec.name)}"></label>
+      <div class="rg-npc-group-review-list">${resolvedGroupRows(resolved)}</div>
+      <p class="rg-npc-group-destination"><i class="fa-solid fa-folder-tree"></i> Creates a dedicated subfolder inside <b>Actors &gt; NPCs Groups</b>. NPCs are normal editable Actor copies and are not linked back to the templates.</p>
+    </form>`,
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      {
+        action: "create",
+        label: "Create Group",
+        icon: "fa-solid fa-people-group",
+        default: true,
+        callback: (_event, button) => ({ action: "create", groupName: String(button.form?.elements?.groupName?.value || spec.name).trim() || spec.name })
+      },
+      { action: "cancel", label: "Cancel", callback: () => null }
+    ]
+  });
+  if (!choice || choice.action !== "create") return null;
+  return createNpcGroupFromTemplate(spec, { groupName: choice.groupName });
+}
+
+export async function openNpcGroupTemplateLibrary() {
+  if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Group Templates are GM only.");
+  const cards = QUICK_NPC_GROUP_TEMPLATE_SPECS.map(groupTemplateCard).join("");
+  const dialog = new foundry.applications.api.DialogV2({
+    window: { title: "Realm Guard · NPC Group Templates", resizable: true },
+    position: { width: 920, height: 760 },
+    content: `<div class="realm-guard rg-npc-group-library">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
+      <div class="rg-quick-npc-heading">
+        <div><h2>NPC Group Templates <span>v${esc(QUICK_NPC_GROUP_LIBRARY_VERSION)}</span></h2><p>Choose a ready-made group, review the resolved Quick NPC templates, name the group, then create it explicitly.</p></div>
+        <strong>${QUICK_NPC_GROUP_TEMPLATE_SPECS.length} groups</strong>
+      </div>
+      <div class="rg-npc-group-grid">${cards}</div>
+    </div>`,
+    modal: false,
+    buttons: [{ action: "close", label: "Close", callback: () => true }]
+  });
+  await dialog.render(true);
+  const root = dialog.element;
+  root?.querySelectorAll?.("[data-rg-group-create]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      const spec = QUICK_NPC_GROUP_TEMPLATE_SPECS.find(entry => entry.id === button.dataset.rgGroupCreate);
+      if (!spec) return;
+      void reviewNpcGroupTemplate(spec).catch(error => {
+        console.error(`${NS} | NPC Group Template failed`, error);
+        ui.notifications.error(`Realm Guard: ${error?.message || "Could not create NPC group."}`);
+      });
+    });
+  });
+  return dialog;
+}
+
 export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null, closeAfterCreate = false, selectOnly = false, onTemplateSelected = null } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
@@ -327,6 +519,7 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
       ${canvasPreview}
       <div class="rg-quick-npc-heading">
         <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>${selectOnly ? "Choose a different template for this relationship NPC. Nothing is created until you confirm the Recruitment review." : canvasSpawn ? "Search and choose a template. Double-click a result to create the NPC and place its token at the image drop point." : "Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it."}</p></div>
+        ${!selectOnly && !canvasSpawn ? `<button type="button" class="rg-open-group-templates" data-rg-open-group-templates><i class="fa-solid fa-people-group"></i> Group Templates</button>` : ""}
         <strong data-rg-result-count>${entries.length} templates</strong>
       </div>
       <div class="rg-quick-npc-search">
@@ -355,6 +548,11 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
   const results = root.querySelector("[data-rg-npc-results]");
   const count = root.querySelector("[data-rg-result-count]");
   const empty = root.querySelector("[data-rg-npc-empty]");
+
+  root.querySelector("[data-rg-open-group-templates]")?.addEventListener("click", event => {
+    event.preventDefault();
+    void openNpcGroupTemplateLibrary();
+  });
 
   const renderResults = () => {
     const filters = {
