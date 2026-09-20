@@ -68,13 +68,14 @@ Gertrud / Miller / Bree
 -> generated Actor name = Gertrud
 
 ## Service & Specialty live counter
-The Required service checks display now updates through a delegated live input/change handler.
+Service allocation now uses station-bounded dropdowns instead of number inputs, and the Required service checks display updates live from those selections.
 
-Example:
-Fighter 2
+Example for a Scout:
+Fighter dropdown -> 2
 -> counter immediately updates to 2 / 6
 
 The counter:
+- each Skill dropdown offers 0 through the Station's required Service total
 - sums all Service allocations live
 - marks under / complete / over
 - still validates exact allocation on Continue
