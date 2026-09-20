@@ -490,14 +490,13 @@ async function lifeExperienceStep(state) {
 async function serviceStep(state) {
   const s = station(state);
   const skills = serviceSkills(state.rank);
-  const totalAllocated = () => Object.values(state.serviceAlloc ?? {}).reduce((sum, v) => sum + Math.max(0, Number(v) || 0), 0);
   const taken = takenSpecialties();
   const disabled = new Map([...taken.entries()].map(([skill, actor]) => [skill, `already ${actor}'s Specialty`]));
   return showStep(state, {
     current: 5, title: "Service & Specialty", subtitle: "Distribute experience gained in service to the Realms",
-    body: () => `${modeHelp(state, `<p>${esc(s.label)} receives <b>${s.service} service checks</b>. Put several checks into one Skill to specialize or spread them out. ${state.rank === "recruit" ? "Recruits do not choose a Specialty." : "Then choose one Specialty, which adds one more check. No two player Rangers may share a Specialty."}</p>`)}
+    body: () => `${modeHelp(state, `<p>Service checks represent experience gained while serving the Realms. Put several checks into one Skill to specialize or spread them across several Skills.</p>`)}
+      <div class="rg-recruit-note rg-service-check-instruction"><b>SERVICE CHECKS: ${s.service}</b><span>Distribute exactly <strong>${s.service}</strong> checks across the Skills below. ${state.rank === "recruit" ? "Recruits do not choose a Specialty." : "Specialty adds 1 additional check and is not part of these Service Checks."}</span></div>
       <div class="rg-service-grid">${skills.map(name => { const current = Math.max(0, Math.min(s.service, Number(state.serviceAlloc[name] ?? 0) || 0)); return `<label><span>${esc(name)}</span><select data-rg-service-check name="service-${esc(name)}">${Array.from({ length: s.service + 1 }, (_, value) => `<option value="${value}" ${value === current ? "selected" : ""}>${value}</option>`).join("")}</select></label>`; }).join("")}</div>
-      <div class="rg-recruit-summary" data-rg-service-counter data-required-service="${s.service}"><span>Required service checks</span><b data-rg-service-counter-value>0 / ${s.service}</b></div>
       ${state.rank === "recruit" ? `<div class="rg-recruit-note"><b>Recruit:</b> no Specialty is chosen at character creation.</div>` : `<label>Specialty<select name="specialty">${options(SPECIALTY_SKILLS, state.specialty, { placeholder: "Choose a unique Specialty...", disabled })}</select></label>`}`,
     commit: form => {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
@@ -505,7 +504,8 @@ async function serviceStep(state) {
     },
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
-      if (allocated !== s.service) return `Allocate exactly ${s.service} service checks. You currently allocated ${allocated}.`;
+      if (allocated < s.service) { const missing = s.service - allocated; return `You selected ${allocated} of ${s.service} Service Checks. Allocate ${missing} more check${missing === 1 ? "" : "s"}.`; }
+      if (allocated > s.service) { const excess = allocated - s.service; return `You selected ${allocated} of ${s.service} Service Checks. Remove ${excess} check${excess === 1 ? "" : "s"}.`; }
       if (state.rank !== "recruit" && !state.specialty) return "Choose a Specialty.";
       const who = takenSpecialties().get(state.specialty);
       if (state.specialty && who) return `${state.specialty} is already the Specialty of ${who}. Choose another.`;
@@ -1303,70 +1303,7 @@ async function migrateRecruitmentAbilityCaps() {
   if (changed) console.log(`Realm Guard | Recruitment 2.0 raised Resources/Circles caps on ${changed} existing Actor(s).`);
 }
 
-function readVisibleServiceTotal(form) {
-  return [...form.querySelectorAll("select[data-rg-service-check]")]
-    .reduce((sum, select) => sum + Math.max(0, Number(select.value) || 0), 0);
-}
-
-function renderServiceCounterFromVisibleDropdowns(form) {
-  const counter = form?.querySelector?.("[data-rg-service-counter]");
-  if (!counter) return;
-  const required = Math.max(0, Number(counter.dataset.requiredService ?? 0));
-  const allocated = readVisibleServiceTotal(form);
-  const output = counter.querySelector("[data-rg-service-counter-value]");
-  if (output) output.textContent = `${allocated} / ${required}`;
-
-  counter.classList.toggle("is-complete", allocated === required);
-  counter.classList.toggle("is-under", allocated < required);
-  counter.classList.toggle("is-over", allocated > required);
-}
-
-function bindServiceCounterForm(form) {
-  if (!(form instanceof HTMLFormElement) || !form.matches("form.rg-recruitment")) return false;
-  const counter = form.querySelector("[data-rg-service-counter]");
-  const selects = [...form.querySelectorAll("select[data-rg-service-check]")];
-  if (!counter || !selects.length) return false;
-
-  const refresh = () => renderServiceCounterFromVisibleDropdowns(form);
-  for (const select of selects) {
-    if (select.dataset.rgServiceCounterBound === "true") continue;
-    select.dataset.rgServiceCounterBound = "true";
-    select.addEventListener("change", refresh);
-    select.addEventListener("input", refresh);
-  }
-
-  refresh();
-  return true;
-}
-
-let serviceCounterObserver = null;
-
-function bindVisibleRecruitmentServiceCounters(root = document) {
-  const forms = [];
-  if (root instanceof HTMLFormElement && root.matches("form.rg-recruitment")) forms.push(root);
-  if (root?.querySelectorAll) forms.push(...root.querySelectorAll("form.rg-recruitment"));
-  for (const form of forms) bindServiceCounterForm(form);
-}
-
-function installRecruitmentServiceCounterObserver() {
-  if (serviceCounterObserver) return;
-
-  bindVisibleRecruitmentServiceCounters(document);
-
-  serviceCounterObserver = new MutationObserver(mutations => {
-    for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (!(node instanceof Element)) continue;
-        bindVisibleRecruitmentServiceCounters(node);
-      }
-    }
-  });
-
-  serviceCounterObserver.observe(document.body, { childList: true, subtree: true });
-}
-
 export function installRecruitment() {
-  installRecruitmentServiceCounterObserver();
   Hooks.on("renderActorDirectory", (_app, html) => injectActorDirectoryRecruitmentTools(html));
   Hooks.once("ready", () => {
     const actors = ui?.actors?.element ?? document.querySelector("#actors");
