@@ -187,6 +187,7 @@
                     <button type="button" data-action="openRelationshipActor" title="Open linked Actor"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</button>
                     <button type="button" data-action="unlinkRelationshipActor" title="Remove Actor link only"><i class="fa-solid fa-link-slash"></i> Unlink</button>
                     {{else}}
+                    {{#if ../isGM}}<button type="button" data-action="createRelationshipNpc" title="Create this person as a new NPC from Quick NPC Library"><i class="fa-solid fa-user-plus"></i> Create NPC</button>{{/if}}
                     <button type="button" data-action="linkRelationshipActor" title="Link this person to an existing Foundry Actor"><i class="fa-solid fa-link"></i> Link Existing Actor</button>
                     {{/if}}
                   </div>
