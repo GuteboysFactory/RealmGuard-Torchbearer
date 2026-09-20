@@ -19,10 +19,13 @@ for (const needle of [
   'mentorLocation',
   'enemyProfession',
   'data-rg-service-check',
-  'data-rg-service-summary',
-  'function bindRecruitmentServiceCounter(dialog)',
-  'select.addEventListener("change", sync)',
-  'select.addEventListener("input", sync)',
+  'data-rg-service-counter',
+  'data-rg-service-counter-value',
+  'function readVisibleServiceTotal(form)',
+  'function renderFreshServiceCounter(form)',
+  'function installFreshServiceCounter(dialog)',
+  'select.addEventListener("change", refresh)',
+  'select.addEventListener("input", refresh)',
   'queueMicrotask(() =>',
   'requestAnimationFrame(() => tryBind())',
   'Array.from({ length: s.service + 1 }'
@@ -46,4 +49,7 @@ assert.ok(css.includes("rg-recruit-summary.is-over"));
 
 assert.ok(!recruitment.includes('input type="number" data-rg-service-check'), "Service allocation must use dropdowns, not number inputs.");
 
-console.log("PASS qa.32 Structured Recruitment Relationships + Service dropdown live counter smoke");
+assert.ok(recruitment.includes('form.querySelectorAll("select[data-rg-service-check]")'), "Fresh counter must sum the visible Service dropdowns directly.");
+assert.ok(!recruitment.includes("syncRecruitmentServiceCounter"), "Old Service counter implementation must be removed.");
+
+console.log("PASS qa.32 Structured Recruitment Relationships + fresh DOM Service counter smoke");
