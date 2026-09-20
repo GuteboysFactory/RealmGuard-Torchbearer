@@ -2,6 +2,7 @@ import { ensureDefaultSkills } from "./default-skills.mjs";
 import { ensureDefaultConditions } from "./conditions.mjs";
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
+import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -81,6 +82,52 @@ function options(list, selected = "", { placeholder = "Choose...", disabled = ne
   return out.join("");
 }
 
+const RELATIONSHIP_LOCATIONS = Object.freeze([
+  "Bree", "Bree-land", "Arnor", "Rhudaur", "Fornost", "Deadman's Dike", "Tharbad", "Sarn Ford",
+  "Rivendell", "Esgaroth", "Dale", "Rhovanion", "Mirkwood", "Gondor", "Dor-en-Ernil", "Dol Amroth",
+  "Rohan", "The Shire", "Dunland", "Harad", "The East", "Angmar"
+]);
+
+function quickNpcProfessions() {
+  return [...new Set(QUICK_NPC_TEMPLATE_SPECS
+    .map(spec => String(spec?.metadata?.occupation ?? spec?.rank ?? "").trim())
+    .filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function datalist(id, values) {
+  return `<datalist id="${esc(id)}">${[...new Set(values.filter(Boolean))].map(entry => `<option value="${esc(entry)}"></option>`).join("")}</datalist>`;
+}
+
+function relationshipInput(label, name, stateValue, listId, placeholder = "") {
+  return `<label>${esc(label)}<input name="${esc(name)}" value="${esc(stateValue)}" list="${esc(listId)}" placeholder="${esc(placeholder)}"></label>`;
+}
+
+function structuredRelationshipFlag(state) {
+  const home = HOMELANDS[state.homelandKey]?.label ?? "";
+  const cleanPerson = person => ({
+    name: String(person?.name ?? "").trim(),
+    profession: String(person?.profession ?? "").trim(),
+    people: String(person?.people ?? "").trim(),
+    location: String(person?.location ?? "").trim(),
+    role: String(person?.role ?? "").trim()
+  });
+  return {
+    version: 1,
+    homeland: home,
+    mother: cleanPerson({ name: state.mom, profession: state.momProfession, location: state.momLocation }),
+    father: cleanPerson({ name: state.dad, profession: state.dadProfession, location: state.dadLocation }),
+    seniorArtisan: cleanPerson({ name: state.seniorArtisan, profession: state.seniorArtisanProfession, location: state.seniorArtisanLocation }),
+    mentor: cleanPerson({ name: state.mentor, profession: state.mentorRole || "Ranger", location: state.mentorLocation, role: state.mentorRole }),
+    friend: cleanPerson({ name: state.friend, profession: state.friendProfession, location: state.friendLocation }),
+    enemy: cleanPerson({ name: state.enemyName, profession: state.enemyProfession, people: state.enemyPeople, location: state.enemyLocation })
+  };
+}
+
+function formatLegacyPerson(name, profession = "", location = "") {
+  return [name, profession, location].map(value => String(value ?? "").trim()).filter(Boolean).join(", ");
+}
+
 function stationOptions(selected) {
   return options(Object.entries(STATIONS).map(([value, s]) => ({ value, label: `${s.label} - age ${s.ageMin}-${s.ageMax}, Will ${s.will}, Health ${s.health}` })), selected, { placeholder: "Select Station..." });
 }
@@ -147,16 +194,25 @@ function blankState() {
     lineage: "",
     insignia: "",
     mom: "",
+    momProfession: "",
+    momLocation: "",
     dad: "",
+    dadProfession: "",
+    dadLocation: "",
     parents: "",
     seniorArtisan: "",
+    seniorArtisanProfession: "",
+    seniorArtisanLocation: "",
     mentor: "",
+    mentorRole: "",
+    mentorLocation: "",
     mentorRuleConfirmed: false,
     friend: "",
     friendProfession: "",
     friendLocation: "",
     enemyName: "",
     enemyPeople: "",
+    enemyProfession: "",
     enemyLocation: "",
     allowEnemyServant: false,
     belief: "",
@@ -440,39 +496,12 @@ async function serviceStep(state) {
   return showStep(state, {
     current: 5, title: "Service & Specialty", subtitle: "Distribute experience gained in service to the Realms",
     body: () => `${modeHelp(state, `<p>${esc(s.label)} receives <b>${s.service} service checks</b>. Put several checks into one Skill to specialize or spread them out. ${state.rank === "recruit" ? "Recruits do not choose a Specialty." : "Then choose one Specialty, which adds one more check. No two player Rangers may share a Specialty."}</p>`)}
-      <div class="rg-service-grid">${skills.map(name => `<label><span>${esc(name)}</span><input type="number" name="service-${esc(name)}" min="0" max="${s.service}" value="${Math.max(0, Number(state.serviceAlloc[name] ?? 0))}"></label>`).join("")}</div>
-      <div class="rg-recruit-summary"><span>Required service checks</span><b>${totalAllocated()} / ${s.service}</b></div>
+      <div class="rg-service-grid">${skills.map(name => `<label><span>${esc(name)}</span><input type="number" data-rg-service-check name="service-${esc(name)}" min="0" max="${s.service}" value="${Math.max(0, Number(state.serviceAlloc[name] ?? 0))}"></label>`).join("")}</div>
+      <div class="rg-recruit-summary" data-rg-service-summary data-required-service="${s.service}"><span>Required service checks</span><b>${totalAllocated()} / ${s.service}</b></div>
       ${state.rank === "recruit" ? `<div class="rg-recruit-note"><b>Recruit:</b> no Specialty is chosen at character creation.</div>` : `<label>Specialty<select name="specialty">${options(SPECIALTY_SKILLS, state.specialty, { placeholder: "Choose a unique Specialty...", disabled })}</select></label>`}`,
     commit: form => {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
       state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
-    },
-    onRender: (_event, dialog) => {
-      const root = dialog.element;
-      const form = root?.querySelector?.("form.rg-recruitment");
-      const summary = form?.querySelector?.(".rg-recruit-summary");
-      const summaryValue = summary?.querySelector?.("b");
-      if (!form || !summary || !summaryValue) return;
-
-      const sync = () => {
-        state.serviceAlloc = Object.fromEntries(
-          skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))])
-        );
-        state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
-        const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
-        summaryValue.textContent = `${allocated} / ${s.service}`;
-        summary.classList.toggle("is-complete", allocated === s.service);
-        summary.classList.toggle("is-under", allocated < s.service);
-        summary.classList.toggle("is-over", allocated > s.service);
-      };
-
-      for (const name of skills) {
-        const input = form.elements?.[`service-${name}`];
-        input?.addEventListener?.("input", sync);
-        input?.addEventListener?.("change", sync);
-      }
-      form.elements?.specialty?.addEventListener?.("change", sync);
-      sync();
     },
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
@@ -605,27 +634,109 @@ function mentorRuleText(rank) {
 
 async function relationshipsStep(state) {
   const mentorRule = mentorRuleText(state.rank);
+  const home = HOMELANDS[state.homelandKey]?.label ?? "";
+
+  // Use earlier Recruitment choices as sensible defaults, but keep every identity field editable.
+  state.momProfession ||= state.parentsResourceProfession || state.parentsTrade?.[0] || "";
+  state.dadProfession ||= state.parentsResourceProfession || state.parentsTrade?.[1] || state.parentsTrade?.[0] || "";
+  state.momLocation ||= home;
+  state.dadLocation ||= home;
+  state.seniorArtisanProfession ||= state.apprenticeship || "";
+  state.seniorArtisanLocation ||= home;
+  state.mentorRole ||= ["captain", "lord"].includes(state.rank) ? "Ranger Veteran" : "Ranger Veteran";
+  state.mentorLocation ||= home;
+  state.friendLocation ||= home;
+
+  const professions = quickNpcProfessions();
+  const mentorRoles = ["Ranger Recruit", "Ranger Scout", "Ranger Hunter", "Ranger Pathfinder", "Ranger Veteran", "Ranger Captain", "Ranger Healer", "Ranger Lorekeeper", "Ranger Messenger", "Greybeard Ranger"];
   return showStep(state, {
     current: 9, title: "Lineage & Relationships", subtitle: "Build the people and House around the Ranger",
-    body: () => `${modeHelp(state, `<p>Realm Guard Recruitment explicitly creates a <b>Lineage, Parents, Senior Artisan, Mentor, Friend and Enemy</b>. By the printed Realm Guard rule, your personal Enemy is one of the Free Peoples and cannot be a servant of the Enemy such as an Orc. This Foundry system optionally allows that restriction to be relaxed as a clearly marked <b>House Rule</b>. The House Insignia is an heirloom, but explicitly <b>not a Token of Power</b>.</p>`)}
+    body: () => `${modeHelp(state, `<p>Realm Guard Recruitment creates a <b>Lineage, Parents, Senior Artisan, Mentor, Friend and Enemy</b>. Relationship identity is stored as structured data so Foundry can create clean NPC names and match the right Quick NPC template later. Life/death status is deliberately left to play and the GM.</p>`)}
+      ${datalist("rg-relationship-professions", professions)}
+      ${datalist("rg-relationship-locations", RELATIONSHIP_LOCATIONS)}
+      ${datalist("rg-relationship-mentor-roles", mentorRoles)}
       <div class="rg-recruit-grid two"><label>Lineage / House<input name="lineage" value="${esc(state.lineage)}" placeholder="House of..."></label><label>House Insignia<input name="insignia" value="${esc(state.insignia)}" placeholder="Ring, brooch, diadem..."></label></div>
       <div class="rg-recruit-note"><b>House Insignia:</b> an heirloom of the House or company. It is explicitly not a Token of Power.</div>
-      <div class="rg-recruit-family-block"><h3>Parents</h3><div class="rg-recruit-grid two"><label>Mom<input name="mom" value="${esc(state.mom)}" placeholder="Name · alive/dead · where she lives"></label><label>Dad<input name="dad" value="${esc(state.dad)}" placeholder="Name · alive/dead · where he lives"></label></div>${state.parentsResourceProfession ? `<small>Family profession noted earlier: ${esc(state.parentsResourceProfession)}</small>` : ""}</div>
-      <label>Senior Artisan<input name="seniorArtisan" value="${esc(state.seniorArtisan)}" placeholder="Name · ${esc(state.apprenticeship)}"></label>
-      <label>Mentor<input name="mentor" value="${esc(state.mentor)}" placeholder="Name · Station/age/relationship as appropriate"></label>
-      <label class="rg-rule-confirm"><input type="checkbox" name="mentorRuleConfirmed" ${state.mentorRuleConfirmed ? "checked" : ""}><span><b>Confirm Mentor rule</b><small>${esc(mentorRule)}</small></span></label>
-      <div class="rg-recruit-grid three"><label>Friend Name<input name="friend" value="${esc(state.friend)}"></label><label>Profession / Specialty<input name="friendProfession" value="${esc(state.friendProfession)}"></label><label>Typical Location<input name="friendLocation" value="${esc(state.friendLocation)}"></label></div>
-      <label class="rg-rule-confirm"><input type="checkbox" name="allowEnemyServant" ${state.allowEnemyServant ? "checked" : ""}><span><b>Allow Servants of the Enemy as personal Enemies (House Rule)</b><small>Off by default. Enable this only if your table wants personal Enemies such as Orcs, Trolls, Wargs, Spiders or another servant of the Enemy.</small></span></label>
-      <div class="rg-recruit-grid three"><label>Enemy Name<input name="enemyName" value="${esc(state.enemyName)}"></label><label>Enemy's People / Type<select name="enemyPeople">${options([...ENEMY_FREE_PEOPLES, ...ENEMY_SERVANTS_HOUSE_RULE.map(name => ({ value: name, label: `${name} (House Rule)` }))], state.enemyPeople)}</select><small>Who or what is this recurring personal Enemy?</small></label><label>Location<input name="enemyLocation" value="${esc(state.enemyLocation)}"></label></div>`,
+
+      <section class="rg-recruit-relationship-group">
+        <h3><i class="fa-solid fa-people-roof"></i> Parents</h3>
+        <div class="rg-recruit-structured-person">
+          <strong>Mother</strong>
+          <div class="rg-recruit-grid three">
+            <label>Name<input name="mom" value="${esc(state.mom)}" placeholder="Name"></label>
+            ${relationshipInput("Profession", "momProfession", state.momProfession, "rg-relationship-professions", "Choose or type profession")}
+            ${relationshipInput("Location", "momLocation", state.momLocation, "rg-relationship-locations", "Choose or type location")}
+          </div>
+        </div>
+        <div class="rg-recruit-structured-person">
+          <strong>Father</strong>
+          <div class="rg-recruit-grid three">
+            <label>Name<input name="dad" value="${esc(state.dad)}" placeholder="Name"></label>
+            ${relationshipInput("Profession", "dadProfession", state.dadProfession, "rg-relationship-professions", "Choose or type profession")}
+            ${relationshipInput("Location", "dadLocation", state.dadLocation, "rg-relationship-locations", "Choose or type location")}
+          </div>
+        </div>
+      </section>
+
+      <section class="rg-recruit-relationship-group">
+        <h3><i class="fa-solid fa-hammer"></i> Senior Artisan</h3>
+        <div class="rg-recruit-grid three">
+          <label>Name<input name="seniorArtisan" value="${esc(state.seniorArtisan)}" placeholder="Name"></label>
+          ${relationshipInput("Profession", "seniorArtisanProfession", state.seniorArtisanProfession, "rg-relationship-professions", state.apprenticeship || "Choose or type profession")}
+          ${relationshipInput("Location", "seniorArtisanLocation", state.seniorArtisanLocation, "rg-relationship-locations", "Choose or type location")}
+        </div>
+      </section>
+
+      <section class="rg-recruit-relationship-group">
+        <h3><i class="fa-solid fa-compass"></i> Mentor</h3>
+        <div class="rg-recruit-grid three">
+          <label>Name<input name="mentor" value="${esc(state.mentor)}" placeholder="Name"></label>
+          ${relationshipInput("Ranger role / station", "mentorRole", state.mentorRole, "rg-relationship-mentor-roles", "Ranger Veteran, Ranger Captain...")}
+          ${relationshipInput("Location", "mentorLocation", state.mentorLocation, "rg-relationship-locations", "Choose or type location")}
+        </div>
+        <label class="rg-rule-confirm"><input type="checkbox" name="mentorRuleConfirmed" ${state.mentorRuleConfirmed ? "checked" : ""}><span><b>Confirm Mentor rule</b><small>${esc(mentorRule)}</small></span></label>
+      </section>
+
+      <section class="rg-recruit-relationship-group">
+        <h3><i class="fa-solid fa-handshake"></i> Friend / Ally</h3>
+        <div class="rg-recruit-grid three">
+          <label>Name<input name="friend" value="${esc(state.friend)}" placeholder="Name"></label>
+          ${relationshipInput("Profession / Specialty", "friendProfession", state.friendProfession, "rg-relationship-professions", "Choose or type profession")}
+          ${relationshipInput("Typical Location", "friendLocation", state.friendLocation, "rg-relationship-locations", "Choose or type location")}
+        </div>
+      </section>
+
+      <section class="rg-recruit-relationship-group">
+        <h3><i class="fa-solid fa-user-slash"></i> Enemy / Rival</h3>
+        <label class="rg-rule-confirm"><input type="checkbox" name="allowEnemyServant" ${state.allowEnemyServant ? "checked" : ""}><span><b>Allow Servants of the Enemy as personal Enemies (House Rule)</b><small>Off by default. Enable this only if your table wants personal Enemies such as Orcs, Trolls, Wargs, Spiders or another servant of the Enemy.</small></span></label>
+        <div class="rg-recruit-grid four">
+          <label>Name<input name="enemyName" value="${esc(state.enemyName)}" placeholder="Name"></label>
+          <label>People / Type<select name="enemyPeople">${options([...ENEMY_FREE_PEOPLES, ...ENEMY_SERVANTS_HOUSE_RULE.map(name => ({ value: name, label: `${name} (House Rule)` }))], state.enemyPeople)}</select></label>
+          ${relationshipInput("Role / Profession", "enemyProfession", state.enemyProfession, "rg-relationship-professions", "Optional role or profession")}
+          ${relationshipInput("Location", "enemyLocation", state.enemyLocation, "rg-relationship-locations", "Choose or type location")}
+        </div>
+      </section>`,
     commit: form => {
-      for (const key of ["lineage", "insignia", "mom", "dad", "seniorArtisan", "mentor", "friend", "friendProfession", "friendLocation", "enemyName", "enemyPeople", "enemyLocation"]) state[key] = value(form, key);
-      state.parents = [state.mom ? `Mom: ${state.mom}` : "", state.dad ? `Dad: ${state.dad}` : ""].filter(Boolean).join(" · ");
+      for (const key of [
+        "lineage", "insignia",
+        "mom", "momProfession", "momLocation",
+        "dad", "dadProfession", "dadLocation",
+        "seniorArtisan", "seniorArtisanProfession", "seniorArtisanLocation",
+        "mentor", "mentorRole", "mentorLocation",
+        "friend", "friendProfession", "friendLocation",
+        "enemyName", "enemyPeople", "enemyProfession", "enemyLocation"
+      ]) state[key] = value(form, key);
+      state.parents = [state.mom, state.dad].filter(Boolean).join(" · ");
       state.mentorRuleConfirmed = checked(form, "mentorRuleConfirmed");
       state.allowEnemyServant = checked(form, "allowEnemyServant");
     },
     validate: () => {
       if (!state.lineage || !state.insignia) return "Enter both Lineage / House and House Insignia.";
       if ((!state.mom && !state.dad) || !state.seniorArtisan || !state.mentor) return "Enter at least one parent, plus Senior Artisan and Mentor.";
+      if (state.mom && (!state.momProfession || !state.momLocation)) return "Mother needs a profession and location.";
+      if (state.dad && (!state.dadProfession || !state.dadLocation)) return "Father needs a profession and location.";
+      if (!state.seniorArtisanProfession || !state.seniorArtisanLocation) return "Senior Artisan needs a profession and location.";
+      if (!state.mentorRole || !state.mentorLocation) return "Mentor needs a Ranger role/station and location.";
       if (!state.mentorRuleConfirmed) return "Confirm that the Mentor follows the Station-specific Recruitment rule.";
       if (!state.friend || !state.friendProfession || !state.friendLocation) return "A Friend needs a name, profession/specialty and typical location.";
       if (!state.enemyName || !state.enemyPeople || !state.enemyLocation) return "An Enemy needs a name, people/type and location.";
@@ -676,7 +787,7 @@ async function reviewStep(state) {
       <div class="rg-review-stats"><span>Nature <b>${state.nature}</b></span><span>Will <b>${station(state).will}</b></span><span>Health <b>${station(state).health}</b></span><span>Resources <b>${state.resources}</b></span><span>Circles <b>${state.circles}</b></span><span>Fate <b>1</b></span><span>Persona <b>1</b></span></div>
       <section><h3>Skills</h3><p>${skillSummary(state).map(esc).join(" · ")}</p></section><section><h3>Traits</h3><p>${traitSummary(state).map(esc).join(" · ")}</p></section><section><h3>Wises</h3><p>${[...wiseCheckMap(state).entries()].map(([w, c]) => `${esc(w)}${c > 1 ? ` (${c} Recruitment checks)` : ""}`).join(" · ")}</p><small>Wises remain unrated in this Foundry build; Recruitment checks are preserved in metadata.</small></section>
       <section><h3>Belief · Goal · Instinct</h3><p><b>Belief:</b> ${esc(state.belief)}<br><b>Goal:</b> ${esc(state.goal)}<br><b>Instinct:</b> ${esc(state.instinct)}</p></section>
-      <section><h3>Relationships</h3><p><b>House:</b> ${esc(state.lineage)} · <b>Insignia:</b> ${esc(state.insignia)}<br><b>Mom:</b> ${esc(state.mom || "—")} · <b>Dad:</b> ${esc(state.dad || "—")}<br><b>Senior Artisan:</b> ${esc(state.seniorArtisan)} · <b>Mentor:</b> ${esc(state.mentor)}<br><b>Friend:</b> ${esc(state.friend)}, ${esc(state.friendProfession)}, ${esc(state.friendLocation)}<br><b>Enemy:</b> ${esc(state.enemyName)}, ${esc(state.enemyPeople)}, ${esc(state.enemyLocation)}${state.allowEnemyServant ? ` <b>(House Rule enabled)</b>` : ""}</p></section>
+      <section><h3>Relationships</h3><p><b>House:</b> ${esc(state.lineage)} · <b>Insignia:</b> ${esc(state.insignia)}<br><b>Mother:</b> ${esc(formatLegacyPerson(state.mom, state.momProfession, state.momLocation) || "—")}<br><b>Father:</b> ${esc(formatLegacyPerson(state.dad, state.dadProfession, state.dadLocation) || "—")}<br><b>Senior Artisan:</b> ${esc(formatLegacyPerson(state.seniorArtisan, state.seniorArtisanProfession, state.seniorArtisanLocation))}<br><b>Mentor:</b> ${esc(formatLegacyPerson(state.mentor, state.mentorRole, state.mentorLocation))}<br><b>Friend:</b> ${esc(formatLegacyPerson(state.friend, state.friendProfession, state.friendLocation))}<br><b>Enemy:</b> ${esc(formatLegacyPerson(state.enemyName, state.enemyProfession || state.enemyPeople, state.enemyLocation))}${state.allowEnemyServant ? ` <b>(House Rule enabled)</b>` : ""}</p></section>
       <section><h3>Gear</h3><p>${esc(state.weapon)}${state.armor ? ` · ${esc(state.armor)}` : ""}${state.distinctiveGear ? ` · ${esc(state.distinctiveGear)}` : ""}</p></section></div>
       <label class="rg-rule-confirm"><input type="checkbox" name="openSheet" ${state.openSheet ? "checked" : ""}><span><b>Open Ranger sheet after creation</b><small>The Actor, canonical Skills, Conditions, Traits, Wises and starting Gear are created together.</small></span></label>`,
     commit: form => { state.openSheet = checked(form, "openSheet"); },
@@ -753,12 +864,12 @@ function recruitmentNpcSearchForEntry(entry, state) {
   const culture = recruitmentCultureHint(`${person.people ?? ""} ${person.location ?? ""} ${home}`);
   let role = String(person.profession ?? "").trim();
 
-  if (slot === "parent-mother" || slot === "parent-father") role = String(state.parentsResourceProfession || role).trim();
-  if (slot === "senior-artisan") role = String(state.apprenticeship || role).trim();
-  if (slot === "mentor") role = "ranger";
-  if (slot === "friend") role = String(state.friendProfession || role).trim();
+  if (slot === "parent-mother" || slot === "parent-father") role = String(person.profession || state.parentsResourceProfession || role).trim();
+  if (slot === "senior-artisan") role = String(person.profession || state.seniorArtisanProfession || state.apprenticeship || role).trim();
+  if (slot === "mentor") role = String(person.profession || state.mentorRole || "ranger").trim();
+  if (slot === "friend") role = String(person.profession || state.friendProfession || role).trim();
   if (slot === "enemy") {
-    const enemyType = String(state.enemyPeople || person.people || "").trim();
+    const enemyType = String(person.profession || state.enemyProfession || person.people || state.enemyPeople || "").trim();
     role = enemyType.toLowerCase() === "man" ? "" : enemyType;
   }
 
@@ -965,11 +1076,14 @@ async function reviewRecruitmentRelationshipNpcs(actor, state) {
 async function createRanger(state) {
   const s = station(state);
   const home = HOMELANDS[state.homelandKey];
-  const enemy = `${state.enemyName}, ${state.enemyPeople}, ${state.enemyLocation}`;
-  const friend = `${state.friend}, ${state.friendProfession}, ${state.friendLocation}`;
-  const parentNames = [state.mom ? `Mom: ${state.mom}` : "", state.dad ? `Dad: ${state.dad}` : ""].filter(Boolean).join("; ");
-  const parentsExtra = state.parentsResourceProfession ? `; profession: ${state.parentsResourceProfession}` : "";
-  const parents = `${parentNames}${parentsExtra}`;
+  const structuredRelationships = structuredRelationshipFlag(state);
+  const enemy = formatLegacyPerson(state.enemyName, state.enemyPeople, state.enemyLocation);
+  const friend = formatLegacyPerson(state.friend, state.friendProfession, state.friendLocation);
+  const parentNames = [
+    state.mom ? `Mom: ${formatLegacyPerson(state.mom, state.momProfession, state.momLocation)}` : "",
+    state.dad ? `Dad: ${formatLegacyPerson(state.dad, state.dadProfession, state.dadLocation)}` : ""
+  ].filter(Boolean).join("; ");
+  const parents = parentNames;
   const system = {
     biography: state.background ? `<p>${esc(state.background)}</p>` : "",
     notes: "",
@@ -979,11 +1093,11 @@ async function createRanger(state) {
     age: String(state.age),
     lineage: state.lineage,
     insignia: state.insignia,
-    seniorArtisan: `${state.seniorArtisan} - ${state.apprenticeship}`,
+    seniorArtisan: `${state.seniorArtisan} - ${state.seniorArtisanProfession || state.apprenticeship}`,
     friend,
     cloak: "",
     weapon: "",
-    mentor: state.mentor,
+    mentor: formatLegacyPerson(state.mentor, state.mentorRole, state.mentorLocation),
     enemy,
     parents,
     belief: state.belief,
@@ -1002,7 +1116,7 @@ async function createRanger(state) {
 
   const flags = {
     "realm-guard": {
-      recruitmentVersion: "0.19.0",
+      recruitmentVersion: "0.20.0",
       recruitmentSpecialty: state.specialty || "",
       recruitmentWiseChecks: Object.fromEntries(wiseCheckMap(state)),
       recruitmentSkillChecks: Object.fromEntries(computeSkillChecks(state)),
@@ -1010,6 +1124,7 @@ async function createRanger(state) {
       recruitmentResourceAnswers: foundry.utils.deepClone(state.resourceAnswers),
       recruitmentCircleAnswers: foundry.utils.deepClone(state.circleAnswers),
       recruitmentMentorRuleConfirmed: Boolean(state.mentorRuleConfirmed),
+      recruitmentRelationships: structuredRelationships,
       recruitmentMother: state.mom || "",
       recruitmentFather: state.dad || "",
       recruitmentEnemyHouseRule: Boolean(state.allowEnemyServant)
@@ -1188,7 +1303,36 @@ async function migrateRecruitmentAbilityCaps() {
   if (changed) console.log(`Realm Guard | Recruitment 2.0 raised Resources/Circles caps on ${changed} existing Actor(s).`);
 }
 
+let recruitmentLiveUxInstalled = false;
+
+function syncRecruitmentServiceCounter(form) {
+  const summary = form?.querySelector?.("[data-rg-service-summary]");
+  if (!summary) return;
+  const required = Math.max(0, Number(summary.dataset.requiredService ?? 0));
+  const allocated = [...form.querySelectorAll("[data-rg-service-check]")]
+    .reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
+  const output = summary.querySelector("b");
+  if (output) output.textContent = `${allocated} / ${required}`;
+  summary.classList.toggle("is-complete", allocated === required);
+  summary.classList.toggle("is-under", allocated < required);
+  summary.classList.toggle("is-over", allocated > required);
+}
+
+function installRecruitmentLiveUx() {
+  if (recruitmentLiveUxInstalled) return;
+  recruitmentLiveUxInstalled = true;
+  const handler = event => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || !target.matches("[data-rg-service-check]")) return;
+    const form = target.closest("form.rg-recruitment");
+    if (form) syncRecruitmentServiceCounter(form);
+  };
+  document.addEventListener("input", handler, true);
+  document.addEventListener("change", handler, true);
+}
+
 export function installRecruitment() {
+  installRecruitmentLiveUx();
   Hooks.on("renderActorDirectory", (_app, html) => injectActorDirectoryRecruitmentTools(html));
   Hooks.once("ready", () => {
     const actors = ui?.actors?.element ?? document.querySelector("#actors");
