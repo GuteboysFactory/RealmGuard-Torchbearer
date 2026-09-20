@@ -3,7 +3,21 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.0.8.44
+**Current QA build:** v1.9.0-qa.35
+
+
+## v1.9.0-qa.35 - QA / M8 NPC Group Templates
+
+- Continues M8 Social Network Migration from the working qa.34 baseline.
+- Adds a GM-only **Group Templates** entry point to Quick NPC Library.
+- Adds eight initial reusable group compositions: Ranger Patrol, Gondorian Road Patrol, Rohirric Rider Patrol, Dwarven Caravan Guard, Bree Road Caravan, Dunlending Warband, Orc Scout Band and Orc Warband.
+- Group members resolve through the existing smart Quick NPC matcher; the GM reviews resolved templates and the group name before anything is created.
+- Created groups live in dedicated child folders under **Actors > NPCs Groups**. Repeated names receive safe numbered sibling folders instead of silently merging.
+- Group members remain ordinary editable NPC Actors detached from source templates and carry group-instance/member/source-template provenance in Realm Guard flags.
+- Bulk group creation suppresses per-NPC notification spam while retaining a final group result notification.
+- Existing relationship NPCs remain separate in **NPC - PC Relations** and retain PersonRecord actor linking.
+- No change to Circles semantics, Relationship status/history rules, Recruitment rules, Service allocation, or Legacy Mixed live authority.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.35.md`.
 
 
 ## v1.0.8.44 - QA / Roll & Conflict Readability Polish
