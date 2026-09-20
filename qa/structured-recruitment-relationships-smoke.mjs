@@ -22,7 +22,9 @@ for (const needle of [
   'data-rg-service-summary',
   'function installRecruitmentLiveUx',
   'document.addEventListener("input", handler, true)',
-  'document.addEventListener("change", handler, true)'
+  'document.addEventListener("change", handler, true)',
+  'HTMLSelectElement',
+  'Array.from({ length: s.service + 1 }'
 ]) assert.ok(recruitment.includes(needle), `Missing qa.32 Recruitment marker: ${needle}`);
 
 assert.ok(!recruitment.includes("alive/dead"), "Structured Recruitment must not ask for alive/dead status.");
@@ -41,4 +43,6 @@ assert.ok(css.includes("rg-recruit-relationship-group"));
 assert.ok(css.includes("rg-recruit-summary.is-complete"));
 assert.ok(css.includes("rg-recruit-summary.is-over"));
 
-console.log("PASS qa.32 Structured Recruitment Relationships + live Service counter smoke");
+assert.ok(!recruitment.includes('input type="number" data-rg-service-check'), "Service allocation must use dropdowns, not number inputs.");
+
+console.log("PASS qa.32 Structured Recruitment Relationships + Service dropdown live counter smoke");
