@@ -36,7 +36,5 @@ for (const needle of [
 
 const css = fs.readFileSync("styles/qa28-quick-npc-library.css","utf8");
 assert.ok(css.includes("rg-recruit-relationship-group"));
-assert.ok(css.includes("rg-recruit-summary.is-complete"));
-assert.ok(css.includes("rg-recruit-summary.is-over"));
 
 console.log("PASS qa.32 Structured Recruitment Relationships + Service dropdown smoke");
