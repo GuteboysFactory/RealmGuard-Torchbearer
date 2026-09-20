@@ -1,65 +1,77 @@
-# Realm Guard / Torchbearer v1.9.0-qa.31 — Recruitment Relationship NPC Review
+# Realm Guard / Torchbearer v1.9.0-qa.31 — Smart Recruitment Relationship NPC Review
 
-This build connects the completed Ranger Recruitment flow to the verified Quick NPC Library.
+This build upgrades the post-Recruitment Relationship NPC review so the GM does not have to manually identify a template for every person.
 
-## After Ranger creation
-The Ranger is created first, exactly as before.
+## Core flow
+The Ranger is created first, unchanged.
 
-For a GM, a separate optional Relationship NPC review then appears with:
+The GM then gets:
 - Create All
 - Choose NPCs
 - Not Now
 
-No NPC is created automatically.
+Realm Guard automatically resolves a suggested Quick NPC template for every Recruitment relationship person before the GM decides whether to create them.
 
-## Review contents
-The review uses the Ranger's M8 Social Network / Recruitment relationship people, including:
-- parents
-- senior artisan
-- mentor
-- friend
-- enemy
+No NPC is created before the GM explicitly chooses Create All or Create Selected.
 
-Each person shows their relationship role and a suggested Quick NPC search where useful.
+## Automatic template resolution
+The resolver uses structured Recruitment / M8 data rather than the person's name.
 
-## Choose NPCs
-Choose NPCs opens a checklist so the GM can decide which relationship people should receive NPC Actors now.
+It considers:
+- relationship role
+- profession / specialty
+- homeland / culture
+- people / type
+- location where it maps cleanly to a library culture
+- expected competence for the relationship role
 
-Create All selects every relationship person for creation.
-
-Not Now leaves the relationship people recorded without Actor links. They can still be created later from Character -> Relationships using qa.30.
-
-## Quick NPC handoff
-For each selected person:
-1. Quick NPC Library opens,
-2. search is prefilled using Recruitment identity data,
-3. GM explicitly chooses the template,
-4. Actor is created using the person's name,
-5. Actor goes into NPC - PC Relations,
-6. PersonRecord.actorUuid is linked automatically.
-
-The Quick NPC template provides the NPC's game data.
-Recruitment/M8 provides the person's identity.
-
-## Search hints
-Suggested searches use profession and clean culture hints where available.
+Default competence guidance:
+- Parent -> Ordinary
+- Friend -> Ordinary
+- Senior Artisan -> Skilled
+- Mentor -> Veteran
+- Enemy -> Skilled
 
 Examples:
-- Friend / Innkeeper / Bree -> innkeeper bree
-- Senior Artisan / Smith -> smith plus useful homeland culture
-- Mentor -> ranger plus useful homeland culture
-- Orc Enemy -> orc plus useful culture/type context
+- Baran Dev · Friend · Innkeeper · Bree -> Bree Innkeeper · Ordinary
+- Senior Artisan · Smith -> a relevant Smith template, normally Skilled
+- Mentor -> a relevant Ranger template, normally Veteran
+- Orc Enemy -> a relevant Orc template, normally Skilled
 
-## Permissions
-The post-Recruitment NPC review is GM-only.
-If a non-GM completes Recruitment, relationship data is still preserved and a GM can create those NPCs later from the Relationships page.
+## GM review
+The review shows:
+- person name
+- relationship role
+- derived search context
+- suggested Quick NPC template
+
+The normal path requires no extra template selection.
+
+A Change Template button remains available as an optional override for special cases. It opens Quick NPC Library in selection-only mode and does not create an NPC by itself.
+
+## Creation
+Create All:
+- creates every listed relationship NPC directly from its suggestion
+
+Choose NPCs:
+- opens a checklist
+- Create Selected creates only the checked people
+- suggested templates are already resolved
+- Change Template remains optional
+
+Created Actors:
+- use the relationship person's name
+- use template stats / Skills / Gear
+- go to NPC - PC Relations
+- are linked back through PersonRecord.actorUuid
+- remain normal editable Actors detached from the source template
 
 ## Explicitly unchanged
-- Ranger creation rules
-- Recruitment Skill/Trait/Wise/Gear logic
+- Ranger Recruitment rules
+- no automatic creation without GM approval
 - Circles behavior
-- M8 status/history behavior
-- no automatic NPC creation
+- M8 status/history
+- qa.30 Relationship -> Create NPC flow
 - no Group templates yet
 
-Group templates remain a later Quick NPC Library expansion. Group-created NPCs will use the dedicated Actor folder NPCs Groups.
+Future Group templates remain assigned to the dedicated Actor folder NPCs Groups.
