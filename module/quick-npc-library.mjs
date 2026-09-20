@@ -81,6 +81,125 @@ const DEFAULT_RELATIONSHIPS = freeze({
   Creature: ["ENEMY", "CONTACT"]
 });
 
+
+const groupMember = (label, query, competence = "Skilled", count = 1) => freeze({
+  label: clean(label),
+  query: clean(query),
+  competence: clean(competence),
+  count: Math.max(1, Number(count || 1))
+});
+
+const groupTemplate = ({ id, name, category = "Mixed", concept = "", members = [] }) => freeze({
+  id: clean(id),
+  name: clean(name),
+  category: clean(category),
+  concept: clean(concept),
+  members: freeze(members)
+});
+
+export const QUICK_NPC_GROUP_LIBRARY_VERSION = "1.0.0";
+export const QUICK_NPC_GROUP_TEMPLATE_SPECS = freeze([
+  groupTemplate({
+    id: "ranger-patrol",
+    name: "Ranger Patrol",
+    category: "Rangers",
+    concept: "A balanced patrol of experienced Rangers for scouting, escort or investigation.",
+    members: [
+      groupMember("Ranger Veteran", "dunadan ranger veteran", "Veteran", 1),
+      groupMember("Ranger Scout", "dunadan ranger scout", "Skilled", 2),
+      groupMember("Ranger Healer", "dunadan ranger healer", "Skilled", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "gondor-road-patrol",
+    name: "Gondorian Road Patrol",
+    category: "Gondor",
+    concept: "A disciplined patrol for roads, gates or troubled settlements.",
+    members: [
+      groupMember("Captain", "gondorian captain", "Veteran", 1),
+      groupMember("Soldier", "gondorian soldier", "Skilled", 3),
+      groupMember("Archer", "gondorian archer", "Skilled", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "rohan-rider-patrol",
+    name: "Rohirric Rider Patrol",
+    category: "Rohan",
+    concept: "Mounted riders with an outrider for scouting the plains and borders.",
+    members: [
+      groupMember("Thane", "rohirric thane", "Skilled", 1),
+      groupMember("Rider", "rohirric rider", "Skilled", 3),
+      groupMember("Outrider", "rohirric outrider", "Skilled", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "dwarf-caravan",
+    name: "Dwarven Caravan Guard",
+    category: "Dwarves",
+    concept: "A merchant party protected by sturdy guards and an experienced route scout.",
+    members: [
+      groupMember("Merchant", "dwarven merchant", "Skilled", 1),
+      groupMember("Guard", "dwarven guard", "Skilled", 2),
+      groupMember("Tunnel Scout", "dwarven tunnel scout", "Skilled", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "bree-road-caravan",
+    name: "Bree Road Caravan",
+    category: "Bree-land",
+    concept: "A small merchant caravan with hired protection, a guide and a pack pony.",
+    members: [
+      groupMember("Merchant", "bree merchant", "Skilled", 1),
+      groupMember("Mercenary", "bree mercenary", "Skilled", 2),
+      groupMember("Guide", "bree guide", "Skilled", 1),
+      groupMember("Pony", "wild pony", "Common", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "dunland-warband",
+    name: "Dunlending Warband",
+    category: "Dunland",
+    concept: "A hill-clan raiding band with warriors, a scout and a respected leader.",
+    members: [
+      groupMember("Clan Elder", "dunlending clan elder", "Skilled", 1),
+      groupMember("Clan Warrior", "dunlending clan warrior", "Skilled", 4),
+      groupMember("Hill Scout", "dunlending hill scout", "Skilled", 1)
+    ]
+  }),
+  groupTemplate({
+    id: "orc-scout-band",
+    name: "Orc Scout Band",
+    category: "Shadow",
+    concept: "A mobile Orc scouting party used for pursuit, ambush and reconnaissance.",
+    members: [
+      groupMember("Orc Captain", "orc captain", "Skilled", 1),
+      groupMember("Orc Scout", "orc scout", "Skilled", 3),
+      groupMember("Orc Warrior", "orc warrior", "Ordinary", 2)
+    ]
+  }),
+  groupTemplate({
+    id: "orc-warband",
+    name: "Orc Warband",
+    category: "Shadow",
+    concept: "A compact but dangerous Orc warband with command, muscle, infantry and archers.",
+    members: [
+      groupMember("Orc Captain", "orc captain", "Veteran", 1),
+      groupMember("Orc Brute", "orc brute", "Skilled", 1),
+      groupMember("Orc Warrior", "orc warrior", "Skilled", 4),
+      groupMember("Orc Archer", "orc archer", "Skilled", 2)
+    ]
+  })
+]);
+
+export function quickNpcGroupTemplateCount() {
+  return QUICK_NPC_GROUP_TEMPLATE_SPECS.length;
+}
+
+export function quickNpcGroupTemplateById(id) {
+  const wanted = clean(id);
+  return QUICK_NPC_GROUP_TEMPLATE_SPECS.find(entry => entry.id === wanted) ?? null;
+}
+
 function role({
   name, culture = "bree", category = "Civilian", subcategory = "", occupation = "",
   profile = "civilian", concept = "", aliases = [], tags = [], skills = [], gear = [],
