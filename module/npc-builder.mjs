@@ -7,6 +7,50 @@ const PACK_ID = "world.realm-guard-starter-npc-templates";
 const FALLBACK_IMG = "systems/realm-guard/assets/actors/npc-creature.webp";
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 
+let boundCanvasElement = null;
+let canvasDragOverHandler = null;
+let canvasDragLeaveHandler = null;
+let canvasDropHandler = null;
+
+function isImageFile(file) {
+  return Boolean(file && String(file.type || "").startsWith("image/"));
+}
+
+function currentCanvasElement() {
+  const element = canvas?.app?.canvas ?? canvas?.app?.view ?? null;
+  return element instanceof HTMLElement ? element : null;
+}
+
+function canvasDropPoint(event) {
+  if (!canvas?.ready || !canvas?.scene || typeof canvas.canvasCoordinatesFromClient !== "function") return null;
+  const point = canvas.canvasCoordinatesFromClient({ x: Number(event.clientX), y: Number(event.clientY) });
+  if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) return null;
+  return Object.freeze({ sceneId: canvas.scene.id, x: point.x, y: point.y });
+}
+
+async function placeNpcToken(actor, drop) {
+  if (!actor || !drop?.sceneId) return null;
+  const scene = game.scenes?.get?.(drop.sceneId);
+  if (!scene) throw new Error("The Scene used for the NPC image drop is no longer available.");
+
+  const token = await actor.getTokenDocument();
+  const tokenSource = token.toObject();
+  const gridSize = Math.max(1, Number(scene.grid?.size ?? canvas?.dimensions?.size ?? 100));
+  const width = Math.max(1, Number(tokenSource.width ?? 1));
+  const height = Math.max(1, Number(tokenSource.height ?? 1));
+
+  // The OS image is dropped at the intended token center. Foundry stores token x/y
+  // as its top-left position, so center the generated token on that exact canvas point.
+  tokenSource.x = Math.round(Number(drop.x) - (width * gridSize / 2));
+  tokenSource.y = Math.round(Number(drop.y) - (height * gridSize / 2));
+  tokenSource.name = actor.name;
+
+  const created = await scene.createEmbeddedDocuments("Token", [tokenSource], {
+    realmGuardQuickNpcCanvasDrop: true
+  });
+  return created?.[0] ?? null;
+}
+
 async function ensureNpcFolder() {
   let folder = game.folders?.find?.(f => f.type === "Actor" && String(f.name ?? "").toLowerCase() === "npc");
   if (!folder) folder = await Folder.create({ name: "NPC", type: "Actor", color: "#3f4b2f", flags: { [NS]: { npcTemplateFolder: true } } });
@@ -51,7 +95,7 @@ async function uploadNpcImage(file) {
   return path;
 }
 
-export async function createNpcFromTemplate(templateId, { imageFile = null } = {}) {
+export async function createNpcFromTemplate(templateId, { imageFile = null, canvasDrop = null, openSheet = true } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
   if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
@@ -88,9 +132,16 @@ export async function createNpcFromTemplate(templateId, { imageFile = null } = {
   const actor = await Actor.create(source);
   if (!actor) throw new Error("NPC creation failed.");
 
-  if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
-  ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
-  actor.sheet?.render(true);
+  let token = null;
+  if (canvasDrop) token = await placeNpcToken(actor, canvasDrop);
+
+  if (canvasDrop && token) {
+    ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name} and placed on the Scene.`);
+  } else {
+    if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
+    ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
+  }
+  if (openSheet) actor.sheet?.render(true);
   return actor;
 }
 
@@ -120,17 +171,17 @@ function templateCard(entry) {
   </article>`;
 }
 
-function bindCardActions(root) {
+function bindCardActions(root, createOptions = {}) {
   root.querySelectorAll("[data-rg-template-create]").forEach(button => button.addEventListener("click", event => {
     event.preventDefault();
-    void createNpcFromTemplate(button.dataset.rgTemplateCreate);
+    void createNpcFromTemplate(button.dataset.rgTemplateCreate, createOptions);
   }));
 
   root.querySelectorAll("[data-rg-npc-template]").forEach(card => {
     card.addEventListener("dblclick", event => {
       if (event.target?.closest?.("button")) return;
       event.preventDefault();
-      void createNpcFromTemplate(card.dataset.rgNpcTemplate);
+      void createNpcFromTemplate(card.dataset.rgNpcTemplate, createOptions);
     });
     card.addEventListener("dragover", event => {
       if (!event.dataTransfer?.types?.includes?.("Files")) return;
@@ -147,7 +198,7 @@ function bindCardActions(root) {
       event.stopPropagation();
       card.classList.remove("is-image-drop");
       try {
-        await createNpcFromTemplate(card.dataset.rgNpcTemplate, { imageFile: file });
+        await createNpcFromTemplate(card.dataset.rgNpcTemplate, { ...createOptions, imageFile: file });
       } catch (error) {
         console.error(`${NS} | NPC template image drop failed`, error);
         ui.notifications.error(`Realm Guard: ${error.message || "NPC template image drop failed."}`);
@@ -156,7 +207,7 @@ function bindCardActions(root) {
   });
 }
 
-export async function openNpcTemplateLibrary({ initialQuery = "" } = {}) {
+export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
   if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
@@ -176,13 +227,21 @@ export async function openNpcTemplateLibrary({ initialQuery = "" } = {}) {
   const cultures = metadata.map(meta => meta.culture);
   const competence = metadata.map(meta => meta.competence);
 
+  const canvasSpawn = Boolean(imageFile && canvasDrop);
+  const previewUrl = canvasSpawn ? URL.createObjectURL(imageFile) : "";
+  const canvasPreview = canvasSpawn ? `<div class="rg-quick-npc-canvas-preview">
+    <img src="${esc(previewUrl)}" alt="">
+    <div><strong>Create NPC from dropped image</strong><span>${esc(cleanFileName(imageFile.name) || imageFile.name || "Local image")}</span><small>Choose a template below. The finished token will be placed where you dropped the image.</small></div>
+  </div>` : "";
+
   const dialog = new foundry.applications.api.DialogV2({
     window: { title: "Realm Guard · Quick NPC Library", resizable: true },
     position: { width: 920, height: 760 },
     content: `<div class="rg-npc-template-library rg-quick-npc-library">
       <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
+      ${canvasPreview}
       <div class="rg-quick-npc-heading">
-        <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it.</p></div>
+        <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>${canvasSpawn ? "Search and choose a template. Double-click a result to create the NPC and place its token at the image drop point." : "Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it."}</p></div>
         <strong data-rg-result-count>${entries.length} templates</strong>
       </div>
       <div class="rg-quick-npc-search">
@@ -229,7 +288,7 @@ export async function openNpcTemplateLibrary({ initialQuery = "" } = {}) {
     count.textContent = matches.length === entries.length ? `${matches.length} templates` : `${matches.length} / ${entries.length}`;
     empty.hidden = matches.length > 0;
     results.hidden = matches.length === 0;
-    bindCardActions(results);
+    bindCardActions(results, canvasSpawn ? { imageFile, canvasDrop, openSheet: false } : {});
 
     if (matches.length > visible.length) {
       const note = document.createElement("div");
@@ -261,6 +320,62 @@ export async function openNpcTemplateLibrary({ initialQuery = "" } = {}) {
   return dialog;
 }
 
+function unbindCanvasImageDrop() {
+  if (!boundCanvasElement) return;
+  if (canvasDragOverHandler) boundCanvasElement.removeEventListener("dragover", canvasDragOverHandler, true);
+  if (canvasDragLeaveHandler) boundCanvasElement.removeEventListener("dragleave", canvasDragLeaveHandler, true);
+  if (canvasDropHandler) boundCanvasElement.removeEventListener("drop", canvasDropHandler, true);
+  boundCanvasElement.classList.remove("rg-quick-npc-canvas-image-drop");
+  boundCanvasElement = null;
+  canvasDragOverHandler = null;
+  canvasDragLeaveHandler = null;
+  canvasDropHandler = null;
+}
+
+function bindCanvasImageDrop() {
+  unbindCanvasImageDrop();
+  if (!game.user?.isGM || !canvas?.ready || !canvas?.scene) return;
+
+  const element = currentCanvasElement();
+  if (!element) return;
+  boundCanvasElement = element;
+
+  canvasDragOverHandler = event => {
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (!files.some(isImageFile) && !event.dataTransfer?.types?.includes?.("Files")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    element.classList.add("rg-quick-npc-canvas-image-drop");
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+  };
+
+  canvasDragLeaveHandler = event => {
+    if (!element.contains(event.relatedTarget)) element.classList.remove("rg-quick-npc-canvas-image-drop");
+  };
+
+  canvasDropHandler = event => {
+    const file = Array.from(event.dataTransfer?.files ?? []).find(isImageFile);
+    if (!file) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    element.classList.remove("rg-quick-npc-canvas-image-drop");
+
+    const drop = canvasDropPoint(event);
+    if (!drop) return ui.notifications.warn("Realm Guard: Could not resolve the image drop position on the active Scene.");
+
+    void openNpcTemplateLibrary({ imageFile: file, canvasDrop: drop }).catch(error => {
+      console.error(`${NS} | Canvas Quick NPC image drop failed`, error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Could not open Quick NPC from the dropped image."}`);
+    });
+  };
+
+  element.addEventListener("dragover", canvasDragOverHandler, true);
+  element.addEventListener("dragleave", canvasDragLeaveHandler, true);
+  element.addEventListener("drop", canvasDropHandler, true);
+}
+
 export function installNpcBuilder() {
   registerGmDockTool({
     id: "npc-templates",
@@ -268,5 +383,11 @@ export function installNpcBuilder() {
     tooltip: "Quick NPC Library",
     order: 6,
     onClick: () => openNpcTemplateLibrary()
+  });
+
+  Hooks.on("canvasReady", () => bindCanvasImageDrop());
+  Hooks.on("canvasTearDown", () => unbindCanvasImageDrop());
+  Hooks.once("ready", () => {
+    if (canvas?.ready) bindCanvasImageDrop();
   });
 }
