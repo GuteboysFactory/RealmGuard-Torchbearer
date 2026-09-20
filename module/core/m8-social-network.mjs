@@ -165,9 +165,9 @@ function flag(actor, key) {
   catch { return undefined; }
 }
 
-function sourceDescriptor({ slot, raw, confidence, recruitment }) {
+function sourceDescriptor({ slot, raw, confidence, recruitment, kind = "" }) {
   return freeze({
-    kind: recruitment ? "LEGACY_RECRUITMENT_FIELD" : "LEGACY_CHARACTER_FIELD",
+    kind: clean(kind) || (recruitment ? "LEGACY_RECRUITMENT_FIELD" : "LEGACY_CHARACTER_FIELD"),
     slot: clean(slot),
     raw: clean(raw),
     confidence: clean(confidence) || "LOW_RAW"
@@ -198,6 +198,9 @@ export function buildLegacySocialNetworkSnapshot(actor) {
   const key = actorKey(actor);
   const recruitmentVersion = clean(flag(actor, "recruitmentVersion"));
   const recruitment = Boolean(recruitmentVersion);
+  const structured = flag(actor, "recruitmentRelationships");
+  const structuredVersion = Number(structured?.version ?? 0);
+  const useStructured = recruitment && structuredVersion >= 1;
   const origin = recruitment ? RelationshipOrigin.RECRUITMENT : RelationshipOrigin.IMPORT;
   const people = [];
   const relationships = [];
@@ -212,7 +215,8 @@ export function buildLegacySocialNetworkSnapshot(actor) {
     notes = "",
     role,
     status = RelationshipStatus.UNKNOWN,
-    confidence = "LOW_RAW"
+    confidence = "LOW_RAW",
+    sourceKind = ""
   }) => {
     const rawValue = clean(raw);
     const personName = clean(name || rawValue);
@@ -220,7 +224,7 @@ export function buildLegacySocialNetworkSnapshot(actor) {
 
     const personId = stableSocialId("person", key, "legacy", slot);
     const relationshipId = stableSocialId("relationship", key, "legacy", slot);
-    const source = sourceDescriptor({ slot, raw: rawValue, confidence, recruitment });
+    const source = sourceDescriptor({ slot, raw: rawValue, confidence, recruitment, kind: sourceKind });
 
     if (!people.some(person => person.id === personId)) {
       people.push(new PersonRecord({
@@ -247,60 +251,86 @@ export function buildLegacySocialNetworkSnapshot(actor) {
     return personId;
   };
 
-  const mother = clean(flag(actor, "recruitmentMother"));
-  const father = clean(flag(actor, "recruitmentFather"));
-  const parentsRaw = clean(actor?.system?.parents);
-  if (mother || father) {
-    if (mother) add({ slot: "parent-mother", raw: mother, name: mother, role: RelationshipRole.PARENT, confidence: "HIGH" });
-    if (father) add({ slot: "parent-father", raw: father, name: father, role: RelationshipRole.PARENT, confidence: "HIGH" });
-  } else if (parentsRaw) {
-    add({ slot: "parents-raw", raw: parentsRaw, name: parentsRaw, role: RelationshipRole.PARENT, confidence: "LOW_RAW" });
-  }
-
-  const artisanRaw = clean(actor?.system?.seniorArtisan);
-  if (artisanRaw) {
-    const parsed = recruitment ? splitRecruitmentArtisan(artisanRaw) : null;
-    add({
-      slot: "senior-artisan",
-      raw: artisanRaw,
-      name: parsed?.name || artisanRaw,
-      profession: parsed?.profession || "",
-      role: RelationshipRole.SENIOR_ARTISAN,
-      confidence: parsed ? "HIGH" : "LOW_RAW"
+  const addStructured = (slot, person, role, status = RelationshipStatus.UNKNOWN) => {
+    const name = clean(person?.name);
+    if (!name) return null;
+    return add({
+      slot,
+      raw: [name, clean(person?.profession), clean(person?.people), clean(person?.location)].filter(Boolean).join(", "),
+      name,
+      profession: clean(person?.profession),
+      peopleName: clean(person?.people),
+      location: clean(person?.location),
+      role,
+      status,
+      confidence: "STRUCTURED_HIGH",
+      sourceKind: "RECRUITMENT_STRUCTURED_RELATIONSHIP"
     });
-  }
+  };
 
-  const mentorRaw = clean(actor?.system?.mentor);
-  if (mentorRaw) add({ slot: "mentor", raw: mentorRaw, name: mentorRaw, role: RelationshipRole.MENTOR, confidence: recruitment ? "HIGH" : "MEDIUM" });
+  if (useStructured) {
+    addStructured("parent-mother", structured.mother, RelationshipRole.PARENT);
+    addStructured("parent-father", structured.father, RelationshipRole.PARENT);
+    addStructured("senior-artisan", structured.seniorArtisan, RelationshipRole.SENIOR_ARTISAN);
+    addStructured("mentor", structured.mentor, RelationshipRole.MENTOR);
+    addStructured("friend", structured.friend, RelationshipRole.FRIEND, RelationshipStatus.FRIENDLY);
+    addStructured("enemy", structured.enemy, RelationshipRole.ENEMY, RelationshipStatus.HOSTILE);
+  } else {
+    const mother = clean(flag(actor, "recruitmentMother"));
+    const father = clean(flag(actor, "recruitmentFather"));
+    const parentsRaw = clean(actor?.system?.parents);
+    if (mother || father) {
+      if (mother) add({ slot: "parent-mother", raw: mother, name: mother, role: RelationshipRole.PARENT, confidence: "HIGH" });
+      if (father) add({ slot: "parent-father", raw: father, name: father, role: RelationshipRole.PARENT, confidence: "HIGH" });
+    } else if (parentsRaw) {
+      add({ slot: "parents-raw", raw: parentsRaw, name: parentsRaw, role: RelationshipRole.PARENT, confidence: "LOW_RAW" });
+    }
 
-  const friendRaw = clean(actor?.system?.friend);
-  if (friendRaw) {
-    const parsed = recruitment ? splitRecruitmentTriple(friendRaw) : null;
-    add({
-      slot: "friend",
-      raw: friendRaw,
-      name: parsed?.name || friendRaw,
-      profession: parsed?.secondary || "",
-      location: parsed?.location || "",
-      role: RelationshipRole.FRIEND,
-      status: RelationshipStatus.FRIENDLY,
-      confidence: parsed ? "HIGH" : "LOW_RAW"
-    });
-  }
+    const artisanRaw = clean(actor?.system?.seniorArtisan);
+    if (artisanRaw) {
+      const parsed = recruitment ? splitRecruitmentArtisan(artisanRaw) : null;
+      add({
+        slot: "senior-artisan",
+        raw: artisanRaw,
+        name: parsed?.name || artisanRaw,
+        profession: parsed?.profession || "",
+        role: RelationshipRole.SENIOR_ARTISAN,
+        confidence: parsed ? "HIGH" : "LOW_RAW"
+      });
+    }
 
-  const enemyRaw = clean(actor?.system?.enemy);
-  if (enemyRaw) {
-    const parsed = recruitment ? splitRecruitmentTriple(enemyRaw) : null;
-    add({
-      slot: "enemy",
-      raw: enemyRaw,
-      name: parsed?.name || enemyRaw,
-      peopleName: parsed?.secondary || "",
-      location: parsed?.location || "",
-      role: RelationshipRole.ENEMY,
-      status: RelationshipStatus.HOSTILE,
-      confidence: parsed ? "HIGH" : "LOW_RAW"
-    });
+    const mentorRaw = clean(actor?.system?.mentor);
+    if (mentorRaw) add({ slot: "mentor", raw: mentorRaw, name: mentorRaw, role: RelationshipRole.MENTOR, confidence: recruitment ? "HIGH" : "MEDIUM" });
+
+    const friendRaw = clean(actor?.system?.friend);
+    if (friendRaw) {
+      const parsed = recruitment ? splitRecruitmentTriple(friendRaw) : null;
+      add({
+        slot: "friend",
+        raw: friendRaw,
+        name: parsed?.name || friendRaw,
+        profession: parsed?.secondary || "",
+        location: parsed?.location || "",
+        role: RelationshipRole.FRIEND,
+        status: RelationshipStatus.FRIENDLY,
+        confidence: parsed ? "HIGH" : "LOW_RAW"
+      });
+    }
+
+    const enemyRaw = clean(actor?.system?.enemy);
+    if (enemyRaw) {
+      const parsed = recruitment ? splitRecruitmentTriple(enemyRaw) : null;
+      add({
+        slot: "enemy",
+        raw: enemyRaw,
+        name: parsed?.name || enemyRaw,
+        peopleName: parsed?.secondary || "",
+        location: parsed?.location || "",
+        role: RelationshipRole.ENEMY,
+        status: RelationshipStatus.HOSTILE,
+        confidence: parsed ? "HIGH" : "LOW_RAW"
+      });
+    }
   }
 
   return new SocialNetworkSnapshot({
@@ -308,8 +338,9 @@ export function buildLegacySocialNetworkSnapshot(actor) {
     people,
     relationships,
     metadata: {
-      migrationSource: recruitment ? "RECRUITMENT_2_LEGACY_FIELDS" : "LEGACY_CHARACTER_FIELDS",
+      migrationSource: useStructured ? "RECRUITMENT_STRUCTURED_RELATIONSHIPS" : recruitment ? "RECRUITMENT_2_LEGACY_FIELDS" : "LEGACY_CHARACTER_FIELDS",
       recruitmentVersion,
+      recruitmentRelationshipsVersion: useStructured ? structuredVersion : 0,
       duplicatePolicy: "ACTOR_PLUS_SOURCE_SLOT",
       automaticNpcCreation: false
     }
