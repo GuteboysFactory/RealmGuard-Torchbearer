@@ -496,7 +496,7 @@ async function serviceStep(state) {
   return showStep(state, {
     current: 5, title: "Service & Specialty", subtitle: "Distribute experience gained in service to the Realms",
     body: () => `${modeHelp(state, `<p>${esc(s.label)} receives <b>${s.service} service checks</b>. Put several checks into one Skill to specialize or spread them out. ${state.rank === "recruit" ? "Recruits do not choose a Specialty." : "Then choose one Specialty, which adds one more check. No two player Rangers may share a Specialty."}</p>`)}
-      <div class="rg-service-grid">${skills.map(name => `<label><span>${esc(name)}</span><input type="number" data-rg-service-check name="service-${esc(name)}" min="0" max="${s.service}" value="${Math.max(0, Number(state.serviceAlloc[name] ?? 0))}"></label>`).join("")}</div>
+      <div class="rg-service-grid">${skills.map(name => { const current = Math.max(0, Math.min(s.service, Number(state.serviceAlloc[name] ?? 0) || 0)); return `<label><span>${esc(name)}</span><select data-rg-service-check name="service-${esc(name)}">${Array.from({ length: s.service + 1 }, (_, value) => `<option value="${value}" ${value === current ? "selected" : ""}>${value}</option>`).join("")}</select></label>`; }).join("")}</div>
       <div class="rg-recruit-summary" data-rg-service-summary data-required-service="${s.service}"><span>Required service checks</span><b>${totalAllocated()} / ${s.service}</b></div>
       ${state.rank === "recruit" ? `<div class="rg-recruit-note"><b>Recruit:</b> no Specialty is chosen at character creation.</div>` : `<label>Specialty<select name="specialty">${options(SPECIALTY_SKILLS, state.specialty, { placeholder: "Choose a unique Specialty...", disabled })}</select></label>`}`,
     commit: form => {
@@ -1323,7 +1323,7 @@ function installRecruitmentLiveUx() {
   recruitmentLiveUxInstalled = true;
   const handler = event => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement) || !target.matches("[data-rg-service-check]")) return;
+    if (!(target instanceof HTMLSelectElement) || !target.matches("[data-rg-service-check]")) return;
     const form = target.closest("form.rg-recruitment");
     if (form) syncRecruitmentServiceCounter(form);
   };
