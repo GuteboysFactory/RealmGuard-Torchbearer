@@ -14,6 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor } from "../module/m8-social-network-service.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -126,7 +127,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       chooseArt: RealmGuardActorSheet._chooseArt,
       tokenBuilder: RealmGuardActorSheet._tokenBuilder,
       portraitSettings: RealmGuardActorSheet._portraitSettings,
-      customRoll: RealmGuardActorSheet._customRoll
+      customRoll: RealmGuardActorSheet._customRoll,
+      linkRelationshipActor: RealmGuardActorSheet._linkRelationshipActor,
+      openRelationshipActor: RealmGuardActorSheet._openRelationshipActor,
+      unlinkRelationshipActor: RealmGuardActorSheet._unlinkRelationshipActor
     }
   };
 
@@ -402,6 +406,18 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         canManage: Boolean(game.user?.isGM)
       };
     }).sort((a, b) => (b.level - a.level) || a.name.localeCompare(b.name));
+    const relationshipView = buildM8RelationshipSheetView(actor);
+    const relationshipCards = relationshipView.relationships.map(relationship => ({
+      ...relationship,
+      person: relationship.person ?? null,
+      linkedActor: relationship.person?.actorLink ?? { linked: false, resolved: false, uuid: "", name: "", type: "", img: "" },
+      details: [
+        relationship.person?.profession ? `Profession: ${relationship.person.profession}` : "",
+        relationship.person?.people ? `People: ${relationship.person.people}` : "",
+        relationship.person?.location ? `Location: ${relationship.person.location}` : ""
+      ].filter(Boolean).join(" · "),
+      historyCount: Array.isArray(relationship.history) ? relationship.history.length : 0
+    }));
     const progression = progressionView(actor);
     const portrait = rangerPortraitState(actor);
     const talents = actor.talents.map(talent => ({
@@ -434,6 +450,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       tokenPowers,
       talents,
       progression,
+      relationshipView,
+      relationshipCards,
       portrait,
       inventory: buildInventoryView(actor),
       conditions: actor.conditions,
@@ -1121,6 +1139,59 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result=await foundry.applications.api.DialogV2.wait({window: { title: "Realm Guard · Manage Nature", resizable: true },content:`<div class="rg-nature-manage"><h3>Nature ${current}/${maximum}</h3><p><b>Tax:</b> ${tax}</p><p><b>Dúnadan descriptors:</b> Tradition · Family · Grief</p><p><small>Recover +1 only when the rules allow recovery. Deplete Maximum trades one point of maximum Nature to recover one point of tax.</small></p></div>`,modal:false,rejectClose:false,buttons:[{action:"recover",label:"Recover +1",icon:"fa-solid fa-leaf",callback:()=>"recover"},{action:"deplete",label:"Deplete Maximum",icon:"fa-solid fa-arrow-down",callback:()=>"deplete"},{action:"close",label:"Close",default:true,callback:()=>"close"}]});
     if(result==="recover"&&tax>0)await this.actor.update({"system.attributes.nature.value":Math.min(maximum,current+1)});
     if(result==="deplete"&&tax>0&&maximum>0){const nm=Math.max(0,maximum-1),nc=Math.min(nm,current+1);await this.actor.update({"system.attributes.nature.maximum":nm,"system.attributes.nature.value":nc});if(nm===0)ui.notifications.warn("Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");}
+  }
+
+  static async _linkRelationshipActor(event, target) {
+    const personId = String(target.closest("[data-rg-person-id]")?.dataset.rgPersonId ?? "");
+    if (!personId) return ui.notifications.warn("Realm Guard: Could not resolve the Social Network person.");
+
+    const candidates = (game.actors?.contents ?? [])
+      .filter(actor => actor.id !== this.actor.id && ["character", "npc"].includes(actor.type))
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+    if (!candidates.length) return ui.notifications.warn("Realm Guard: There are no other Character/NPC Actors available to link.");
+
+    const esc = foundry.utils.escapeHTML;
+    const options = candidates.map(actor => {
+      const label = `${actor.name} · ${actor.type === "npc" ? "NPC" : "Character"}`;
+      return `<option value="${esc(actor.uuid)}">${esc(label)}</option>`;
+    }).join("");
+
+    const actorUuid = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Realm Guard · Link Existing Actor", resizable: true },
+      content: `<div class="realm-guard rg-m8-link-dialog">
+        <p>Link this relationship person to an existing Foundry Actor. This does <b>not</b> create or delete an NPC.</p>
+        <label>Existing Actor<select name="actorUuid">${options}</select></label>
+      </div>`,
+      modal: false,
+      rejectClose: false,
+      buttons: [
+        { action: "link", label: "Link Actor", icon: "fa-solid fa-link", default: true, callback: (_event, button) => String(button.form?.elements?.actorUuid?.value ?? "") },
+        { action: "cancel", label: "Cancel", callback: () => "" }
+      ]
+    });
+
+    if (!actorUuid) return;
+    await linkM8PersonActor(this.actor, personId, actorUuid);
+    ui.notifications.info("Realm Guard: Relationship linked to existing Actor.");
+    await this.render({ force: true });
+  }
+
+  static async _openRelationshipActor(event, target) {
+    const actorUuid = String(target.closest("[data-rg-person-id]")?.dataset.rgActorUuid ?? "");
+    if (!actorUuid) return ui.notifications.warn("Realm Guard: This relationship is not linked to an Actor.");
+    const id = actorUuid.startsWith("Actor.") ? actorUuid.slice(6) : "";
+    const actor = id ? game.actors?.get?.(id) : null;
+    if (!actor) return ui.notifications.warn("Realm Guard: The linked Actor could not be resolved.");
+    actor.sheet?.render(true);
+  }
+
+  static async _unlinkRelationshipActor(event, target) {
+    const personId = String(target.closest("[data-rg-person-id]")?.dataset.rgPersonId ?? "");
+    if (!personId) return;
+    await linkM8PersonActor(this.actor, personId, "");
+    ui.notifications.info("Realm Guard: Actor link removed. The Actor itself was not deleted.");
+    await this.render({ force: true });
   }
 
   static async _turnDonate() {
