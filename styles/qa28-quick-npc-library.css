@@ -441,3 +441,58 @@ canvas.rg-quick-npc-canvas-image-drop {
     grid-column:1;
   }
 }
+
+
+/* qa.32 — Structured Recruitment Relationships */
+.realm-guard .rg-recruit-relationship-group {
+  display:grid;
+  gap:8px;
+  padding:10px;
+  border:1px solid rgba(112,76,35,.34);
+  border-radius:7px;
+  background:rgba(255,244,211,.38);
+}
+.realm-guard .rg-recruit-relationship-group > h3 {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:0;
+  color:#3a2b1a !important;
+  -webkit-text-fill-color:#3a2b1a !important;
+  font-family:Georgia,serif;
+}
+.realm-guard .rg-recruit-structured-person {
+  display:grid;
+  gap:5px;
+  padding:7px;
+  border:1px solid rgba(112,76,35,.22);
+  border-radius:5px;
+  background:rgba(255,250,232,.45);
+}
+.realm-guard .rg-recruit-structured-person > strong {
+  color:#5b4428 !important;
+  -webkit-text-fill-color:#5b4428 !important;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.realm-guard.rg-recruitment .rg-recruit-grid.four {
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.realm-guard .rg-recruit-summary.is-under {
+  border-color:#8a7345;
+}
+.realm-guard .rg-recruit-summary.is-complete {
+  border-color:#61743d;
+  box-shadow:inset 3px 0 0 #73894a;
+}
+.realm-guard .rg-recruit-summary.is-over {
+  border-color:#9a4e3f;
+  box-shadow:inset 3px 0 0 #a34b3b;
+}
+@media(max-width:900px) {
+  .realm-guard.rg-recruitment .rg-recruit-grid.four { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:620px) {
+  .realm-guard.rg-recruitment .rg-recruit-grid.four { grid-template-columns:1fr; }
+}
