@@ -1,13 +1,13 @@
-Realm Guard / Torchbearer v1.9.0-qa.29 — Canvas Image -> Quick NPC.
+Realm Guard / Torchbearer v1.9.0-qa.30 — Relationship -> Quick NPC.
 
-- Drag a local image directly from the desktop onto the active Scene.
-- Quick NPC Library opens with the image preview and normal searchable templates.
-- Choose/double-click a template to create one normal editable NPC Actor.
-- The dropped image becomes portrait/prototype-token texture.
-- A token is created automatically at the original Scene drop point.
-- Canvas quick-spawn does not force-open the NPC sheet.
-- Cancelling creates nothing.
-- Normal qa.28 Quick NPC flow remains unchanged.
-- No M8 Relationship NPC creation or NPC - PC Relations folder behavior yet.
+- Character -> Relationships now offers GM-only Create NPC for unlinked people.
+- Create NPC opens the verified Quick NPC Library with profession/culture search prefill.
+- GM must explicitly choose a template; nothing is created automatically.
+- Created Actor is named after the relationship person.
+- Relationship-created NPCs go into NPC - PC Relations; the folder is created if missing.
+- PersonRecord.actorUuid is linked automatically after creation.
+- Open / Unlink continue to work; Unlink never deletes the Actor.
+- Link Existing Actor never moves an existing Actor.
+- No Ranger Wizard NPC creation, Circles changes, or group templates yet.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.29.md
+QA: TEST_PROTOCOL_v1.9.0-qa.30.md
