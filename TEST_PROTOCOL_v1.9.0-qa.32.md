@@ -7,6 +7,7 @@ Use the Fighter dropdown and change 0 to 2.
 
 Expected:
 - Required service checks immediately changes from 0 / 6 to 2 / 6 without leaving the field.
+- If you go Back and return to Service & Specialty with saved allocations, the counter should immediately reflect those restored dropdown values.
 
 Use the Pathfinder and Scout dropdowns and choose 2 in each.
 
