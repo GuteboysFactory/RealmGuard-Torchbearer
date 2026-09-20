@@ -11,7 +11,7 @@ Realm Guard / Torchbearer v1.9.0-qa.32 — Structured Recruitment Relationships.
 - M8 prefers flags.realm-guard.recruitmentRelationships when present and keeps legacy fallback for old Rangers.
 - Legacy Mixed relationship fields are still written for compatibility.
 - Smart relationship NPC generation now receives clean names plus separate matching metadata.
-- Service & Specialty Required service checks now update live through delegated input/change handling.
+- Service allocation now uses Station-bounded dropdowns (0..Service total), and Required service checks update live from those selections.
 - Specialty does not count toward the required Service total.
 - No Recruitment rules, Circles, NPC stats, or M8 status/history rules changed.
 
