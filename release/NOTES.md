@@ -1,13 +1,14 @@
-Realm Guard / Torchbearer v1.9.0-qa.34 — Service UX Simplification.
+Realm Guard / Torchbearer v1.9.0-qa.35 — NPC Group Templates.
 
-- Removed the unreliable live Service counter and all associated observer/binding machinery.
-- Service allocation remains dropdown-based and station-bounded.
-- The Service step now clearly states the exact number of Service Checks to distribute.
-- Specialty is explicitly explained as one additional check outside the Service total.
-- Continue validation now gives directional feedback:
-  - under allocation -> how many checks remain
-  - over allocation -> how many checks to remove
-- Structured Relationships from qa.32 remain unchanged.
-- Smart relationship NPC generation remains unchanged.
+- Adds a GM-only Group Templates entry point to Quick NPC Library.
+- Adds eight initial reusable NPC group compositions.
+- Every group resolves its members through the existing smart Quick NPC matcher before creation.
+- GM review shows member roles and source templates and allows a custom group name.
+- No Actors or folders are created until Create Group is explicitly pressed.
+- Created groups use dedicated subfolders under Actors > NPCs Groups.
+- Repeated group names create numbered sibling folders rather than merging.
+- Group NPCs remain normal editable Actor copies with group/source provenance metadata.
+- Relationship NPCs remain separate in NPC - PC Relations.
+- qa.34 Service UX and Structured Recruitment Relationships remain unchanged.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.34.md
+QA: TEST_PROTOCOL_v1.9.0-qa.35.md
