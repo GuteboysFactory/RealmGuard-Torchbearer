@@ -1,12 +1,13 @@
-Realm Guard / Torchbearer v1.9.0-qa.33 — Service Counter Observer Fix.
+Realm Guard / Torchbearer v1.9.0-qa.34 — Service UX Simplification.
 
-- New QA version dedicated to the Service & Specialty live-counter issue.
-- Verified root cause: DialogV2 render-time binding never reached the real Service select elements.
-- Removed Service counter dependence on the Recruitment step's onRender lifecycle.
-- Recruitment now installs a MutationObserver that binds only after the real form exists in document.body.
-- Each Service dropdown is directly bound and marked data-rg-service-counter-bound="true".
-- Live total is recalculated from the actual visible select[data-rg-service-check] values.
-- Initial total is recalculated immediately after binding.
-- Service dropdowns, exact Continue validation, Specialty behavior, structured Relationships, and NPC generation remain unchanged.
+- Removed the unreliable live Service counter and all associated observer/binding machinery.
+- Service allocation remains dropdown-based and station-bounded.
+- The Service step now clearly states the exact number of Service Checks to distribute.
+- Specialty is explicitly explained as one additional check outside the Service total.
+- Continue validation now gives directional feedback:
+  - under allocation -> how many checks remain
+  - over allocation -> how many checks to remove
+- Structured Relationships from qa.32 remain unchanged.
+- Smart relationship NPC generation remains unchanged.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.33.md
+QA: TEST_PROTOCOL_v1.9.0-qa.34.md
