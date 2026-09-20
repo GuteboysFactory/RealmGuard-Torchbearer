@@ -51,9 +51,19 @@ async function placeNpcToken(actor, drop) {
   return created?.[0] ?? null;
 }
 
-async function ensureNpcFolder() {
-  let folder = game.folders?.find?.(f => f.type === "Actor" && String(f.name ?? "").toLowerCase() === "npc");
-  if (!folder) folder = await Folder.create({ name: "NPC", type: "Actor", color: "#3f4b2f", flags: { [NS]: { npcTemplateFolder: true } } });
+async function ensureNpcFolder({ name = "NPC", flagKey = "npcTemplateFolder" } = {}) {
+  const folderName = String(name || "NPC").trim() || "NPC";
+  const normalized = folderName.toLowerCase();
+  let folder = game.folders?.find?.(f => f.type === "Actor" && String(f.name ?? "").trim().toLowerCase() === normalized);
+  if (!folder) {
+    const key = String(flagKey || "npcTemplateFolder").trim() || "npcTemplateFolder";
+    folder = await Folder.create({
+      name: folderName,
+      type: "Actor",
+      color: "#3f4b2f",
+      flags: { [NS]: { [key]: true } }
+    });
+  }
   return folder;
 }
 
@@ -95,7 +105,7 @@ async function uploadNpcImage(file) {
   return path;
 }
 
-export async function createNpcFromTemplate(templateId, { imageFile = null, canvasDrop = null, openSheet = true } = {}) {
+export async function createNpcFromTemplate(templateId, { imageFile = null, canvasDrop = null, openSheet = true, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
   if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
@@ -105,12 +115,12 @@ export async function createNpcFromTemplate(templateId, { imageFile = null, canv
   let imagePath = null;
   if (imageFile) imagePath = await uploadNpcImage(imageFile);
 
-  const folder = await ensureNpcFolder();
+  const folder = await ensureNpcFolder({ name: folderName, flagKey: folderFlag });
   const source = template.toObject();
   delete source._id;
   delete source.folder;
   source.folder = folder?.id ?? null;
-  source.name = cleanFileName(imageFile?.name) || template.name;
+  source.name = String(actorName || "").trim() || cleanFileName(imageFile?.name) || template.name;
 
   if (imagePath) {
     source.img = imagePath;
@@ -134,6 +144,8 @@ export async function createNpcFromTemplate(templateId, { imageFile = null, canv
 
   let token = null;
   if (canvasDrop) token = await placeNpcToken(actor, canvasDrop);
+
+  if (typeof onCreated === "function") await onCreated(actor, template);
 
   if (canvasDrop && token) {
     ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name} and placed on the Scene.`);
@@ -171,17 +183,29 @@ function templateCard(entry) {
   </article>`;
 }
 
-function bindCardActions(root, createOptions = {}) {
-  root.querySelectorAll("[data-rg-template-create]").forEach(button => button.addEventListener("click", event => {
+function bindCardActions(root, createOptions = {}, { afterCreate = null } = {}) {
+  const create = async (templateId, overrides = {}) => {
+    try {
+      const actor = await createNpcFromTemplate(templateId, { ...createOptions, ...overrides });
+      if (actor && typeof afterCreate === "function") await afterCreate(actor);
+      return actor;
+    } catch (error) {
+      console.error(`${NS} | Quick NPC creation failed`, error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Quick NPC creation failed."}`);
+      return null;
+    }
+  };
+
+  root.querySelectorAll("[data-rg-template-create]").forEach(button => button.addEventListener("click", async event => {
     event.preventDefault();
-    void createNpcFromTemplate(button.dataset.rgTemplateCreate, createOptions);
+    await create(button.dataset.rgTemplateCreate);
   }));
 
   root.querySelectorAll("[data-rg-npc-template]").forEach(card => {
-    card.addEventListener("dblclick", event => {
+    card.addEventListener("dblclick", async event => {
       if (event.target?.closest?.("button")) return;
       event.preventDefault();
-      void createNpcFromTemplate(card.dataset.rgNpcTemplate, createOptions);
+      await create(card.dataset.rgNpcTemplate);
     });
     card.addEventListener("dragover", event => {
       if (!event.dataTransfer?.types?.includes?.("Files")) return;
@@ -197,17 +221,12 @@ function bindCardActions(root, createOptions = {}) {
       event.preventDefault();
       event.stopPropagation();
       card.classList.remove("is-image-drop");
-      try {
-        await createNpcFromTemplate(card.dataset.rgNpcTemplate, { ...createOptions, imageFile: file });
-      } catch (error) {
-        console.error(`${NS} | NPC template image drop failed`, error);
-        ui.notifications.error(`Realm Guard: ${error.message || "NPC template image drop failed."}`);
-      }
+      await create(card.dataset.rgNpcTemplate, { imageFile: file });
     });
   });
 }
 
-export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null } = {}) {
+export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null, closeAfterCreate = false } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
   if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
@@ -288,7 +307,18 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
     count.textContent = matches.length === entries.length ? `${matches.length} templates` : `${matches.length} / ${entries.length}`;
     empty.hidden = matches.length > 0;
     results.hidden = matches.length === 0;
-    bindCardActions(results, canvasSpawn ? { imageFile, canvasDrop, openSheet: false } : {});
+    const createOptions = {
+      actorName,
+      folderName,
+      folderFlag,
+      onCreated,
+      ...(canvasSpawn ? { imageFile, canvasDrop, openSheet: false } : {})
+    };
+    bindCardActions(results, createOptions, {
+      afterCreate: async actor => {
+        if (actor && closeAfterCreate) await dialog.close();
+      }
+    });
 
     if (matches.length > visible.length) {
       const note = document.createElement("div");
