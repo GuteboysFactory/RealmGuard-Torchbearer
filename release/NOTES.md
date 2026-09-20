@@ -1,8 +1,14 @@
-Realm Guard / Torchbearer v1.9.0-qa.25 — Namespaced FilePicker Cleanup.
+Realm Guard / Torchbearer v1.9.0-qa.26 — M8 Social Network Foundation.
 
-- Ranger portrait upload no longer reads deprecated global FilePicker.
-- Token Builder upload no longer reads deprecated global FilePicker.
-- Uses the Foundry namespaced FilePicker implementation directly.
-- No rules/data-model changes.
+Backend/shadow-only:
+- PersonRecord + Relationship model
+- Role / Status / Origin / History separation
+- SocialNetworkRepository + SocialNetworkService
+- deterministic non-destructive legacy Recruitment/relationship migration
+- fallback compatibility reads
+- optional actorUuid linking
+- explicit GM migration only
 
-QA: TEST_PROTOCOL_v1.9.0-qa.25.md
+No Circles live integration, no UI replacement, no automatic NPC creation, and Legacy Mixed remains gameplay authority.
+
+QA: TEST_PROTOCOL_v1.9.0-qa.26.md
