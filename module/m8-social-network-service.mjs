@@ -72,6 +72,90 @@ async function migrateAll() {
   return Object.freeze(results);
 }
 
+function roleLabel(role = "") {
+  return String(role || "OTHER").toLowerCase().split("_").map(part => part ? part[0].toUpperCase() + part.slice(1) : "").join(" ");
+}
+
+function statusLabel(status = "") {
+  return String(status || "UNKNOWN").toLowerCase().split("_").map(part => part ? part[0].toUpperCase() + part.slice(1) : "").join(" ");
+}
+
+function linkedActorView(actorUuid = "") {
+  const uuid = String(actorUuid || "").trim();
+  if (!uuid) return Object.freeze({ uuid: "", linked: false, resolved: false, name: "", type: "", img: "" });
+  const id = uuid.startsWith("Actor.") ? uuid.slice(6) : "";
+  const actor = id ? game.actors?.get?.(id) : null;
+  return Object.freeze({
+    uuid,
+    linked: true,
+    resolved: Boolean(actor),
+    name: actor?.name ?? "",
+    type: actor?.type ?? "",
+    img: actor?.img ?? ""
+  });
+}
+
+export function buildM8RelationshipSheetView(actorOrId) {
+  const actor = actorRef(actorOrId);
+  if (!actor) return Object.freeze({ stored: false, sourceMode: "NONE", people: Object.freeze([]), relationships: Object.freeze([]) });
+
+  const current = services();
+  const stored = current.repository.readStored(actor);
+  const legacy = current.repository.fallback(actor);
+  const storedPeople = new Map((stored?.people ?? []).map(person => [person.id, person]));
+  const storedRelationships = new Map((stored?.relationships ?? []).map(relationship => [relationship.id, relationship]));
+
+  const people = legacy.people.map(person => {
+    const normalized = storedPeople.get(person.id);
+    return Object.freeze({
+      ...person,
+      notes: normalized?.notes || person.notes || "",
+      actorUuid: normalized?.actorUuid || "",
+      actorLink: linkedActorView(normalized?.actorUuid || "")
+    });
+  });
+  for (const person of stored?.people ?? []) {
+    if (people.some(entry => entry.id === person.id)) continue;
+    people.push(Object.freeze({ ...person, actorLink: linkedActorView(person.actorUuid) }));
+  }
+
+  const peopleById = new Map(people.map(person => [person.id, person]));
+  const relationships = legacy.relationships.map(relationship => {
+    const normalized = storedRelationships.get(relationship.id);
+    const effective = normalized ?? relationship;
+    const person = peopleById.get(relationship.personId) ?? null;
+    return Object.freeze({
+      ...effective,
+      source: relationship.source ?? effective.source ?? null,
+      roleLabel: roleLabel(effective.role),
+      statusLabel: statusLabel(effective.status),
+      person
+    });
+  });
+  for (const relationship of stored?.relationships ?? []) {
+    if (relationships.some(entry => entry.id === relationship.id)) continue;
+    relationships.push(Object.freeze({
+      ...relationship,
+      roleLabel: roleLabel(relationship.role),
+      statusLabel: statusLabel(relationship.status),
+      person: peopleById.get(relationship.personId) ?? null
+    }));
+  }
+
+  return Object.freeze({
+    stored: Boolean(stored),
+    sourceMode: stored ? "NORMALIZED_PLUS_CURRENT_LEGACY" : "LEGACY_FALLBACK",
+    people: Object.freeze(people),
+    relationships: Object.freeze(relationships)
+  });
+}
+
+export async function linkM8PersonActor(actorOrId, personId, actorUuid) {
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  return services().social.linkActor(actor, personId, actorUuid);
+}
+
 function getM8Status() {
   const actors = eligibleActors();
   const current = services();
@@ -83,7 +167,7 @@ function getM8Status() {
   }
   return Object.freeze({
     phase: "M8",
-    buildScope: "SOCIAL_NETWORK_FOUNDATION",
+    buildScope: "SOCIAL_NETWORK_RELATIONSHIP_UI",
     mode: "SHADOW_READ_COMPATIBILITY",
     authority: "LEGACY_MIXED",
     liveApplication: false,
@@ -109,13 +193,16 @@ function getM8Status() {
       "DuplicateProtection",
       "OptionalActorUuid",
       "FallbackCompatibilityRead",
-      "ExplicitGmMigration"
+      "ExplicitGmMigration",
+      "CharacterRelationshipView",
+      "ExistingActorLinking"
     ]),
     preservation: Object.freeze({
       legacyFieldsDeleted: false,
       recruitmentFieldsChanged: false,
       circlesBehaviorChanged: false,
-      characterSheetBehaviorChanged: false,
+      characterSheetBehaviorChanged: true,
+      characterSheetGameplayChanged: false,
       automaticNpcCreation: false,
       gameplayChangeIntended: false
     })
