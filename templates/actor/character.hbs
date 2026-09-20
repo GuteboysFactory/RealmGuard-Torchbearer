@@ -150,15 +150,67 @@
 
         <section class="rg-character-subpage" data-rg-character-page="relationships">
           <main class="rg-character-grid rg-character-section-grid">
-            <section class="rg-panel rg-relations">
-              <div class="rg-panel-title"><div><h2>Relationships</h2><small>Recurring people tied to the Ranger</small></div></div>
-              <div class="rg-relationship-grid">
-                <label class="rg-relation-card"><span><i class="fa-solid fa-people-roof"></i> Parents</span><input name="system.parents" value="{{system.parents}}" placeholder="Names, trade or home" /><small>Family or guardians from the Ranger's background.</small></label>
-                <label class="rg-relation-card"><span><i class="fa-solid fa-hammer"></i> Senior Artisan</span><input name="system.seniorArtisan" value="{{system.seniorArtisan}}" placeholder="Name and craft / trade" /><small>The artisan or teacher from the Ranger's earlier training.</small></label>
-                <label class="rg-relation-card"><span><i class="fa-solid fa-compass"></i> Mentor</span><input name="system.mentor" value="{{system.mentor}}" placeholder="Name, station and status" /><small>The Ranger who guided their early service.</small></label>
-                <label class="rg-relation-card"><span><i class="fa-solid fa-handshake"></i> Friend / Ally</span><input name="system.friend" value="{{system.friend}}" placeholder="Name, role / trade and location" /><small>A recurring ally who can be found and asked for aid.</small></label>
-                <label class="rg-relation-card rg-relation-wide"><span><i class="fa-solid fa-user-slash"></i> Enemy / Rival</span><input name="system.enemy" value="{{system.enemy}}" placeholder="Name, role / people and location" /><small>A recurring rival or enemy controlled by the GM in play.</small></label>
+            <section class="rg-panel rg-relations rg-m8-relations">
+              <div class="rg-panel-title">
+                <div><h2>Relationships</h2><small>Social Network view · Legacy Mixed fields remain the gameplay source.</small></div>
+                <span class="rg-m8-source-badge">{{relationshipView.sourceMode}}</span>
               </div>
+
+              <div class="rg-m8-relationship-list">
+                {{#each relationshipCards as |relationship|}}
+                <article class="rg-m8-relationship-card" data-rg-person-id="{{relationship.person.id}}" data-rg-actor-uuid="{{relationship.person.actorUuid}}">
+                  <div class="rg-m8-relationship-main">
+                    <div class="rg-m8-relationship-head">
+                      <div>
+                        <span class="rg-m8-role">{{relationship.roleLabel}}</span>
+                        <strong>{{relationship.person.name}}</strong>
+                      </div>
+                      <span class="rg-m8-status rg-status-{{relationship.status}}">{{relationship.statusLabel}}</span>
+                    </div>
+                    {{#if relationship.details}}<p>{{relationship.details}}</p>{{/if}}
+                    <div class="rg-m8-relationship-meta">
+                      <span><i class="fa-solid fa-code-branch"></i> {{relationship.origin}}</span>
+                      {{#if relationship.historyCount}}<span><i class="fa-solid fa-clock-rotate-left"></i> {{relationship.historyCount}} history</span>{{/if}}
+                      {{#if relationship.linkedActor.linked}}
+                        {{#if relationship.linkedActor.resolved}}
+                        <span class="is-linked"><i class="fa-solid fa-link"></i> {{relationship.linkedActor.name}}</span>
+                        {{else}}
+                        <span class="is-broken"><i class="fa-solid fa-link-slash"></i> Linked Actor unavailable</span>
+                        {{/if}}
+                      {{else}}
+                      <span><i class="fa-solid fa-link-slash"></i> Not linked</span>
+                      {{/if}}
+                    </div>
+                  </div>
+                  <div class="rg-m8-relationship-actions">
+                    {{#if relationship.linkedActor.resolved}}
+                    <button type="button" data-action="openRelationshipActor" title="Open linked Actor"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</button>
+                    <button type="button" data-action="unlinkRelationshipActor" title="Remove Actor link only"><i class="fa-solid fa-link-slash"></i> Unlink</button>
+                    {{else}}
+                    <button type="button" data-action="linkRelationshipActor" title="Link this person to an existing Foundry Actor"><i class="fa-solid fa-link"></i> Link Existing Actor</button>
+                    {{/if}}
+                  </div>
+                </article>
+                {{else}}
+                <div class="rg-m8-empty">
+                  <i class="fa-solid fa-people-group"></i>
+                  <p>No relationship records could be derived yet.</p>
+                  <small>Legacy fields below remain available and are preserved.</small>
+                </div>
+                {{/each}}
+              </div>
+
+              <details class="rg-m8-legacy-fields">
+                <summary><i class="fa-solid fa-box-archive"></i> Legacy Relationship Fields</summary>
+                <p class="rg-m8-legacy-note">Compatibility source for Legacy Mixed. Editing these fields does not delete normalized Social Network metadata.</p>
+                <div class="rg-relationship-grid">
+                  <label class="rg-relation-card"><span><i class="fa-solid fa-people-roof"></i> Parents</span><input name="system.parents" value="{{system.parents}}" placeholder="Names, trade or home" /><small>Family or guardians from the Ranger's background.</small></label>
+                  <label class="rg-relation-card"><span><i class="fa-solid fa-hammer"></i> Senior Artisan</span><input name="system.seniorArtisan" value="{{system.seniorArtisan}}" placeholder="Name and craft / trade" /><small>The artisan or teacher from the Ranger's earlier training.</small></label>
+                  <label class="rg-relation-card"><span><i class="fa-solid fa-compass"></i> Mentor</span><input name="system.mentor" value="{{system.mentor}}" placeholder="Name, station and status" /><small>The Ranger who guided their early service.</small></label>
+                  <label class="rg-relation-card"><span><i class="fa-solid fa-handshake"></i> Friend / Ally</span><input name="system.friend" value="{{system.friend}}" placeholder="Name, role / trade and location" /><small>A recurring ally who can be found and asked for aid.</small></label>
+                  <label class="rg-relation-card rg-relation-wide"><span><i class="fa-solid fa-user-slash"></i> Enemy / Rival</span><input name="system.enemy" value="{{system.enemy}}" placeholder="Name, role / people and location" /><small>A recurring rival or enemy controlled by the GM in play.</small></label>
+                </div>
+              </details>
             </section>
           </main>
         </section>
