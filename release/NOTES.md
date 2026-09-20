@@ -1,10 +1,13 @@
-Realm Guard / Torchbearer v1.9.0-qa.27 — M8 Relationship UI Foundation.
+Realm Guard / Torchbearer v1.9.0-qa.28 — Quick NPC Library 2.0.
 
-- Character > Relationships now presents M8 Social Network cards.
-- Current legacy relationship fields remain visible through a compatibility section and remain Legacy Mixed authority.
-- Existing Character/NPC Actors can be linked, opened and unlinked.
-- Unlink never deletes an Actor.
-- No NPCs are created automatically.
-- No Circles or Recruitment authority change.
+- Large generated Quick NPC template library replaces the old tiny starter set.
+- Search covers occupations, cultures, concepts, tags, aliases/synonyms and competence.
+- Category, Culture and Competence filters are available.
+- Create and double-click spawn normal editable NPC Actors.
+- Local image drop onto a result creates the NPC with that portrait/prototype token texture.
+- Template copies are detached; created NPCs are normal editable Actors.
+- Starter Library sync remains non-destructive.
+- NPC Builder now uses Foundry's modern FilePicker path.
+- No canvas image-drop, M8 Relationship NPC creation or Ranger Wizard NPC creation yet.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.27.md
+QA: TEST_PROTOCOL_v1.9.0-qa.28.md
