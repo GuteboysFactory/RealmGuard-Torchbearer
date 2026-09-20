@@ -68,15 +68,16 @@ Gertrud / Miller / Bree
 -> generated Actor name = Gertrud
 
 ## Service & Specialty live counter
-Service allocation uses station-bounded dropdowns. The Required service checks display is now bound directly to the active Service dropdowns in the Recruitment dialog, with an immediate initial sync and a next-frame retry for ApplicationV2 render timing.
+Service allocation uses station-bounded dropdowns. The old live-counter implementation has been removed and replaced with a fresh DOM counter that reads every visible `select[data-rg-service-check]` value directly, sums them, and writes that total to the UI.
 
 Example for a Scout:
-Fighter dropdown -> 2
--> counter immediately updates to 2 / 6
+Fighter 3 + Pathfinder 1 + Scout 1 + Weather Watcher 1
+-> counter shows 6 / 6
 
 The counter:
-- each Skill dropdown offers 0 through the Station's required Service total
-- sums all Service allocations live
+- reads the visible dropdown values directly
+- recalculates on dropdown input/change
+- performs an initial recalculation when the Service step renders
 - marks under / complete / over
 - still validates exact allocation on Continue
 - does not count Specialty toward the required Service-check total
