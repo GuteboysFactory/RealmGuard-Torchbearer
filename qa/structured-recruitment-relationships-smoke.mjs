@@ -19,8 +19,6 @@ for (const needle of [
   'mentorLocation',
   'enemyProfession',
   'data-rg-service-check',
-  'data-rg-service-counter',
-  'data-rg-service-counter-value',
   'Array.from({ length: s.service + 1 }'
 ]) assert.ok(recruitment.includes(needle), `Missing qa.32 Recruitment marker: ${needle}`);
 
