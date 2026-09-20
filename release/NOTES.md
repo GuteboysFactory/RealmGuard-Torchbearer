@@ -1,18 +1,12 @@
-Realm Guard / Torchbearer v1.9.0-qa.32 — Structured Recruitment Relationships.
+Realm Guard / Torchbearer v1.9.0-qa.33 — Service Counter Observer Fix.
 
-- Recruitment relationship identity is now structured at source.
-- Mother/Father: Name / Profession / Location.
-- Senior Artisan: Name / Profession / Location.
-- Mentor: Name / Ranger role / Location.
-- Friend: Name / Profession / Location.
-- Enemy: Name / People-Type / optional Role-Profession / Location.
-- Alive/dead is intentionally not part of Recruitment identity.
-- Profession suggestions come from Quick NPC Library; custom text remains allowed.
-- M8 prefers flags.realm-guard.recruitmentRelationships when present and keeps legacy fallback for old Rangers.
-- Legacy Mixed relationship fields are still written for compatibility.
-- Smart relationship NPC generation now receives clean names plus separate matching metadata.
-- Service allocation uses Station-bounded dropdowns (0..Service total). The old counter implementation is removed; a fresh DOM counter now sums the visible Service dropdown values directly on render/input/change.
-- Specialty does not count toward the required Service total.
-- No Recruitment rules, Circles, NPC stats, or M8 status/history rules changed.
+- New QA version dedicated to the Service & Specialty live-counter issue.
+- Verified root cause: DialogV2 render-time binding never reached the real Service select elements.
+- Removed Service counter dependence on the Recruitment step's onRender lifecycle.
+- Recruitment now installs a MutationObserver that binds only after the real form exists in document.body.
+- Each Service dropdown is directly bound and marked data-rg-service-counter-bound="true".
+- Live total is recalculated from the actual visible select[data-rg-service-check] values.
+- Initial total is recalculated immediately after binding.
+- Service dropdowns, exact Continue validation, Specialty behavior, structured Relationships, and NPC generation remain unchanged.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.32.md
+QA: TEST_PROTOCOL_v1.9.0-qa.33.md
