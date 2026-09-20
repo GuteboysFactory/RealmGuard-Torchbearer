@@ -316,3 +316,53 @@ canvas.rg-quick-npc-canvas-image-drop {
   color:#675239 !important;
   -webkit-text-fill-color:#675239 !important;
 }
+
+
+/* qa.31 — Recruitment relationship NPC review */
+.realm-guard .rg-recruit-npc-summary {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+  margin:8px 0;
+}
+.realm-guard .rg-recruit-npc-summary > span,
+.realm-guard .rg-recruit-npc-choice {
+  display:grid;
+  gap:2px;
+  padding:8px 9px;
+  border:1px solid rgba(112,76,35,.34);
+  border-radius:6px;
+  background:rgba(255,244,211,.48);
+}
+.realm-guard .rg-recruit-npc-summary b,
+.realm-guard .rg-recruit-npc-choice b {
+  color:#3b2d1d !important;
+  -webkit-text-fill-color:#3b2d1d !important;
+  font-family:Georgia,serif;
+}
+.realm-guard .rg-recruit-npc-summary small,
+.realm-guard .rg-recruit-npc-choice small {
+  color:#6d593d !important;
+  -webkit-text-fill-color:#6d593d !important;
+}
+.realm-guard .rg-recruit-npc-choice-list {
+  display:grid;
+  gap:6px;
+}
+.realm-guard .rg-recruit-npc-choice {
+  grid-template-columns:22px minmax(0,1fr);
+  align-items:center;
+  text-transform:none;
+  letter-spacing:normal;
+}
+.realm-guard .rg-recruit-npc-choice input {
+  width:16px;
+  height:16px;
+}
+.realm-guard .rg-recruit-npc-choice span {
+  display:grid;
+  gap:2px;
+}
+@media(max-width:700px) {
+  .realm-guard .rg-recruit-npc-summary { grid-template-columns:1fr; }
+}
