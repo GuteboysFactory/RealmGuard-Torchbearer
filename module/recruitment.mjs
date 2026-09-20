@@ -503,6 +503,7 @@ async function serviceStep(state) {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
       state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
     },
+    onRender: (_event, dialog) => bindRecruitmentServiceCounter(dialog),
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
       if (allocated !== s.service) return `Allocate exactly ${s.service} service checks. You currently allocated ${allocated}.`;
@@ -1303,8 +1304,6 @@ async function migrateRecruitmentAbilityCaps() {
   if (changed) console.log(`Realm Guard | Recruitment 2.0 raised Resources/Circles caps on ${changed} existing Actor(s).`);
 }
 
-let recruitmentLiveUxInstalled = false;
-
 function syncRecruitmentServiceCounter(form) {
   const summary = form?.querySelector?.("[data-rg-service-summary]");
   if (!summary) return;
@@ -1318,21 +1317,36 @@ function syncRecruitmentServiceCounter(form) {
   summary.classList.toggle("is-over", allocated > required);
 }
 
-function installRecruitmentLiveUx() {
-  if (recruitmentLiveUxInstalled) return;
-  recruitmentLiveUxInstalled = true;
-  const handler = event => {
-    const target = event.target;
-    if (!(target instanceof HTMLSelectElement) || !target.matches("[data-rg-service-check]")) return;
-    const form = target.closest("form.rg-recruitment");
-    if (form) syncRecruitmentServiceCounter(form);
+function bindRecruitmentServiceCounter(dialog) {
+  const tryBind = () => {
+    const root = dialog?.element;
+    const form = root?.querySelector?.("form.rg-recruitment");
+    if (!form) return false;
+
+    const selects = [...form.querySelectorAll("[data-rg-service-check]")];
+    if (!selects.length) return false;
+
+    const sync = () => syncRecruitmentServiceCounter(form);
+    for (const select of selects) {
+      if (select.dataset.rgServiceCounterBound === "true") continue;
+      select.dataset.rgServiceCounterBound = "true";
+      select.addEventListener("change", sync);
+      select.addEventListener("input", sync);
+    }
+
+    // Initial sync matters when Back/Forward restores already selected values.
+    sync();
+    return true;
   };
-  document.addEventListener("input", handler, true);
-  document.addEventListener("change", handler, true);
+
+  // ApplicationV2 render callbacks can fire before every child control is attached.
+  // Bind once immediately, then retry on the next frame if necessary.
+  queueMicrotask(() => {
+    if (!tryBind()) requestAnimationFrame(() => tryBind());
+  });
 }
 
 export function installRecruitment() {
-  installRecruitmentLiveUx();
   Hooks.on("renderActorDirectory", (_app, html) => injectActorDirectoryRecruitmentTools(html));
   Hooks.once("ready", () => {
     const actors = ui?.actors?.element ?? document.querySelector("#actors");
