@@ -479,20 +479,28 @@ canvas.rg-quick-npc-canvas-image-drop {
 .realm-guard.rg-recruitment .rg-recruit-grid.four {
   grid-template-columns:repeat(4,minmax(0,1fr));
 }
-.realm-guard .rg-recruit-summary.is-under {
-  border-color:#8a7345;
-}
-.realm-guard .rg-recruit-summary.is-complete {
-  border-color:#61743d;
-  box-shadow:inset 3px 0 0 #73894a;
-}
-.realm-guard .rg-recruit-summary.is-over {
-  border-color:#9a4e3f;
-  box-shadow:inset 3px 0 0 #a34b3b;
-}
 @media(max-width:900px) {
   .realm-guard.rg-recruitment .rg-recruit-grid.four { grid-template-columns:1fr 1fr; }
 }
 @media(max-width:620px) {
   .realm-guard.rg-recruitment .rg-recruit-grid.four { grid-template-columns:1fr; }
+}
+
+.realm-guard .rg-service-check-instruction {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+}
+.realm-guard .rg-service-check-instruction > b {
+  white-space:nowrap;
+  color:#e0bd6b !important;
+  -webkit-text-fill-color:#e0bd6b !important;
+}
+.realm-guard .rg-service-check-instruction > span {
+  color:#d7cfbd !important;
+  -webkit-text-fill-color:#d7cfbd !important;
+}
+@media(max-width:620px) {
+  .realm-guard .rg-service-check-instruction { grid-template-columns:1fr; }
 }
