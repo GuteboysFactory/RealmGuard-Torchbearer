@@ -366,3 +366,78 @@ canvas.rg-quick-npc-canvas-image-drop {
 @media(max-width:700px) {
   .realm-guard .rg-recruit-npc-summary { grid-template-columns:1fr; }
 }
+
+
+/* qa.31 smart Recruitment relationship NPC matching */
+.realm-guard .rg-recruit-npc-smart-list {
+  display:grid;
+  gap:7px;
+  margin:9px 0;
+}
+.realm-guard .rg-recruit-npc-smart-row {
+  display:grid;
+  grid-template-columns:minmax(170px,.8fr) minmax(260px,1.25fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:9px;
+  border:1px solid rgba(112,76,35,.34);
+  border-radius:7px;
+  background:rgba(255,244,211,.52);
+}
+.realm-guard .rg-recruit-npc-smart-row > input[type="checkbox"] {
+  width:17px;
+  height:17px;
+  margin:0;
+}
+.realm-guard .rg-recruit-npc-smart-row:has(> input[type="checkbox"]) {
+  grid-template-columns:24px minmax(150px,.75fr) minmax(240px,1.25fr) auto;
+}
+.realm-guard .rg-recruit-npc-smart-person,
+.realm-guard .rg-recruit-npc-smart-template {
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.realm-guard .rg-recruit-npc-smart-person b,
+.realm-guard .rg-recruit-npc-smart-template b {
+  color:#3a2b1a !important;
+  -webkit-text-fill-color:#3a2b1a !important;
+  font-family:Georgia,serif;
+}
+.realm-guard .rg-recruit-npc-smart-person small {
+  color:#6d593d !important;
+  -webkit-text-fill-color:#6d593d !important;
+}
+.realm-guard .rg-recruit-npc-smart-template span {
+  color:#7a6b3e !important;
+  -webkit-text-fill-color:#7a6b3e !important;
+  font-size:9px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.realm-guard .rg-recruit-npc-smart-template b {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.realm-guard .rg-recruit-npc-smart-row [data-rg-change-template] {
+  white-space:nowrap;
+}
+@media(max-width:760px) {
+  .realm-guard .rg-recruit-npc-smart-row,
+  .realm-guard .rg-recruit-npc-smart-row:has(> input[type="checkbox"]) {
+    grid-template-columns:24px minmax(0,1fr);
+  }
+  .realm-guard .rg-recruit-npc-smart-row:not(:has(> input[type="checkbox"])) {
+    grid-template-columns:1fr;
+  }
+  .realm-guard .rg-recruit-npc-smart-template,
+  .realm-guard .rg-recruit-npc-smart-row [data-rg-change-template] {
+    grid-column:2;
+  }
+  .realm-guard .rg-recruit-npc-smart-row:not(:has(> input[type="checkbox"])) .rg-recruit-npc-smart-template,
+  .realm-guard .rg-recruit-npc-smart-row:not(:has(> input[type="checkbox"])) [data-rg-change-template] {
+    grid-column:1;
+  }
+}
