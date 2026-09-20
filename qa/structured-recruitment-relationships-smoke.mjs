@@ -20,10 +20,11 @@ for (const needle of [
   'enemyProfession',
   'data-rg-service-check',
   'data-rg-service-summary',
-  'function installRecruitmentLiveUx',
-  'document.addEventListener("input", handler, true)',
-  'document.addEventListener("change", handler, true)',
-  'HTMLSelectElement',
+  'function bindRecruitmentServiceCounter(dialog)',
+  'select.addEventListener("change", sync)',
+  'select.addEventListener("input", sync)',
+  'queueMicrotask(() =>',
+  'requestAnimationFrame(() => tryBind())',
   'Array.from({ length: s.service + 1 }'
 ]) assert.ok(recruitment.includes(needle), `Missing qa.32 Recruitment marker: ${needle}`);
 
