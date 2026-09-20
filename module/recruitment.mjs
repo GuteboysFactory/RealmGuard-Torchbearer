@@ -1,6 +1,6 @@
 import { ensureDefaultSkills } from "./default-skills.mjs";
 import { ensureDefaultConditions } from "./conditions.mjs";
-import { openNpcTemplateLibrary } from "./npc-builder.mjs";
+import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 
 const STATIONS = Object.freeze({
@@ -766,13 +766,21 @@ function recruitmentNpcSearchForEntry(entry, state) {
   return [role, culture].filter(Boolean).join(" ").trim();
 }
 
+function recruitmentPreferredCompetence(role = "") {
+  const key = String(role || "").toUpperCase();
+  if (key === "SENIOR_ARTISAN") return "Skilled";
+  if (key === "MENTOR") return "Veteran";
+  if (key === "ENEMY") return "Skilled";
+  return "Ordinary";
+}
+
 function recruitmentRelationshipEntries(actor, state) {
   const view = buildM8RelationshipSheetView(actor);
   return view.relationships.map(relationship => {
     const person = relationship.person;
     if (!person) return null;
     const slot = String(relationship.source?.slot ?? person.source?.slot ?? "");
-    return Object.freeze({
+    const entry = {
       personId: person.id,
       name: person.name,
       role: relationship.role,
@@ -780,52 +788,165 @@ function recruitmentRelationshipEntries(actor, state) {
       slot,
       person,
       query: ""
+    };
+    entry.query = recruitmentNpcSearchForEntry(entry, state);
+    entry.preferredCompetence = recruitmentPreferredCompetence(entry.role);
+    return entry;
+  }).filter(Boolean);
+}
+
+async function resolveRecruitmentNpcSuggestions(entries) {
+  for (const entry of entries) {
+    const suggestion = await resolveBestQuickNpcTemplate({
+      query: entry.query,
+      relationshipRole: entry.role,
+      preferredCompetence: entry.preferredCompetence
     });
-  }).filter(Boolean).map(entry => Object.freeze({
-    ...entry,
-    query: recruitmentNpcSearchForEntry(entry, state)
-  }));
+    entry.suggestion = suggestion;
+  }
+  return entries;
+}
+
+function recruitmentSuggestionLine(entry) {
+  if (!entry.suggestion) return "No automatic template match";
+  const meta = entry.suggestion.metadata ?? {};
+  return `${entry.suggestion.name}${meta.threat ? ` · ${meta.threat}` : ""}`;
+}
+
+function recruitmentNpcReviewRows(entries, { selectable = false } = {}) {
+  return entries.map((entry, index) => `
+    <div class="rg-recruit-npc-smart-row" data-rg-recruit-npc-index="${index}">
+      ${selectable ? `<input type="checkbox" name="npc-${index}" checked aria-label="Create ${esc(entry.name)}">` : ""}
+      <div class="rg-recruit-npc-smart-person">
+        <b>${esc(entry.name)}</b>
+        <small>${esc(entry.roleLabel)}${entry.query ? ` · ${esc(entry.query)}` : ""}</small>
+      </div>
+      <div class="rg-recruit-npc-smart-template">
+        <span><i class="fa-solid fa-wand-magic-sparkles"></i> Suggested template</span>
+        <b data-rg-template-name>${esc(recruitmentSuggestionLine(entry))}</b>
+      </div>
+      <button type="button" data-rg-change-template="${index}" title="Override the automatic template suggestion"><i class="fa-solid fa-pen"></i> Change Template</button>
+    </div>`).join("");
+}
+
+function bindRecruitmentTemplateOverrides(dialog, entries) {
+  const root = dialog?.element;
+  if (!root) return;
+
+  for (const button of root.querySelectorAll("[data-rg-change-template]")) {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      const index = Number(button.dataset.rgChangeTemplate);
+      const entry = entries[index];
+      if (!entry) return;
+
+      void openNpcTemplateLibrary({
+        initialQuery: entry.query,
+        selectOnly: true,
+        onTemplateSelected: async (templateEntry, metadata) => {
+          entry.suggestion = Object.freeze({
+            id: templateEntry._id,
+            name: templateEntry.name,
+            img: templateEntry.img ?? "",
+            score: Number.MAX_SAFE_INTEGER,
+            query: entry.query,
+            metadata
+          });
+          const row = root.querySelector(`[data-rg-recruit-npc-index="${index}"]`);
+          const label = row?.querySelector?.("[data-rg-template-name]");
+          if (label) label.textContent = recruitmentSuggestionLine(entry);
+        }
+      });
+    });
+  }
 }
 
 async function chooseRecruitmentRelationshipNpcs(entries) {
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Realm Guard · Choose Relationship NPCs", resizable: true },
-    position: { width: 650 },
+    position: { width: 820 },
     content: `<form class="realm-guard rg-recruitment rg-recruit-npc-chooser">
       <h2>Choose Relationship NPCs</h2>
-      <p>Select who you want to create now. Nothing is created until you choose a Quick NPC template for that person.</p>
-      <div class="rg-recruit-npc-choice-list">
-        ${entries.map((entry, index) => `<label class="rg-recruit-npc-choice"><input type="checkbox" name="npc-${index}" checked><span><b>${esc(entry.name)}</b><small>${esc(entry.roleLabel)}${entry.query ? ` · Suggested: ${esc(entry.query)}` : ""}</small></span></label>`).join("")}
-      </div>
+      <p>Select which people should receive NPC Actors now. The system has already chosen a suggested Quick NPC template for each person.</p>
+      <div class="rg-recruit-npc-smart-list">${recruitmentNpcReviewRows(entries, { selectable: true })}</div>
     </form>`,
     modal: false,
     rejectClose: false,
+    render: (_event, dialog) => bindRecruitmentTemplateOverrides(dialog, entries),
     buttons: [
-      { action: "continue", label: "Continue", icon: "fa-solid fa-arrow-right", default: true, callback: (_event, button) => entries.filter((_entry, index) => Boolean(button.form?.elements?.[`npc-${index}`]?.checked)) },
+      {
+        action: "continue",
+        label: "Create Selected",
+        icon: "fa-solid fa-wand-magic-sparkles",
+        default: true,
+        callback: (_event, button) => entries.filter((_entry, index) => Boolean(button.form?.elements?.[`npc-${index}`]?.checked))
+      },
       { action: "later", label: "Not Now", callback: () => [] }
     ]
   });
   return Array.isArray(result) ? result : [];
 }
 
+async function createRecruitmentRelationshipNpc(ownerActor, entry) {
+  if (!entry?.suggestion?.id) {
+    ui.notifications.warn(`Realm Guard: No automatic Quick NPC template could be resolved for ${entry?.name || "this relationship"}.`);
+    return null;
+  }
+
+  return createNpcFromTemplate(entry.suggestion.id, {
+    actorName: entry.name,
+    folderName: "NPC - PC Relations",
+    folderFlag: "relationshipNpcFolder",
+    openSheet: false,
+    onCreated: async createdActor => {
+      await linkM8PersonActor(ownerActor, entry.personId, createdActor.uuid);
+      await createdActor.setFlag?.("realm-guard", "relationshipOrigin", {
+        ownerActorUuid: ownerActor.uuid,
+        ownerActorName: ownerActor.name,
+        personId: entry.personId,
+        personName: entry.name,
+        source: "RECRUITMENT",
+        autoTemplate: entry.suggestion.name,
+        autoTemplateQuery: entry.query
+      });
+    }
+  });
+}
+
+async function createRecruitmentRelationshipNpcs(actor, entries) {
+  let created = 0;
+  for (const entry of entries) {
+    try {
+      const npc = await createRecruitmentRelationshipNpc(actor, entry);
+      if (npc) created += 1;
+    } catch (error) {
+      console.error("Realm Guard | Recruitment automatic relationship NPC creation failed", error);
+      ui.notifications.error(`Realm Guard: Could not create ${entry.name}. ${error?.message || ""}`);
+    }
+  }
+  if (created) ui.notifications.info(`Realm Guard: Created and linked ${created} relationship NPC${created === 1 ? "" : "s"} for ${actor.name}.`);
+  return created;
+}
+
 async function reviewRecruitmentRelationshipNpcs(actor, state) {
   if (!game.user?.isGM) return;
 
-  const entries = recruitmentRelationshipEntries(actor, state);
+  const entries = await resolveRecruitmentNpcSuggestions(recruitmentRelationshipEntries(actor, state));
   if (!entries.length) return;
 
   const choice = await foundry.applications.api.DialogV2.wait({
     window: { title: "Realm Guard · Relationship NPCs", resizable: true },
-    position: { width: 700 },
+    position: { width: 860 },
     content: `<div class="realm-guard rg-recruitment rg-recruit-npc-review">
       <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
       <h2>Create relationship NPCs now?</h2>
-      <p><b>${esc(actor.name)}</b> has ${entries.length} relationship people ready for optional NPC creation.</p>
-      <div class="rg-recruit-npc-summary">${entries.map(entry => `<span><b>${esc(entry.name)}</b><small>${esc(entry.roleLabel)}${entry.query ? ` · ${esc(entry.query)}` : ""}</small></span>`).join("")}</div>
-      <p><small>No NPC is created automatically. Quick NPC Library opens for each selected person and the GM chooses the template.</small></p>
+      <p><b>${esc(actor.name)}</b> has ${entries.length} relationship people. Realm Guard has already matched each one to the most relevant Quick NPC template from the Recruitment data.</p>
+      <div class="rg-recruit-npc-smart-list">${recruitmentNpcReviewRows(entries)}</div>
+      <p><small>The GM decides whether NPCs are created. Template selection is automatic by default; use Change Template only when you want to override a suggestion.</small></p>
     </div>`,
     modal: false,
     rejectClose: false,
+    render: (_event, dialog) => bindRecruitmentTemplateOverrides(dialog, entries),
     buttons: [
       { action: "all", label: "Create All", icon: "fa-solid fa-people-group", callback: () => "all" },
       { action: "choose", label: "Choose NPCs", icon: "fa-solid fa-list-check", default: true, callback: () => "choose" },
@@ -837,39 +958,9 @@ async function reviewRecruitmentRelationshipNpcs(actor, state) {
   const selected = choice === "all" ? entries : await chooseRecruitmentRelationshipNpcs(entries);
   if (!selected.length) return;
 
-  const openNext = index => {
-    const entry = selected[index];
-    if (!entry) {
-      ui.notifications.info(`Realm Guard: Relationship NPC review complete for ${actor.name}.`);
-      return;
-    }
-
-    void openNpcTemplateLibrary({
-      initialQuery: entry.query,
-      actorName: entry.name,
-      folderName: "NPC - PC Relations",
-      folderFlag: "relationshipNpcFolder",
-      closeAfterCreate: true,
-      onCreated: async createdActor => {
-        await linkM8PersonActor(actor, entry.personId, createdActor.uuid);
-        await createdActor.setFlag?.("realm-guard", "relationshipOrigin", {
-          ownerActorUuid: actor.uuid,
-          ownerActorName: actor.name,
-          personId: entry.personId,
-          personName: entry.name,
-          source: "RECRUITMENT"
-        });
-        ui.notifications.info(`Realm Guard: ${createdActor.name} created and linked to ${actor.name}.`);
-        setTimeout(() => openNext(index + 1), 0);
-      }
-    }).catch(error => {
-      console.error("Realm Guard | Recruitment relationship NPC review failed", error);
-      ui.notifications.error(`Realm Guard: ${error?.message || "Could not open Quick NPC Library for this relationship."}`);
-    });
-  };
-
-  openNext(0);
+  await createRecruitmentRelationshipNpcs(actor, selected);
 }
+
 
 async function createRanger(state) {
   const s = station(state);
