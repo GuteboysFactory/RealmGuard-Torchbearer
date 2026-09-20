@@ -1,4 +1,5 @@
 import { isDefaultSkill } from "../module/default-skills.mjs";
+import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
@@ -50,7 +51,7 @@ async function ensureRangerArtDirectory(picker) {
 
 async function uploadRangerPortrait(file) {
   if (!file || !String(file.type || "").startsWith("image/")) throw new Error("Drop an image file (PNG, JPG, WEBP, SVG, etc.).");
-  const picker = globalThis.FilePicker ?? foundry.applications?.apps?.FilePicker?.implementation;
+  const picker = modernFilePickerImplementation();
   if (!picker?.upload) throw new Error("Foundry FilePicker upload API is unavailable in this client.");
   const dir = await ensureRangerArtDirectory(picker);
   const response = await picker.upload("data", dir, file, {}, { notify: false });
