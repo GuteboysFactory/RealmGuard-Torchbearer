@@ -1,0 +1,51 @@
+/* v1.9.0-qa.23 — Recruitment reactivity + parchment contrast cleanup
+   Contrast-only CSS. Recruitment behavior lives in module/recruitment.mjs. */
+
+/* Character Overview: older global -webkit-text-fill rules could override the
+   parchment text color for Wises / Traits. Lock both paint channels to ink. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-character-support-grid .rg-line,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-character-support-grid .rg-line span,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-character-support-grid .rg-line b,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-character-support-grid .rg-line small {
+  color:#3a2b1b !important;
+  -webkit-text-fill-color:#3a2b1b !important;
+  opacity:1 !important;
+}
+
+/* Skill roll choice buttons are intentionally pale parchment controls; their
+   labels therefore use dark ink instead of the inherited light system text. */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button i,
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button span {
+  color:#493722 !important;
+  -webkit-text-fill-color:#493722 !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button[data-action="quickRollRole"],
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button[data-action="quickRollUntrained"] {
+  color:#3f512d !important;
+  -webkit-text-fill-color:#3f512d !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button[data-action="rollRole"],
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="skills"] .rg-skill-roll-choice-button[data-action="rollUntrained"] {
+  color:#5a4328 !important;
+  -webkit-text-fill-color:#5a4328 !important;
+}
+
+/* NPC paper panels can contain content injected by connected modules (for
+   example Known Information). Override the old dark-sheet paragraph/small
+   rules so synced prose remains readable on parchment. */
+.realm-guard .rg-npc-sheet .rg-panel p,
+.realm-guard .rg-npc-sheet .rg-panel small,
+.realm-guard .rg-npc-sheet .rg-panel li,
+.realm-guard .rg-npc-sheet .rg-panel blockquote,
+.realm-guard .rg-npc-sheet .rg-panel .editor-content,
+.realm-guard .rg-npc-sheet .rg-panel .journal-page-content,
+.realm-guard .rg-npc-sheet .rg-panel .ProseMirror {
+  color:#4b3925 !important;
+  -webkit-text-fill-color:#4b3925 !important;
+}
+.realm-guard .rg-npc-sheet .rg-panel a:not(button) {
+  color:#5b642f !important;
+  -webkit-text-fill-color:#5b642f !important;
+}

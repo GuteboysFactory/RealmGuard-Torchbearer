@@ -87,7 +87,7 @@ function stepHeader(state, current, total, title, subtitle) {
   return `<header class="rg-recruit-hero"><div class="rg-recruit-progress"><span>RECRUITMENT 2.0</span><strong>STEP ${current}/${total}</strong></div><h2>${esc(title)}</h2><p>${esc(subtitle)}</p><div class="rg-recruit-mode-pill"><i class="fa-solid ${state.mode === "quick" ? "fa-bolt" : "fa-book-open"}"></i>${state.mode === "quick" ? "QUICK" : "GUIDED"}</div></header>`;
 }
 
-async function showStep(state, { current, total = 11, title, subtitle, body, commit, validate = null, allowBack = true, nextLabel = "Continue", nextIcon = "fa-solid fa-arrow-right" }) {
+async function showStep(state, { current, total = 11, title, subtitle, body, commit, validate = null, onRender = null, allowBack = true, nextLabel = "Continue", nextIcon = "fa-solid fa-arrow-right" }) {
   while (true) {
     const result = await foundry.applications.api.DialogV2.wait({
       window: { title: `Realm Guard · Recruitment · ${title}`, resizable: true },
@@ -95,6 +95,7 @@ async function showStep(state, { current, total = 11, title, subtitle, body, com
       content: `<form class="realm-guard rg-recruitment">${stepHeader(state, current, total, title, subtitle)}${body()}</form>`,
       modal: false,
       rejectClose: false,
+      render: (event, dialog) => onRender?.(event, dialog),
       buttons: [
         ...(allowBack ? [{ action: "back", label: "Back", icon: "fa-solid fa-arrow-left", callback: (_event, button) => { commit?.(button.form); return "back"; } }] : []),
         { action: "next", label: nextLabel, icon: nextIcon, default: true, callback: (_event, button) => { commit?.(button.form); return "next"; } },
@@ -326,6 +327,19 @@ async function natureStep(state) {
       for (const key of Object.keys(state.natureAnswers)) state.natureAnswers[key] = checked(form, key);
       state.nature = computeNature(state);
     },
+    onRender: (_event, dialog) => {
+      const root = dialog.element;
+      const form = root?.querySelector?.("form.rg-recruitment");
+      const summary = form?.querySelector?.(".rg-recruit-summary b");
+      if (!form || !summary) return;
+      const refresh = () => {
+        for (const key of Object.keys(state.natureAnswers)) state.natureAnswers[key] = checked(form, key);
+        state.nature = computeNature(state);
+        summary.textContent = `Nature ${state.nature} · Descriptors: Tradition · Family · Grief`;
+      };
+      for (const key of Object.keys(state.natureAnswers)) form.elements?.[key]?.addEventListener?.("change", refresh);
+      refresh();
+    },
     validate: () => state.nature < 2 || state.nature > 6 ? `These answers produce Nature ${state.nature}. A starting Ranger must have a playable starting Nature between 2 and 6; revise an answer.` : null
   });
 }
@@ -334,17 +348,20 @@ function natureQuestion(name, question, effect, state) {
   return `<label class="rg-recruit-question"><input type="checkbox" name="${name}" ${state.natureAnswers[name] ? "checked" : ""}><span><b>${esc(question)}</b><small>${esc(effect)}</small></span></label>`;
 }
 
+function homelandDetailHtml(state, traitDisabled) {
+  const home = HOMELANDS[state.homelandKey] ?? null;
+  if (!home) return `<div class="rg-recruit-note">Choose a homeland. Its Skill and Trait choices will appear immediately.</div>`;
+  return `<div class="rg-home-card"><h3>${esc(home.label)}</h3><p>${esc(home.text)}</p><div class="rg-recruit-grid two"><label>Homeland Skill<select name="homelandSkill">${options(home.skills, state.homelandSkill)}</select></label><label>Homeland Trait<select name="homelandTrait">${options(home.traits, state.homelandTrait, { disabled: traitDisabled })}</select></label></div></div>`;
+}
+
 async function homelandStep(state) {
   const banned = bannedTraits(state);
   const traitDisabled = new Map([...banned].map(name => [name, "Unavailable from your Nature answers"]));
   return showStep(state, {
     current: 3, title: "Homeland", subtitle: "Where were you born?",
-    body: () => {
-      const home = HOMELANDS[state.homelandKey] ?? null;
-      return `${modeHelp(state, `<p>Choose a Realm Guard homeland. You gain <b>one Skill check</b> and <b>one Trait check</b> from that land. A Trait ruled out by Nature cannot be selected.</p>`)}
+    body: () => `${modeHelp(state, `<p>Choose a Realm Guard homeland. You gain <b>one Skill check</b> and <b>one Trait check</b> from that land. A Trait ruled out by Nature cannot be selected.</p>`)}
       <label>Homeland<select name="homelandKey">${options(Object.entries(HOMELANDS).map(([value, h]) => ({ value, label: h.label })), state.homelandKey, { placeholder: "Choose homeland..." })}</select></label>
-      ${home ? `<div class="rg-home-card"><h3>${esc(home.label)}</h3><p>${esc(home.text)}</p><div class="rg-recruit-grid two"><label>Homeland Skill<select name="homelandSkill">${options(home.skills, state.homelandSkill)}</select></label><label>Homeland Trait<select name="homelandTrait">${options(home.traits, state.homelandTrait, { disabled: traitDisabled })}</select></label></div></div>` : `<div class="rg-recruit-note">Choose a homeland, click Continue, and this step will refresh with its Skill and Trait choices.</div>`}`;
-    },
+      <div data-rg-homeland-detail>${homelandDetailHtml(state, traitDisabled)}</div>`,
     commit: form => {
       const nextHome = value(form, "homelandKey");
       if (nextHome !== state.homelandKey) {
@@ -355,6 +372,19 @@ async function homelandStep(state) {
         state.homelandSkill = value(form, "homelandSkill");
         state.homelandTrait = value(form, "homelandTrait");
       }
+    },
+    onRender: (_event, dialog) => {
+      const root = dialog.element;
+      const form = root?.querySelector?.("form.rg-recruitment");
+      const homelandSelect = form?.elements?.homelandKey;
+      const detail = form?.querySelector?.("[data-rg-homeland-detail]");
+      if (!form || !homelandSelect || !detail) return;
+      homelandSelect.addEventListener("change", () => {
+        state.homelandKey = value(form, "homelandKey");
+        state.homelandSkill = "";
+        state.homelandTrait = "";
+        detail.innerHTML = homelandDetailHtml(state, traitDisabled);
+      });
     },
     validate: () => {
       const selected = HOMELANDS[state.homelandKey];
@@ -747,7 +777,7 @@ async function createRanger(state) {
     name, type: "trait", flags: { "realm-guard": { recruitmentTrait: true } }, system: { rating: Math.min(3, count), description: "Selected during Realm Guard Recruitment." }
   }));
   const wiseDocs = [...wiseCheckMap(state).keys()].map(name => ({
-    name, type: "wise", flags: { "realm-guard": { recruitmentWise: true } }, system: { description: "Selected during Realm Guard Recruitment. Wise ratings are intentionally not added by this Foundry build." }
+    name, type: "wise", flags: { "realm-guard": { recruitmentWise: true } }, system: { description: "Selected during Realm Guard Recruitment. Wises are unrated in the current Realm Guard / Legacy Mixed profile. If your table uses Mouse Guard 1st Edition-style rated Wises, represent them as custom Skills." }
   }));
 
   const weapon = WEAPONS.find(w => w.name === state.weapon) ?? WEAPONS.find(w => w.name === "Sword");
@@ -796,7 +826,7 @@ function guideContent() {
     <div class="rg-guide-section"><h3>2. Dunadan Nature</h3><p>Start at Nature 3 and answer six questions. Answers modify Nature and can rule out specific Traits. The descriptors are <b>Tradition, Family and Grief</b>.</p></div>
     <div class="rg-guide-section"><h3>3. Homeland</h3><p>Choose one Skill and one Trait supplied by your birthplace. Nature restrictions are enforced.</p></div>
     <div class="rg-guide-section"><h3>4-5. Life Experience</h3><p>Natural Talent, Parents' Trade, Convincing Others, Apprenticeship, Mentor Training, Service and Specialty add Skill checks. Final starting Skill rating is checks + 1, maximum 6. Non-Recruits choose a unique Specialty.</p></div>
-    <div class="rg-guide-section"><h3>6. Wises</h3><p>Recruitment grants Wise checks by Station. The Foundry project keeps Wises <b>unrated</b> by project decision; the creator stores the Recruitment check allocation as metadata and creates the chosen Wise Items without adding a rating system.</p></div>
+    <div class="rg-guide-section"><h3>6. Wises</h3><p>Recruitment grants Wise checks by Station. The current Realm Guard / Legacy Mixed profile keeps Wises <b>unrated</b>; the creator stores the Recruitment check allocation as metadata and creates the chosen Wise Items without adding a rating system. Tables using Mouse Guard 1st Edition-style rated Wises can represent them as custom Skills.</p></div>
     <div class="rg-guide-section"><h3>7-8. Resources, Circles & Traits</h3><p>Answer the rulebook questions to modify Resources and Circles. Some answers remove starting Trait options. Homeland, Innate Quality and Station-specific Trait checks can stack to raise Trait level.</p></div>
     <div class="rg-guide-section"><h3>9. Relationships</h3><p>Create Lineage, House Insignia, Parents, Senior Artisan, Mentor, Friend and Enemy. A Friend includes profession and location. By default, an Enemy must be Dúnadan, Dwarf, Elf, Hobbit or Man - not a servant of the Enemy. Tables that want otherwise may explicitly enable <b>Allow Servants of the Enemy as personal Enemies (House Rule)</b> and choose Orc, Troll, Warg, Spider or another servant of the Enemy. The House Insignia is explicitly not a Token of Power.</p></div>
     <div class="rg-guide-section"><h3>10. First Mission & Gear</h3><p>Write Belief, Goal and Instinct. Choose a weapon and record armor or distinctive gear. Do not list ordinary backpacks, clothing, boots or other fundamental gear. Every new Ranger begins with <b>1 Fate and 1 Persona</b>.</p></div>
