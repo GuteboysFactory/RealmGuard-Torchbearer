@@ -1,14 +1,18 @@
-Realm Guard / Torchbearer v1.9.0-qa.31 — Smart Recruitment Relationship NPC Review.
+Realm Guard / Torchbearer v1.9.0-qa.32 — Structured Recruitment Relationships.
 
-- Recruitment creates the Ranger first, unchanged.
-- Realm Guard then automatically resolves a Quick NPC template suggestion for every relationship person.
-- GM sees Create All / Choose NPCs / Not Now.
-- Create All creates directly from the suggestions; no per-NPC template selection dialogs.
-- Choose NPCs only asks WHO to create; template suggestions are already resolved.
-- Change Template is an optional override, using Quick NPC Library in selection-only mode.
-- No NPC is created without explicit GM approval.
-- Relationship NPCs use the person's name, go to NPC - PC Relations, and link back to PersonRecord.actorUuid.
-- Recruitment rules, Circles, and M8 status/history remain unchanged.
-- Group templates remain deferred; their destination is NPCs Groups.
+- Recruitment relationship identity is now structured at source.
+- Mother/Father: Name / Profession / Location.
+- Senior Artisan: Name / Profession / Location.
+- Mentor: Name / Ranger role / Location.
+- Friend: Name / Profession / Location.
+- Enemy: Name / People-Type / optional Role-Profession / Location.
+- Alive/dead is intentionally not part of Recruitment identity.
+- Profession suggestions come from Quick NPC Library; custom text remains allowed.
+- M8 prefers flags.realm-guard.recruitmentRelationships when present and keeps legacy fallback for old Rangers.
+- Legacy Mixed relationship fields are still written for compatibility.
+- Smart relationship NPC generation now receives clean names plus separate matching metadata.
+- Service & Specialty Required service checks now update live through delegated input/change handling.
+- Specialty does not count toward the required Service total.
+- No Recruitment rules, Circles, NPC stats, or M8 status/history rules changed.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.31.md
+QA: TEST_PROTOCOL_v1.9.0-qa.32.md
