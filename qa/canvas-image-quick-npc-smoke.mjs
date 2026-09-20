@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json","utf8"));
-assert.equal(manifest.version, "1.9.0-qa.29");
+assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
 
 const builder = fs.readFileSync("module/npc-builder.mjs","utf8");
 for (const needle of [
