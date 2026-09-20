@@ -6,8 +6,9 @@ Create a Scout and go to Service & Specialty.
 Use the Fighter dropdown and change 0 to 2.
 
 Expected:
-- Required service checks immediately changes from 0 / 6 to 2 / 6 without leaving the field.
-- If you go Back and return to Service & Specialty with saved allocations, the counter should immediately reflect those restored dropdown values.
+- Required service checks immediately changes from 0 / 6 to 2 / 6.
+- The displayed total must equal the literal sum of the currently visible Service dropdown values.
+- If you go Back and return to Service & Specialty with saved allocations, the counter should immediately recalculate from those restored dropdown values.
 
 Use the Pathfinder and Scout dropdowns and choose 2 in each.
 
