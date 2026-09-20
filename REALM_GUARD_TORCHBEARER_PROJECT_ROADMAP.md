@@ -2,12 +2,32 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.16 - M7 Session Lifecycle Live Handoff — VERIFIED  
-**Current CORE milestone:** M7 — Session Engine, Turn Manager & End Session — VERIFIED / CLOSED  
-**Next CORE milestone:** M8 — Social Network Migration  
+**Current QA build:** v1.9.0-qa.35 - M8 NPC Group Templates — QA  
+**Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
+**Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
+
+### M8 — Social Network Migration
+
+**Status:** 🟢 IN PROGRESS on `v1.9.0-qa.35`.
+
+Current M8 implementation now includes:
+
+- normalized PersonRecord / Relationship / RelationshipHistory shadow storage
+- Recruitment relationship fallback + structured Name / Profession / Location records
+- Relationship → Quick NPC creation into `NPC - PC Relations`
+- smart post-Recruitment template matching with explicit GM review
+- PersonRecord → created Actor linking through `actorUuid`
+- reusable NPC Group Templates with explicit review-before-create
+- group Actors organized under `NPCs Groups > <Group Name>`
+- shared group-instance and source-template provenance on generated group NPCs
+
+qa.35 does not change Circles semantics, Relationship status/history rules, Recruitment rules or Legacy Mixed live authority. It extends the M8 social/NPC tooling layer while keeping individual and relationship NPC workflows separate.
+
+**Current QA target:** verify Group Template folder isolation, actor independence/provenance, duplicate-name safety and regression against qa.34 + Relationship NPC creation.
+
 
 ### M7 — Session Engine, Turn Manager & End Session
 
