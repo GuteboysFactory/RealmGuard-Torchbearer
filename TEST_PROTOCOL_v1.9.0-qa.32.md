@@ -3,12 +3,12 @@
 ## Gate A — Service counter
 Create a Scout and go to Service & Specialty.
 
-Change Fighter from 0 to 2.
+Use the Fighter dropdown and change 0 to 2.
 
 Expected:
 - Required service checks immediately changes from 0 / 6 to 2 / 6 without leaving the field.
 
-Add 2 Pathfinder and 2 Scout.
+Use the Pathfinder and Scout dropdowns and choose 2 in each.
 
 Expected:
 - counter immediately becomes 6 / 6
@@ -21,7 +21,7 @@ Expected:
 - over state is visually indicated
 - Continue still refuses anything except exactly 6 Service checks
 
-Specialty selection must not change the 6 / 6 counter.
+Each dropdown should offer 0 through 6 for a Scout. Specialty selection must not change the 6 / 6 counter.
 
 ## Gate B — Parent structure
 Go to Relationships.
