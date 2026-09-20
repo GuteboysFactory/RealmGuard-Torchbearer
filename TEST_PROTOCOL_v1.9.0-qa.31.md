@@ -1,71 +1,82 @@
-# v1.9.0-qa.31 — Recruitment Relationship NPC Review QA
+# v1.9.0-qa.31 — Smart Recruitment Relationship NPC Review QA
 
 ## Gate A — finish Recruitment
-Create a new Ranger through Recruitment and complete all normal relationship fields.
+Create a test Ranger through the normal wizard with clear relationship data, for example:
+- Friend: Baran Dev / Innkeeper / Bree
+- Senior Artisan: Smith
+- Mentor: named Ranger
+- Enemy: Orc with location
 
 Expected:
-- Ranger Actor is created successfully in PC
-- normal Recruitment data is intact
-- after creation, GM receives a Relationship NPC review
+- Ranger is created normally in PC
+- Relationship NPC review opens afterwards
 
-## Gate B — review dialog
-Expected buttons:
-- Create All
-- Choose NPCs
-- Not Now
+## Gate B — automatic suggestions
+Inspect the review before clicking anything.
 
 Expected:
-- listed people reflect the Recruitment relationships
-- no NPC has been created yet
+- every relationship person is listed by name
+- every row shows a Suggested template
+- Baran-style Friend data should resolve to a sensible Bree Innkeeper template
+- Senior Artisan should resolve to a sensible trade template
+- Mentor should resolve to a Ranger template
+- Orc Enemy should resolve to an Orc template
+- no NPC Actor has been created yet
 
 ## Gate C — Not Now
-Choose Not Now.
+Click Not Now.
 
 Expected:
 - no relationship NPC Actors are created
-- Ranger remains valid
-- Relationships page still contains the people
-- Create NPC from qa.30 remains available later
+- all relationship people remain available on the Ranger Relationships page
+- qa.30 Create NPC remains available later
 
-## Gate D — Choose NPCs
-Create another Ranger, choose Choose NPCs.
+## Gate D — Create All
+Create another disposable Ranger and inspect the suggestions.
+
+Click Create All without changing templates.
+
+Expected:
+- no Quick NPC Library selection dialogs appear one-by-one
+- all relationship NPCs are created directly from the displayed suggestions
+- Actors use the relationship people's names
+- Actors go to NPC - PC Relations
+- all are linked back to their PersonRecords
+
+## Gate E — Choose NPCs
+Create another disposable Ranger and click Choose NPCs.
 
 Expected:
 - checklist appears
-- select only one or two people
-- Continue begins Quick NPC selection only for selected people
-
-For each selected person:
-- Quick NPC Library opens
-- search is prefilled with a useful profession/culture query
-- nothing is created until a template is chosen
-
-## Gate E — creation / linking
-Choose a template for one selected relationship.
+- suggestions are already present
+- uncheck some people
+- click Create Selected
 
 Expected:
-- Actor name is the relationship person's name
-- template stats / Skills / Gear are used
-- Actor is created in NPC - PC Relations
-- PersonRecord is linked automatically
-- Ranger Relationships page shows Open / Unlink for that person
+- only checked people are created
+- no extra per-person template choice is required
 
-## Gate F — Create All
-Create another Ranger or use a disposable test Ranger and choose Create All.
+## Gate F — Change Template
+Before creation, click Change Template for one person.
 
 Expected:
-- all relationship people become queued for explicit Quick NPC template selection
-- templates are still chosen manually
-- no automatic template decision occurs
+- Quick NPC Library opens in selection-only mode
+- choosing a template updates the suggestion
+- no NPC is created by the picker itself
+
+Then Create All or Create Selected.
+
+Expected:
+- the overridden template is used for that person
 
 ## Gate G — persistence
-Reload Foundry after creating at least one relationship NPC through Recruitment.
+Reload Foundry after creating relationship NPCs.
 
 Expected:
-- Ranger persists
-- NPC persists in NPC - PC Relations
-- relationship Actor link persists
-- Open works
+- NPCs remain in NPC - PC Relations
+- links persist
+- Open / Unlink continue to work
+- Ranger Recruitment data remains intact
 
 ## PASS
-qa.31 passes when Recruitment can finish normally, then optionally hand relationship people to Quick NPC Library without automatically creating anything or changing Recruitment rules.
+qa.31 passes when the GM only decides WHO should become an NPC while Realm Guard normally decides WHICH template fits, with Change Template available only as an optional override.
