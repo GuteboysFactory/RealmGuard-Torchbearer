@@ -503,7 +503,6 @@ async function serviceStep(state) {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
       state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
     },
-    onRender: (_event, dialog) => installFreshServiceCounter(dialog),
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
       if (allocated !== s.service) return `Allocate exactly ${s.service} service checks. You currently allocated ${allocated}.`;
@@ -1309,7 +1308,7 @@ function readVisibleServiceTotal(form) {
     .reduce((sum, select) => sum + Math.max(0, Number(select.value) || 0), 0);
 }
 
-function renderFreshServiceCounter(form) {
+function renderServiceCounterFromVisibleDropdowns(form) {
   const counter = form?.querySelector?.("[data-rg-service-counter]");
   if (!counter) return;
   const required = Math.max(0, Number(counter.dataset.requiredService ?? 0));
@@ -1322,34 +1321,52 @@ function renderFreshServiceCounter(form) {
   counter.classList.toggle("is-over", allocated > required);
 }
 
-function installFreshServiceCounter(dialog) {
-  const bind = () => {
-    const root = dialog?.element;
-    const form = root?.querySelector?.("form.rg-recruitment");
-    if (!form) return false;
+function bindServiceCounterForm(form) {
+  if (!(form instanceof HTMLFormElement) || !form.matches("form.rg-recruitment")) return false;
+  const counter = form.querySelector("[data-rg-service-counter]");
+  const selects = [...form.querySelectorAll("select[data-rg-service-check]")];
+  if (!counter || !selects.length) return false;
 
-    const selects = [...form.querySelectorAll("select[data-rg-service-check]")];
-    const counter = form.querySelector("[data-rg-service-counter]");
-    if (!selects.length || !counter) return false;
+  const refresh = () => renderServiceCounterFromVisibleDropdowns(form);
+  for (const select of selects) {
+    if (select.dataset.rgServiceCounterBound === "true") continue;
+    select.dataset.rgServiceCounterBound = "true";
+    select.addEventListener("change", refresh);
+    select.addEventListener("input", refresh);
+  }
 
-    const refresh = () => renderFreshServiceCounter(form);
-    for (const select of selects) {
-      if (select.dataset.rgFreshServiceCounter === "true") continue;
-      select.dataset.rgFreshServiceCounter = "true";
-      select.addEventListener("change", refresh);
-      select.addEventListener("input", refresh);
+  refresh();
+  return true;
+}
+
+let serviceCounterObserver = null;
+
+function bindVisibleRecruitmentServiceCounters(root = document) {
+  const forms = [];
+  if (root instanceof HTMLFormElement && root.matches("form.rg-recruitment")) forms.push(root);
+  if (root?.querySelectorAll) forms.push(...root.querySelectorAll("form.rg-recruitment"));
+  for (const form of forms) bindServiceCounterForm(form);
+}
+
+function installRecruitmentServiceCounterObserver() {
+  if (serviceCounterObserver) return;
+
+  bindVisibleRecruitmentServiceCounters(document);
+
+  serviceCounterObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        bindVisibleRecruitmentServiceCounters(node);
+      }
     }
-
-    refresh();
-    return true;
-  };
-
-  queueMicrotask(() => {
-    if (!bind()) requestAnimationFrame(() => bind());
   });
+
+  serviceCounterObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 export function installRecruitment() {
+  installRecruitmentServiceCounterObserver();
   Hooks.on("renderActorDirectory", (_app, html) => injectActorDirectoryRecruitmentTools(html));
   Hooks.once("ready", () => {
     const actors = ui?.actors?.element ?? document.querySelector("#actors");
