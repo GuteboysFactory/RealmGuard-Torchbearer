@@ -1,13 +1,14 @@
-Realm Guard / Torchbearer v1.9.0-qa.30 — Relationship -> Quick NPC.
+Realm Guard / Torchbearer v1.9.0-qa.31 — Recruitment Relationship NPC Review.
 
-- Character -> Relationships now offers GM-only Create NPC for unlinked people.
-- Create NPC opens the verified Quick NPC Library with profession/culture search prefill.
-- GM must explicitly choose a template; nothing is created automatically.
-- Created Actor is named after the relationship person.
-- Relationship-created NPCs go into NPC - PC Relations; the folder is created if missing.
-- PersonRecord.actorUuid is linked automatically after creation.
-- Open / Unlink continue to work; Unlink never deletes the Actor.
-- Link Existing Actor never moves an existing Actor.
-- No Ranger Wizard NPC creation, Circles changes, or group templates yet.
+- Ranger creation completes first, unchanged.
+- GM then gets Create All / Choose NPCs / Not Now for Recruitment relationships.
+- No NPC is created automatically.
+- Selected people are handed to Quick NPC Library one by one.
+- Search is prefilled from Recruitment identity data.
+- Created Actors use the person's name and go to NPC - PC Relations.
+- PersonRecord.actorUuid is linked automatically.
+- Non-GMs can still create Rangers; GM may create relationship NPCs later from Relationships.
+- No Circles or Recruitment rules changed.
+- Group templates are still deferred; their dedicated destination will be NPCs Groups.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.30.md
+QA: TEST_PROTOCOL_v1.9.0-qa.31.md
