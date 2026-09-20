@@ -1,3 +1,5 @@
+import { modernFilePickerImplementation } from "./foundry-compat.mjs";
+
 const NS = "realm-guard";
 
 function clamp(value, min, max) {
@@ -119,7 +121,7 @@ export async function createRoundTokenAsset(actor, {
   const src = String(source || actor.img || tokenTexture(actor)?.src || "");
   if (!src) throw new Error("No artwork is available for this token.");
 
-  const picker = globalThis.FilePicker ?? foundry.applications?.apps?.FilePicker?.implementation;
+  const picker = modernFilePickerImplementation();
   if (!picker?.upload) throw new Error("Foundry FilePicker upload API is unavailable in this client.");
 
   const image = await loadImage(src);
