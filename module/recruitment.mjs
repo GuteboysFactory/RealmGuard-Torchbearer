@@ -497,13 +497,13 @@ async function serviceStep(state) {
     current: 5, title: "Service & Specialty", subtitle: "Distribute experience gained in service to the Realms",
     body: () => `${modeHelp(state, `<p>${esc(s.label)} receives <b>${s.service} service checks</b>. Put several checks into one Skill to specialize or spread them out. ${state.rank === "recruit" ? "Recruits do not choose a Specialty." : "Then choose one Specialty, which adds one more check. No two player Rangers may share a Specialty."}</p>`)}
       <div class="rg-service-grid">${skills.map(name => { const current = Math.max(0, Math.min(s.service, Number(state.serviceAlloc[name] ?? 0) || 0)); return `<label><span>${esc(name)}</span><select data-rg-service-check name="service-${esc(name)}">${Array.from({ length: s.service + 1 }, (_, value) => `<option value="${value}" ${value === current ? "selected" : ""}>${value}</option>`).join("")}</select></label>`; }).join("")}</div>
-      <div class="rg-recruit-summary" data-rg-service-summary data-required-service="${s.service}"><span>Required service checks</span><b>${totalAllocated()} / ${s.service}</b></div>
+      <div class="rg-recruit-summary" data-rg-service-counter data-required-service="${s.service}"><span>Required service checks</span><b data-rg-service-counter-value>0 / ${s.service}</b></div>
       ${state.rank === "recruit" ? `<div class="rg-recruit-note"><b>Recruit:</b> no Specialty is chosen at character creation.</div>` : `<label>Specialty<select name="specialty">${options(SPECIALTY_SKILLS, state.specialty, { placeholder: "Choose a unique Specialty...", disabled })}</select></label>`}`,
     commit: form => {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
       state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
     },
-    onRender: (_event, dialog) => bindRecruitmentServiceCounter(dialog),
+    onRender: (_event, dialog) => installFreshServiceCounter(dialog),
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
       if (allocated !== s.service) return `Allocate exactly ${s.service} service checks. You currently allocated ${allocated}.`;
@@ -1304,45 +1304,48 @@ async function migrateRecruitmentAbilityCaps() {
   if (changed) console.log(`Realm Guard | Recruitment 2.0 raised Resources/Circles caps on ${changed} existing Actor(s).`);
 }
 
-function syncRecruitmentServiceCounter(form) {
-  const summary = form?.querySelector?.("[data-rg-service-summary]");
-  if (!summary) return;
-  const required = Math.max(0, Number(summary.dataset.requiredService ?? 0));
-  const allocated = [...form.querySelectorAll("[data-rg-service-check]")]
-    .reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
-  const output = summary.querySelector("b");
-  if (output) output.textContent = `${allocated} / ${required}`;
-  summary.classList.toggle("is-complete", allocated === required);
-  summary.classList.toggle("is-under", allocated < required);
-  summary.classList.toggle("is-over", allocated > required);
+function readVisibleServiceTotal(form) {
+  return [...form.querySelectorAll("select[data-rg-service-check]")]
+    .reduce((sum, select) => sum + Math.max(0, Number(select.value) || 0), 0);
 }
 
-function bindRecruitmentServiceCounter(dialog) {
-  const tryBind = () => {
+function renderFreshServiceCounter(form) {
+  const counter = form?.querySelector?.("[data-rg-service-counter]");
+  if (!counter) return;
+  const required = Math.max(0, Number(counter.dataset.requiredService ?? 0));
+  const allocated = readVisibleServiceTotal(form);
+  const output = counter.querySelector("[data-rg-service-counter-value]");
+  if (output) output.textContent = `${allocated} / ${required}`;
+
+  counter.classList.toggle("is-complete", allocated === required);
+  counter.classList.toggle("is-under", allocated < required);
+  counter.classList.toggle("is-over", allocated > required);
+}
+
+function installFreshServiceCounter(dialog) {
+  const bind = () => {
     const root = dialog?.element;
     const form = root?.querySelector?.("form.rg-recruitment");
     if (!form) return false;
 
-    const selects = [...form.querySelectorAll("[data-rg-service-check]")];
-    if (!selects.length) return false;
+    const selects = [...form.querySelectorAll("select[data-rg-service-check]")];
+    const counter = form.querySelector("[data-rg-service-counter]");
+    if (!selects.length || !counter) return false;
 
-    const sync = () => syncRecruitmentServiceCounter(form);
+    const refresh = () => renderFreshServiceCounter(form);
     for (const select of selects) {
-      if (select.dataset.rgServiceCounterBound === "true") continue;
-      select.dataset.rgServiceCounterBound = "true";
-      select.addEventListener("change", sync);
-      select.addEventListener("input", sync);
+      if (select.dataset.rgFreshServiceCounter === "true") continue;
+      select.dataset.rgFreshServiceCounter = "true";
+      select.addEventListener("change", refresh);
+      select.addEventListener("input", refresh);
     }
 
-    // Initial sync matters when Back/Forward restores already selected values.
-    sync();
+    refresh();
     return true;
   };
 
-  // ApplicationV2 render callbacks can fire before every child control is attached.
-  // Bind once immediately, then retry on the next frame if necessary.
   queueMicrotask(() => {
-    if (!tryBind()) requestAnimationFrame(() => tryBind());
+    if (!bind()) requestAnimationFrame(() => bind());
   });
 }
 
