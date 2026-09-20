@@ -1,5 +1,7 @@
 import { ensureDefaultSkills } from "./default-skills.mjs";
 import { ensureDefaultConditions } from "./conditions.mjs";
+import { openNpcTemplateLibrary } from "./npc-builder.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -724,6 +726,151 @@ async function ensurePcActorFolder() {
   return folder;
 }
 
+function recruitmentCultureHint(value = "") {
+  const text = String(value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const hints = [
+    [/\bbree\b/, "bree"],
+    [/\brhudaur|arnor|dunadan|dunedain\b/, "dunadan"],
+    [/\bgondor|gondorian\b/, "gondor"],
+    [/\brohan|rohirrim|rohirric\b/, "rohan"],
+    [/\bdwarf|dwarves|dwarven\b/, "dwarf"],
+    [/\belf|elves|elven\b/, "elf"],
+    [/\bhobbit|shire\b/, "hobbit"],
+    [/\bdunland|dunlending\b/, "dunland"],
+    [/\brhovanion|northman|northmen\b/, "northman"],
+    [/\bharad|haradrim\b/, "harad"],
+    [/\beasterling\b/, "easterling"],
+    [/\borc|orcs\b/, "orc"],
+    [/\bundead|wight|shade\b/, "undead"]
+  ];
+  return hints.find(([pattern]) => pattern.test(text))?.[1] ?? "";
+}
+
+function recruitmentNpcSearchForEntry(entry, state) {
+  const slot = String(entry?.slot ?? "");
+  const person = entry?.person ?? {};
+  const home = HOMELANDS[state.homelandKey]?.label ?? "";
+  const culture = recruitmentCultureHint(`${person.people ?? ""} ${person.location ?? ""} ${home}`);
+  let role = String(person.profession ?? "").trim();
+
+  if (slot === "parent-mother" || slot === "parent-father") role = String(state.parentsResourceProfession || role).trim();
+  if (slot === "senior-artisan") role = String(state.apprenticeship || role).trim();
+  if (slot === "mentor") role = "ranger";
+  if (slot === "friend") role = String(state.friendProfession || role).trim();
+  if (slot === "enemy") {
+    const enemyType = String(state.enemyPeople || person.people || "").trim();
+    role = enemyType.toLowerCase() === "man" ? "" : enemyType;
+  }
+
+  if (/^inkeeper$/i.test(role)) role = "innkeeper";
+  return [role, culture].filter(Boolean).join(" ").trim();
+}
+
+function recruitmentRelationshipEntries(actor, state) {
+  const view = buildM8RelationshipSheetView(actor);
+  return view.relationships.map(relationship => {
+    const person = relationship.person;
+    if (!person) return null;
+    const slot = String(relationship.source?.slot ?? person.source?.slot ?? "");
+    return Object.freeze({
+      personId: person.id,
+      name: person.name,
+      role: relationship.role,
+      roleLabel: relationship.roleLabel,
+      slot,
+      person,
+      query: ""
+    });
+  }).filter(Boolean).map(entry => Object.freeze({
+    ...entry,
+    query: recruitmentNpcSearchForEntry(entry, state)
+  }));
+}
+
+async function chooseRecruitmentRelationshipNpcs(entries) {
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Realm Guard · Choose Relationship NPCs", resizable: true },
+    position: { width: 650 },
+    content: `<form class="realm-guard rg-recruitment rg-recruit-npc-chooser">
+      <h2>Choose Relationship NPCs</h2>
+      <p>Select who you want to create now. Nothing is created until you choose a Quick NPC template for that person.</p>
+      <div class="rg-recruit-npc-choice-list">
+        ${entries.map((entry, index) => `<label class="rg-recruit-npc-choice"><input type="checkbox" name="npc-${index}" checked><span><b>${esc(entry.name)}</b><small>${esc(entry.roleLabel)}${entry.query ? ` · Suggested: ${esc(entry.query)}` : ""}</small></span></label>`).join("")}
+      </div>
+    </form>`,
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      { action: "continue", label: "Continue", icon: "fa-solid fa-arrow-right", default: true, callback: (_event, button) => entries.filter((_entry, index) => Boolean(button.form?.elements?.[`npc-${index}`]?.checked)) },
+      { action: "later", label: "Not Now", callback: () => [] }
+    ]
+  });
+  return Array.isArray(result) ? result : [];
+}
+
+async function reviewRecruitmentRelationshipNpcs(actor, state) {
+  if (!game.user?.isGM) return;
+
+  const entries = recruitmentRelationshipEntries(actor, state);
+  if (!entries.length) return;
+
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Realm Guard · Relationship NPCs", resizable: true },
+    position: { width: 700 },
+    content: `<div class="realm-guard rg-recruitment rg-recruit-npc-review">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
+      <h2>Create relationship NPCs now?</h2>
+      <p><b>${esc(actor.name)}</b> has ${entries.length} relationship people ready for optional NPC creation.</p>
+      <div class="rg-recruit-npc-summary">${entries.map(entry => `<span><b>${esc(entry.name)}</b><small>${esc(entry.roleLabel)}${entry.query ? ` · ${esc(entry.query)}` : ""}</small></span>`).join("")}</div>
+      <p><small>No NPC is created automatically. Quick NPC Library opens for each selected person and the GM chooses the template.</small></p>
+    </div>`,
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      { action: "all", label: "Create All", icon: "fa-solid fa-people-group", callback: () => "all" },
+      { action: "choose", label: "Choose NPCs", icon: "fa-solid fa-list-check", default: true, callback: () => "choose" },
+      { action: "later", label: "Not Now", callback: () => "later" }
+    ]
+  });
+
+  if (!choice || choice === "later") return;
+  const selected = choice === "all" ? entries : await chooseRecruitmentRelationshipNpcs(entries);
+  if (!selected.length) return;
+
+  const openNext = index => {
+    const entry = selected[index];
+    if (!entry) {
+      ui.notifications.info(`Realm Guard: Relationship NPC review complete for ${actor.name}.`);
+      return;
+    }
+
+    void openNpcTemplateLibrary({
+      initialQuery: entry.query,
+      actorName: entry.name,
+      folderName: "NPC - PC Relations",
+      folderFlag: "relationshipNpcFolder",
+      closeAfterCreate: true,
+      onCreated: async createdActor => {
+        await linkM8PersonActor(actor, entry.personId, createdActor.uuid);
+        await createdActor.setFlag?.("realm-guard", "relationshipOrigin", {
+          ownerActorUuid: actor.uuid,
+          ownerActorName: actor.name,
+          personId: entry.personId,
+          personName: entry.name,
+          source: "RECRUITMENT"
+        });
+        ui.notifications.info(`Realm Guard: ${createdActor.name} created and linked to ${actor.name}.`);
+        setTimeout(() => openNext(index + 1), 0);
+      }
+    }).catch(error => {
+      console.error("Realm Guard | Recruitment relationship NPC review failed", error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Could not open Quick NPC Library for this relationship."}`);
+    });
+  };
+
+  openNext(0);
+}
+
 async function createRanger(state) {
   const s = station(state);
   const home = HOMELANDS[state.homelandKey];
@@ -838,6 +985,7 @@ export async function openRecruitmentWizard({ mode = null } = {}) {
   try {
     const actor = await createRanger(state);
     ui.notifications.info(`Realm Guard: ${actor.name} has completed Recruitment and was placed in Actors > ${PC_FOLDER_NAME}.`);
+    await reviewRecruitmentRelationshipNpcs(actor, state);
     if (state.openSheet) actor.sheet?.render(true);
     return actor;
   } catch (error) {
