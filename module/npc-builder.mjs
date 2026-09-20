@@ -1,7 +1,10 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
+import { modernFilePickerImplementation } from "./foundry-compat.mjs";
+import { quickNpcMetadataFromIndex, scoreQuickNpcEntry, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
 
 const NS = "realm-guard";
 const PACK_ID = "world.realm-guard-starter-npc-templates";
+const FALLBACK_IMG = "systems/realm-guard/assets/actors/npc-creature.webp";
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 
 async function ensureNpcFolder() {
@@ -19,34 +22,27 @@ function cleanFileName(name = "") {
 async function ensureNpcArtDirectory(picker) {
   const nested = "realm-guard/npc-art";
   const fallback = "realm-guard-npc-art";
-
-  // Foundry does not create missing parent directories when asked for a nested path.
-  // Create each level explicitly before uploading, then verify it when browse() is available.
   for (const dir of ["realm-guard", nested]) {
     try { await picker.createDirectory?.("data", dir, {}, { notify: false }); }
-    catch (_error) { /* existing directory is expected on later drops */ }
+    catch (_error) { /* existing directory is expected */ }
   }
   if (picker.browse) {
     try { await picker.browse("data", nested, {}); return nested; }
-    catch (_error) { /* use a flat fallback below */ }
-  } else {
-    return nested;
-  }
+    catch (_error) { /* fallback below */ }
+  } else return nested;
 
   try { await picker.createDirectory?.("data", fallback, {}, { notify: false }); }
-  catch (_error) { /* existing directory is expected on later drops */ }
+  catch (_error) { /* existing directory is expected */ }
   if (picker.browse) {
     try { await picker.browse("data", fallback, {}); return fallback; }
-    catch (_error) { /* handled by caller */ }
-  } else {
-    return fallback;
-  }
+    catch (_error) { /* handled below */ }
+  } else return fallback;
   throw new Error("Could not create an NPC art upload folder in Foundry Data.");
 }
 
 async function uploadNpcImage(file) {
   if (!file || !String(file.type || "").startsWith("image/")) throw new Error("Drop an image file (PNG, JPG, WEBP, SVG, etc.).");
-  const picker = globalThis.FilePicker ?? foundry.applications?.apps?.FilePicker?.implementation;
+  const picker = modernFilePickerImplementation();
   if (!picker?.upload) throw new Error("Foundry FilePicker upload API is unavailable in this client.");
   const dir = await ensureNpcArtDirectory(picker);
   const response = await picker.upload("data", dir, file, {}, { notify: false });
@@ -58,16 +54,20 @@ async function uploadNpcImage(file) {
 export async function createNpcFromTemplate(templateId, { imageFile = null } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
   const pack = game.packs.get(PACK_ID);
-  if (!pack) return ui.notifications.warn("Realm Guard: Starter NPC Templates compendium is missing. Run Starter Library sync first.");
+  if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
   const template = await pack.getDocument(templateId);
   if (!template) return ui.notifications.warn("Realm Guard: NPC template not found.");
+
   let imagePath = null;
   if (imageFile) imagePath = await uploadNpcImage(imageFile);
+
   const folder = await ensureNpcFolder();
   const source = template.toObject();
-  delete source._id; delete source.folder;
+  delete source._id;
+  delete source.folder;
   source.folder = folder?.id ?? null;
   source.name = cleanFileName(imageFile?.name) || template.name;
+
   if (imagePath) {
     source.img = imagePath;
     source.prototypeToken = foundry.utils.mergeObject(source.prototypeToken ?? {}, {
@@ -77,47 +77,196 @@ export async function createNpcFromTemplate(templateId, { imageFile = null } = {
       texture: { src: imagePath, fit: "contain", anchorX: 0.5, anchorY: 0.5, scaleX: 1, scaleY: 1 }
     }, { inplace: false });
   }
+
   source.flags = foundry.utils.deepClone(source.flags ?? {});
-  source.flags[NS] = { ...(source.flags[NS] ?? {}), createdFromNpcTemplate: template.name };
+  source.flags[NS] = {
+    ...(source.flags[NS] ?? {}),
+    createdFromNpcTemplate: template.name,
+    createdFromNpcTemplateId: template.getFlag?.(NS, "npcTemplate.templateId") ?? ""
+  };
+
   const actor = await Actor.create(source);
   if (!actor) throw new Error("NPC creation failed.");
-  if (imagePath) {
-    ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
-  }
+
+  if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
   ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
   actor.sheet?.render(true);
   return actor;
 }
 
-export async function openNpcTemplateLibrary() {
-  if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
-  const pack = game.packs.get(PACK_ID);
-  if (!pack) return ui.notifications.warn("Realm Guard: Starter NPC Templates compendium is missing. Run Starter Library sync first.");
-  const index = await pack.getIndex({ fields: ["img", "system.rank", "system.concept"] });
-  const cards = index.map(entry => `<article class="rg-npc-template-card" data-rg-npc-template="${esc(entry._id)}"><img src="${esc(entry.img || "systems/realm-guard/assets/actors/npc-creature.webp")}" alt=""><div><h3>${esc(entry.name)}</h3><small>${esc(entry.system?.rank || "NPC")} · ${esc(entry.system?.concept || "Template")}</small><p>Drop an image from your computer here to create a new NPC with these stats and portrait. Use Token Builder when you are ready to frame the token.</p></div><button type="button" data-rg-template-create="${esc(entry._id)}"><i class="fa-solid fa-user-plus"></i> Create</button></article>`).join("");
-  const dialog = new foundry.applications.api.DialogV2({
-    window: { title: "Realm Guard · NPC Templates", resizable: true },
-    content: `<div class="rg-npc-template-library"><div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div><h2>NPC Templates & Quick Spawn</h2><p>Click Create for a normal copy, or drop an image file directly on a template to create the NPC with that portrait. The final round token is only created when you choose Save in Token Builder.</p><div class="rg-npc-template-grid">${cards}</div></div>`,
-    modal: false,
-    buttons: [{ action: "close", label: "Close", callback: () => true }]
-  });
-  await dialog.render(true);
-  const root = dialog.element;
-  root?.querySelectorAll?.("[data-rg-template-create]").forEach(button => button.addEventListener("click", event => { event.preventDefault(); void createNpcFromTemplate(button.dataset.rgTemplateCreate); }));
-  root?.querySelectorAll?.("[data-rg-npc-template]").forEach(card => {
-    card.addEventListener("dragover", event => { if (event.dataTransfer?.types?.includes?.("Files")) { event.preventDefault(); card.classList.add("is-image-drop"); } });
-    card.addEventListener("dragleave", () => card.classList.remove("is-image-drop"));
+function optionList(values, label) {
+  const sorted = [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+  return `<option value="">All ${esc(label)}</option>${sorted.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join("")}`;
+}
+
+function templateCard(entry) {
+  const meta = quickNpcMetadataFromIndex(entry);
+  const badges = [meta.culture, meta.competence, meta.threat].filter(Boolean)
+    .map(value => `<span>${esc(value)}</span>`).join("");
+  const relationships = (meta.relationshipSuitability ?? []).slice(0, 4).map(value => String(value).replaceAll("_", " ").toLowerCase()).join(" · ");
+  return `<article class="rg-npc-template-card" data-rg-npc-template="${esc(entry._id)}">
+    <img src="${esc(entry.img || FALLBACK_IMG)}" alt="">
+    <div class="rg-npc-template-copy">
+      <div class="rg-npc-template-badges">${badges}</div>
+      <h3>${esc(entry.name)}</h3>
+      <small>${esc(meta.category || "NPC")}${meta.subcategory ? ` · ${esc(meta.subcategory)}` : ""}</small>
+      <p>${esc(entry.system?.concept || "Quick NPC template")}</p>
+      ${relationships ? `<div class="rg-npc-template-relations"><i class="fa-solid fa-link"></i> ${esc(relationships)}</div>` : ""}
+    </div>
+    <div class="rg-npc-template-actions">
+      <button type="button" data-rg-template-create="${esc(entry._id)}"><i class="fa-solid fa-user-plus"></i> Create</button>
+      <small>Drop image here</small>
+    </div>
+  </article>`;
+}
+
+function bindCardActions(root) {
+  root.querySelectorAll("[data-rg-template-create]").forEach(button => button.addEventListener("click", event => {
+    event.preventDefault();
+    void createNpcFromTemplate(button.dataset.rgTemplateCreate);
+  }));
+
+  root.querySelectorAll("[data-rg-npc-template]").forEach(card => {
+    card.addEventListener("dblclick", event => {
+      if (event.target?.closest?.("button")) return;
+      event.preventDefault();
+      void createNpcFromTemplate(card.dataset.rgNpcTemplate);
+    });
+    card.addEventListener("dragover", event => {
+      if (!event.dataTransfer?.types?.includes?.("Files")) return;
+      event.preventDefault();
+      card.classList.add("is-image-drop");
+    });
+    card.addEventListener("dragleave", event => {
+      if (!card.contains(event.relatedTarget)) card.classList.remove("is-image-drop");
+    });
     card.addEventListener("drop", async event => {
       const file = event.dataTransfer?.files?.[0];
       if (!file) return;
-      event.preventDefault(); event.stopPropagation(); card.classList.remove("is-image-drop");
-      try { await createNpcFromTemplate(card.dataset.rgNpcTemplate, { imageFile: file }); }
-      catch (error) { console.error(`${NS} | NPC template image drop failed`, error); ui.notifications.error(`Realm Guard: ${error.message || "NPC template image drop failed."}`); }
+      event.preventDefault();
+      event.stopPropagation();
+      card.classList.remove("is-image-drop");
+      try {
+        await createNpcFromTemplate(card.dataset.rgNpcTemplate, { imageFile: file });
+      } catch (error) {
+        console.error(`${NS} | NPC template image drop failed`, error);
+        ui.notifications.error(`Realm Guard: ${error.message || "NPC template image drop failed."}`);
+      }
     });
   });
+}
+
+export async function openNpcTemplateLibrary({ initialQuery = "" } = {}) {
+  if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return ui.notifications.warn("Realm Guard: Quick NPC Library compendium is missing. Run Starter Library sync first.");
+
+  const index = await pack.getIndex({
+    fields: [
+      "img",
+      "system.rank",
+      "system.concept",
+      "flags.realm-guard.npcTemplate"
+    ]
+  });
+
+  const entries = Array.from(index);
+  const metadata = entries.map(entry => quickNpcMetadataFromIndex(entry));
+  const categories = metadata.map(meta => meta.category);
+  const cultures = metadata.map(meta => meta.culture);
+  const competence = metadata.map(meta => meta.competence);
+
+  const dialog = new foundry.applications.api.DialogV2({
+    window: { title: "Realm Guard · Quick NPC Library", resizable: true },
+    position: { width: 920, height: 760 },
+    content: `<div class="rg-npc-template-library rg-quick-npc-library">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
+      <div class="rg-quick-npc-heading">
+        <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it.</p></div>
+        <strong data-rg-result-count>${entries.length} templates</strong>
+      </div>
+      <div class="rg-quick-npc-search">
+        <label class="rg-quick-npc-query"><i class="fa-solid fa-magnifying-glass"></i><input type="search" data-rg-npc-search value="${esc(initialQuery)}" placeholder="Try: bartender, healer bree, old ranger, big orc..."></label>
+        <select data-rg-npc-category>${optionList(categories, "categories")}</select>
+        <select data-rg-npc-culture>${optionList(cultures, "cultures")}</select>
+        <select data-rg-npc-competence>${optionList(competence, "competence")}</select>
+        <button type="button" data-rg-npc-clear><i class="fa-solid fa-eraser"></i> Clear</button>
+      </div>
+      <div class="rg-quick-npc-help"><span><i class="fa-solid fa-bolt"></i> Create = normal editable Actor</span><span><i class="fa-solid fa-image"></i> Drop local image = same template + portrait</span><span><i class="fa-solid fa-copy"></i> Template never stays linked to the created Actor</span></div>
+      <div class="rg-npc-template-grid" data-rg-npc-results></div>
+      <div class="rg-quick-npc-empty" data-rg-npc-empty hidden><i class="fa-solid fa-magnifying-glass"></i><p>No NPC templates match this search.</p><small>Try a synonym, culture, occupation or broader term.</small></div>
+    </div>`,
+    modal: false,
+    buttons: [{ action: "close", label: "Close", callback: () => true }]
+  });
+
+  await dialog.render(true);
+  const root = dialog.element;
+  if (!root) return dialog;
+
+  const queryInput = root.querySelector("[data-rg-npc-search]");
+  const category = root.querySelector("[data-rg-npc-category]");
+  const culture = root.querySelector("[data-rg-npc-culture]");
+  const competenceSelect = root.querySelector("[data-rg-npc-competence]");
+  const results = root.querySelector("[data-rg-npc-results]");
+  const count = root.querySelector("[data-rg-result-count]");
+  const empty = root.querySelector("[data-rg-npc-empty]");
+
+  const renderResults = () => {
+    const filters = {
+      category: category?.value ?? "",
+      culture: culture?.value ?? "",
+      competence: competenceSelect?.value ?? ""
+    };
+    const query = queryInput?.value ?? "";
+    const matches = entries
+      .map(entry => ({ entry, score: scoreQuickNpcEntry(entry, query, filters) }))
+      .filter(result => result.score >= 0)
+      .sort((a, b) => (b.score - a.score) || String(a.entry.name).localeCompare(String(b.entry.name)));
+
+    const visible = matches.slice(0, 120);
+    results.innerHTML = visible.map(result => templateCard(result.entry)).join("");
+    count.textContent = matches.length === entries.length ? `${matches.length} templates` : `${matches.length} / ${entries.length}`;
+    empty.hidden = matches.length > 0;
+    results.hidden = matches.length === 0;
+    bindCardActions(results);
+
+    if (matches.length > visible.length) {
+      const note = document.createElement("div");
+      note.className = "rg-quick-npc-more";
+      note.textContent = `Showing the first ${visible.length} matches. Refine the search to narrow ${matches.length} results.`;
+      results.append(note);
+    }
+  };
+
+  queryInput?.addEventListener("input", renderResults);
+  category?.addEventListener("change", renderResults);
+  culture?.addEventListener("change", renderResults);
+  competenceSelect?.addEventListener("change", renderResults);
+  root.querySelector("[data-rg-npc-clear]")?.addEventListener("click", () => {
+    if (queryInput) queryInput.value = "";
+    if (category) category.value = "";
+    if (culture) culture.value = "";
+    if (competenceSelect) competenceSelect.value = "";
+    renderResults();
+    queryInput?.focus();
+  });
+
+  renderResults();
+  queueMicrotask(() => {
+    queryInput?.focus();
+    if (initialQuery) queryInput?.select();
+  });
+
   return dialog;
 }
 
 export function installNpcBuilder() {
-  registerGmDockTool({ id: "npc-templates", icon: "fa-solid fa-people-group", tooltip: "NPC Templates & Quick Spawn", order: 6, onClick: openNpcTemplateLibrary });
+  registerGmDockTool({
+    id: "npc-templates",
+    icon: "fa-solid fa-people-group",
+    tooltip: "Quick NPC Library",
+    order: 6,
+    onClick: () => openNpcTemplateLibrary()
+  });
 }
