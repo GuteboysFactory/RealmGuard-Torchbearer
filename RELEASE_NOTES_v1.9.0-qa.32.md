@@ -68,7 +68,7 @@ Gertrud / Miller / Bree
 -> generated Actor name = Gertrud
 
 ## Service & Specialty live counter
-Service allocation now uses station-bounded dropdowns instead of number inputs, and the Required service checks display updates live from those selections.
+Service allocation uses station-bounded dropdowns. The Required service checks display is now bound directly to the active Service dropdowns in the Recruitment dialog, with an immediate initial sync and a next-frame retry for ApplicationV2 render timing.
 
 Example for a Scout:
 Fighter dropdown -> 2
