@@ -445,6 +445,33 @@ async function serviceStep(state) {
       state.serviceAlloc = Object.fromEntries(skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))]));
       state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
     },
+    onRender: (_event, dialog) => {
+      const root = dialog.element;
+      const form = root?.querySelector?.("form.rg-recruitment");
+      const summary = form?.querySelector?.(".rg-recruit-summary");
+      const summaryValue = summary?.querySelector?.("b");
+      if (!form || !summary || !summaryValue) return;
+
+      const sync = () => {
+        state.serviceAlloc = Object.fromEntries(
+          skills.map(name => [name, Math.max(0, numberValue(form, `service-${name}`, 0))])
+        );
+        state.specialty = state.rank === "recruit" ? "" : value(form, "specialty");
+        const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
+        summaryValue.textContent = `${allocated} / ${s.service}`;
+        summary.classList.toggle("is-complete", allocated === s.service);
+        summary.classList.toggle("is-under", allocated < s.service);
+        summary.classList.toggle("is-over", allocated > s.service);
+      };
+
+      for (const name of skills) {
+        const input = form.elements?.[`service-${name}`];
+        input?.addEventListener?.("input", sync);
+        input?.addEventListener?.("change", sync);
+      }
+      form.elements?.specialty?.addEventListener?.("change", sync);
+      sync();
+    },
     validate: () => {
       const allocated = Object.values(state.serviceAlloc).reduce((sum, v) => sum + v, 0);
       if (allocated !== s.service) return `Allocate exactly ${s.service} service checks. You currently allocated ${allocated}.`;
