@@ -15,6 +15,7 @@ import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "../module/m8-social-network-service.mjs";
+import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -70,6 +71,35 @@ function isAutoLearningAuthority(actor) {
   const gms = users.filter(user => user.isGM).sort((a, b) => String(a.id).localeCompare(String(b.id)));
   const authority = playerOwners[0] ?? gms[0] ?? game.user;
   return authority?.id === game.user?.id;
+}
+
+function relationshipQuickNpcQuery(person = {}) {
+  let profession = String(person.profession ?? "").trim();
+  // Preserve the user's data, but make the known legacy spelling useful for search.
+  if (/^inkeeper$/i.test(profession)) profession = "innkeeper";
+
+  const context = `${String(person.people ?? "")} ${String(person.location ?? "")}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const cultureHints = [
+    [/\bbree\b/, "bree"],
+    [/\bdunadan|dunedain\b/, "dunadan"],
+    [/\bgondor|gondorian\b/, "gondor"],
+    [/\brohan|rohirrim|rohirric\b/, "rohan"],
+    [/\bdwarf|dwarves|dwarven\b/, "dwarf"],
+    [/\belf|elves|elven\b/, "elf"],
+    [/\bhobbit|shire\b/, "hobbit"],
+    [/\bdunland|dunlending\b/, "dunland"],
+    [/\bnorthman|northmen\b/, "northman"],
+    [/\bharad|haradrim\b/, "harad"],
+    [/\beasterling\b/, "easterling"],
+    [/\borc|orcs\b/, "orc"],
+    [/\bundead|wight|shade\b/, "undead"]
+  ];
+  const culture = cultureHints.find(([pattern]) => pattern.test(context))?.[1] ?? "";
+  return [profession, culture].filter(Boolean).join(" ").trim();
 }
 
 function skillAdvanceRequirements(rating) {
@@ -129,6 +159,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       portraitSettings: RealmGuardActorSheet._portraitSettings,
       customRoll: RealmGuardActorSheet._customRoll,
       linkRelationshipActor: RealmGuardActorSheet._linkRelationshipActor,
+      createRelationshipNpc: RealmGuardActorSheet._createRelationshipNpc,
       openRelationshipActor: RealmGuardActorSheet._openRelationshipActor,
       unlinkRelationshipActor: RealmGuardActorSheet._unlinkRelationshipActor
     }
@@ -1139,6 +1170,46 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result=await foundry.applications.api.DialogV2.wait({window: { title: "Realm Guard · Manage Nature", resizable: true },content:`<div class="rg-nature-manage"><h3>Nature ${current}/${maximum}</h3><p><b>Tax:</b> ${tax}</p><p><b>Dúnadan descriptors:</b> Tradition · Family · Grief</p><p><small>Recover +1 only when the rules allow recovery. Deplete Maximum trades one point of maximum Nature to recover one point of tax.</small></p></div>`,modal:false,rejectClose:false,buttons:[{action:"recover",label:"Recover +1",icon:"fa-solid fa-leaf",callback:()=>"recover"},{action:"deplete",label:"Deplete Maximum",icon:"fa-solid fa-arrow-down",callback:()=>"deplete"},{action:"close",label:"Close",default:true,callback:()=>"close"}]});
     if(result==="recover"&&tax>0)await this.actor.update({"system.attributes.nature.value":Math.min(maximum,current+1)});
     if(result==="deplete"&&tax>0&&maximum>0){const nm=Math.max(0,maximum-1),nc=Math.min(nm,current+1);await this.actor.update({"system.attributes.nature.maximum":nm,"system.attributes.nature.value":nc});if(nm===0)ui.notifications.warn("Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");}
+  }
+
+  static async _createRelationshipNpc(event, target) {
+    if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Relationship NPC creation is GM-only.");
+
+    const personId = String(target.closest("[data-rg-person-id]")?.dataset.rgPersonId ?? "");
+    if (!personId) return ui.notifications.warn("Realm Guard: Could not resolve the Social Network person.");
+
+    const view = buildM8RelationshipSheetView(this.actor);
+    const person = view.people.find(entry => entry.id === personId);
+    if (!person) return ui.notifications.warn("Realm Guard: Could not resolve the relationship person.");
+
+    const existingUuid = String(person.actorUuid ?? "").trim();
+    if (existingUuid) {
+      const existingId = existingUuid.startsWith("Actor.") ? existingUuid.slice(6) : "";
+      const existingActor = existingId ? game.actors?.get?.(existingId) : null;
+      if (existingActor) return ui.notifications.warn(`Realm Guard: ${person.name} is already linked to ${existingActor.name}.`);
+    }
+
+    const initialQuery = relationshipQuickNpcQuery(person);
+    const rangerActor = this.actor;
+
+    await openNpcTemplateLibrary({
+      initialQuery,
+      actorName: person.name,
+      folderName: "NPC - PC Relations",
+      folderFlag: "relationshipNpcFolder",
+      closeAfterCreate: true,
+      onCreated: async createdActor => {
+        await linkM8PersonActor(rangerActor, personId, createdActor.uuid);
+        createdActor.setFlag?.("realm-guard", "relationshipOrigin", {
+          ownerActorUuid: rangerActor.uuid,
+          ownerActorName: rangerActor.name,
+          personId,
+          personName: person.name
+        }).catch?.(() => {});
+        ui.notifications.info(`Realm Guard: ${createdActor.name} created and linked to ${rangerActor.name}.`);
+        await this.render({ force: true });
+      }
+    });
   }
 
   static async _linkRelationshipActor(event, target) {
