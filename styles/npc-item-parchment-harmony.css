@@ -1,0 +1,326 @@
+/* v1.9.0-qa.22 — NPC + Item parchment harmony
+   Visual-only. Extends the framed parchment language to NPC and Item sheets
+   without changing Actor/Item data, rules or sheet behavior. */
+
+/* -------------------------------------------------------------------------- */
+/* SHARED FRAMED PARCHMENT                                                    */
+/* -------------------------------------------------------------------------- */
+
+.realm-guard .window-content:has(.rg-npc-sheet),
+.realm-guard .window-content:has(.rg-item-form) {
+  position:relative;
+  isolation:isolate;
+  background:#e7c88f !important;
+}
+
+.realm-guard .window-content:has(.rg-npc-sheet)::before,
+.realm-guard .window-content:has(.rg-item-form)::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  box-sizing:border-box;
+  border-style:solid;
+  border-width:38px 28px;
+  border-image-source:url("../assets/ui/character-parchment.webp");
+  border-image-slice:13% 10% 13% 10% fill;
+  border-image-width:38px 28px;
+  border-image-repeat:stretch;
+  background:#ead09a;
+}
+
+.realm-guard .window-content:has(.rg-npc-sheet) > .rg-npc-sheet,
+.realm-guard .window-content:has(.rg-item-form) > .rg-item-form {
+  position:relative;
+  z-index:1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* NPC SHEET                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.realm-guard .rg-npc-sheet {
+  --rgn-ink:#342719;
+  --rgn-muted:#6c593d;
+  --rgn-line:rgba(104,69,31,.42);
+  --rgn-paper:rgba(246,229,190,.82);
+  --rgn-paper-soft:rgba(236,214,172,.70);
+  padding:12px !important;
+  background:transparent !important;
+  color:var(--rgn-ink) !important;
+}
+
+/* Identity header remains the dark visual anchor, matching the Ranger sheet. */
+.realm-guard .rg-npc-header {
+  border-color:rgba(147,103,48,.78) !important;
+  border-bottom:2px solid #b9853d !important;
+  background:linear-gradient(180deg,rgba(39,34,23,.95),rgba(20,22,15,.91)) !important;
+  box-shadow:0 5px 15px rgba(58,35,15,.22),inset 0 0 0 1px rgba(255,236,185,.05) !important;
+}
+
+.realm-guard .rg-npc-name {
+  color:#f1dfbd !important;
+  background:transparent !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(174,139,70,.46) !important;
+}
+.realm-guard .rg-npc-identity-grid label {
+  color:#c1b08e !important;
+}
+.realm-guard .rg-npc-identity-grid input {
+  color:#f0e2c5 !important;
+  background:rgba(11,13,9,.62) !important;
+  border-color:rgba(132,104,62,.48) !important;
+}
+.realm-guard .rg-npc-resource-stack .rg-resource {
+  background:linear-gradient(180deg,rgba(47,46,31,.92),rgba(24,26,18,.90)) !important;
+  border-color:rgba(150,113,62,.48) !important;
+}
+
+/* Ability/stat cards become parchment cards. */
+.realm-guard .rg-npc-stat {
+  color:#5b4327 !important;
+  border-color:rgba(116,78,34,.52) !important;
+  background:linear-gradient(180deg,rgba(247,234,204,.92),rgba(222,196,145,.88)) !important;
+  box-shadow:0 2px 6px rgba(73,43,18,.14),inset 0 0 0 1px rgba(255,255,255,.26) !important;
+}
+.realm-guard .rg-npc-stat > button {
+  color:#704b20 !important;
+}
+.realm-guard .rg-npc-stat > input,
+.realm-guard .rg-npc-stat > span input {
+  color:#2e2317 !important;
+  background:rgba(255,248,225,.90) !important;
+  border-color:rgba(104,70,34,.40) !important;
+}
+
+/* Toolbar: parchment hint + dark action controls. */
+.realm-guard .rg-npc-drop-hint {
+  color:#65523a !important;
+  background:rgba(236,215,173,.58) !important;
+  border-color:rgba(111,79,39,.38) !important;
+}
+.realm-guard .rg-npc-quick-tools button {
+  color:#f1e1c0 !important;
+  background:linear-gradient(180deg,#4a4b32,#292d20) !important;
+  border-color:#806a45 !important;
+}
+
+/* NPC information panels now read as paper cards. */
+.realm-guard .rg-npc-sheet .rg-panel {
+  color:var(--rgn-ink) !important;
+  border:1px solid var(--rgn-line) !important;
+  background:
+    linear-gradient(rgba(255,249,229,.18),rgba(122,78,31,.035)),
+    var(--rgn-paper) !important;
+  box-shadow:0 4px 13px rgba(69,39,16,.13),inset 0 0 0 1px rgba(255,255,255,.22) !important;
+}
+.realm-guard .rg-npc-sheet .rg-panel-title {
+  border-bottom-color:rgba(105,72,36,.30) !important;
+}
+.realm-guard .rg-npc-sheet .rg-panel-title h2,
+.realm-guard .rg-npc-sheet .rg-panel-title h2 i {
+  color:#68451f !important;
+  text-shadow:none !important;
+}
+.realm-guard .rg-npc-sheet .rg-panel-title small,
+.realm-guard .rg-npc-sheet .rg-empty {
+  color:var(--rgn-muted) !important;
+}
+.realm-guard .rg-npc-sheet .rg-panel-title button,
+.realm-guard .rg-npc-sheet .rg-npc-line button,
+.realm-guard .rg-npc-sheet .rg-npc-condition-tools button {
+  color:#f1e1c0 !important;
+  background:linear-gradient(180deg,#4a4b32,#292d20) !important;
+  border-color:#806a45 !important;
+}
+
+/* Quick Skills: light skill cards with strong rating and dark controls. */
+.realm-guard .rg-npc-skill {
+  border-color:rgba(104,72,36,.38) !important;
+  background:rgba(250,239,208,.78) !important;
+  box-shadow:inset 3px 0 0 rgba(93,112,56,.48),0 1px 4px rgba(73,42,17,.09) !important;
+}
+.realm-guard .rg-npc-skill.is-versus {
+  border-color:rgba(143,100,43,.62) !important;
+  box-shadow:inset 3px 0 0 #9a753a,0 1px 4px rgba(73,42,17,.09) !important;
+}
+.realm-guard .rg-npc-skill-roll {
+  color:#382a1a !important;
+  background:rgba(255,248,224,.70) !important;
+  border-color:rgba(103,69,32,.28) !important;
+}
+.realm-guard .rg-npc-skill-roll strong {
+  color:#80581f !important;
+}
+.realm-guard .rg-npc-skill .rg-role-versus {
+  color:#5f4b31 !important;
+  background:transparent !important;
+  border-color:rgba(102,71,38,.26) !important;
+}
+.realm-guard .rg-npc-skill > button.icon {
+  color:#f1e1c0 !important;
+  background:#3c402a !important;
+  border-color:#786541 !important;
+}
+
+/* Notes become real writing areas. */
+.realm-guard .rg-npc-notes textarea {
+  color:#2c2116 !important;
+  background:rgba(255,249,228,.88) !important;
+  border:1px solid rgba(102,68,31,.42) !important;
+  box-shadow:inset 0 1px 3px rgba(80,48,20,.08) !important;
+}
+
+/* Conditions / Traits / Wises / Talents / Gear rows. */
+.realm-guard .rg-npc-condition {
+  border-color:rgba(105,72,36,.30) !important;
+  background:rgba(255,244,211,.50) !important;
+}
+.realm-guard .rg-npc-condition.is-active {
+  border-color:rgba(150,87,58,.58) !important;
+  background:rgba(190,105,72,.10) !important;
+  box-shadow:inset 3px 0 0 #9f5a42 !important;
+}
+.realm-guard .rg-npc-condition-toggle {
+  color:#3d2e1d !important;
+  background:transparent !important;
+}
+.realm-guard .rg-npc-line {
+  color:#3b2d1e !important;
+  border-bottom-color:rgba(91,61,31,.22) !important;
+}
+.realm-guard .rg-npc-line > span,
+.realm-guard .rg-npc-line > b {
+  color:#3b2d1e !important;
+}
+.realm-guard .rg-npc-line > small {
+  color:#756148 !important;
+}
+.realm-guard .rg-npc-gear-line > small {
+  color:#756148 !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* ITEM SHEET                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.realm-guard .rg-item-form {
+  --rgi-ink:#342719;
+  --rgi-muted:#6c593d;
+  --rgi-line:rgba(104,69,31,.42);
+  padding:14px !important;
+  background:transparent !important;
+  color:var(--rgi-ink) !important;
+}
+
+/* Realm Guard brand becomes a document heading rather than floating gold text. */
+.realm-guard .rg-item-form > .rg-brand {
+  margin:-2px 0 2px;
+  padding:8px 10px;
+  border:1px solid rgba(116,82,43,.46);
+  border-radius:6px;
+  color:#f0dfb8 !important;
+  background:linear-gradient(180deg,#48501e,#2b3217);
+  box-shadow:0 3px 8px rgba(64,38,16,.12);
+}
+
+/* Inputs / textareas / selects are writing fields on paper. */
+.realm-guard .rg-item-form label {
+  color:#624f35 !important;
+}
+.realm-guard .rg-item-form input,
+.realm-guard .rg-item-form textarea,
+.realm-guard .rg-item-form select {
+  color:#2d2217 !important;
+  -webkit-text-fill-color:#2d2217 !important;
+  caret-color:#2d2217 !important;
+  background:rgba(255,249,228,.90) !important;
+  border:1px solid rgba(102,68,31,.42) !important;
+  box-shadow:inset 0 1px 3px rgba(80,48,20,.07) !important;
+}
+.realm-guard .rg-item-form input::placeholder,
+.realm-guard .rg-item-form textarea::placeholder {
+  color:#88745a !important;
+  -webkit-text-fill-color:#88745a !important;
+}
+
+/* Item-specific editor blocks become parchment cards. */
+.realm-guard .rg-item-form .rg-gear-editor-block,
+.realm-guard .rg-item-form .rg-token-editor-block,
+.realm-guard .rg-item-form .rg-talent-editor-block {
+  border:1px solid var(--rgi-line) !important;
+  border-radius:7px !important;
+  background:
+    linear-gradient(rgba(255,249,229,.18),rgba(122,78,31,.035)),
+    rgba(246,229,190,.78) !important;
+  box-shadow:0 4px 12px rgba(69,39,16,.11),inset 0 0 0 1px rgba(255,255,255,.20) !important;
+}
+
+/* Gear editor uses a forest heading and paper content. */
+.realm-guard .rg-item-form .rg-gear-editor-block > h3 {
+  margin:-9px -9px 4px !important;
+  padding:8px 10px !important;
+  border-radius:6px 6px 0 0;
+  color:#f0dfb8 !important;
+  background:linear-gradient(180deg,#48501e,#2b3217);
+  border-bottom:1px solid #725d33;
+}
+.realm-guard .rg-item-form .rg-gear-editor-block label small {
+  color:#756148 !important;
+  opacity:1 !important;
+}
+.realm-guard .rg-item-form .rg-item-placement-note {
+  color:#65523a !important;
+  background:rgba(105,84,47,.08) !important;
+  border-left-color:#71813f !important;
+}
+
+/* Token / Talent heading remains a focal dark strip. */
+.realm-guard .rg-item-form .rg-token-editor-head {
+  margin:-1px -1px 3px !important;
+  border-color:#725d33 !important;
+  background:linear-gradient(180deg,#48501e,#2b3217) !important;
+}
+.realm-guard .rg-item-form .rg-token-editor-head h3 {
+  color:#f0dfb8 !important;
+}
+.realm-guard .rg-item-form .rg-token-editor-head small {
+  color:#c8b995 !important;
+  opacity:1 !important;
+}
+.realm-guard .rg-item-form .rg-token-level-badge {
+  color:#f2dfb5 !important;
+  background:rgba(18,22,13,.46) !important;
+  border-color:rgba(204,162,83,.46) !important;
+}
+.realm-guard .rg-item-form .rg-token-rule-note {
+  color:#5d4b33 !important;
+  background:rgba(109,88,54,.08) !important;
+  border-color:rgba(104,70,34,.28) !important;
+}
+.realm-guard .rg-item-form .rg-token-manual-note {
+  color:#654c3d !important;
+  background:rgba(145,86,62,.08) !important;
+  border-color:rgba(125,75,54,.28) !important;
+}
+
+/* Checkbox labels remain readable on parchment. */
+.realm-guard .rg-item-form .rg-check {
+  color:#59472f !important;
+}
+
+/* Native description area gets a little more visual depth. */
+.realm-guard .rg-item-form > label:last-child textarea {
+  min-height:130px;
+}
+
+/* Compact windows: reduce frame thickness to avoid consuming the workspace. */
+@media(max-width:560px) {
+  .realm-guard .window-content:has(.rg-item-form)::before,
+  .realm-guard .window-content:has(.rg-npc-sheet)::before {
+    border-width:28px 20px;
+    border-image-width:28px 20px;
+  }
+}
