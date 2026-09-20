@@ -2,8 +2,9 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { STARTER_TALENTS } from "./talents.mjs";
+import { QUICK_NPC_TEMPLATE_SPECS, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
 
-const STARTER_VERSION = "0.24.0";
+const STARTER_VERSION = "0.25.0";
 const SETTING_KEY = "starterCompendiumSeedVersion";
 const FLAG_SCOPE = "realm-guard";
 
@@ -225,12 +226,14 @@ function npcGear(name, { hands = 0, mode = "unassigned", location = "", slots = 
   };
 }
 
-function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resources = 1, circles = 1, skills = [], gear = [] } = {}) {
+function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resources = 1, circles = 1, skills = [], gear = [], metadata = null } = {}) {
+  const flags = starterFlags(`npc:${slug(name)}`, "npc-templates");
+  if (metadata) flags[FLAG_SCOPE].npcTemplate = foundry.utils.deepClone ? foundry.utils.deepClone(metadata) : structuredClone(metadata);
   return {
     name,
     type: "npc",
     img: "systems/realm-guard/assets/actors/npc-creature.webp",
-    flags: starterFlags(`npc:${slug(name)}`, "npc-templates"),
+    flags,
     system: {
       biography: "",
       notes: "Starter NPC template. This is a Foundry convenience baseline, not a mandatory canonical stat block; tune it for the scene and campaign.",
@@ -268,16 +271,18 @@ function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resourc
   };
 }
 
-const NPCS = Object.freeze([
-  npcDoc("Ranger Ally · Scout", { rank: "Scout", concept: "Dunadan patrol ally", nature: 3, will: 3, health: 5, resources: 2, circles: 2, skills: [["Scout", 4], ["Pathfinder", 4], ["Fighter", 3], ["Survivalist", 3]], gear: [npcGear("Bow", { hands: 2, mode: "hand", location: "right-hand" }), npcGear("Dagger", { hands: 1, mode: "belt", location: "belt" }), npcGear("Cloak", { mode: "worn", location: "cloak" })] }),
-  npcDoc("Town Guard", { rank: "Guard", concept: "Local watch or garrison soldier", nature: 3, will: 3, health: 4, resources: 1, circles: 1, skills: [["Fighter", 3], ["Scout", 2], ["Persuader", 2]], gear: [npcGear("Spear", { hands: 1, mode: "hand", location: "right-hand" }), npcGear("Shield", { hands: 1, mode: "hand", location: "left-hand" }), npcGear("Mail Shirt", { mode: "worn", location: "torso", slots: 2 })] }),
-  npcDoc("Veteran Soldier", { rank: "Veteran", concept: "Experienced warrior", nature: 3, will: 4, health: 4, resources: 2, circles: 2, skills: [["Fighter", 4], ["Militarist", 3], ["Scout", 3]], gear: [npcGear("Sword", { hands: 1, mode: "hand", location: "right-hand" }), npcGear("Shield", { hands: 1, mode: "hand", location: "left-hand" }), npcGear("Mail Shirt", { mode: "worn", location: "torso", slots: 2 }), npcGear("Helmet", { mode: "worn", location: "head" })] }),
-  npcDoc("Brigand", { rank: "Brigand", concept: "Roadside raider or outlaw", nature: 3, will: 3, health: 4, resources: 1, circles: 1, skills: [["Fighter", 3], ["Scout", 3], ["Deceiver", 2]], gear: [npcGear("Axe", { hands: 1, mode: "hand", location: "right-hand" }), npcGear("Shield", { hands: 1, mode: "hand", location: "left-hand" }), npcGear("Leather Armor", { mode: "worn", location: "torso", slots: 2 })] }),
-  npcDoc("Orc Scout", { rank: "Scout", concept: "Enemy scout and skirmisher", nature: 4, will: 3, health: 4, resources: 0, circles: 1, skills: [["Scout", 4], ["Fighter", 3], ["Pathfinder", 3], ["Hunter", 3]], gear: [npcGear("Bow", { hands: 2, mode: "hand", location: "right-hand" }), npcGear("Dagger", { hands: 1, mode: "belt", location: "belt" })] }),
-  npcDoc("Orc Warrior", { rank: "Warrior", concept: "Enemy infantry", nature: 4, will: 3, health: 5, resources: 0, circles: 1, skills: [["Fighter", 4], ["Hunter", 3], ["Scout", 2]], gear: [npcGear("Axe", { hands: 1, mode: "hand", location: "right-hand" }), npcGear("Shield", { hands: 1, mode: "hand", location: "left-hand" }), npcGear("Leather Armor", { mode: "worn", location: "torso", slots: 2 })] }),
-  npcDoc("Warg", { rank: "Creature", concept: "Large predatory beast", nature: 5, will: 2, health: 5, resources: 0, circles: 0, skills: [["Hunter", 4], ["Scout", 4], ["Fighter", 3]] }),
-  npcDoc("Enemy Captain", { rank: "Captain", concept: "Leader of an enemy warband", nature: 4, will: 4, health: 5, resources: 2, circles: 2, skills: [["Fighter", 5], ["Militarist", 4], ["Orator", 3], ["Scout", 3]], gear: [npcGear("Sword", { hands: 1, mode: "hand", location: "right-hand" }), npcGear("Shield", { hands: 1, mode: "hand", location: "left-hand" }), npcGear("Mail Shirt", { mode: "worn", location: "torso", slots: 2 }), npcGear("Helmet", { mode: "worn", location: "head" }), npcGear("Cloak", { mode: "worn", location: "cloak" })] })
-]);
+const NPCS = Object.freeze(QUICK_NPC_TEMPLATE_SPECS.map(spec => npcDoc(spec.name, {
+  rank: spec.rank,
+  concept: spec.concept,
+  nature: spec.stats.nature,
+  will: spec.stats.will,
+  health: spec.stats.health,
+  resources: spec.stats.resources,
+  circles: spec.stats.circles,
+  skills: spec.skills,
+  gear: spec.gear.map(entry => npcGear(entry.name, entry)),
+  metadata: spec.metadata
+})));
 
 export const RG_STARTER_LIBRARY = Object.freeze({
   skills: Object.freeze(RG_DEFAULT_SKILLS.map(skillDoc)),
@@ -389,7 +394,7 @@ async function openStarterLibraryDialog() {
   const counts = Object.fromEntries(Object.entries(RG_STARTER_LIBRARY).map(([key, docs]) => [key, docs.length]));
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Realm Guard · Starter Library", resizable: true },
-    content: `<div class="rg-starter-library-dialog"><h2><i class="fa-solid fa-book-atlas"></i> Starter Compendiums</h2><p>The Starter Library contains reusable Realm Guard content for a clean world.</p><div class="rg-starter-library-grid"><span>Skills <b>${counts.skills}</b></span><span>Traits <b>${counts.traits}</b></span><span>Wises <b>${counts.wises}</b></span><span>Conditions <b>${counts.conditions}</b></span><span>Gear <b>${counts.gear}</b></span><span>Tokens of Power <b>${counts.powers}</b></span><span>Talents <b>${counts.talents}</b></span><span>NPC Templates <b>${counts.npcs}</b></span></div><p><small><b>Non-destructive:</b> sync only adds missing starter entries. It never overwrites an existing or edited entry.</small></p></div>`,
+    content: `<div class="rg-starter-library-dialog"><h2><i class="fa-solid fa-book-atlas"></i> Starter Compendiums</h2><p>The Starter Library contains reusable Realm Guard content for a clean world.</p><div class="rg-starter-library-grid"><span>Skills <b>${counts.skills}</b></span><span>Traits <b>${counts.traits}</b></span><span>Wises <b>${counts.wises}</b></span><span>Conditions <b>${counts.conditions}</b></span><span>Gear <b>${counts.gear}</b></span><span>Tokens of Power <b>${counts.powers}</b></span><span>Talents <b>${counts.talents}</b></span><span>NPC Templates <b>${counts.npcs}</b></span><span>Quick NPC Library <b>v${QUICK_NPC_LIBRARY_VERSION}</b></span></div><p><small><b>Non-destructive:</b> sync only adds missing starter entries. It never overwrites an existing or edited entry.</small></p></div>`,
     modal: false,
     rejectClose: false,
     buttons: [
