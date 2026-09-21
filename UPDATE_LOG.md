@@ -3,7 +3,20 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.35
+**Current QA build:** v1.9.0-qa.36
+
+
+## v1.9.0-qa.36 - QA / Generic NPC Template Naming
+
+- Built from the verified qa.35 M8 NPC Group Templates baseline.
+- Removes **Bree** from generic common NPC template display names so roles such as Innkeeper, Miller, Farmer, Healer and Guide are reusable anywhere.
+- Re-labels the generic former Bree metadata bucket as **Common / Common Folk** while preserving the existing internal culture key and stable template IDs for compatibility.
+- Renames **Bree Road Caravan** to **Road Caravan** and uses generic member matching.
+- Adds stable `portraitKey` metadata per generated Quick NPC role to prepare for future default portrait assets without requiring those assets in qa.36.
+- Starter Library identity now recognizes NPC templates by stable `npcTemplate.templateId`, preventing duplicate templates when display names change.
+- Existing untouched generated `Bree ...` starter entries can be refreshed to generic names; GM-renamed entries are deliberately preserved.
+- No stats, Skills, Gear, Relationship behavior, Recruitment rules or Legacy Mixed authority changes.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.36.md`.
 
 
 ## v1.9.0-qa.35 - PASS / M8 NPC Group Templates
