@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.41
 
 
-## v1.9.0-qa.41 - QA / M8 Circles Enmity Clause
+## v1.9.0-qa.41 - 🟢✅ PASS / M8 Circles Enmity Clause
 
 - Failed **Find New Person** Circles tests now route to a GM decision instead of silently doing nothing.
 - GM choices: **Normal Failure**, **Invoke Enmity Clause**, or **Decide Later**.
@@ -18,7 +18,9 @@
 - No NPC Actor is created automatically.
 - Existing Status / History / Create NPC / Link Existing Actor workflows remain available afterward.
 - Mouse Guard's +3s argument/speech disposition effect for enemies is intentionally deferred to the Conflict/profile layer; qa.41 does not alter M6 / Legacy Mixed conflicts.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.41.md`.
+- Live Foundry VTT 13.351 QA confirmed GM failure choice, Enmity creation/reuse, duplicate protection, Contact→Enemy transition, history persistence and reload safety.
+- Release pipeline completed successfully.
+- Test status: **🟢✅ VERIFIED / PASS**. See `TEST_PROTOCOL_v1.9.0-qa.41.md`.
 
 
 ## v1.9.0-qa.40 - 🟢✅ PASS / Circles GM Obstacle Authority
