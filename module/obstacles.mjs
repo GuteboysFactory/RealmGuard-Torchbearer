@@ -12,15 +12,15 @@ export const OBSTACLE_MODES = {
 export const OBSTACLE_MODE_HELP = {
   baseline: {
     title: "Automatic Baseline",
-    text: "New ordinary rolls start at the Baseline Obstacle. While a Baseline-linked roll is open, Change Live Roll OB can push a temporary Ob to that open roll. If the roll's Ob is edited manually, it stops following Live OB."
+    text: "New ordinary rolls start at the Baseline Obstacle. While a Baseline-linked roll is open, Change Live Roll OB can push a temporary Ob to that open roll. If an ordinary roll's Ob is edited manually, it stops following Live OB. Circles is always locked to GM Obstacle authority."
   },
   approval: {
     title: "GM Approval",
-    text: "New ordinary rolls start at the Baseline Obstacle and send a non-modal approval request to an active GM. The GM can raise or lower the Ob, preview the change for the player and approve it before the roll resolves."
+    text: "New ordinary rolls start at the Baseline Obstacle and send a non-modal approval request to an active GM. The GM can raise or lower the Ob, preview the change for the player and approve it before the roll resolves. Circles uses the same GM-controlled approval path."
   },
   manual: {
     title: "Manual per Roll",
-    text: "Ordinary rolls do not follow the Baseline/Live workflow. The Obstacle is set directly in each Roll Dialog. Use this when the table wants maximum per-roll flexibility."
+    text: "Ordinary rolls do not follow the Baseline/Live workflow. Their Obstacle is set directly in each Roll Dialog. Circles is the exception: its Obstacle remains read-only for the player and is controlled by the GM through Obstacle Control."
   }
 };
 
