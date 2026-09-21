@@ -80,6 +80,25 @@ function statusLabel(status = "") {
   return String(status || "UNKNOWN").toLowerCase().split("_").map(part => part ? part[0].toUpperCase() + part.slice(1) : "").join(" ");
 }
 
+
+export const M8_RELATIONSHIP_STATUS_OPTIONS = Object.freeze([
+  Object.freeze({ value: RelationshipStatus.UNKNOWN, label: statusLabel(RelationshipStatus.UNKNOWN) }),
+  Object.freeze({ value: RelationshipStatus.FRIENDLY, label: statusLabel(RelationshipStatus.FRIENDLY) }),
+  Object.freeze({ value: RelationshipStatus.NEUTRAL, label: statusLabel(RelationshipStatus.NEUTRAL) }),
+  Object.freeze({ value: RelationshipStatus.ESTRANGED, label: statusLabel(RelationshipStatus.ESTRANGED) }),
+  Object.freeze({ value: RelationshipStatus.HOSTILE, label: statusLabel(RelationshipStatus.HOSTILE) })
+]);
+
+export async function updateM8RelationshipStatus(actorOrId, relationshipId, status, options = {}) {
+  if (!game.user?.isGM) throw new Error("Relationship status changes are GM-only during M8 migration.");
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  return services().social.updateRelationshipStatus(actor, relationshipId, status, {
+    ...options,
+    source: String(options?.source || RelationshipOrigin.GM)
+  });
+}
+
 function linkedActorView(actorUuid = "") {
   const uuid = String(actorUuid || "").trim();
   if (!uuid) return Object.freeze({ uuid: "", linked: false, resolved: false, name: "", type: "", img: "" });
