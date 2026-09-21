@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.36 - M8 Generic NPC Template Naming — QA  
+**Current QA build:** v1.9.0-qa.37 - M8 Living Relationship Status — QA  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS; `v1.9.0-qa.36` naming cleanup in QA.
+**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; `v1.9.0-qa.37` Living Relationship Status in QA.
 
 Current M8 implementation now includes:
 
@@ -29,6 +29,8 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 **qa.35 result:** ✅ PASS in Foundry VTT 13.351. Group folder isolation, actor independence, duplicate-name safety, Relationship NPC regression and qa.34 Recruitment regression verified.
 
 **Current M8 cleanup:** qa.36 removes `Bree ...` from generic Quick NPC display names, renames `Bree Road Caravan` to `Road Caravan`, preserves stable internal template IDs, adds `portraitKey` metadata for future default portraits, and safely refreshes untouched generated Starter Library entries without overwriting GM-renamed templates.
+
+**Current Relationship step:** qa.37 exposes GM-controlled RelationshipStatus changes directly on the Relationships tab and records append-only RelationshipHistory with optional reason/session reference. Legacy source fields remain untouched and Circles integration remains deferred.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
