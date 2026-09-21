@@ -85,3 +85,20 @@ Expected:
 
 ## PASS
 qa.37 passes when Relationship status can change safely with append-only history, survives reload, preserves Legacy Mixed source fields and does not regress NPC/Actor linking.
+
+
+## VERIFIED RESULT
+
+**PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- Relationship status action is available to GM
+- status transitions persist correctly
+- RelationshipHistory appends correctly
+- reason/session references display correctly
+- unchanged status creates no duplicate history
+- reload persistence works
+- Relationship NPC / Actor linking regression remains intact
+- non-GM presentation remains read-only for status editing
+
+No blocking issues were reported during qa.37 live validation.
