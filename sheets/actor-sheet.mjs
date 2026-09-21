@@ -835,7 +835,9 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const defaults = { obstacle: 1, modifier: 0 };
     const targets = Array.from(game.user.targets ?? []);
     const natureTarget = key === "nature" && targets.length === 1 ? targets[0].actor : null;
-    const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, isSkill: false, abilityKey: key, natureTarget });
+    const circlesContext = key === "circles" ? await RealmGuardActorSheet._prepareCirclesSocialContext.call(this) : null;
+    if (key === "circles" && !circlesContext) return;
+    const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, isSkill: false, abilityKey: key, natureTarget, circlesContext });
     if (!options) return;
     const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope, natureUse, doubleTapNature, natureVersus } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, ability.name, { isSkill: false });
@@ -853,11 +855,173 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${ability.name} Help`);
     if (countLearning && !result.tied && result.passed !== null && result.passed !== undefined) {
       await recordAbilityTest(this.actor, key, Boolean(result.passed));
-      await this.render({ force: true });
+    }
+    if (key === "circles") {
+      await RealmGuardActorSheet._commitCirclesSocialContext.call(this, circlesContext, result);
+    }
+    if (countLearning || key === "circles") await this.render({ force: true });
+  }
+
+  static async _prepareCirclesSocialContext() {
+    const esc = foundry.utils.escapeHTML;
+    const view = buildM8RelationshipSheetView(this.actor);
+    const known = view.relationships
+      .filter(relationship => relationship.person?.id && relationship.person?.name)
+      .map(relationship => ({
+        relationshipId: relationship.id,
+        personId: relationship.person.id,
+        name: relationship.person.name,
+        profession: relationship.person.profession || "",
+        people: relationship.person.people || "",
+        location: relationship.person.location || "",
+        roleLabel: relationship.roleLabel || "Contact",
+        statusLabel: relationship.statusLabel || "Unknown"
+      }))
+      .sort((a,b) => a.name.localeCompare(b.name));
+
+    const purpose = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Realm Guard · Circles", resizable: true },
+      position: { width: 590 },
+      content: `<div class="realm-guard rg-m8-circles-dialog">
+        <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES</div>
+        <h2>Who are you trying to find?</h2>
+        <p>This M8 integration does not change Circles dice, Obstacle or advancement rules. It only connects the result to the Social Network.</p>
+        <div class="rg-m8-circles-choice-grid">
+          <button type="button" data-rg-circles-purpose="standard"><b>Standard Test</b><small>Roll Circles exactly as before. No Social Network change.</small></button>
+          <button type="button" data-rg-circles-purpose="known" ${known.length ? "" : "disabled"}><b>Known Person / Contact</b><small>Reference someone already in this Ranger's Social Network.</small></button>
+          <button type="button" data-rg-circles-purpose="new"><b>Find New Person</b><small>On a successful roll, add the person as a Contact. No NPC is created.</small></button>
+        </div>
+        ${known.length ? "" : '<p class="rg-m8-circles-note">No known Social Network people are available yet.</p>'}
+      </div>`,
+      modal: false,
+      rejectClose: false,
+      render: (_event, dialog) => {
+        const root = dialog?.element ?? dialog;
+        root?.querySelectorAll?.("[data-rg-circles-purpose]")?.forEach?.(button => {
+          button.addEventListener("click", () => {
+            const action = button.dataset.rgCirclesPurpose;
+            root?.querySelector?.(`button[data-action="${action}"]`)?.click?.();
+          });
+        });
+      },
+      buttons: [
+        { action: "standard", label: "Standard Test", callback: () => "standard" },
+        { action: "known", label: "Known Person", callback: () => "known" },
+        { action: "new", label: "Find New Person", callback: () => "new" },
+        { action: "cancel", label: "Cancel", callback: () => "" }
+      ]
+    });
+
+    if (!purpose) return null;
+    if (purpose === "standard") return Object.freeze({ mode: "standard", label: "Standard Circles Test" });
+
+    if (purpose === "known") {
+      if (!known.length) return Object.freeze({ mode: "standard", label: "Standard Circles Test" });
+      const options = known.map((entry,index) => {
+        const meta = [entry.roleLabel, entry.profession, entry.location, entry.statusLabel].filter(Boolean).join(" · ");
+        return `<option value="${index}">${esc(entry.name)}${meta ? ` · ${esc(meta)}` : ""}</option>`;
+      }).join("");
+      const selectedIndex = await foundry.applications.api.DialogV2.wait({
+        window: { title: "Realm Guard · Circles · Known Person", resizable: true },
+        position: { width: 560 },
+        content: `<form class="realm-guard rg-m8-circles-dialog">
+          <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES</div>
+          <h2>Known Person / Contact</h2>
+          <p>Select the person this Circles test concerns. This does not automatically change their status or create an NPC.</p>
+          <label><span>Known person</span><select name="knownIndex">${options}</select></label>
+        </form>`,
+        modal: false,
+        rejectClose: false,
+        buttons: [
+          { action: "continue", label: "Continue to Circles Test", icon: "fa-solid fa-dice", default: true, callback: (_event,button) => Number(button.form?.elements?.knownIndex?.value ?? -1) },
+          { action: "cancel", label: "Cancel", callback: () => -1 }
+        ]
+      });
+      const selected = known[Number(selectedIndex)];
+      if (!selected) return null;
+      return Object.freeze({ mode: "known", ...selected, label: `Known: ${selected.name}` });
+    }
+
+    const newPerson = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Realm Guard · Circles · Find New Person", resizable: true },
+      position: { width: 620 },
+      content: `<form class="realm-guard rg-m8-circles-dialog">
+        <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES</div>
+        <h2>Find New Person</h2>
+        <p>Describe who the Ranger is trying to find. The record is committed only if the Circles test passes. Initial relationship status is Neutral and can be changed later.</p>
+        <div class="rg-m8-contact-grid">
+          <label><span>Name *</span><input type="text" name="name" required placeholder="Person name"></label>
+          <label><span>Profession / Role</span><input type="text" name="profession" placeholder="Guide, Smith, Healer..."></label>
+          <label><span>People / Culture</span><input type="text" name="people" placeholder="Man, Dwarf, Elf..."></label>
+          <label><span>Location</span><input type="text" name="location" placeholder="Settlement or region"></label>
+          <label class="rg-contact-wide"><span>Notes</span><textarea name="notes" rows="3" placeholder="Why is the Ranger looking for this person?"></textarea></label>
+        </div>
+        <p class="rg-m8-circles-note"><b>On PASS:</b> creates a Contact in Social Network. <b>On FAIL:</b> qa.39 creates nothing; Enmity is handled in a later M8 step.</p>
+      </form>`,
+      modal: false,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "continue",
+          label: "Continue to Circles Test",
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event,button) => ({
+            name: String(button.form?.elements?.name?.value || "").trim(),
+            profession: String(button.form?.elements?.profession?.value || "").trim(),
+            people: String(button.form?.elements?.people?.value || "").trim(),
+            location: String(button.form?.elements?.location?.value || "").trim(),
+            notes: String(button.form?.elements?.notes?.value || "").trim()
+          })
+        },
+        { action: "cancel", label: "Cancel", callback: () => null }
+      ]
+    });
+    if (!newPerson) return null;
+    if (!newPerson.name) {
+      ui.notifications.warn("Realm Guard: Name is required for a new Circles person.");
+      return null;
+    }
+    return Object.freeze({ mode: "new", ...newPerson, label: `New: ${newPerson.name}` });
+  }
+
+  static async _commitCirclesSocialContext(context, result) {
+    if (!context || context.mode === "standard" || !result || result.tied) return;
+
+    if (context.mode === "known") {
+      const outcome = result.passed ? "PASS" : "FAIL";
+      ui.notifications.info(`Realm Guard: Circles ${outcome} for known person ${context.name}. Social Network data was not changed automatically.`);
+      return;
+    }
+
+    if (context.mode !== "new") return;
+    if (!result.passed) {
+      ui.notifications.info(`Realm Guard: Circles failed while seeking ${context.name}. No Contact was created; Enmity is not automated in qa.39.`);
+      return;
+    }
+
+    try {
+      const created = await createM8DynamicContact(this.actor, {
+        name: context.name,
+        profession: context.profession,
+        people: context.people,
+        location: context.location,
+        notes: context.notes,
+        status: "NEUTRAL",
+        origin: "CIRCLES"
+      });
+      if (created.duplicate) {
+        ui.notifications.info(`Realm Guard: Circles found ${created.person.name}; that person already exists in the Social Network, so no duplicate was created.`);
+      } else {
+        ui.notifications.info(`Realm Guard: Circles found ${created.person.name}. Added as a Neutral Contact; no NPC Actor was created.`);
+      }
+    } catch (error) {
+      console.error("Realm Guard | Circles Social Network commit failed", error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Could not record the Circles Contact."}`);
     }
   }
 
-  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false } = {}) {
+  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null } = {}) {
     const personaValue = Number(this.actor.system.resources.persona.value ?? 0);
     const target = game.user.targets.size === 1 ? [...game.user.targets][0] : null;
     const opponent = target?.actor ?? null;
@@ -899,6 +1063,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const talentOptions = talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
     const talentBlock = talentOptions.length ? `<fieldset class="rg-talent-roll-choice"><legend><i class="fa-solid fa-sparkles"></i> Talent</legend><label>Use Talent <select name="talentId"><option value="">None</option>${talentOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Once/session Talents are consumed only after a committed roll.</small></fieldset>` : "";
 
+    const circlesBlock = String(abilityKey) === "circles" && circlesContext
+      ? `<fieldset class="rg-m8-circles-roll-context"><legend><i class="fa-solid fa-address-book"></i> Circles · Social Network</legend><p><b>${foundry.utils.escapeHTML(circlesContext.label || "Circles Test")}</b></p><small>${circlesContext.mode === "new" ? "A successful result records this person as a Neutral Contact. Failure creates no Contact in qa.39." : circlesContext.mode === "known" ? "This roll references an existing Social Network person. Status/history are not changed automatically." : "Standard Circles roll. No Social Network data will be changed."}</small></fieldset>`
+      : "";
+
     const ruleSpecific = fixedObstacle || Boolean(versus && opponent) || ["resources", "circles"].includes(String(abilityKey));
     const workflow = ruleSpecific ? "manual" : obstacleMode();
     const initialObstacle = workflow === "baseline" || workflow === "approval" ? baselineObstacle() : Math.max(0, Number(obstacle) || 0);
@@ -928,7 +1096,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
           <div class="rg-roll-field rg-roll-field-modifier"><div class="rg-roll-field-head"><span>Modifier (automatic) <span class="rg-help-tip" title="Read-only. Automatic dice changes from active Conditions and other system effects. Custom Conditions are included when configured for this roll.">?</span></span><input type="number" name="automaticModifier" value="${automaticModifier}" readonly></div><small class="rg-auto-modifier-breakdown">${modifierBreakdown}</small><input type="hidden" name="modifier" value="${Number(modifier) || 0}"></div>
           <div class="rg-roll-field rg-roll-field-extra"><div class="rg-roll-field-head"><span>Extra Dice <span class="rg-help-tip" title="Manual or situational bonus dice. Use this only when a GM ruling, gear effect or special circumstance grants extra dice. Conditions belong under Modifier; accepted Help is tracked in Teamwork.">?</span></span><input type="number" name="extraDice" min="0" value="0"></div><small>Manual / situational bonus dice only.</small></div>
         </div></div>
-        ${teamworkBlock}${natureBlock}
+        ${circlesBlock}${teamworkBlock}${natureBlock}
         <div class="rg-condition-roll-preview"><span>ACTIVE CONDITIONS${conditionData.dice ? ` · ${conditionData.dice > 0 ? "+" : ""}${conditionData.dice}D` : ""}</span><div>${conditionPreview}</div>${hardConditionNotes.length ? `<small>${hardConditionNotes.map(foundry.utils.escapeHTML).join(" · ")}</small>` : ""}</div>
         ${canCountLearning ? `<fieldset class="rg-learning-choice"><legend>Learning & Advancement <span class="rg-help-tip" title="Pass and Fail results are tracked automatically. When both requirements are met, the Skill or Ability advances immediately.">?</span></legend><label><input type="checkbox" name="countLearning" ${this.actor.type === "npc" ? "" : "checked"}> Count this test for Learning</label><small>${beginnerLuck ? "This marks one Beginner's Luck attempt only. It does not advance the Will/Health base Ability." : "Turn this off only when this test should not earn an advancement mark."}</small></fieldset>` : ""}
         <fieldset><legend>Spend before roll</legend><label>Persona dice <select name="persona" ${personaValue < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= Math.max(0, personaValue)).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select> <small>(${personaValue} available; max +3D)${personaValue < 1 ? ` <b class="rg-disabled-reason">No Persona available.</b>` : ""}</small></label></fieldset>
