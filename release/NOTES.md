@@ -1,14 +1,12 @@
-Realm Guard / Torchbearer v1.9.0-qa.38 — Dynamic Contacts.
+Realm Guard / Torchbearer v1.9.0-qa.39 — Circles Social Network Integration.
 
-- Adds GM-only New Contact from the Relationships tab.
-- Stores reusable Social Network contacts created during play.
-- Captures Name, Profession/Role, People/Culture, Location, Notes and status.
-- Exact duplicate protection uses Name + Profession + People + Location.
-- Adds Edit Contact while preserving status/history and Actor links.
-- No NPC Actor is created automatically.
-- Contacts reuse Status/History and existing NPC/Actor linking workflows.
-- Explicit NPC creation remains in NPC - PC Relations.
-- Recruitment and legacy relationship fields remain unchanged.
-- Circles live integration remains OFF.
+- Adds Standard Test / Known Person / Find New Person context before Circles.
+- Standard Test preserves existing Circles behavior.
+- Known Person references existing Social Network people without automatic status changes or NPC creation.
+- Successful Find New Person creates/reuses a Neutral CONTACT with Origin = CIRCLES.
+- Failed Find New Person creates nothing; Enmity remains deferred.
+- Existing Circles dice, Obstacle, Conditions, Help, Fate/Persona and Learning behavior is unchanged.
+- Ranger owners may commit successful Circles Contacts to their own Actor.
+- No NPC is created automatically.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.38.md
+QA: TEST_PROTOCOL_v1.9.0-qa.39.md
