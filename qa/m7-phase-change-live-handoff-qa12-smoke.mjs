@@ -12,7 +12,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 
-assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
+assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, `Unexpected manifest version: ${manifest.version}`);
 
 const engine = new SessionEngine();
 const sessionState = new SessionState({
