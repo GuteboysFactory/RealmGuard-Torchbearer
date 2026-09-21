@@ -1,6 +1,6 @@
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 
-export const QUICK_NPC_LIBRARY_VERSION = "2.1.0";
+export const QUICK_NPC_LIBRARY_VERSION = "2.2.0";
 export const QUICK_NPC_SCHEMA_VERSION = 2;
 
 const SKILLS = new Set(RG_DEFAULT_SKILLS);
@@ -411,6 +411,98 @@ function adjustedSkills(skills, tier) {
   ])));
 }
 
+const DEFAULT_NPC_PORTRAIT_ROOT = "systems/realm-guard/assets/actors/default-npcs";
+
+const ROLE_PORTRAITS = Object.freeze({
+  "animal-handler": ["animal-handler.webp", "animal-handler-2.webp"],
+  "bandit": ["bandit.webp"],
+  "brigand": ["raider.webp"],
+  "bounty-hunter": ["hunter.webp"],
+  "carpenter": ["carpenter.webp"],
+  "cartographer": ["cartographer.webp"],
+  "cave-troll": ["cave-troll.webp"],
+  "farmer": ["farmer.webp"],
+  "guard": ["guard.webp", "guard-2.webp"],
+  "city-guard": ["guard.webp", "guard-2.webp"],
+  "healer": ["healer.webp", "healer-2.webp"],
+  "herbalist": ["healer.webp"],
+  "hunter": ["hunter.webp"],
+  "innkeeper": ["innkeeper.webp", "innkeeper-2.webp"],
+  "mercenary": ["mercenary.webp"],
+  "noble": ["noble.webp", "noble-female.webp"],
+  "ranger-recruit": ["ranger.webp"],
+  "ranger-scout": ["ranger.webp", "ranger-2.webp"],
+  "ranger-hunter": ["ranger.webp", "hunter.webp"],
+  "ranger-pathfinder": ["ranger.webp", "scout.webp"],
+  "ranger-veteran": ["ranger-2.webp", "ranger.webp"],
+  "ranger-captain": ["ranger-2.webp"],
+  "ranger-healer": ["ranger.webp", "healer.webp"],
+  "ranger-lorekeeper": ["ranger-2.webp"],
+  "ranger-messenger": ["ranger.webp"],
+  "ranger-armorer": ["ranger-2.webp"],
+  "scout": ["scout.webp"],
+  "smith": ["smith.webp"],
+  "village-smith": ["smith.webp"],
+  "soldier": ["soldier.webp", "soldier-2.webp", "soldier-3.webp"],
+  "stablemaster": ["stablemaster.webp", "stablemaster-2.webp"],
+  "stonemason": ["stonemason.webp"],
+  "wildman": ["wildman.webp"],
+  "clan-warrior": ["wildman.webp", "raider.webp"],
+  "hill-scout": ["wildman.webp", "scout.webp"],
+  "clan-elder": ["wildman.webp", "human-old-man.webp"],
+  "orc-scout": ["orc.webp", "orc-warrior.webp"],
+  "orc-warrior": ["orc-warrior.webp", "orc-soldier.webp"],
+  "orc-archer": ["orc-archer.webp"],
+  "orc-tracker": ["orc.webp", "orc-archer.webp"],
+  "orc-brute": ["orc-berserker.webp", "orc-warrior.webp"],
+  "orc-captain": ["orc-chieftain.webp", "orc-warrior.webp"],
+  "orc-chieftain": ["orc-chieftain.webp"],
+  "orc-taskmaster": ["orc-soldier.webp"],
+  "orc-warg-rider": ["warg-mount.webp"],
+  "orc-torturer": ["orc-berserker.webp"],
+  "orc-snaga": ["orc.webp"],
+  "barrow-wight": ["wraith.webp"],
+  "restless-dead": ["undead.webp"],
+  "shade": ["wraith.webp"],
+  "cursed-guardian": ["undead.webp", "wraith.webp"],
+  "warg": ["warg.webp", "warg-2.webp"],
+  "hill-troll": ["hill-troll.webp"],
+  "snow-troll": ["snow-troll.webp"],
+  "war-troll": ["war-troll.webp"]
+});
+
+function portraitPathFor(seed, culture, tier) {
+  const key = normalizeQuickNpcSearch(seed.name).replace(/ /g, "-");
+  const explicit = ROLE_PORTRAITS[key];
+  if (explicit?.length) {
+    const tierIndex = tier.key === "veteran" || tier.key === "dire" ? 2 : tier.key === "skilled" || tier.key === "dangerous" ? 1 : 0;
+    return `${DEFAULT_NPC_PORTRAIT_ROOT}/${explicit[tierIndex % explicit.length]}`;
+  }
+
+  const cultureFallback = {
+    dwarf: "dwarf.webp",
+    elf: "elf.webp",
+    hobbit: "hobbit.webp",
+    dunland: "wildman.webp",
+    orc: "orc.webp",
+    undead: "undead.webp",
+    shadow: "mystery.webp",
+    beast: "mystery.webp"
+  }[culture.key];
+  if (cultureFallback) return `${DEFAULT_NPC_PORTRAIT_ROOT}/${cultureFallback}`;
+
+  const category = clean(seed.category).toLowerCase();
+  if (category === "ranger") return `${DEFAULT_NPC_PORTRAIT_ROOT}/ranger.webp`;
+  if (category === "military") return `${DEFAULT_NPC_PORTRAIT_ROOT}/soldier.webp`;
+  if (category === "criminal") return `${DEFAULT_NPC_PORTRAIT_ROOT}/rogue.webp`;
+  if (category === "learned") return `${DEFAULT_NPC_PORTRAIT_ROOT}/mystic.webp`;
+  if (category === "social") return `${DEFAULT_NPC_PORTRAIT_ROOT}/human-male.webp`;
+  if (category === "shadow") return `${DEFAULT_NPC_PORTRAIT_ROOT}/mystery.webp`;
+  if (category === "undead") return `${DEFAULT_NPC_PORTRAIT_ROOT}/undead.webp`;
+
+  return `${DEFAULT_NPC_PORTRAIT_ROOT}/human.webp`;
+}
+
 function metadataFor(seed, culture, tier, name) {
   const aliases = freeze([...new Set([
     ...seed.aliases,
@@ -451,6 +543,7 @@ function metadataFor(seed, culture, tier, name) {
     tags,
     relationshipSuitability: seed.relationship,
     portraitKey: normalizeQuickNpcSearch(seed.name).replace(/ /g, "-"),
+    portraitPath: portraitPathFor(seed, culture, tier),
     searchText
   });
 }
@@ -470,6 +563,7 @@ function buildTemplates() {
         stats: adjustedStats(seed.profile, tier),
         skills: adjustedSkills(seed.skills, tier),
         gear: seed.gear,
+        img: portraitPathFor(seed, culture, tier),
         metadata: metadataFor(seed, culture, tier, name)
       }));
     }
