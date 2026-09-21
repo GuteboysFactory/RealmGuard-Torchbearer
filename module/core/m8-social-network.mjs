@@ -410,6 +410,15 @@ function nextLocalId(prefix, actor, snapshot, sourceKey = "") {
   return candidate;
 }
 
+function contactIdentityKey(value = {}) {
+  return [
+    value?.name,
+    value?.profession,
+    value?.people,
+    value?.location
+  ].map(entry => clean(entry).toLowerCase()).join("|");
+}
+
 export class SocialNetworkService {
   constructor({ repository = new SocialNetworkRepository() } = {}) {
     this.repository = repository;
@@ -466,6 +475,95 @@ export class SocialNetworkService {
       relationships: [...snapshot.relationships, relationship]
     }));
     return relationship;
+  }
+
+  async createContact(actor, data = {}) {
+    const snapshot = this.snapshot(actor);
+    const name = clean(data.name);
+    if (!name) throw new Error("Dynamic Contact requires a name.");
+
+    const candidate = {
+      name,
+      profession: clean(data.profession),
+      people: clean(data.people),
+      location: clean(data.location)
+    };
+    const identity = contactIdentityKey(candidate);
+    const existingPerson = snapshot.people.find(entry => contactIdentityKey(entry) === identity);
+    if (existingPerson) {
+      const existingRelationship = snapshot.relationships.find(entry => entry.personId === existingPerson.id) ?? null;
+      return freeze({
+        created: false,
+        duplicate: true,
+        person: existingPerson,
+        relationship: existingRelationship
+      });
+    }
+
+    const personId = nextLocalId("person", actor, snapshot);
+    const relationshipId = nextLocalId("relationship", actor, snapshot);
+    const origin = clean(data.origin) || RelationshipOrigin.PLAY;
+    const status = clean(data.status) || RelationshipStatus.NEUTRAL;
+    const person = new PersonRecord({
+      id: personId,
+      name,
+      profession: candidate.profession,
+      people: candidate.people,
+      location: candidate.location,
+      notes: clean(data.notes),
+      actorUuid: clean(data.actorUuid),
+      source: {
+        kind: "DYNAMIC_CONTACT",
+        origin
+      }
+    });
+    const relationship = new Relationship({
+      id: relationshipId,
+      personId,
+      role: RelationshipRole.CONTACT,
+      status,
+      origin,
+      source: {
+        kind: "DYNAMIC_CONTACT",
+        createdBy: clean(data.createdBy)
+      }
+    });
+
+    await this.repository.write(actor, new SocialNetworkSnapshot({
+      ...snapshot,
+      people: [...snapshot.people, person],
+      relationships: [...snapshot.relationships, relationship]
+    }));
+
+    return freeze({ created: true, duplicate: false, person, relationship });
+  }
+
+  async updatePerson(actor, personId, data = {}) {
+    const snapshot = this.snapshot(actor);
+    const id = clean(personId);
+    const current = snapshot.people.find(entry => entry.id === id);
+    if (!current) throw new Error(`Unknown Social Network person: ${id || "(empty)"}`);
+
+    const next = new PersonRecord({
+      ...current,
+      name: clean(data.name ?? current.name),
+      profession: clean(data.profession ?? current.profession),
+      people: clean(data.people ?? current.people),
+      location: clean(data.location ?? current.location),
+      notes: clean(data.notes ?? current.notes)
+    });
+    if (!next.name) throw new Error("PersonRecord requires a name.");
+
+    const duplicate = snapshot.people.find(entry =>
+      entry.id !== id && contactIdentityKey(entry) === contactIdentityKey(next)
+    );
+    if (duplicate) throw new Error(`A matching Social Network person already exists: ${duplicate.name}`);
+
+    await this.repository.write(actor, new SocialNetworkSnapshot({
+      ...snapshot,
+      people: snapshot.people.map(entry => entry.id === id ? next : entry)
+    }));
+    return next;
   }
 
   async updateRelationshipStatus(actor, relationshipId, status, {
