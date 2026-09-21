@@ -65,3 +65,18 @@ Expected:
 
 ## PASS
 qa.40 passes when Circles is GM-controlled in all Obstacle modes, remains live-adjustable/approvable by the GM, and ordinary roll Obstacle behavior remains unchanged.
+
+
+## VERIFIED RESULT
+
+**🟢✅ PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- Circles opens on the GM Baseline Obstacle
+- Obstacle field is locked / read-only for the player
+- the dialog clearly reports **GM controlled**
+- changing the Obstacle from **Obstacle Control** updates the open Circles roll correctly
+- Circles obeys GM Obstacle authority instead of retaining an independent player value
+- qa.40 package/release pipeline completed successfully
+
+No blocking issues were reported in the qa.40 hotfix validation.
