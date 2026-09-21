@@ -1,13 +1,13 @@
-Realm Guard / Torchbearer v1.9.0-qa.36 — Generic NPC Template Naming.
+Realm Guard / Torchbearer v1.9.0-qa.37 — Living Relationship Status.
 
-- Removes Bree from generic common Quick NPC display names.
-- Renames Bree Road Caravan to Road Caravan.
-- Presents the generic former Bree metadata bucket as Common / Common Folk.
-- Preserves internal template IDs for compatibility.
-- Adds portraitKey metadata to prepare future default NPC portraits.
-- Starter Library sync recognizes stable npcTemplate.templateId identities.
-- Untouched generated Bree-prefixed starter templates migrate to generic names without duplicate copies.
-- GM-renamed starter template names are preserved.
-- qa.35 NPC Group behavior, Relationship NPCs and Recruitment are unchanged.
+- Adds GM-only Status editing on Relationship cards.
+- Supports Unknown, Friendly, Neutral, Estranged and Hostile.
+- Optional reason/event and session/reference can be recorded for each actual transition.
+- Status changes append RelationshipHistory rather than replacing prior state history.
+- Compact Relationship History is visible on the Relationships tab.
+- Same-status save does not create a history entry.
+- Legacy source fields remain untouched.
+- PersonRecord Actor links and Relationship NPC creation remain unchanged.
+- Circles live integration remains OFF.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.36.md
+QA: TEST_PROTOCOL_v1.9.0-qa.37.md
