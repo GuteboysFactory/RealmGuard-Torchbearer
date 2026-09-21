@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json","utf8"));
-assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, "Smoke must accept stable 1.9.0 and 1.9.0-qa.x builds.");
 
 const builder = fs.readFileSync("module/npc-builder.mjs","utf8");
 for (const needle of [
