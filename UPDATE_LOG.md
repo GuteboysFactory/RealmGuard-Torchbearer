@@ -3,7 +3,21 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.39
+**Current QA build:** v1.9.0-qa.40
+
+
+## v1.9.0-qa.40 - QA / Circles GM Obstacle Authority
+
+- Focused hotfix on qa.39 after live QA exposed Circles opening with an independently editable Obstacle.
+- Circles is no longer forced into rule-specific manual Obstacle mode.
+- Circles always starts from GM Baseline Obstacle.
+- Circles Obstacle input is read-only for the player.
+- Automatic/Baseline mode keeps open Circles rolls linked to GM Live Ob changes.
+- GM Approval mode uses the existing Obstacle Request / preview / approve flow.
+- Manual mode remains manual for ordinary rolls, but Circles stays GM-controlled and read-only for the player.
+- Obstacle Control copy now explicitly documents Circles GM authority.
+- qa.39 Social Network behavior is unchanged.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.40.md`.
 
 
 ## v1.9.0-qa.39 - QA / M8 Circles Social Network Integration
