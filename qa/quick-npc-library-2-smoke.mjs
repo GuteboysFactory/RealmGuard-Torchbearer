@@ -42,7 +42,7 @@ assert.ok(npcBuilder.includes("scoreQuickNpcEntry"));
 assert.ok(npcBuilder.includes("dblclick"));
 
 const compendiums = fs.readFileSync("module/compendiums.mjs", "utf8");
-assert.ok(compendiums.includes('const STARTER_VERSION = "0.26.0"'));
+assert.ok(compendiums.includes('const STARTER_VERSION = "0.27.0"'));
 assert.ok(compendiums.includes("QUICK_NPC_TEMPLATE_SPECS.map"));
 assert.ok(compendiums.includes("npcTemplateIds"), "Starter sync must match NPC templates by stable templateId.");
 assert.ok(compendiums.includes("refreshGeneratedNpcTemplatePresentation"), "Starter sync must safely refresh generated NPC template display names.");
