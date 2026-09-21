@@ -372,3 +372,43 @@
   .realm-guard .rg-m8-contact-grid { grid-template-columns:1fr; }
   .realm-guard .rg-m8-contact-dialog .rg-contact-wide { grid-column:auto; }
 }
+
+
+/* qa.39 — Circles Social Network Integration */
+.realm-guard .rg-m8-circles-dialog {
+  display:grid;
+  gap:9px;
+}
+.realm-guard .rg-m8-circles-dialog h2,
+.realm-guard .rg-m8-circles-dialog p { margin:0; }
+.realm-guard .rg-m8-circles-mode-help {
+  display:grid;
+  gap:6px;
+  padding:8px;
+  border:1px solid rgba(112,76,35,.22);
+  border-radius:6px;
+  background:rgba(255,244,211,.42);
+}
+.realm-guard .rg-m8-circles-dialog label {
+  display:grid;
+  gap:5px;
+  color:#4b3925 !important;
+  -webkit-text-fill-color:#4b3925 !important;
+}
+.realm-guard .rg-m8-circles-dialog select,
+.realm-guard .rg-m8-circles-dialog input,
+.realm-guard .rg-m8-circles-dialog textarea {
+  color:#2d2217 !important;
+  -webkit-text-fill-color:#2d2217 !important;
+  background:rgba(255,249,228,.94) !important;
+  border:1px solid rgba(102,68,31,.48) !important;
+}
+.realm-guard .rg-m8-circles-note {
+  padding:7px 8px;
+  border-left:3px solid #7a8247;
+  background:rgba(105,84,47,.07);
+}
+.realm-guard .rg-m8-circles-roll-context {
+  border-color:rgba(89,106,52,.45) !important;
+  background:rgba(126,158,85,.06);
+}
