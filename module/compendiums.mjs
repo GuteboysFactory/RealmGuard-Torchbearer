@@ -4,7 +4,7 @@ import { RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { STARTER_TALENTS } from "./talents.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
 
-const STARTER_VERSION = "0.25.0";
+const STARTER_VERSION = "0.26.0";
 const SETTING_KEY = "starterCompendiumSeedVersion";
 const FLAG_SCOPE = "realm-guard";
 
@@ -227,7 +227,8 @@ function npcGear(name, { hands = 0, mode = "unassigned", location = "", slots = 
 }
 
 function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resources = 1, circles = 1, skills = [], gear = [], metadata = null } = {}) {
-  const flags = starterFlags(`npc:${slug(name)}`, "npc-templates");
+  const stableTemplateId = String(metadata?.templateId ?? "").trim();
+  const flags = starterFlags(stableTemplateId ? `npc-template:${stableTemplateId}` : `npc:${slug(name)}`, "npc-templates");
   if (metadata) flags[FLAG_SCOPE].npcTemplate = foundry.utils.deepClone ? foundry.utils.deepClone(metadata) : structuredClone(metadata);
   return {
     name,
@@ -323,12 +324,58 @@ async function starterIdentitySet(pack) {
   const docs = await pack.getDocuments();
   const keys = new Set();
   const names = new Set();
+  const npcTemplateIds = new Set();
   for (const doc of docs) {
     const key = String(doc.getFlag?.(FLAG_SCOPE, "starterKey") ?? "").trim();
     if (key) keys.add(key);
+    const templateId = String(doc.getFlag?.(FLAG_SCOPE, "npcTemplate.templateId") ?? doc.flags?.[FLAG_SCOPE]?.npcTemplate?.templateId ?? "").trim();
+    if (templateId) npcTemplateIds.add(templateId);
     names.add(`${String(doc.type ?? "").toLowerCase()}::${String(doc.name ?? "").trim().toLowerCase()}`);
   }
-  return { keys, names };
+  return { keys, names, npcTemplateIds };
+}
+
+async function refreshGeneratedNpcTemplatePresentation(pack, documents) {
+  if (!pack || pack.documentName !== "Actor") return 0;
+  const byTemplateId = new Map(documents
+    .map(data => [String(data.flags?.[FLAG_SCOPE]?.npcTemplate?.templateId ?? "").trim(), data])
+    .filter(([id]) => Boolean(id)));
+  if (!byTemplateId.size) return 0;
+
+  const docs = await pack.getDocuments();
+  const updates = [];
+  for (const doc of docs) {
+    const templateId = String(doc.getFlag?.(FLAG_SCOPE, "npcTemplate.templateId") ?? doc.flags?.[FLAG_SCOPE]?.npcTemplate?.templateId ?? "").trim();
+    const desired = byTemplateId.get(templateId);
+    if (!desired) continue;
+    const currentName = String(doc.name ?? "").trim();
+    const desiredName = String(desired.name ?? "").trim();
+    const currentMeta = doc.flags?.[FLAG_SCOPE]?.npcTemplate ?? {};
+    const desiredMeta = desired.flags?.[FLAG_SCOPE]?.npcTemplate ?? {};
+    const desiredKey = String(desired.flags?.[FLAG_SCOPE]?.starterKey ?? "").trim();
+    const currentKey = String(doc.getFlag?.(FLAG_SCOPE, "starterKey") ?? "").trim();
+
+    const update = { _id: doc.id };
+    let changed = false;
+    if (desiredName && currentName !== desiredName) {
+      update.name = desiredName;
+      changed = true;
+    }
+    if (JSON.stringify(currentMeta) !== JSON.stringify(desiredMeta)) {
+      update[`flags.${FLAG_SCOPE}.npcTemplate`] = foundry.utils.deepClone ? foundry.utils.deepClone(desiredMeta) : structuredClone(desiredMeta);
+      changed = true;
+    }
+    if (desiredKey && currentKey !== desiredKey) {
+      update[`flags.${FLAG_SCOPE}.starterKey`] = desiredKey;
+      changed = true;
+    }
+    if (changed) updates.push(update);
+  }
+  if (!updates.length) return 0;
+  const DocClass = pack.documentClass ?? globalThis.getDocumentClass?.(pack.documentName);
+  if (!DocClass?.updateDocuments) throw new Error(`No document class update API available for ${pack.collection}.`);
+  await DocClass.updateDocuments(updates, { pack: pack.collection, realmGuardStarterPresentationRefresh: true });
+  return updates.length;
 }
 
 async function seedPack(pack, documents) {
@@ -336,7 +383,9 @@ async function seedPack(pack, documents) {
   const identities = await starterIdentitySet(pack);
   const missing = documents.filter(data => {
     const key = String(data.flags?.[FLAG_SCOPE]?.starterKey ?? "").trim();
+    const templateId = String(data.flags?.[FLAG_SCOPE]?.npcTemplate?.templateId ?? "").trim();
     const nameKey = `${String(data.type ?? "").toLowerCase()}::${String(data.name ?? "").trim().toLowerCase()}`;
+    if (templateId && identities.npcTemplateIds.has(templateId)) return false;
     return key ? !identities.keys.has(key) && !identities.names.has(nameKey) : !identities.names.has(nameKey);
   });
   if (!missing.length) return 0;
@@ -368,6 +417,7 @@ export async function ensureStarterCompendiums({ syncMissing = false, notify = f
       if (!pack) continue;
       packs += 1;
       if (created) createdPacks += 1;
+      if (definition === PACKS.npcs && syncMissing) await refreshGeneratedNpcTemplatePresentation(pack, documents);
       if (created || syncMissing) added += await seedPack(pack, documents);
     } catch (error) {
       failed += 1;
