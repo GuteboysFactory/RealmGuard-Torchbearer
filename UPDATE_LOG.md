@@ -3,7 +3,21 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.38
+**Current QA build:** v1.9.0-qa.39
+
+
+## v1.9.0-qa.39 - QA / M8 Circles Social Network Integration
+
+- Connects the existing Legacy Mixed Circles Ability roll to M8 Social Network context without changing Circles dice or advancement rules.
+- Adds three pre-roll modes: Standard Test, Known Person / Contact, Find New Person.
+- Known Person selects an existing Social Network person and does not automatically change status/history or create an NPC.
+- Find New Person writes nothing until the Circles result is resolved.
+- PASS creates/reuses a Neutral CONTACT with Origin = CIRCLES.
+- Exact Contact duplicate protection is reused.
+- FAIL creates no Contact in qa.39; Enmity remains deferred.
+- Successful Circles Contact commit is permitted for the owning Ranger player or GM; manual New Contact remains GM-only.
+- No automatic NPC creation; explicit NPC creation remains in `NPC - PC Relations`.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.39.md`.
 
 
 ## v1.9.0-qa.38 - PASS / M8 Dynamic Contacts
