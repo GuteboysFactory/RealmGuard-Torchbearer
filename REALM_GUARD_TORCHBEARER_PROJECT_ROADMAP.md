@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.41 - M8 Circles Enmity Clause — 🟢✅ PASS  
+**Current QA build:** v1.9.0-qa.42 - Default NPC Template Portraits — QA  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; qa.40 Circles GM Obstacle Authority VERIFIED / PASS; `v1.9.0-qa.41` Enmity Clause 🟢✅ VERIFIED / PASS.
+**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; qa.40 Circles GM Obstacle Authority VERIFIED / PASS; qa.41 Enmity Clause 🟢✅ VERIFIED / PASS; `v1.9.0-qa.42` Default NPC Template Portraits in QA.
 
 Current M8 implementation now includes:
 
@@ -39,6 +39,8 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 **qa.40 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. Circles opens on the GM Baseline, the Obstacle field is locked/read-only, and live changes from Obstacle Control correctly update the open Circles roll. Circles now obeys GM Obstacle authority instead of retaining an independent player value.
 
 **qa.41 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. Failed Find New Person Circles correctly routes to GM failure handling; Enmity creates/reuses ENEMY / HOSTILE / ENMITY relationships, duplicate protection and Contact→Enemy reuse work, history persists, reload is safe, and no NPC Actor is created automatically. The Mouse Guard +3s argument/speech disposition effect remains deliberately deferred to the Conflict/profile layer.
+
+**qa.42 presentation closure:** packages 63 optimized default NPC portraits, upgrades Quick NPC Library to 2.2.0, assigns deterministic role/culture-aware portraits to all generated templates, refreshes untouched generic starter portraits non-destructively, and preserves GM-custom art. This is the final presentation patch before M8 is closed and work moves to M9 in a new development chat.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
