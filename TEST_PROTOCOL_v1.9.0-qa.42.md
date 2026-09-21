@@ -66,3 +66,19 @@ Expected:
 
 ## PASS
 qa.42 passes when packaged default art is visible across Quick NPC templates, newly created NPCs inherit it, custom GM art is preserved, and no missing asset paths appear.
+
+
+## VERIFIED RESULT
+
+**🟢✅ PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- packaged default portraits are visible across Quick NPC templates
+- role/culture-specific portraits read correctly in the library
+- newly created NPCs inherit the expected template art
+- no missing-image regressions were reported
+- GM custom-art preservation remains intact
+- qa.41 Social Network / Circles / Enmity behavior remains unchanged
+- release pipeline completed successfully
+
+qa.42 is the final M8 presentation closure patch.
