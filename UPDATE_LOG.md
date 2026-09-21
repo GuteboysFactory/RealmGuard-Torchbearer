@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.37
 
 
-## v1.9.0-qa.37 - QA / M8 Living Relationship Status
+## v1.9.0-qa.37 - PASS / M8 Living Relationship Status
 
 - Adds GM-only **Status** editing directly to normalized Relationship cards.
 - Supported M8 status values: Unknown, Friendly, Neutral, Estranged and Hostile.
@@ -16,7 +16,9 @@
 - Legacy Recruitment/source relationship fields remain preserved and unchanged.
 - Existing PersonRecord Actor linking, Quick NPC creation and `NPC - PC Relations` destination remain intact.
 - Circles live integration remains OFF and is not part of qa.37.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.37.md`.
+- Live Foundry 13.351 QA passed all qa.37 gates with no blocking issues reported.
+- Next M8 Relationship step is **Dynamic Contacts**: reusable Social Network people created during play outside Recruitment, still without automatic NPC creation.
+- Test status: **PASS**. See `TEST_PROTOCOL_v1.9.0-qa.37.md`.
 
 
 ## v1.9.0-qa.36 - QA / Generic NPC Template Naming
