@@ -1,11 +1,17 @@
-Realm Guard / Torchbearer v1.9.0-qa.42 — Default NPC Template Portraits.
+Realm Guard / Torchbearer v1.9.0 — STABLE / GOLD
 
-- Packages 63 optimized default NPC portraits from the supplied art pack.
-- Quick NPC Library 2.2.0 assigns role/culture-aware portraits to all generated templates.
-- Existing untouched starter templates using the old generic portrait are refreshed automatically.
-- GM-custom portraits are preserved.
-- Created NPCs inherit the template portrait and prototype token art.
-- Custom image-drop/upload still overrides the packaged default.
-- No rules, Social Network, Circles, Recruitment or CORE behavior changes.
+Promoted directly from the verified v1.9.0-qa.42 codebase with no functional gameplay-code changes.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.42.md
+Highlights:
+- M8 Social Network Migration VERIFIED / CLOSED.
+- Dynamic Contacts and living Relationship Status / History.
+- Circles Known Person / Find New Person integration.
+- GM-controlled Enmity Clause on failed new-person Circles.
+- Circles Obstacle remains locked to GM Obstacle Control authority.
+- Quick NPC individual and group templates.
+- Quick NPC Library 2.2.0 with 63 packaged role/culture-aware default portraits.
+- GM custom portraits remain non-destructive and preserved.
+- Legacy Recruitment fields and Legacy Mixed compatibility are preserved.
+- Foundry VTT 13.351 verified.
+
+Next development line: M9 Creation / Recruitment Migration on v1.10.0-qa.x.
