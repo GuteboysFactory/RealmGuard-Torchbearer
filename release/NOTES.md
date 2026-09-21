@@ -1,14 +1,13 @@
-Realm Guard / Torchbearer v1.9.0-qa.35 — NPC Group Templates.
+Realm Guard / Torchbearer v1.9.0-qa.36 — Generic NPC Template Naming.
 
-- Adds a GM-only Group Templates entry point to Quick NPC Library.
-- Adds eight initial reusable NPC group compositions.
-- Every group resolves its members through the existing smart Quick NPC matcher before creation.
-- GM review shows member roles and source templates and allows a custom group name.
-- No Actors or folders are created until Create Group is explicitly pressed.
-- Created groups use dedicated subfolders under Actors > NPCs Groups.
-- Repeated group names create numbered sibling folders rather than merging.
-- Group NPCs remain normal editable Actor copies with group/source provenance metadata.
-- Relationship NPCs remain separate in NPC - PC Relations.
-- qa.34 Service UX and Structured Recruitment Relationships remain unchanged.
+- Removes Bree from generic common Quick NPC display names.
+- Renames Bree Road Caravan to Road Caravan.
+- Presents the generic former Bree metadata bucket as Common / Common Folk.
+- Preserves internal template IDs for compatibility.
+- Adds portraitKey metadata to prepare future default NPC portraits.
+- Starter Library sync recognizes stable npcTemplate.templateId identities.
+- Untouched generated Bree-prefixed starter templates migrate to generic names without duplicate copies.
+- GM-renamed starter template names are preserved.
+- qa.35 NPC Group behavior, Relationship NPCs and Recruitment are unchanged.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.35.md
+QA: TEST_PROTOCOL_v1.9.0-qa.36.md
