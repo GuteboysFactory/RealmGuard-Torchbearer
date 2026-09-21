@@ -80,3 +80,21 @@ Expected:
 
 ## PASS
 qa.35 passes when Group Templates create isolated, editable NPC groups under `NPCs Groups` without changing the established individual or relationship NPC workflows.
+
+
+## VERIFIED RESULT
+
+**PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- Group Templates entry point works
+- starter group library renders correctly
+- group review resolves members correctly
+- cancel creates nothing
+- group creation produces isolated child folders under `NPCs Groups`
+- created NPC Actors remain independently editable
+- duplicate group names create numbered sibling folders
+- Relationship NPC flow remains in `NPC - PC Relations`
+- qa.34 Service / Structured Relationship regression remains intact
+
+No blocking issues were reported during qa.35 live validation.
