@@ -2,8 +2,21 @@
 
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
-**Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.42
+**Current GOLD baseline:** v1.9.0  
+**Current QA build:** none — next line is M9 / v1.10.0-qa.x
+
+
+## v1.9.0 - 🟢✅ STABLE / GOLD
+
+- Promoted directly from the fully verified `v1.9.0-qa.42` codebase.
+- No functional gameplay-code changes were introduced by the stable promotion.
+- M8 Social Network Migration is VERIFIED / CLOSED.
+- Includes Dynamic Contacts, living Relationship Status/History, Circles Social Network integration, GM-controlled Enmity, Quick NPC Group Templates and the 63-image default portrait pack.
+- Circles Obstacle remains under GM Obstacle Control authority.
+- Legacy Recruitment fields and Legacy Mixed compatibility remain preserved.
+- Internal system id remains `realm-guard`.
+- Foundry VTT 13.351 is the verified stable target.
+- **Next development line:** M9 Creation / Recruitment Migration on `v1.10.0-qa.x`.
 
 
 ## v1.9.0-qa.42 - 🟢✅ PASS / Default NPC Template Portraits
