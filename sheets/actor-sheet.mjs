@@ -14,7 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
-import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, requestM8EnmityDecision, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -947,7 +947,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
           <label><span>Location</span><input type="text" name="location" placeholder="Settlement or region"></label>
           <label class="rg-contact-wide"><span>Notes</span><textarea name="notes" rows="3" placeholder="Why is the Ranger looking for this person?"></textarea></label>
         </div>
-        <p class="rg-m8-circles-note"><b>On PASS:</b> creates a Contact in Social Network. <b>On FAIL:</b> qa.39 creates nothing; Enmity is handled in a later M8 step.</p>
+        <p class="rg-m8-circles-note"><b>On PASS:</b> creates a Neutral Contact in Social Network. <b>On FAIL:</b> the GM chooses normal failure or may invoke the Enmity Clause.</p>
       </form>`,
       modal: false,
       rejectClose: false,
@@ -987,7 +987,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     if (context.mode !== "new") return;
     if (!result.passed) {
-      ui.notifications.info(`Realm Guard: Circles failed while seeking ${context.name}. No Contact was created; Enmity is not automated in qa.39.`);
+      await requestM8EnmityDecision(this.actor, context);
       return;
     }
 
