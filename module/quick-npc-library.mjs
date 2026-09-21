@@ -473,19 +473,41 @@ const ROLE_PORTRAITS = Object.freeze({
 
 function portraitPathFor(seed, culture, tier) {
   const key = normalizeQuickNpcSearch(seed.name).replace(/ /g, "-");
-  const explicit = ROLE_PORTRAITS[key];
-  if (explicit?.length) {
-    const tierIndex = tier.key === "veteran" || tier.key === "dire" ? 2 : tier.key === "skilled" || tier.key === "dangerous" ? 1 : 0;
-    return `${DEFAULT_NPC_PORTRAIT_ROOT}/${explicit[tierIndex % explicit.length]}`;
+  const tierIndex = tier.key === "veteran" || tier.key === "dire" ? 2 : tier.key === "skilled" || tier.key === "dangerous" ? 1 : 0;
+
+  if (culture.key === "orc") {
+    const orcRole = {
+      scout: ["orc.webp", "orc-warrior.webp"],
+      warrior: ["orc-warrior.webp", "orc-soldier.webp"],
+      archer: ["orc-archer.webp"],
+      tracker: ["orc.webp", "orc-archer.webp"],
+      brute: ["orc-berserker.webp", "orc-warrior.webp"],
+      captain: ["orc-chieftain.webp", "orc-warrior.webp"],
+      chieftain: ["orc-chieftain.webp"],
+      taskmaster: ["orc-soldier.webp"],
+      "warg-rider": ["warg-mount.webp"],
+      torturer: ["orc-berserker.webp"],
+      snaga: ["orc.webp"]
+    }[key];
+    if (orcRole?.length) return `${DEFAULT_NPC_PORTRAIT_ROOT}/${orcRole[tierIndex % orcRole.length]}`;
+    return `${DEFAULT_NPC_PORTRAIT_ROOT}/orc.webp`;
   }
 
-  const cultureFallback = {
+  const culturePortrait = {
     dwarf: "dwarf.webp",
     elf: "elf.webp",
     hobbit: "hobbit.webp",
     dunland: "wildman.webp",
-    orc: "orc.webp",
-    undead: "undead.webp",
+    undead: "undead.webp"
+  }[culture.key];
+  if (culturePortrait) return `${DEFAULT_NPC_PORTRAIT_ROOT}/${culturePortrait}`;
+
+  const explicit = ROLE_PORTRAITS[key];
+  if (explicit?.length) {
+    return `${DEFAULT_NPC_PORTRAIT_ROOT}/${explicit[tierIndex % explicit.length]}`;
+  }
+
+  const cultureFallback = {
     shadow: "mystery.webp",
     beast: "mystery.webp"
   }[culture.key];
