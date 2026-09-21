@@ -14,7 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
-import { buildM8RelationshipSheetView, linkM8PersonActor } from "../module/m8-social-network-service.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -161,7 +161,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       linkRelationshipActor: RealmGuardActorSheet._linkRelationshipActor,
       createRelationshipNpc: RealmGuardActorSheet._createRelationshipNpc,
       openRelationshipActor: RealmGuardActorSheet._openRelationshipActor,
-      unlinkRelationshipActor: RealmGuardActorSheet._unlinkRelationshipActor
+      unlinkRelationshipActor: RealmGuardActorSheet._unlinkRelationshipActor,
+      changeRelationshipStatus: RealmGuardActorSheet._changeRelationshipStatus
     }
   };
 
@@ -447,7 +448,12 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         relationship.person?.people ? `People: ${relationship.person.people}` : "",
         relationship.person?.location ? `Location: ${relationship.person.location}` : ""
       ].filter(Boolean).join(" · "),
-      historyCount: Array.isArray(relationship.history) ? relationship.history.length : 0
+      historyCount: Array.isArray(relationship.history) ? relationship.history.length : 0,
+      recentHistory: Array.isArray(relationship.history) ? [...relationship.history].slice(-3).reverse().map(entry => ({
+        ...entry,
+        fromLabel: String(entry.from || "UNKNOWN").toLowerCase().replaceAll("_", " ").replace(/\b\w/g, value => value.toUpperCase()),
+        toLabel: String(entry.to || "UNKNOWN").toLowerCase().replaceAll("_", " ").replace(/\b\w/g, value => value.toUpperCase())
+      })) : []
     }));
     const progression = progressionView(actor);
     const portrait = rangerPortraitState(actor);
@@ -1170,6 +1176,69 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result=await foundry.applications.api.DialogV2.wait({window: { title: "Realm Guard · Manage Nature", resizable: true },content:`<div class="rg-nature-manage"><h3>Nature ${current}/${maximum}</h3><p><b>Tax:</b> ${tax}</p><p><b>Dúnadan descriptors:</b> Tradition · Family · Grief</p><p><small>Recover +1 only when the rules allow recovery. Deplete Maximum trades one point of maximum Nature to recover one point of tax.</small></p></div>`,modal:false,rejectClose:false,buttons:[{action:"recover",label:"Recover +1",icon:"fa-solid fa-leaf",callback:()=>"recover"},{action:"deplete",label:"Deplete Maximum",icon:"fa-solid fa-arrow-down",callback:()=>"deplete"},{action:"close",label:"Close",default:true,callback:()=>"close"}]});
     if(result==="recover"&&tax>0)await this.actor.update({"system.attributes.nature.value":Math.min(maximum,current+1)});
     if(result==="deplete"&&tax>0&&maximum>0){const nm=Math.max(0,maximum-1),nc=Math.min(nm,current+1);await this.actor.update({"system.attributes.nature.maximum":nm,"system.attributes.nature.value":nc});if(nm===0)ui.notifications.warn("Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");}
+  }
+
+  static async _changeRelationshipStatus(event, target) {
+    if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Relationship status changes are GM-only during M8 migration.");
+
+    const card = target.closest("[data-rg-relationship-id]");
+    const relationshipId = String(card?.dataset.rgRelationshipId ?? "");
+    if (!relationshipId) return ui.notifications.warn("Realm Guard: Could not resolve the relationship.");
+
+    const view = buildM8RelationshipSheetView(this.actor);
+    const relationship = view.relationships.find(entry => entry.id === relationshipId);
+    if (!relationship) return ui.notifications.warn("Realm Guard: Relationship record is unavailable.");
+
+    const esc = foundry.utils.escapeHTML;
+    const currentStatus = String(relationship.status || "UNKNOWN");
+    const options = M8_RELATIONSHIP_STATUS_OPTIONS.map(option =>
+      `<option value="${esc(option.value)}" ${option.value === currentStatus ? "selected" : ""}>${esc(option.label)}</option>`
+    ).join("");
+    const personName = relationship.person?.name || "this person";
+
+    const result = await foundry.applications.api.DialogV2.wait({
+      window: { title: `Realm Guard · Relationship with ${personName}`, resizable: true },
+      position: { width: 560 },
+      content: `<form class="realm-guard rg-m8-status-dialog">
+        <div class="rg-brand">REALM GUARD / TORCHBEARER · SOCIAL NETWORK</div>
+        <h2>${esc(personName)}</h2>
+        <p>Change how this relationship currently stands. The previous state is preserved in Relationship History.</p>
+        <label><span>Status</span><select name="status">${options}</select></label>
+        <label><span>Reason / event <small>optional</small></span><textarea name="reason" rows="3" placeholder="What changed between them?"></textarea></label>
+        <label><span>Session / reference <small>optional</small></span><input type="text" name="sessionId" placeholder="e.g. Session 8"></label>
+        <div class="rg-m8-status-current"><b>Current:</b> ${esc(String(relationship.statusLabel || currentStatus))}</div>
+      </form>`,
+      modal: false,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "save",
+          label: "Save Relationship",
+          icon: "fa-solid fa-heart-crack",
+          default: true,
+          callback: (_event, button) => ({
+            status: String(button.form?.elements?.status?.value || currentStatus),
+            reason: String(button.form?.elements?.reason?.value || "").trim(),
+            sessionId: String(button.form?.elements?.sessionId?.value || "").trim()
+          })
+        },
+        { action: "cancel", label: "Cancel", callback: () => null }
+      ]
+    });
+
+    if (!result) return;
+    if (result.status === currentStatus) {
+      ui.notifications.info("Realm Guard: Relationship status was unchanged.");
+      return;
+    }
+
+    await updateM8RelationshipStatus(this.actor, relationshipId, result.status, {
+      reason: result.reason,
+      sessionId: result.sessionId,
+      source: "GM"
+    });
+    ui.notifications.info(`Realm Guard: Relationship with ${personName} changed to ${M8_RELATIONSHIP_STATUS_OPTIONS.find(option => option.value === result.status)?.label || result.status}.`);
+    await this.render({ force: true });
   }
 
   static async _createRelationshipNpc(event, target) {
