@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.35 - M8 NPC Group Templates — QA  
+**Current QA build:** v1.9.0-qa.35 - M8 NPC Group Templates — PASS  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS on `v1.9.0-qa.35`.
+**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS.
 
 Current M8 implementation now includes:
 
@@ -26,7 +26,9 @@ Current M8 implementation now includes:
 
 qa.35 does not change Circles semantics, Relationship status/history rules, Recruitment rules or Legacy Mixed live authority. It extends the M8 social/NPC tooling layer while keeping individual and relationship NPC workflows separate.
 
-**Current QA target:** verify Group Template folder isolation, actor independence/provenance, duplicate-name safety and regression against qa.34 + Relationship NPC creation.
+**qa.35 result:** ✅ PASS in Foundry VTT 13.351. Group folder isolation, actor independence, duplicate-name safety, Relationship NPC regression and qa.34 Recruitment regression verified.
+
+**Next M8 cleanup:** normalize Quick NPC template naming so reusable generic templates do not carry location-specific display names such as `Bree ...`; audit duplicate names/IDs and prepare clean default-portrait mapping without changing current gameplay behavior.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
