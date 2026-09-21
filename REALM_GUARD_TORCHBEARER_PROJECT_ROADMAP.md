@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.37 - M8 Living Relationship Status — QA  
+**Current QA build:** v1.9.0-qa.37 - M8 Living Relationship Status — PASS  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; `v1.9.0-qa.37` Living Relationship Status in QA.
+**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; `v1.9.0-qa.37` Living Relationship Status VERIFIED / PASS.
 
 Current M8 implementation now includes:
 
@@ -30,7 +30,9 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 
 **Current M8 cleanup:** qa.36 removes `Bree ...` from generic Quick NPC display names, renames `Bree Road Caravan` to `Road Caravan`, preserves stable internal template IDs, adds `portraitKey` metadata for future default portraits, and safely refreshes untouched generated Starter Library entries without overwriting GM-renamed templates.
 
-**Current Relationship step:** qa.37 exposes GM-controlled RelationshipStatus changes directly on the Relationships tab and records append-only RelationshipHistory with optional reason/session reference. Legacy source fields remain untouched and Circles integration remains deferred.
+**qa.37 result:** ✅ PASS in Foundry VTT 13.351. GM-controlled RelationshipStatus changes, append-only RelationshipHistory, unchanged-status safety, reload persistence, NPC/Actor linking regression and player read-only presentation verified.
+
+**Next M8 Relationship step:** Dynamic Contacts — create reusable PersonRecord/Relationship entries during play outside Recruitment, with explicit GM creation/editing and no automatic NPC requirement. Circles integration remains deferred until the Contacts layer is stable.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
