@@ -1,13 +1,11 @@
-Realm Guard / Torchbearer v1.9.0-qa.41 — Circles Enmity Clause.
+Realm Guard / Torchbearer v1.9.0-qa.42 — Default NPC Template Portraits.
 
-- Failed Find New Person Circles tests now prompt a GM decision.
-- GM can choose Normal Failure, Invoke Enmity Clause, or Decide Later.
-- Player-owned Ranger failures route to an active GM over the system socket.
-- Enmity review is prefilled but GM-editable before commit.
-- Confirmed Enmity creates/reuses ENEMY / HOSTILE / ENMITY Social Network data.
-- Existing matching relationships are reused rather than duplicated, with status history preserved.
-- No NPC Actor is created automatically.
-- qa.40 GM Obstacle authority remains unchanged.
-- Enemy +3s argument/speech disposition mechanics remain deferred to Conflict/profile integration.
+- Packages 63 optimized default NPC portraits from the supplied art pack.
+- Quick NPC Library 2.2.0 assigns role/culture-aware portraits to all generated templates.
+- Existing untouched starter templates using the old generic portrait are refreshed automatically.
+- GM-custom portraits are preserved.
+- Created NPCs inherit the template portrait and prototype token art.
+- Custom image-drop/upload still overrides the packaged default.
+- No rules, Social Network, Circles, Recruitment or CORE behavior changes.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.41.md
+QA: TEST_PROTOCOL_v1.9.0-qa.42.md
