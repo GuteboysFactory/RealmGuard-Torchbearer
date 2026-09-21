@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.37 - M8 Living Relationship Status — PASS  
+**Current QA build:** v1.9.0-qa.38 - M8 Dynamic Contacts — QA  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — `v1.9.0-qa.35` NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; `v1.9.0-qa.37` Living Relationship Status VERIFIED / PASS.
+**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; `v1.9.0-qa.38` Dynamic Contacts in QA.
 
 Current M8 implementation now includes:
 
@@ -32,7 +32,7 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 
 **qa.37 result:** ✅ PASS in Foundry VTT 13.351. GM-controlled RelationshipStatus changes, append-only RelationshipHistory, unchanged-status safety, reload persistence, NPC/Actor linking regression and player read-only presentation verified.
 
-**Next M8 Relationship step:** Dynamic Contacts — create reusable PersonRecord/Relationship entries during play outside Recruitment, with explicit GM creation/editing and no automatic NPC requirement. Circles integration remains deferred until the Contacts layer is stable.
+**Current M8 Relationship step:** qa.38 Dynamic Contacts adds GM-created reusable PersonRecord + CONTACT Relationship entries during play, exact duplicate protection, Contact editing and reuse of existing status/history + Actor/NPC linking. No NPC is created automatically. Circles integration remains deferred until this layer is verified.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
