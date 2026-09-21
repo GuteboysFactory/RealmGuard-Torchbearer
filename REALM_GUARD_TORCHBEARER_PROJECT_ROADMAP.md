@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.40 - M8 Circles GM Obstacle Authority — 🟢✅ PASS  
+**Current QA build:** v1.9.0-qa.41 - M8 Circles Enmity Clause — QA  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; `v1.9.0-qa.40` Circles GM Obstacle Authority 🟢✅ VERIFIED / PASS.
+**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; qa.40 Circles GM Obstacle Authority VERIFIED / PASS; `v1.9.0-qa.41` Enmity Clause in QA.
 
 Current M8 implementation now includes:
 
@@ -37,6 +37,8 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 **Current M8 step:** qa.39 connects the existing Circles Ability workflow to normalized Social Network records. Standard Circles remains unchanged; Known Person references existing records; successful Find New Person creates/reuses a Neutral CONTACT with Origin = CIRCLES and no automatic NPC. Failed new-person Circles does not yet automate Enmity.
 
 **qa.40 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. Circles opens on the GM Baseline, the Obstacle field is locked/read-only, and live changes from Obstacle Control correctly update the open Circles roll. Circles now obeys GM Obstacle authority instead of retaining an independent player value.
+
+**Current Enmity step:** qa.41 adds the GM-controlled Enmity Clause after a failed Find New Person Circles test. The GM may choose Normal Failure, Enmity Clause or Decide Later. Confirmed Enmity creates/reuses a PersonRecord and ENEMY / HOSTILE / ENMITY Relationship with duplicate protection and RelationshipHistory preservation. Player-owned Rangers route the decision to an active GM. No NPC Actor is created automatically, and the Mouse Guard +3s argument/speech disposition effect remains deliberately deferred to the Conflict/profile layer.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
