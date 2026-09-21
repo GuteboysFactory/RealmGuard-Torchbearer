@@ -1,13 +1,14 @@
-Realm Guard / Torchbearer v1.9.0-qa.37 — Living Relationship Status.
+Realm Guard / Torchbearer v1.9.0-qa.38 — Dynamic Contacts.
 
-- Adds GM-only Status editing on Relationship cards.
-- Supports Unknown, Friendly, Neutral, Estranged and Hostile.
-- Optional reason/event and session/reference can be recorded for each actual transition.
-- Status changes append RelationshipHistory rather than replacing prior state history.
-- Compact Relationship History is visible on the Relationships tab.
-- Same-status save does not create a history entry.
-- Legacy source fields remain untouched.
-- PersonRecord Actor links and Relationship NPC creation remain unchanged.
+- Adds GM-only New Contact from the Relationships tab.
+- Stores reusable Social Network contacts created during play.
+- Captures Name, Profession/Role, People/Culture, Location, Notes and status.
+- Exact duplicate protection uses Name + Profession + People + Location.
+- Adds Edit Contact while preserving status/history and Actor links.
+- No NPC Actor is created automatically.
+- Contacts reuse Status/History and existing NPC/Actor linking workflows.
+- Explicit NPC creation remains in NPC - PC Relations.
+- Recruitment and legacy relationship fields remain unchanged.
 - Circles live integration remains OFF.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.37.md
+QA: TEST_PROTOCOL_v1.9.0-qa.38.md
