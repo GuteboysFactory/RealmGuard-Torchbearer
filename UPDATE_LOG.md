@@ -3,7 +3,22 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.41
+**Current QA build:** v1.9.0-qa.42
+
+
+## v1.9.0-qa.42 - QA / Default NPC Template Portraits
+
+- Adds the supplied Default pictures pack as 63 optimized WEBP system assets.
+- Quick NPC Library advances to **2.2.0**.
+- Every generated Quick NPC template receives a deterministic packaged portrait.
+- Portrait selection is role/culture aware with dedicated Ranger, common-folk, Orc, Troll, Warg, Undead and culture fallbacks.
+- Starter Library seed advances to **0.27.0**.
+- Existing generated templates still using the old generic `npc-creature.webp` portrait are refreshed to the new default art.
+- GM-selected custom portraits are explicitly preserved.
+- Prototype token texture follows the template portrait and remains centered/aspect-safe at 1x1.
+- Custom dropped/uploaded NPC art continues to override the default portrait.
+- No rules, M8 Social Network, Circles, Recruitment or CORE behavior changes.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.42.md`.
 
 
 ## v1.9.0-qa.41 - 🟢✅ PASS / M8 Circles Enmity Clause
