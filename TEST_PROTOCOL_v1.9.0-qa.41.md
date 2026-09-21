@@ -107,3 +107,21 @@ Expected:
 
 ## PASS
 qa.41 passes when failed new-person Circles offers a GM-controlled Enmity choice, creates/reuses persistent Enemy relationships safely, works across player/GM clients, preserves duplicate protection and does not alter Conflict mechanics.
+
+
+## VERIFIED RESULT
+
+**🟢✅ PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- failed Find New Person Circles opens the GM failure decision
+- **Normal Failure / Invoke Enmity Clause / Decide Later** are available
+- confirmed Enmity creates/reuses **ENEMY / HOSTILE / ENMITY**
+- duplicate protection works
+- an existing Contact is reused rather than duplicated and becomes Enemy/Hostile with history preserved
+- reload persistence works
+- no NPC Actor is created automatically
+- qa.40 GM Obstacle authority remains intact
+- release pipeline completed successfully
+
+No blocking issues were reported in the qa.41 Enmity validation.
