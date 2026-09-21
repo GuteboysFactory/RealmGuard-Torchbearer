@@ -15,7 +15,7 @@ const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 
-assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, "Smoke must accept stable 1.9.0 and 1.9.0-qa.x builds.");
 
 const actor = {
   id: "A1",
