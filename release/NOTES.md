@@ -1,12 +1,11 @@
-Realm Guard / Torchbearer v1.9.0-qa.39 — Circles Social Network Integration.
+Realm Guard / Torchbearer v1.9.0-qa.40 — Circles GM Obstacle Authority.
 
-- Adds Standard Test / Known Person / Find New Person context before Circles.
-- Standard Test preserves existing Circles behavior.
-- Known Person references existing Social Network people without automatic status changes or NPC creation.
-- Successful Find New Person creates/reuses a Neutral CONTACT with Origin = CIRCLES.
-- Failed Find New Person creates nothing; Enmity remains deferred.
-- Existing Circles dice, Obstacle, Conditions, Help, Fate/Persona and Learning behavior is unchanged.
-- Ranger owners may commit successful Circles Contacts to their own Actor.
-- No NPC is created automatically.
+- Fixes Circles opening with a player-editable independent Obstacle.
+- Circles now always starts from GM Baseline Obstacle.
+- Circles Obstacle is read-only for players.
+- Automatic/Baseline supports GM Change Open Rolls Live.
+- GM Approval uses the normal Obstacle Request flow.
+- Manual mode remains editable for ordinary rolls, but Circles remains GM-controlled.
+- qa.39 Social Network Circles integration is otherwise unchanged.
 
-QA: TEST_PROTOCOL_v1.9.0-qa.39.md
+QA: TEST_PROTOCOL_v1.9.0-qa.40.md
