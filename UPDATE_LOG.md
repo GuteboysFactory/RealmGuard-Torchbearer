@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.35
 
 
-## v1.9.0-qa.35 - QA / M8 NPC Group Templates
+## v1.9.0-qa.35 - PASS / M8 NPC Group Templates
 
 - Continues M8 Social Network Migration from the working qa.34 baseline.
 - Adds a GM-only **Group Templates** entry point to Quick NPC Library.
@@ -17,7 +17,9 @@
 - Bulk group creation suppresses per-NPC notification spam while retaining a final group result notification.
 - Existing relationship NPCs remain separate in **NPC - PC Relations** and retain PersonRecord actor linking.
 - No change to Circles semantics, Relationship status/history rules, Recruitment rules, Service allocation, or Legacy Mixed live authority.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.35.md`.
+- Live Foundry 13.351 QA passed all qa.35 gates with no blocking issues reported.
+- Next M8 work is a non-rule template naming/content cleanup: remove location-specific display naming such as `Bree ...`, keep templates generic/reusable, audit duplicates and prepare default-portrait mapping.
+- Test status: **PASS**. See `TEST_PROTOCOL_v1.9.0-qa.35.md`.
 
 
 ## v1.0.8.44 - QA / Roll & Conflict Readability Polish
