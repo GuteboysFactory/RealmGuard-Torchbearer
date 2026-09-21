@@ -16,7 +16,16 @@ assert.match(
   "Circles must source its initial Obstacle from GM Baseline regardless of formatting."
 );
 
-assert.ok(!sheet.includes('["resources", "circles"].includes(String(abilityKey))'), "Circles must no longer be forced into rule-specific manual Obstacle mode.");
+assert.match(
+  sheet,
+  /const ruleSpecific\s*=\s*fixedObstacle\s*\|\|\s*Boolean\(versus\s*&&\s*opponent\)\s*\|\|\s*String\(abilityKey\)\s*===\s*"resources"/s,
+  "ruleSpecific must exclude Circles while preserving Resources as rule-specific."
+);
+assert.doesNotMatch(
+  sheet,
+  /const ruleSpecific[^;]*circles/is,
+  "Circles must not be present in the ruleSpecific Obstacle assignment."
+);
 
 const gmTools = fs.readFileSync("module/gm-tools.mjs", "utf8");
 assert.ok(gmTools.includes("Circles also follows GM Obstacle authority here"));
