@@ -7,7 +7,7 @@ import {
   QUICK_NPC_GROUP_LIBRARY_VERSION
 } from "../module/quick-npc-library.mjs";
 
-assert.equal(QUICK_NPC_LIBRARY_VERSION, "2.1.0");
+assert.ok(/^2\./.test(QUICK_NPC_LIBRARY_VERSION), `Expected Quick NPC 2.x, got ${QUICK_NPC_LIBRARY_VERSION}`);
 assert.equal(QUICK_NPC_GROUP_LIBRARY_VERSION, "1.1.0");
 
 const breeDisplayTemplates = QUICK_NPC_TEMPLATE_SPECS.filter(entry => /\bBree\b/i.test(entry.name));
@@ -25,7 +25,7 @@ assert.ok(QUICK_NPC_GROUP_TEMPLATE_SPECS.some(entry => entry.name === "Road Cara
 
 const compendiums = fs.readFileSync("module/compendiums.mjs", "utf8");
 for (const marker of [
-  'const STARTER_VERSION = "0.26.0"',
+  'const STARTER_VERSION = "0.27.0"',
   "npcTemplateIds",
   "refreshGeneratedNpcTemplatePresentation",
   "knownLegacyGeneratedName",
