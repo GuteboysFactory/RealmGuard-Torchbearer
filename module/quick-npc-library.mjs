@@ -1,6 +1,6 @@
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 
-export const QUICK_NPC_LIBRARY_VERSION = "2.0.0";
+export const QUICK_NPC_LIBRARY_VERSION = "2.1.0";
 export const QUICK_NPC_SCHEMA_VERSION = 2;
 
 const SKILLS = new Set(RG_DEFAULT_SKILLS);
@@ -18,7 +18,7 @@ export function normalizeQuickNpcSearch(value = "") {
 }
 
 const CULTURES = freeze({
-  bree: freeze({ key: "bree", label: "Bree", people: "Men of Bree", tags: ["bree-land", "town", "eriador"] }),
+  bree: freeze({ key: "bree", label: "Common", people: "Common Folk", tags: ["common", "town", "village", "road"] }),
   dunadan: freeze({ key: "dunadan", label: "Dúnadan", people: "Dúnedain", tags: ["arnor", "ranger", "north", "eriador"] }),
   gondor: freeze({ key: "gondor", label: "Gondorian", people: "Men of Gondor", tags: ["gondor", "south", "kingdom"] }),
   rohan: freeze({ key: "rohan", label: "Rohirric", people: "Rohirrim", tags: ["rohan", "horse-lord", "mark"] }),
@@ -97,7 +97,7 @@ const groupTemplate = ({ id, name, category = "Mixed", concept = "", members = [
   members: freeze(members)
 });
 
-export const QUICK_NPC_GROUP_LIBRARY_VERSION = "1.0.0";
+export const QUICK_NPC_GROUP_LIBRARY_VERSION = "1.1.0";
 export const QUICK_NPC_GROUP_TEMPLATE_SPECS = freeze([
   groupTemplate({
     id: "ranger-patrol",
@@ -145,13 +145,13 @@ export const QUICK_NPC_GROUP_TEMPLATE_SPECS = freeze([
   }),
   groupTemplate({
     id: "bree-road-caravan",
-    name: "Bree Road Caravan",
-    category: "Bree-land",
+    name: "Road Caravan",
+    category: "Travellers",
     concept: "A small merchant caravan with hired protection, a guide and a pack pony.",
     members: [
-      groupMember("Merchant", "bree merchant", "Skilled", 1),
-      groupMember("Mercenary", "bree mercenary", "Skilled", 2),
-      groupMember("Guide", "bree guide", "Skilled", 1),
+      groupMember("Merchant", "merchant", "Skilled", 1),
+      groupMember("Mercenary", "mercenary", "Skilled", 2),
+      groupMember("Guide", "guide", "Skilled", 1),
       groupMember("Pony", "wild pony", "Common", 1)
     ]
   }),
@@ -214,12 +214,12 @@ function role({
 }
 
 const ROLE_SEEDS = freeze([
-  // Bree-land and Eriador civilians / trades
+  // Generic common folk, town and rural roles
   role({ name:"Innkeeper", culture:"bree", category:"Civilian", subcategory:"Hospitality", concept:"Local innkeeper, host and source of rumours", aliases:["bartender","barkeep","tavern keeper","publican"], tags:["inn","tavern","rumours","lodging"], skills:[s("Haggler",3),s("Cook",2),s("Persuader",2)], gear:[g("Knife"),g("Lantern")] }),
   role({ name:"Cook", culture:"bree", category:"Trade", subcategory:"Hospitality", profile:"artisan", concept:"Kitchen worker or household cook", aliases:["chef","kitchen worker"], tags:["food","inn"], skills:[s("Cook",3),s("Baker",2)], gear:[g("Knife")] }),
   role({ name:"Brewer", culture:"bree", category:"Trade", subcategory:"Hospitality", profile:"artisan", concept:"Brewer, alehouse supplier and cellar keeper", aliases:["ale brewer","beer maker"], tags:["beer","ale","cellar"], skills:[s("Brewer",3),s("Haggler",2)], gear:[] }),
   role({ name:"Baker", culture:"bree", category:"Trade", subcategory:"Food", profile:"artisan", concept:"Village or town baker", aliases:["bread maker"], tags:["bread","food"], skills:[s("Baker",3),s("Haggler",2)] }),
-  role({ name:"Farmer", culture:"bree", category:"Civilian", subcategory:"Rural", profile:"laborer", concept:"Crop farmer from Bree-land", aliases:["farmhand","crofter"], tags:["farm","field","crop"], skills:[s("Farmer",3),s("Laborer",2),s("Weather Watcher",2)], gear:[g("Staff")] }),
+  role({ name:"Farmer", culture:"bree", category:"Civilian", subcategory:"Rural", profile:"laborer", concept:"Crop farmer from a village or rural district", aliases:["farmhand","crofter"], tags:["farm","field","crop"], skills:[s("Farmer",3),s("Laborer",2),s("Weather Watcher",2)], gear:[g("Staff")] }),
   role({ name:"Herdsman", culture:"bree", category:"Civilian", subcategory:"Rural", profile:"laborer", concept:"Keeper of sheep, cattle or goats", aliases:["shepherd","cowherd"], tags:["herd","livestock","sheep"], skills:[s("Herdsman",3),s("Animal Handler",3),s("Weather Watcher",2)] }),
   role({ name:"Miller", culture:"bree", category:"Trade", subcategory:"Food", profile:"artisan", concept:"Mill operator and grain trader", aliases:["grain miller"], tags:["mill","grain"], skills:[s("Miller",3),s("Haggler",2),s("Laborer",2)] }),
   role({ name:"Smith", culture:"bree", category:"Trade", subcategory:"Craft", profile:"artisan", concept:"Village blacksmith and repairer", aliases:["blacksmith","forge worker"], tags:["forge","metal","horseshoe"], skills:[s("Smith",3),s("Armorer",2),s("Haggler",2)], gear:[g("Hammer")] }),
@@ -450,6 +450,7 @@ function metadataFor(seed, culture, tier, name) {
     aliases,
     tags,
     relationshipSuitability: seed.relationship,
+    portraitKey: normalizeQuickNpcSearch(seed.name).replace(/ /g, "-"),
     searchText
   });
 }
@@ -461,7 +462,7 @@ function buildTemplates() {
     const culture = CULTURES[seed.culture] ?? CULTURES.bree;
     const tiers = seed.tiers === "creature" ? CREATURE_TIERS : TIERS;
     for (const tier of tiers) {
-      const name = `${culture.label} ${seed.name} · ${tier.label}`;
+      const name = culture.key === "bree" ? `${seed.name} · ${tier.label}` : `${culture.label} ${seed.name} · ${tier.label}`;
       templates.push(freeze({
         name,
         rank: seed.name,
