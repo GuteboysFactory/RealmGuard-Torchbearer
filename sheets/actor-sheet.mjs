@@ -14,7 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
-import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -162,7 +162,9 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       createRelationshipNpc: RealmGuardActorSheet._createRelationshipNpc,
       openRelationshipActor: RealmGuardActorSheet._openRelationshipActor,
       unlinkRelationshipActor: RealmGuardActorSheet._unlinkRelationshipActor,
-      changeRelationshipStatus: RealmGuardActorSheet._changeRelationshipStatus
+      changeRelationshipStatus: RealmGuardActorSheet._changeRelationshipStatus,
+      createDynamicContact: RealmGuardActorSheet._createDynamicContact,
+      editDynamicContact: RealmGuardActorSheet._editDynamicContact
     }
   };
 
@@ -453,7 +455,9 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         ...entry,
         fromLabel: String(entry.from || "UNKNOWN").toLowerCase().replaceAll("_", " ").replace(/\b\w/g, value => value.toUpperCase()),
         toLabel: String(entry.to || "UNKNOWN").toLowerCase().replaceAll("_", " ").replace(/\b\w/g, value => value.toUpperCase())
-      })) : []
+      })) : [],
+      isDynamicContact: relationship.role === "CONTACT" && ["PLAY", "GM", "CIRCLES"].includes(String(relationship.origin || ""))
+
     }));
     const progression = progressionView(actor);
     const portrait = rangerPortraitState(actor);
@@ -1176,6 +1180,129 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result=await foundry.applications.api.DialogV2.wait({window: { title: "Realm Guard · Manage Nature", resizable: true },content:`<div class="rg-nature-manage"><h3>Nature ${current}/${maximum}</h3><p><b>Tax:</b> ${tax}</p><p><b>Dúnadan descriptors:</b> Tradition · Family · Grief</p><p><small>Recover +1 only when the rules allow recovery. Deplete Maximum trades one point of maximum Nature to recover one point of tax.</small></p></div>`,modal:false,rejectClose:false,buttons:[{action:"recover",label:"Recover +1",icon:"fa-solid fa-leaf",callback:()=>"recover"},{action:"deplete",label:"Deplete Maximum",icon:"fa-solid fa-arrow-down",callback:()=>"deplete"},{action:"close",label:"Close",default:true,callback:()=>"close"}]});
     if(result==="recover"&&tax>0)await this.actor.update({"system.attributes.nature.value":Math.min(maximum,current+1)});
     if(result==="deplete"&&tax>0&&maximum>0){const nm=Math.max(0,maximum-1),nc=Math.min(nm,current+1);await this.actor.update({"system.attributes.nature.maximum":nm,"system.attributes.nature.value":nc});if(nm===0)ui.notifications.warn("Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");}
+  }
+
+  static async _createDynamicContact() {
+    if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Dynamic Contact creation is GM-only during M8 migration.");
+    const esc = foundry.utils.escapeHTML;
+    const statusOptions = M8_RELATIONSHIP_STATUS_OPTIONS
+      .filter(option => option.value !== "UNKNOWN")
+      .map(option => `<option value="${esc(option.value)}" ${option.value === "NEUTRAL" ? "selected" : ""}>${esc(option.label)}</option>`)
+      .join("");
+
+    const result = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Realm Guard · New Contact", resizable: true },
+      position: { width: 620 },
+      content: `<form class="realm-guard rg-m8-contact-dialog">
+        <div class="rg-brand">REALM GUARD / TORCHBEARER · SOCIAL NETWORK</div>
+        <h2>New Contact</h2>
+        <p>Add a person met during play. This creates Social Network data only; it does <b>not</b> create an NPC Actor automatically.</p>
+        <div class="rg-m8-contact-grid">
+          <label><span>Name *</span><input type="text" name="name" required placeholder="Contact name"></label>
+          <label><span>Profession / Role</span><input type="text" name="profession" placeholder="Smith, Guide, Healer..."></label>
+          <label><span>People / Culture</span><input type="text" name="people" placeholder="Man, Dwarf, Elf..."></label>
+          <label><span>Location</span><input type="text" name="location" placeholder="Settlement or region"></label>
+          <label class="rg-contact-wide"><span>Status</span><select name="status">${statusOptions}</select></label>
+          <label class="rg-contact-wide"><span>Notes</span><textarea name="notes" rows="4" placeholder="Why does this person matter?"></textarea></label>
+        </div>
+      </form>`,
+      modal: false,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "create",
+          label: "Add Contact",
+          icon: "fa-solid fa-address-book",
+          default: true,
+          callback: (_event, button) => ({
+            name: String(button.form?.elements?.name?.value || "").trim(),
+            profession: String(button.form?.elements?.profession?.value || "").trim(),
+            people: String(button.form?.elements?.people?.value || "").trim(),
+            location: String(button.form?.elements?.location?.value || "").trim(),
+            status: String(button.form?.elements?.status?.value || "NEUTRAL"),
+            notes: String(button.form?.elements?.notes?.value || "").trim()
+          })
+        },
+        { action: "cancel", label: "Cancel", callback: () => null }
+      ]
+    });
+
+    if (!result) return;
+    if (!result.name) return ui.notifications.warn("Realm Guard: Contact Name is required.");
+
+    try {
+      const created = await createM8DynamicContact(this.actor, {
+        ...result,
+        origin: "PLAY"
+      });
+      if (created.duplicate) {
+        ui.notifications.warn(`Realm Guard: ${created.person.name} already exists in this Ranger's Social Network with the same identity details.`);
+        return;
+      }
+      ui.notifications.info(`Realm Guard: Added ${created.person.name} as a Contact. No NPC Actor was created.`);
+      await this.render({ force: true });
+    } catch (error) {
+      console.error("Realm Guard | Dynamic Contact creation failed", error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Could not create Contact."}`);
+    }
+  }
+
+  static async _editDynamicContact(event, target) {
+    if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Dynamic Contact editing is GM-only during M8 migration.");
+    const card = target.closest("[data-rg-person-id]");
+    const personId = String(card?.dataset.rgPersonId ?? "");
+    if (!personId) return ui.notifications.warn("Realm Guard: Could not resolve the Contact.");
+
+    const view = buildM8RelationshipSheetView(this.actor);
+    const person = view.people.find(entry => entry.id === personId);
+    if (!person) return ui.notifications.warn("Realm Guard: Contact person is unavailable.");
+
+    const esc = foundry.utils.escapeHTML;
+    const result = await foundry.applications.api.DialogV2.wait({
+      window: { title: `Realm Guard · Edit ${person.name}`, resizable: true },
+      position: { width: 620 },
+      content: `<form class="realm-guard rg-m8-contact-dialog">
+        <div class="rg-brand">REALM GUARD / TORCHBEARER · SOCIAL NETWORK</div>
+        <h2>Edit Contact</h2>
+        <p>Edit identity details for this Contact. Actor links and Relationship history are preserved.</p>
+        <div class="rg-m8-contact-grid">
+          <label><span>Name *</span><input type="text" name="name" required value="${esc(person.name || "")}"></label>
+          <label><span>Profession / Role</span><input type="text" name="profession" value="${esc(person.profession || "")}"></label>
+          <label><span>People / Culture</span><input type="text" name="people" value="${esc(person.people || "")}"></label>
+          <label><span>Location</span><input type="text" name="location" value="${esc(person.location || "")}"></label>
+          <label class="rg-contact-wide"><span>Notes</span><textarea name="notes" rows="4">${esc(person.notes || "")}</textarea></label>
+        </div>
+      </form>`,
+      modal: false,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "save",
+          label: "Save Contact",
+          icon: "fa-solid fa-floppy-disk",
+          default: true,
+          callback: (_event, button) => ({
+            name: String(button.form?.elements?.name?.value || "").trim(),
+            profession: String(button.form?.elements?.profession?.value || "").trim(),
+            people: String(button.form?.elements?.people?.value || "").trim(),
+            location: String(button.form?.elements?.location?.value || "").trim(),
+            notes: String(button.form?.elements?.notes?.value || "").trim()
+          })
+        },
+        { action: "cancel", label: "Cancel", callback: () => null }
+      ]
+    });
+
+    if (!result) return;
+    if (!result.name) return ui.notifications.warn("Realm Guard: Contact Name is required.");
+    try {
+      await updateM8Person(this.actor, personId, result);
+      ui.notifications.info(`Realm Guard: Updated Contact ${result.name}.`);
+      await this.render({ force: true });
+    } catch (error) {
+      console.error("Realm Guard | Dynamic Contact edit failed", error);
+      ui.notifications.error(`Realm Guard: ${error?.message || "Could not update Contact."}`);
+    }
   }
 
   static async _changeRelationshipStatus(event, target) {
