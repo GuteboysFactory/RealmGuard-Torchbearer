@@ -46,7 +46,7 @@ function previewActor(actorOrId) {
     relationships: (stored ?? fallback).relationships,
     legacyFieldsPreserved: true,
     gameplayAuthority: "LEGACY_MIXED",
-    liveCirclesIntegration: false,
+    liveCirclesIntegration: true,
     automaticNpcCreation: false
   });
 }
@@ -122,6 +122,128 @@ export async function createM8CirclesContact(actorOrId, data = {}) {
     status: RelationshipStatus.NEUTRAL,
     createdBy: String(game.user?.id || "")
   });
+}
+
+export async function createM8EnmityEnemy(actorOrId, data = {}) {
+  if (!game.user?.isGM) throw new Error("Enmity Clause resolution is GM-only.");
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  return services().social.createEnemy(actor, {
+    ...data,
+    createdBy: String(game.user?.id || "")
+  });
+}
+
+function activeM8GmId() {
+  return game.users?.filter?.(user => user.active && user.isGM)
+    ?.sort?.((a,b) => String(a.id).localeCompare(String(b.id)))?.[0]?.id ?? null;
+}
+
+async function openEnmityDecision(actor, context = {}) {
+  if (!game.user?.isGM) return null;
+  const esc = foundry.utils.escapeHTML;
+  const searchedName = String(context?.name || "").trim();
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Realm Guard · Circles Failure", resizable: true },
+    position: { width: 620 },
+    content: `<div class="realm-guard rg-m8-enmity-dialog">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES FAILURE</div>
+      <h2>Circles failed</h2>
+      <p><b>${esc(actor.name)}</b> failed while seeking <b>${esc(searchedName || "a new person")}</b>.</p>
+      <p>Choose the normal failure route, or invoke the <b>Enmity Clause</b>. Enmity creates a hostile Social Network relationship only after GM confirmation. It does not create an NPC Actor automatically.</p>
+    </div>`,
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      { action: "normal", label: "Normal Failure", icon: "fa-solid fa-shuffle", default: true, callback: () => "normal" },
+      { action: "enmity", label: "Invoke Enmity Clause", icon: "fa-solid fa-user-slash", callback: () => "enmity" },
+      { action: "later", label: "Decide Later", icon: "fa-solid fa-clock", callback: () => "later" }
+    ]
+  });
+
+  if (choice !== "enmity") return Object.freeze({ choice: choice || "later", created: false });
+
+  const formResult = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Realm Guard · Enmity Clause", resizable: true },
+    position: { width: 650 },
+    content: `<form class="realm-guard rg-m8-enmity-dialog">
+      <div class="rg-brand">REALM GUARD / TORCHBEARER · ENMITY CLAUSE</div>
+      <h2>Create the enemy</h2>
+      <p>The failed Circles request is used as a starting point. The GM may replace any detail, including the name.</p>
+      <div class="rg-m8-contact-grid">
+        <label><span>Name *</span><input type="text" name="name" required value="${esc(searchedName)}"></label>
+        <label><span>Profession / Role</span><input type="text" name="profession" value="${esc(String(context?.profession || ""))}"></label>
+        <label><span>People / Culture</span><input type="text" name="people" value="${esc(String(context?.people || ""))}"></label>
+        <label><span>Location</span><input type="text" name="location" value="${esc(String(context?.location || ""))}"></label>
+        <label class="rg-contact-wide"><span>Reason / Enmity</span><input type="text" name="reason" value="Enmity Clause" placeholder="Why does this person oppose the Ranger?"></label>
+        <label class="rg-contact-wide"><span>Session / reference</span><input type="text" name="sessionId" placeholder="e.g. Session 9"></label>
+        <label class="rg-contact-wide"><span>Notes</span><textarea name="notes" rows="4">${esc(String(context?.notes || ""))}</textarea></label>
+      </div>
+      <p class="rg-m8-circles-note"><b>Creates:</b> Enemy · Hostile · Origin ENMITY. No NPC Actor is created automatically.</p>
+    </form>`,
+    modal: false,
+    rejectClose: false,
+    buttons: [
+      {
+        action: "create",
+        label: "Create Enemy",
+        icon: "fa-solid fa-user-slash",
+        default: true,
+        callback: (_event,button) => ({
+          name: String(button.form?.elements?.name?.value || "").trim(),
+          profession: String(button.form?.elements?.profession?.value || "").trim(),
+          people: String(button.form?.elements?.people?.value || "").trim(),
+          location: String(button.form?.elements?.location?.value || "").trim(),
+          reason: String(button.form?.elements?.reason?.value || "Enmity Clause").trim(),
+          sessionId: String(button.form?.elements?.sessionId?.value || "").trim(),
+          notes: String(button.form?.elements?.notes?.value || "").trim()
+        })
+      },
+      { action: "cancel", label: "Cancel", callback: () => null }
+    ]
+  });
+
+  if (!formResult) return Object.freeze({ choice: "cancel", created: false });
+  if (!formResult.name) {
+    ui.notifications.warn("Realm Guard: Enmity Clause requires a name.");
+    return Object.freeze({ choice: "invalid", created: false });
+  }
+
+  const result = await createM8EnmityEnemy(actor, formResult);
+  if (result.created) {
+    ui.notifications.info(`Realm Guard: Enmity Clause created ${result.person.name} as a Hostile Enemy. No NPC Actor was created.`);
+  } else if (result.relationship?.status === RelationshipStatus.HOSTILE) {
+    ui.notifications.info(`Realm Guard: Enmity Clause reused ${result.person.name}; the existing relationship is Hostile and no duplicate was created.`);
+  }
+  return Object.freeze({ choice: "enmity", ...result });
+}
+
+export async function requestM8EnmityDecision(actorOrId, context = {}) {
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  if (game.user?.isGM) return openEnmityDecision(actor, context);
+
+  const targetGmId = activeM8GmId();
+  if (!targetGmId) {
+    ui.notifications.warn("Realm Guard: Circles failed, but no active GM is available for an Enmity Clause decision.");
+    return Object.freeze({ choice: "no-gm", created: false });
+  }
+
+  game.socket.emit(`system.realm-guard`, {
+    type: "m8-enmity-request",
+    targetGmId,
+    senderId: game.user?.id || "",
+    actorUuid: String(actor.uuid || ""),
+    context: {
+      name: String(context?.name || ""),
+      profession: String(context?.profession || ""),
+      people: String(context?.people || ""),
+      location: String(context?.location || ""),
+      notes: String(context?.notes || "")
+    }
+  });
+  ui.notifications.info("Realm Guard: Circles failed. The GM has been asked to resolve the failure / Enmity Clause.");
+  return Object.freeze({ choice: "requested", created: false });
 }
 
 export async function updateM8Person(actorOrId, personId, data = {}) {
@@ -249,7 +371,10 @@ function getM8Status() {
       "ExistingActorLinking",
       "DynamicContacts",
       "DynamicContactDuplicateProtection",
-      "DynamicContactEditing"
+      "DynamicContactEditing",
+      "CirclesKnownPerson",
+      "CirclesNewPerson",
+      "EnmityClause"
     ]),
     preservation: Object.freeze({
       legacyFieldsDeleted: false,
@@ -311,6 +436,11 @@ function exposeApi() {
         if (!actor) throw new Error("Could not resolve Ranger Actor.");
         return current.social.updatePerson(actor, personId, data);
       },
+      createEnemy: (actorOrId, data) => {
+        const actor = actorRef(actorOrId);
+        if (!actor) throw new Error("Could not resolve Ranger Actor.");
+        return current.social.createEnemy(actor, data);
+      },
       updateRelationshipStatus: (actorOrId, relationshipId, status, options) => {
         const actor = actorRef(actorOrId);
         if (!actor) throw new Error("Could not resolve Ranger Actor.");
@@ -333,6 +463,13 @@ function exposeApi() {
 export function installM8SocialNetworkFoundation() {
   Hooks.once("ready", () => {
     exposeApi();
+    game.socket.on("system.realm-guard", message => {
+      if (message?.type !== "m8-enmity-request") return;
+      if (!game.user?.isGM || message.targetGmId !== game.user.id) return;
+      const actor = actorRef(message.actorUuid);
+      if (!actor) return ui.notifications.warn("Realm Guard: Could not resolve the Ranger for the Enmity Clause request.");
+      void openEnmityDecision(actor, message.context || {});
+    });
     console.log("realm-guard | CORE M8 Social Network shadow foundation ready", getM8Status());
   });
 }
