@@ -30,7 +30,7 @@ const top = query => entries
   .sort((a, b) => b.score - a.score)[0]?.entry;
 
 assert.match(top("bartender")?.name ?? "", /Innkeeper/i, "bartender should find an Innkeeper");
-assert.match(top("healer bree")?.name ?? "", /Bree.*Healer/i, "healer bree should find Bree healer");
+assert.match(top("healer")?.name ?? "", /^Healer · /i, "generic healer should resolve without a location prefix");
 assert.match(top("old ranger")?.name ?? "", /Ranger/i, "old ranger should find a Ranger template");
 assert.match(top("big orc")?.name ?? "", /Orc.*Brute/i, "big orc should find Orc Brute");
 
@@ -42,7 +42,11 @@ assert.ok(npcBuilder.includes("scoreQuickNpcEntry"));
 assert.ok(npcBuilder.includes("dblclick"));
 
 const compendiums = fs.readFileSync("module/compendiums.mjs", "utf8");
-assert.ok(compendiums.includes('const STARTER_VERSION = "0.25.0"'));
+assert.ok(compendiums.includes('const STARTER_VERSION = "0.26.0"'));
 assert.ok(compendiums.includes("QUICK_NPC_TEMPLATE_SPECS.map"));
+assert.ok(compendiums.includes("npcTemplateIds"), "Starter sync must match NPC templates by stable templateId.");
+assert.ok(compendiums.includes("refreshGeneratedNpcTemplatePresentation"), "Starter sync must safely refresh generated NPC template display names.");
+assert.equal(QUICK_NPC_TEMPLATE_SPECS.filter(entry => /\\bBree\\b/i.test(entry.name)).length, 0, "No Quick NPC display name may contain Bree.");
+assert.ok(QUICK_NPC_TEMPLATE_SPECS.filter(entry => entry.metadata.culture === "Common").every(entry => !/^Common\\s/i.test(entry.name)), "Generic common templates must not receive a Common display-name prefix.");
 
 console.log(`PASS Quick NPC Library 2.0 smoke · ${quickNpcTemplateCount()} generated templates`);
