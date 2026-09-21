@@ -101,3 +101,22 @@ Expected:
 
 ## PASS
 qa.38 passes when Contacts can be created, persisted, edited, protected from exact duplicates and reused by the existing Relationship/NPC linking tools without automatic NPC creation or Recruitment regression.
+
+
+## VERIFIED RESULT
+
+**PASS — 2026-09-21 / Foundry VTT 13.351**
+
+Live QA confirmed:
+- Dynamic Contacts can be created from Relationships
+- no NPC Actor is created automatically
+- reload persistence works
+- exact duplicate protection works
+- Contact editing updates the existing PersonRecord
+- Living Relationship status/history remains intact
+- explicit Create NPC still routes through Quick NPC into `NPC - PC Relations`
+- Link Existing Actor / Open / Unlink remain functional
+- Recruitment relationships remain unchanged
+- player presentation remains non-destructive
+
+No blocking issues were reported during qa.38 live validation.
