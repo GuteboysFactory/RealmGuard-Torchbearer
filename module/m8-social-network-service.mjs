@@ -99,6 +99,26 @@ export async function updateM8RelationshipStatus(actorOrId, relationshipId, stat
   });
 }
 
+
+export async function createM8DynamicContact(actorOrId, data = {}) {
+  if (!game.user?.isGM) throw new Error("Dynamic Contact creation is GM-only during M8 migration.");
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  return services().social.createContact(actor, {
+    ...data,
+    origin: String(data?.origin || RelationshipOrigin.PLAY),
+    status: String(data?.status || RelationshipStatus.NEUTRAL),
+    createdBy: String(game.user?.id || "")
+  });
+}
+
+export async function updateM8Person(actorOrId, personId, data = {}) {
+  if (!game.user?.isGM) throw new Error("Dynamic Contact editing is GM-only during M8 migration.");
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  return services().social.updatePerson(actor, personId, data);
+}
+
 function linkedActorView(actorUuid = "") {
   const uuid = String(actorUuid || "").trim();
   if (!uuid) return Object.freeze({ uuid: "", linked: false, resolved: false, name: "", type: "", img: "" });
@@ -214,7 +234,10 @@ function getM8Status() {
       "FallbackCompatibilityRead",
       "ExplicitGmMigration",
       "CharacterRelationshipView",
-      "ExistingActorLinking"
+      "ExistingActorLinking",
+      "DynamicContacts",
+      "DynamicContactDuplicateProtection",
+      "DynamicContactEditing"
     ]),
     preservation: Object.freeze({
       legacyFieldsDeleted: false,
@@ -265,6 +288,16 @@ function exposeApi() {
       byRole: (actorOrId, role) => {
         const actor = actorRef(actorOrId);
         return actor ? current.social.byRole(actor, role) : Object.freeze([]);
+      },
+      createContact: (actorOrId, data) => {
+        const actor = actorRef(actorOrId);
+        if (!actor) throw new Error("Could not resolve Ranger Actor.");
+        return current.social.createContact(actor, data);
+      },
+      updatePerson: (actorOrId, personId, data) => {
+        const actor = actorRef(actorOrId);
+        if (!actor) throw new Error("Could not resolve Ranger Actor.");
+        return current.social.updatePerson(actor, personId, data);
       },
       updateRelationshipStatus: (actorOrId, relationshipId, status, options) => {
         const actor = actorRef(actorOrId);
