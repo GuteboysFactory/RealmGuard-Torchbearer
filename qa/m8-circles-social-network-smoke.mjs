@@ -42,9 +42,13 @@ for(const needle of [
   "Find New Person",
   "createM8CirclesContact",
   "Circles found",
-  "Enmity is not automated in qa.39",
   "rg-m8-circles-roll-context"
-]) assert.ok(sheet.includes(needle), `Missing qa.39 marker: ${needle}`);
+]) assert.ok(sheet.includes(needle), `Missing qa.39 persistent marker: ${needle}`);
+
+assert.ok(
+  sheet.includes("requestM8EnmityDecision") || sheet.includes("No Contact was created"),
+  "Failed Find New Person must remain an explicit, non-silent Circles failure path."
+);
 
 const service=fs.readFileSync("module/m8-social-network-service.mjs","utf8");
 assert.ok(service.includes("createM8CirclesContact"));
