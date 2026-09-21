@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.40
 
 
-## v1.9.0-qa.40 - QA / Circles GM Obstacle Authority
+## v1.9.0-qa.40 - 🟢✅ PASS / Circles GM Obstacle Authority
 
 - Focused hotfix on qa.39 after live QA exposed Circles opening with an independently editable Obstacle.
 - Circles is no longer forced into rule-specific manual Obstacle mode.
@@ -17,7 +17,9 @@
 - Manual mode remains manual for ordinary rolls, but Circles stays GM-controlled and read-only for the player.
 - Obstacle Control copy now explicitly documents Circles GM authority.
 - qa.39 Social Network behavior is unchanged.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.40.md`.
+- Live Foundry VTT 13.351 QA confirmed Baseline Ob, locked player field and live GM Obstacle Control updates.
+- Release pipeline completed successfully.
+- Test status: **🟢✅ VERIFIED / PASS**. See `TEST_PROTOCOL_v1.9.0-qa.40.md`.
 
 
 ## v1.9.0-qa.39 - QA / M8 Circles Social Network Integration
