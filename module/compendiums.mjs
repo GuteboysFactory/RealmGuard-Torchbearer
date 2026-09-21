@@ -357,15 +357,20 @@ async function refreshGeneratedNpcTemplatePresentation(pack, documents) {
 
     const update = { _id: doc.id };
     let changed = false;
-    if (desiredName && currentName !== desiredName) {
+    const knownLegacyGeneratedName = desiredName && currentName === `Bree ${desiredName}`;
+    const alreadyCanonicalGeneratedName = desiredName && currentName === desiredName;
+    const safeGeneratedEntry = knownLegacyGeneratedName || alreadyCanonicalGeneratedName;
+
+    // Preserve GM-renamed/edited starter entries. Only canonical generated names are refreshed.
+    if (knownLegacyGeneratedName) {
       update.name = desiredName;
       changed = true;
     }
-    if (JSON.stringify(currentMeta) !== JSON.stringify(desiredMeta)) {
+    if (safeGeneratedEntry && JSON.stringify(currentMeta) !== JSON.stringify(desiredMeta)) {
       update[`flags.${FLAG_SCOPE}.npcTemplate`] = foundry.utils.deepClone ? foundry.utils.deepClone(desiredMeta) : structuredClone(desiredMeta);
       changed = true;
     }
-    if (desiredKey && currentKey !== desiredKey) {
+    if (safeGeneratedEntry && desiredKey && currentKey !== desiredKey) {
       update[`flags.${FLAG_SCOPE}.starterKey`] = desiredKey;
       changed = true;
     }
