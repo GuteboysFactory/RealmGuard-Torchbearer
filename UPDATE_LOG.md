@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.42
 
 
-## v1.9.0-qa.42 - QA / Default NPC Template Portraits
+## v1.9.0-qa.42 - 🟢✅ PASS / Default NPC Template Portraits
 
 - Adds the supplied Default pictures pack as 63 optimized WEBP system assets.
 - Quick NPC Library advances to **2.2.0**.
@@ -18,7 +18,10 @@
 - Prototype token texture follows the template portrait and remains centered/aspect-safe at 1x1.
 - Custom dropped/uploaded NPC art continues to override the default portrait.
 - No rules, M8 Social Network, Circles, Recruitment or CORE behavior changes.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.42.md`.
+- Live Foundry VTT 13.351 QA confirmed the packaged portrait mapping and template presentation.
+- Release pipeline completed successfully.
+- Test status: **🟢✅ VERIFIED / PASS**. See `TEST_PROTOCOL_v1.9.0-qa.42.md`.
+- **M8 Social Network Migration is now VERIFIED / CLOSED. Next: M9 Creation / Recruitment Migration.**
 
 
 ## v1.9.0-qa.41 - 🟢✅ PASS / M8 Circles Enmity Clause
