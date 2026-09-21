@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.(?:7|8|9)\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.(?:7|8|9)\.0(?:-qa\.\d+)?$/, "M5 layout smoke must accept stable and QA builds on supported 1.7-1.9 lines.");
 assert.ok(manifest.styles.includes("styles/m5-equipment-layout-final.css"));
 assert.equal(String(manifest.compatibility?.minimum), "13");
 assert.equal(String(manifest.compatibility?.maximum), "14");
