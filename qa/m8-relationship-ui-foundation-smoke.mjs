@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.9\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, "Smoke must accept stable 1.9.0 and 1.9.0-qa.x builds.");
 assert.ok(manifest.styles.includes("styles/qa27-m8-relationships.css"));
 
 const service = fs.readFileSync("module/m8-social-network-service.mjs", "utf8");
