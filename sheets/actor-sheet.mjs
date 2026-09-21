@@ -14,7 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
-import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
+import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -885,25 +885,16 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       content: `<div class="realm-guard rg-m8-circles-dialog">
         <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES</div>
         <h2>Who are you trying to find?</h2>
-        <p>This M8 integration does not change Circles dice, Obstacle or advancement rules. It only connects the result to the Social Network.</p>
-        <div class="rg-m8-circles-choice-grid">
-          <button type="button" data-rg-circles-purpose="standard"><b>Standard Test</b><small>Roll Circles exactly as before. No Social Network change.</small></button>
-          <button type="button" data-rg-circles-purpose="known" ${known.length ? "" : "disabled"}><b>Known Person / Contact</b><small>Reference someone already in this Ranger's Social Network.</small></button>
-          <button type="button" data-rg-circles-purpose="new"><b>Find New Person</b><small>On a successful roll, add the person as a Contact. No NPC is created.</small></button>
+        <p>This M8 integration does not change Circles dice, Obstacle or advancement rules. Choose how this test relates to the Social Network.</p>
+        <div class="rg-m8-circles-mode-help">
+          <p><b>Standard Test</b> — roll Circles exactly as before; no Social Network change.</p>
+          <p><b>Known Person</b> — reference someone already recorded for this Ranger.</p>
+          <p><b>Find New Person</b> — a successful test records a Neutral Contact; no NPC is created automatically.</p>
         </div>
-        ${known.length ? "" : '<p class="rg-m8-circles-note">No known Social Network people are available yet.</p>'}
+        ${known.length ? "" : '<p class="rg-m8-circles-note">No known Social Network people are available yet, so Known Person will fall back safely.</p>'}
       </div>`,
       modal: false,
       rejectClose: false,
-      render: (_event, dialog) => {
-        const root = dialog?.element ?? dialog;
-        root?.querySelectorAll?.("[data-rg-circles-purpose]")?.forEach?.(button => {
-          button.addEventListener("click", () => {
-            const action = button.dataset.rgCirclesPurpose;
-            root?.querySelector?.(`button[data-action="${action}"]`)?.click?.();
-          });
-        });
-      },
       buttons: [
         { action: "standard", label: "Standard Test", callback: () => "standard" },
         { action: "known", label: "Known Person", callback: () => "known" },
@@ -1001,14 +992,12 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
 
     try {
-      const created = await createM8DynamicContact(this.actor, {
+      const created = await createM8CirclesContact(this.actor, {
         name: context.name,
         profession: context.profession,
         people: context.people,
         location: context.location,
         notes: context.notes,
-        status: "NEUTRAL",
-        origin: "CIRCLES"
       });
       if (created.duplicate) {
         ui.notifications.info(`Realm Guard: Circles found ${created.person.name}; that person already exists in the Social Network, so no duplicate was created.`);
