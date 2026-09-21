@@ -153,7 +153,10 @@
             <section class="rg-panel rg-relations rg-m8-relations">
               <div class="rg-panel-title">
                 <div><h2>Relationships</h2><small>Social Network view · Legacy Mixed fields remain the gameplay source.</small></div>
-                <span class="rg-m8-source-badge">{{relationshipView.sourceMode}}</span>
+                <div class="rg-m8-title-actions">
+                  {{#if isGM}}<button type="button" data-action="createDynamicContact"><i class="fa-solid fa-address-book"></i> New Contact</button>{{/if}}
+                  <span class="rg-m8-source-badge">{{relationshipView.sourceMode}}</span>
+                </div>
               </div>
 
               <div class="rg-m8-relationship-list">
@@ -185,6 +188,7 @@
                   </div>
                   <div class="rg-m8-relationship-actions">
                     {{#if ../isGM}}<button type="button" data-action="changeRelationshipStatus" title="Change relationship status and record history"><i class="fa-solid fa-arrows-rotate"></i> Status</button>{{/if}}
+                    {{#if relationship.isDynamicContact}}{{#if ../isGM}}<button type="button" data-action="editDynamicContact" title="Edit Contact identity details"><i class="fa-solid fa-pen"></i> Edit Contact</button>{{/if}}{{/if}}
                     {{#if relationship.linkedActor.resolved}}
                     <button type="button" data-action="openRelationshipActor" title="Open linked Actor"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</button>
                     <button type="button" data-action="unlinkRelationshipActor" title="Remove Actor link only"><i class="fa-solid fa-link-slash"></i> Unlink</button>
