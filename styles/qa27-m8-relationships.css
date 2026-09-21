@@ -412,3 +412,34 @@
   border-color:rgba(89,106,52,.45) !important;
   background:rgba(126,158,85,.06);
 }
+
+
+/* qa.41 — Enmity Clause */
+.realm-guard .rg-m8-enmity-dialog {
+  display:grid;
+  gap:9px;
+}
+.realm-guard .rg-m8-enmity-dialog h2,
+.realm-guard .rg-m8-enmity-dialog p {
+  margin:0;
+}
+.realm-guard .rg-m8-enmity-dialog .rg-m8-contact-grid {
+  margin-top:2px;
+}
+.realm-guard .rg-m8-enmity-dialog label {
+  display:grid;
+  gap:5px;
+  color:#4b3925 !important;
+  -webkit-text-fill-color:#4b3925 !important;
+}
+.realm-guard .rg-m8-enmity-dialog label > span {
+  font-weight:800;
+}
+.realm-guard .rg-m8-enmity-dialog input,
+.realm-guard .rg-m8-enmity-dialog textarea {
+  width:100%;
+  color:#2d2217 !important;
+  -webkit-text-fill-color:#2d2217 !important;
+  background:rgba(255,249,228,.94) !important;
+  border:1px solid rgba(102,68,31,.48) !important;
+}
