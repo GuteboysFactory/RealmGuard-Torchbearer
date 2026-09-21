@@ -3,7 +3,20 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.36
+**Current QA build:** v1.9.0-qa.37
+
+
+## v1.9.0-qa.37 - QA / M8 Living Relationship Status
+
+- Adds GM-only **Status** editing directly to normalized Relationship cards.
+- Supported M8 status values: Unknown, Friendly, Neutral, Estranged and Hostile.
+- Status changes may include an optional reason/event and session/reference.
+- Actual transitions append immutable RelationshipHistory entries; saving the same status creates no duplicate history.
+- Relationships tab now shows compact collapsible recent history.
+- Legacy Recruitment/source relationship fields remain preserved and unchanged.
+- Existing PersonRecord Actor linking, Quick NPC creation and `NPC - PC Relations` destination remain intact.
+- Circles live integration remains OFF and is not part of qa.37.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.37.md`.
 
 
 ## v1.9.0-qa.36 - QA / Generic NPC Template Naming
