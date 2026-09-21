@@ -222,3 +222,91 @@
     max-width:none;
   }
 }
+
+
+/* qa.37 — Living Relationship Status & History */
+.realm-guard .rg-m8-status.rg-status-NEUTRAL,
+.realm-guard .rg-m8-status.rg-status-UNKNOWN {
+  color:#5c4931 !important;
+  -webkit-text-fill-color:#5c4931 !important;
+  background:rgba(220,202,164,.52);
+}
+
+.realm-guard .rg-m8-history {
+  margin-top:7px;
+  border-top:1px solid rgba(112,76,35,.20);
+  padding-top:5px;
+}
+.realm-guard .rg-m8-history > summary {
+  cursor:pointer;
+  color:#70512b !important;
+  -webkit-text-fill-color:#70512b !important;
+  font-size:9px;
+  font-weight:800;
+}
+.realm-guard .rg-m8-history-list {
+  display:grid;
+  gap:4px;
+  margin-top:5px;
+}
+.realm-guard .rg-m8-history-entry {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:7px;
+  align-items:center;
+  padding:5px 6px;
+  border:1px solid rgba(112,76,35,.18);
+  border-radius:4px;
+  background:rgba(255,250,232,.46);
+  color:#5c4931;
+  font-size:9px;
+}
+.realm-guard .rg-m8-history-entry b {
+  color:#49351f !important;
+  -webkit-text-fill-color:#49351f !important;
+}
+.realm-guard .rg-m8-history-entry span {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.realm-guard .rg-m8-history-total {
+  color:#78664d !important;
+  -webkit-text-fill-color:#78664d !important;
+}
+.realm-guard .rg-m8-status-dialog {
+  display:grid;
+  gap:9px;
+}
+.realm-guard .rg-m8-status-dialog h2,
+.realm-guard .rg-m8-status-dialog p {
+  margin:0;
+}
+.realm-guard .rg-m8-status-dialog label {
+  display:grid;
+  gap:5px;
+  color:#4b3925 !important;
+  -webkit-text-fill-color:#4b3925 !important;
+}
+.realm-guard .rg-m8-status-dialog label > span {
+  font-weight:800;
+}
+.realm-guard .rg-m8-status-dialog select,
+.realm-guard .rg-m8-status-dialog input,
+.realm-guard .rg-m8-status-dialog textarea {
+  color:#2d2217 !important;
+  -webkit-text-fill-color:#2d2217 !important;
+  background:rgba(255,249,228,.94) !important;
+  border:1px solid rgba(102,68,31,.48) !important;
+}
+.realm-guard .rg-m8-status-current {
+  padding:7px 8px;
+  border-left:3px solid #7a8247;
+  background:rgba(105,84,47,.07);
+  color:#5c4a34 !important;
+  -webkit-text-fill-color:#5c4a34 !important;
+}
+@media(max-width:620px) {
+  .realm-guard .rg-m8-history-entry { grid-template-columns:1fr; }
+}
