@@ -1056,17 +1056,36 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       ? `<fieldset class="rg-m8-circles-roll-context"><legend><i class="fa-solid fa-address-book"></i> Circles · Social Network</legend><p><b>${foundry.utils.escapeHTML(circlesContext.label || "Circles Test")}</b></p><small>${circlesContext.mode === "new" ? "A successful result records this person as a Neutral Contact. Failure creates no Contact in qa.39." : circlesContext.mode === "known" ? "This roll references an existing Social Network person. Status/history are not changed automatically." : "Standard Circles roll. No Social Network data will be changed."}</small></fieldset>`
       : "";
 
-    const ruleSpecific = fixedObstacle || Boolean(versus && opponent) || ["resources", "circles"].includes(String(abilityKey));
+    const isCirclesObstacle = String(abilityKey) === "circles";
+    const ruleSpecific = fixedObstacle || Boolean(versus && opponent) || String(abilityKey) === "resources";
     const workflow = ruleSpecific ? "manual" : obstacleMode();
-    const initialObstacle = workflow === "baseline" || workflow === "approval" ? baselineObstacle() : Math.max(0, Number(obstacle) || 0);
-    const review = !ruleSpecific && workflow === "approval" ? beginObstacleReview({ actorName: this.actor.name, testName: role.name, obstacle: initialObstacle }) : null;
+
+    // Circles Obstacle is always GM authority. It starts from the table Baseline,
+    // can be pushed live from Obstacle Control, and is never editable by the player.
+    const initialObstacle = isCirclesObstacle
+      ? baselineObstacle()
+      : (workflow === "baseline" || workflow === "approval" ? baselineObstacle() : Math.max(0, Number(obstacle) || 0));
+
+    const review = !ruleSpecific && workflow === "approval"
+      ? beginObstacleReview({ actorName: this.actor.name, testName: role.name, obstacle: initialObstacle })
+      : null;
     const requestAttr = review ? ` data-rg-obstacle-request="${review.requestId}"` : "";
-    const liveLinked = workflow === "baseline" && !ruleSpecific;
-    const liveAttr = liveLinked ? ` data-rg-obstacle-live-linked="true" data-rg-obstacle-source="baseline"` : "";
-    const obReadonly = versus && opponent ? "disabled" : review ? "readonly" : "";
+
+    // Circles stays linked to GM live Obstacle control whenever it is not waiting
+    // on the explicit GM Approval request. This also makes Manual mode GM-controlled.
+    const liveLinked = !review && (isCirclesObstacle || (workflow === "baseline" && !ruleSpecific));
+    const liveAttr = liveLinked
+      ? ` data-rg-obstacle-live-linked="true" data-rg-obstacle-source="${isCirclesObstacle ? "gm-control" : "baseline"}"`
+      : "";
+
+    const obReadonly = versus && opponent ? "disabled" : (review || isCirclesObstacle) ? "readonly" : "";
     const obStatus = review
       ? `<div class="rg-obstacle-live-status" data-rg-obstacle-status><i class="fa-solid fa-hourglass-half"></i> Awaiting GM approval · current Ob ${review.initial}</div>`
-      : workflow === "baseline" && !ruleSpecific ? `<div class="rg-obstacle-live-status approved" data-rg-obstacle-live-status><i class="fa-solid fa-link"></i> Ob ${initialObstacle} · Baseline</div>` : "";
+      : isCirclesObstacle
+        ? `<div class="rg-obstacle-live-status approved" data-rg-obstacle-live-status><i class="fa-solid fa-lock"></i> Ob ${initialObstacle} · GM controlled</div>`
+        : workflow === "baseline" && !ruleSpecific
+          ? `<div class="rg-obstacle-live-status approved" data-rg-obstacle-live-status><i class="fa-solid fa-link"></i> Ob ${initialObstacle} · Baseline</div>`
+          : "";
     const canCountLearning = Boolean(isSkill || abilityKey);
 
     const automaticModifier = Number(modifier || 0) + Number(conditionData.dice || 0);
