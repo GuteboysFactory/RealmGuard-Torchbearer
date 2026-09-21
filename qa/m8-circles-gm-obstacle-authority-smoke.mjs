@@ -6,10 +6,15 @@ for (const needle of [
   'const isCirclesObstacle = String(abilityKey) === "circles";',
   'Circles Obstacle is always GM authority',
   '(review || isCirclesObstacle) ? "readonly"',
-  'isCirclesObstacle ? baselineObstacle()',
   'isCirclesObstacle || (workflow === "baseline" && !ruleSpecific)',
   'Ob ${initialObstacle} · GM controlled'
 ]) assert.ok(sheet.includes(needle), `Missing qa.40 Circles obstacle marker: ${needle}`);
+
+assert.match(
+  sheet,
+  /const initialObstacle\s*=\s*isCirclesObstacle\s*\?\s*baselineObstacle\(\)/s,
+  "Circles must source its initial Obstacle from GM Baseline regardless of formatting."
+);
 
 assert.ok(!sheet.includes('["resources", "circles"].includes(String(abilityKey))'), "Circles must no longer be forced into rule-specific manual Obstacle mode.");
 
