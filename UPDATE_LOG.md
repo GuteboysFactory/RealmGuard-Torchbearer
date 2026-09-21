@@ -3,7 +3,21 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.37
+**Current QA build:** v1.9.0-qa.38
+
+
+## v1.9.0-qa.38 - QA / M8 Dynamic Contacts
+
+- Adds GM-only **New Contact** directly to the Ranger Relationships tab.
+- Dynamic Contacts store Name, Profession/Role, People/Culture, Location, Notes, current status and PLAY origin in normalized Social Network data.
+- Contact creation does not create an NPC Actor automatically.
+- Exact duplicate protection uses normalized Name + Profession + People + Location identity.
+- Adds GM-only **Edit Contact** for dynamic Contacts while preserving Relationship status/history and Actor links.
+- Dynamic Contacts reuse qa.37 Status/History plus existing Create NPC / Link Existing Actor / Open / Unlink workflows.
+- Explicit NPC creation still routes to `NPC - PC Relations`.
+- Recruitment relationships and legacy fields remain untouched.
+- Circles live integration remains OFF.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.38.md`.
 
 
 ## v1.9.0-qa.37 - PASS / M8 Living Relationship Status
