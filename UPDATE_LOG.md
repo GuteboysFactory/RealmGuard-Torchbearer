@@ -3,7 +3,22 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.0.8.3  
-**Current QA build:** v1.9.0-qa.40
+**Current QA build:** v1.9.0-qa.41
+
+
+## v1.9.0-qa.41 - QA / M8 Circles Enmity Clause
+
+- Failed **Find New Person** Circles tests now route to a GM decision instead of silently doing nothing.
+- GM choices: **Normal Failure**, **Invoke Enmity Clause**, or **Decide Later**.
+- Non-GM Ranger owners send the Enmity decision to an active GM over the Realm Guard system socket.
+- Enmity review is prefilled from the failed Circles search but GM-editable before commit.
+- Confirmed Enmity creates/reuses a PersonRecord and an **ENEMY / HOSTILE / ENMITY** Relationship.
+- Exact identity duplicate protection is preserved.
+- If the matching person already has a Relationship, the same Relationship id is reused; status transition to Hostile is appended to RelationshipHistory when needed.
+- No NPC Actor is created automatically.
+- Existing Status / History / Create NPC / Link Existing Actor workflows remain available afterward.
+- Mouse Guard's +3s argument/speech disposition effect for enemies is intentionally deferred to the Conflict/profile layer; qa.41 does not alter M6 / Legacy Mixed conflicts.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.41.md`.
 
 
 ## v1.9.0-qa.40 - 🟢✅ PASS / Circles GM Obstacle Authority
