@@ -406,7 +406,7 @@ export async function openObstacleControl() {
       </div>
 
       <div class="rg-obstacle-workflow">
-        <div class="rg-obstacle-workflow-head"><div><b>How should ordinary rolls get their Obstacle?</b><small>This setting controls new ordinary Skill and Ability rolls. Rule-specific rolls such as Versus, Resources and Circles keep their own rules.</small></div></div>
+        <div class="rg-obstacle-workflow-head"><div><b>How should ordinary rolls get their Obstacle?</b><small>This setting controls new ordinary Skill and Ability rolls. Circles also follows GM Obstacle authority here, while rule-specific rolls such as Versus and Resources keep their own rules.</small></div></div>
         <select data-rg-ob-mode>${Object.entries(OBSTACLE_MODES).map(([value,label]) => `<option value="${value}" ${activeMode === value ? "selected" : ""}>${esc(label)}</option>`).join("")}</select>
         <div class="rg-obstacle-mode-help" data-rg-ob-mode-help><b>${esc(activeModeHelp.title)}</b><span>${esc(activeModeHelp.text)}</span></div>
       </div>
@@ -415,7 +415,7 @@ export async function openObstacleControl() {
         <b>What the GM can do here</b>
         <span><i class="fa-solid fa-flag"></i> Set the Baseline used by future ordinary rolls.</span>
         <span><i class="fa-solid fa-bolt"></i> Change currently open Baseline-linked rolls without interrupting play.</span>
-        <span><i class="fa-solid fa-sliders"></i> Choose automatic, GM-approved, or fully manual Obstacle handling.</span>
+        <span><i class="fa-solid fa-sliders"></i> Choose automatic, GM-approved, or manual handling for ordinary rolls; Circles remains locked to GM authority in every mode.</span>
       </div>
     </section>
   </div>`;
