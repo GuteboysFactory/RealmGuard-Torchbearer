@@ -573,7 +573,7 @@ export class SocialNetworkService {
         return freeze({ created: false, duplicate: true, reused: true, person: existingPerson, relationship });
       }
 
-      if (existingRelationship.status === RelationshipStatus.HOSTILE) {
+      if (existingRelationship.status === RelationshipStatus.HOSTILE && existingRelationship.role === RelationshipRole.ENEMY) {
         return freeze({
           created: false,
           duplicate: true,
@@ -584,19 +584,28 @@ export class SocialNetworkService {
       }
 
       const timestamp = clean(data.timestamp) || new Date().toISOString();
-      const history = new RelationshipHistory({
-        id: stableSocialId("history", actorKey(actor), existingRelationship.id, existingRelationship.status, RelationshipStatus.HOSTILE, timestamp),
-        from: existingRelationship.status,
-        to: RelationshipStatus.HOSTILE,
-        reason: clean(data.reason) || "Enmity Clause",
-        sessionId: clean(data.sessionId),
-        timestamp,
-        source: RelationshipOrigin.ENMITY
-      });
+      const history = existingRelationship.status === RelationshipStatus.HOSTILE
+        ? null
+        : new RelationshipHistory({
+            id: stableSocialId("history", actorKey(actor), existingRelationship.id, existingRelationship.status, RelationshipStatus.HOSTILE, timestamp),
+            from: existingRelationship.status,
+            to: RelationshipStatus.HOSTILE,
+            reason: clean(data.reason) || "Enmity Clause",
+            sessionId: clean(data.sessionId),
+            timestamp,
+            source: RelationshipOrigin.ENMITY
+          });
       const relationship = new Relationship({
         ...existingRelationship,
+        role: RelationshipRole.ENEMY,
         status: RelationshipStatus.HOSTILE,
-        history: [...existingRelationship.history, history]
+        origin: RelationshipOrigin.ENMITY,
+        history: history ? [...existingRelationship.history, history] : existingRelationship.history,
+        source: {
+          ...(existingRelationship.source || {}),
+          kind: "ENMITY_CLAUSE",
+          createdBy: clean(data.createdBy)
+        }
       });
       await this.repository.write(actor, new SocialNetworkSnapshot({
         ...snapshot,
