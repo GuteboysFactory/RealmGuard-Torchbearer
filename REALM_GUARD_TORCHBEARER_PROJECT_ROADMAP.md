@@ -1,8 +1,8 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.42 - Default NPC Template Portraits — 🟢✅ PASS  
+**Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
+**Current QA build:** none — v1.9.0 promoted from v1.9.0-qa.42  
 **Current CORE milestone:** M8 — Social Network Migration — ✅ VERIFIED / CLOSED  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration — NEXT  
 **Internal system id:** `realm-guard` (do not rename)
@@ -43,6 +43,8 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 **qa.42 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. The 63-image default portrait pack is active across Quick NPC templates, role/culture mapping reads correctly, created NPCs inherit template art, and no missing-image regression was reported.
 
 **M8 closure:** ✅ **VERIFIED / CLOSED**. Normalized Social Network storage, Recruitment compatibility reads, dynamic Contacts, living Relationship status/history, optional Actor linking/NPC creation, Circles Known/New Person integration, GM-controlled Enmity, duplicate protection, reload persistence and multi-client GM handoff are now covered. Legacy fields remain preserved and no automatic NPC creation was introduced.
+
+**Stable promotion:** 🟢✅ **v1.9.0 STABLE / GOLD** is promoted directly from the verified `v1.9.0-qa.42` codebase with no functional gameplay-code changes. This is the rollback/reference baseline before M9 Creation / Recruitment Migration.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
