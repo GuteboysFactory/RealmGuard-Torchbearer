@@ -538,6 +538,115 @@ export class SocialNetworkService {
     return freeze({ created: true, duplicate: false, person, relationship });
   }
 
+  async createEnemy(actor, data = {}) {
+    const snapshot = this.snapshot(actor);
+    const name = clean(data.name);
+    if (!name) throw new Error("Enmity Clause requires a name.");
+
+    const candidate = {
+      name,
+      profession: clean(data.profession),
+      people: clean(data.people),
+      location: clean(data.location)
+    };
+    const identity = contactIdentityKey(candidate);
+    const existingPerson = snapshot.people.find(entry => contactIdentityKey(entry) === identity);
+
+    if (existingPerson) {
+      const existingRelationship = snapshot.relationships.find(entry => entry.personId === existingPerson.id) ?? null;
+      if (!existingRelationship) {
+        const relationship = new Relationship({
+          id: nextLocalId("relationship", actor, snapshot),
+          personId: existingPerson.id,
+          role: RelationshipRole.ENEMY,
+          status: RelationshipStatus.HOSTILE,
+          origin: RelationshipOrigin.ENMITY,
+          source: {
+            kind: "ENMITY_CLAUSE",
+            createdBy: clean(data.createdBy)
+          }
+        });
+        await this.repository.write(actor, new SocialNetworkSnapshot({
+          ...snapshot,
+          relationships: [...snapshot.relationships, relationship]
+        }));
+        return freeze({ created: false, duplicate: true, reused: true, person: existingPerson, relationship });
+      }
+
+      if (existingRelationship.status === RelationshipStatus.HOSTILE) {
+        return freeze({
+          created: false,
+          duplicate: true,
+          reused: true,
+          person: existingPerson,
+          relationship: existingRelationship
+        });
+      }
+
+      const timestamp = clean(data.timestamp) || new Date().toISOString();
+      const history = new RelationshipHistory({
+        id: stableSocialId("history", actorKey(actor), existingRelationship.id, existingRelationship.status, RelationshipStatus.HOSTILE, timestamp),
+        from: existingRelationship.status,
+        to: RelationshipStatus.HOSTILE,
+        reason: clean(data.reason) || "Enmity Clause",
+        sessionId: clean(data.sessionId),
+        timestamp,
+        source: RelationshipOrigin.ENMITY
+      });
+      const relationship = new Relationship({
+        ...existingRelationship,
+        status: RelationshipStatus.HOSTILE,
+        history: [...existingRelationship.history, history]
+      });
+      await this.repository.write(actor, new SocialNetworkSnapshot({
+        ...snapshot,
+        relationships: snapshot.relationships.map(entry => entry.id === existingRelationship.id ? relationship : entry)
+      }));
+      return freeze({
+        created: false,
+        duplicate: true,
+        reused: true,
+        person: existingPerson,
+        relationship
+      });
+    }
+
+    const personId = nextLocalId("person", actor, snapshot);
+    const relationshipId = nextLocalId("relationship", actor, snapshot);
+    const person = new PersonRecord({
+      id: personId,
+      name,
+      profession: candidate.profession,
+      people: candidate.people,
+      location: candidate.location,
+      notes: clean(data.notes),
+      actorUuid: clean(data.actorUuid),
+      source: {
+        kind: "ENMITY_CLAUSE",
+        origin: RelationshipOrigin.ENMITY
+      }
+    });
+    const relationship = new Relationship({
+      id: relationshipId,
+      personId,
+      role: RelationshipRole.ENEMY,
+      status: RelationshipStatus.HOSTILE,
+      origin: RelationshipOrigin.ENMITY,
+      source: {
+        kind: "ENMITY_CLAUSE",
+        createdBy: clean(data.createdBy)
+      }
+    });
+
+    await this.repository.write(actor, new SocialNetworkSnapshot({
+      ...snapshot,
+      people: [...snapshot.people, person],
+      relationships: [...snapshot.relationships, relationship]
+    }));
+
+    return freeze({ created: true, duplicate: false, reused: false, person, relationship });
+  }
+
   async updatePerson(actor, personId, data = {}) {
     const snapshot = this.snapshot(actor);
     const id = clean(personId);
