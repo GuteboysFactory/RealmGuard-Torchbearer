@@ -4,7 +4,7 @@ import { RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { STARTER_TALENTS } from "./talents.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
 
-const STARTER_VERSION = "0.26.0";
+const STARTER_VERSION = "0.27.0";
 const SETTING_KEY = "starterCompendiumSeedVersion";
 const FLAG_SCOPE = "realm-guard";
 
@@ -226,14 +226,27 @@ function npcGear(name, { hands = 0, mode = "unassigned", location = "", slots = 
   };
 }
 
-function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resources = 1, circles = 1, skills = [], gear = [], metadata = null } = {}) {
+function npcDoc(name, { rank, concept, img = "", nature = 3, will = 3, health = 3, resources = 1, circles = 1, skills = [], gear = [], metadata = null } = {}) {
   const stableTemplateId = String(metadata?.templateId ?? "").trim();
   const flags = starterFlags(stableTemplateId ? `npc-template:${stableTemplateId}` : `npc:${slug(name)}`, "npc-templates");
   if (metadata) flags[FLAG_SCOPE].npcTemplate = foundry.utils.deepClone ? foundry.utils.deepClone(metadata) : structuredClone(metadata);
   return {
     name,
     type: "npc",
-    img: "systems/realm-guard/assets/actors/npc-creature.webp",
+    img: img || "systems/realm-guard/assets/actors/npc-creature.webp",
+    prototypeToken: {
+      name,
+      width: 1,
+      height: 1,
+      texture: {
+        src: img || "systems/realm-guard/assets/actors/npc-creature.webp",
+        fit: "contain",
+        anchorX: 0.5,
+        anchorY: 0.5,
+        scaleX: 1,
+        scaleY: 1
+      }
+    },
     flags,
     system: {
       biography: "",
@@ -275,6 +288,7 @@ function npcDoc(name, { rank, concept, nature = 3, will = 3, health = 3, resourc
 const NPCS = Object.freeze(QUICK_NPC_TEMPLATE_SPECS.map(spec => npcDoc(spec.name, {
   rank: spec.rank,
   concept: spec.concept,
+  img: spec.img,
   nature: spec.stats.nature,
   will: spec.stats.will,
   health: spec.stats.health,
@@ -372,6 +386,25 @@ async function refreshGeneratedNpcTemplatePresentation(pack, documents) {
     }
     if (safeGeneratedEntry && desiredKey && currentKey !== desiredKey) {
       update[`flags.${FLAG_SCOPE}.starterKey`] = desiredKey;
+      changed = true;
+    }
+
+    // qa.42: install packaged default portrait art only when the generated template
+    // still uses the old generic fallback. Preserve any GM-selected custom image.
+    const oldGenericPortrait = "systems/realm-guard/assets/actors/npc-creature.webp";
+    const currentImg = String(doc.img ?? "").trim();
+    const desiredImg = String(desired.img ?? "").trim();
+    const mayRefreshPortrait = safeGeneratedEntry && desiredImg && (!currentImg || currentImg === oldGenericPortrait);
+    if (mayRefreshPortrait && currentImg !== desiredImg) {
+      update.img = desiredImg;
+      update["prototypeToken.texture.src"] = desiredImg;
+      update["prototypeToken.texture.fit"] = "contain";
+      update["prototypeToken.texture.anchorX"] = 0.5;
+      update["prototypeToken.texture.anchorY"] = 0.5;
+      update["prototypeToken.texture.scaleX"] = 1;
+      update["prototypeToken.texture.scaleY"] = 1;
+      update["prototypeToken.width"] = 1;
+      update["prototypeToken.height"] = 1;
       changed = true;
     }
     if (changed) updates.push(update);
