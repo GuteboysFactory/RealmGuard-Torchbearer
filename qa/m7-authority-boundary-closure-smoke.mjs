@@ -11,7 +11,7 @@ const documents = fs.readFileSync("module/documents.mjs", "utf8");
 const conditions = fs.readFileSync("module/conditions.mjs", "utf8");
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
 
-assert.ok(manifest.version.startsWith("1.9.0-qa."), `Unexpected manifest version: ${manifest.version}`);
+assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, `Unexpected manifest version: ${manifest.version}`);
 
 const state = new SessionState({ sessionCycle: 7, turnCycleId: 19 });
 assert.equal(state.sessionCycle, 7);
