@@ -112,6 +112,18 @@ export async function createM8DynamicContact(actorOrId, data = {}) {
   });
 }
 
+export async function createM8CirclesContact(actorOrId, data = {}) {
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor.");
+  if (!game.user?.isGM && !actor.isOwner) throw new Error("Circles Contact creation requires ownership of the Ranger.");
+  return services().social.createContact(actor, {
+    ...data,
+    origin: RelationshipOrigin.CIRCLES,
+    status: RelationshipStatus.NEUTRAL,
+    createdBy: String(game.user?.id || "")
+  });
+}
+
 export async function updateM8Person(actorOrId, personId, data = {}) {
   if (!game.user?.isGM) throw new Error("Dynamic Contact editing is GM-only during M8 migration.");
   const actor = actorRef(actorOrId);
