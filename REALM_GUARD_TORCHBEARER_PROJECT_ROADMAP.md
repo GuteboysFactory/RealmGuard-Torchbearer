@@ -2,16 +2,16 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.42 - Default NPC Template Portraits — QA  
-**Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
-**Next CORE milestone:** M9 — Creation / Recruitment Migration  
+**Current QA build:** v1.9.0-qa.42 - Default NPC Template Portraits — 🟢✅ PASS  
+**Current CORE milestone:** M8 — Social Network Migration — ✅ VERIFIED / CLOSED  
+**Next CORE milestone:** M9 — Creation / Recruitment Migration — NEXT  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; qa.40 Circles GM Obstacle Authority VERIFIED / PASS; qa.41 Enmity Clause 🟢✅ VERIFIED / PASS; `v1.9.0-qa.42` Default NPC Template Portraits in QA.
+**Status:** ✅ VERIFIED / CLOSED — qa.35 NPC Group Templates PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status PASS; qa.38 Dynamic Contacts PASS; qa.39 Circles Social Network Integration implemented; qa.40 Circles GM Obstacle Authority PASS; qa.41 Enmity Clause PASS; qa.42 Default NPC Template Portraits PASS.
 
 Current M8 implementation now includes:
 
@@ -40,7 +40,9 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 
 **qa.41 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. Failed Find New Person Circles correctly routes to GM failure handling; Enmity creates/reuses ENEMY / HOSTILE / ENMITY relationships, duplicate protection and Contact→Enemy reuse work, history persists, reload is safe, and no NPC Actor is created automatically. The Mouse Guard +3s argument/speech disposition effect remains deliberately deferred to the Conflict/profile layer.
 
-**qa.42 presentation closure:** packages 63 optimized default NPC portraits, upgrades Quick NPC Library to 2.2.0, assigns deterministic role/culture-aware portraits to all generated templates, refreshes untouched generic starter portraits non-destructively, and preserves GM-custom art. This is the final presentation patch before M8 is closed and work moves to M9 in a new development chat.
+**qa.42 result:** 🟢✅ **VERIFIED / PASS** in Foundry VTT 13.351. The 63-image default portrait pack is active across Quick NPC templates, role/culture mapping reads correctly, created NPCs inherit template art, and no missing-image regression was reported.
+
+**M8 closure:** ✅ **VERIFIED / CLOSED**. Normalized Social Network storage, Recruitment compatibility reads, dynamic Contacts, living Relationship status/history, optional Actor linking/NPC creation, Circles Known/New Person integration, GM-controlled Enmity, duplicate protection, reload persistence and multi-client GM handoff are now covered. Legacy fields remain preserved and no automatic NPC creation was introduced.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
