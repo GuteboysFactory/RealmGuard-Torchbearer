@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.(?:8|9)\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.(?:8|9)\.0(?:-qa\.\d+)?$/, "M5 FilePicker smoke must accept stable and QA builds on supported 1.8-1.9 lines.");
 assert.equal(manifest.compatibility.minimum, "13");
 assert.equal(manifest.compatibility.maximum, "14");
 assert.equal(manifest.esmodules[0], "module/foundry-compat.mjs");
