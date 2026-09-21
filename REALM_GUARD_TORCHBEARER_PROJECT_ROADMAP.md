@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.39 - M8 Circles Social Network Integration — QA  
+**Current QA build:** v1.9.0-qa.40 - M8 Circles GM Obstacle Authority — QA  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; `v1.9.0-qa.39` Circles Social Network Integration in QA.
+**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; qa.38 Dynamic Contacts VERIFIED / PASS; qa.39 Circles Social Network Integration implemented; `v1.9.0-qa.40` Circles GM Obstacle Authority hotfix in QA.
 
 Current M8 implementation now includes:
 
@@ -35,6 +35,8 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 **qa.38 result:** ✅ PASS in Foundry VTT 13.351. Dynamic Contact creation, persistence, exact duplicate protection, editing, Living Relationship integration, optional NPC creation/linking and Recruitment regression verified.
 
 **Current M8 step:** qa.39 connects the existing Circles Ability workflow to normalized Social Network records. Standard Circles remains unchanged; Known Person references existing records; successful Find New Person creates/reuses a Neutral CONTACT with Origin = CIRCLES and no automatic NPC. Failed new-person Circles does not yet automate Enmity.
+
+**qa.40 hotfix:** Circles no longer gets a player-editable manual Obstacle. Circles Obstacle is always GM authority through Obstacle Control: Baseline, live changes and GM Approval apply; even Manual mode keeps the Circles field read-only for the player.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
