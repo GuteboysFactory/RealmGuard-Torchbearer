@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.8.0  
-**Current QA build:** v1.9.0-qa.38 - M8 Dynamic Contacts — QA  
+**Current QA build:** v1.9.0-qa.38 - M8 Dynamic Contacts — PASS  
 **Current CORE milestone:** M8 — Social Network Migration — IN PROGRESS  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration  
 **Internal system id:** `realm-guard` (do not rename)
@@ -11,7 +11,7 @@
 
 ### M8 — Social Network Migration
 
-**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; `v1.9.0-qa.38` Dynamic Contacts in QA.
+**Status:** 🟢 IN PROGRESS — qa.35 NPC Group Templates VERIFIED / PASS; qa.36 naming cleanup implemented; qa.37 Living Relationship Status VERIFIED / PASS; `v1.9.0-qa.38` Dynamic Contacts VERIFIED / PASS.
 
 Current M8 implementation now includes:
 
@@ -32,7 +32,9 @@ qa.35 does not change Circles semantics, Relationship status/history rules, Recr
 
 **qa.37 result:** ✅ PASS in Foundry VTT 13.351. GM-controlled RelationshipStatus changes, append-only RelationshipHistory, unchanged-status safety, reload persistence, NPC/Actor linking regression and player read-only presentation verified.
 
-**Current M8 Relationship step:** qa.38 Dynamic Contacts adds GM-created reusable PersonRecord + CONTACT Relationship entries during play, exact duplicate protection, Contact editing and reuse of existing status/history + Actor/NPC linking. No NPC is created automatically. Circles integration remains deferred until this layer is verified.
+**qa.38 result:** ✅ PASS in Foundry VTT 13.351. Dynamic Contact creation, persistence, exact duplicate protection, editing, Living Relationship integration, optional NPC creation/linking and Recruitment regression verified.
+
+**Next M8 step:** Circles integration — connect known Contacts and successful new-person Circles outcomes to the normalized Social Network while preserving Legacy Mixed gameplay behavior and avoiding automatic NPC creation.
 
 
 ### M7 — Session Engine, Turn Manager & End Session
