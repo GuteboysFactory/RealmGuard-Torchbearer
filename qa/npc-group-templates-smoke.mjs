@@ -6,9 +6,11 @@ import {
   quickNpcGroupTemplateCount
 } from "../module/quick-npc-library.mjs";
 
-assert.equal(QUICK_NPC_GROUP_LIBRARY_VERSION, "1.0.0");
+assert.equal(QUICK_NPC_GROUP_LIBRARY_VERSION, "1.1.0");
 assert.ok(quickNpcGroupTemplateCount() >= 8, `Expected at least 8 NPC Group Templates, got ${quickNpcGroupTemplateCount()}`);
 assert.equal(new Set(QUICK_NPC_GROUP_TEMPLATE_SPECS.map(entry => entry.id)).size, QUICK_NPC_GROUP_TEMPLATE_SPECS.length, "NPC Group Template IDs must be unique");
+assert.equal(QUICK_NPC_GROUP_TEMPLATE_SPECS.filter(entry => /\\bBree\\b/i.test(entry.name)).length, 0, "No NPC Group display name may contain Bree.");
+assert.ok(QUICK_NPC_GROUP_TEMPLATE_SPECS.some(entry => entry.name === "Road Caravan"), "Generic Road Caravan group must exist.");
 
 for (const spec of QUICK_NPC_GROUP_TEMPLATE_SPECS) {
   assert.ok(spec.id, "Group template requires id");
