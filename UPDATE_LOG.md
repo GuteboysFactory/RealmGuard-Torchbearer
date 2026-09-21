@@ -6,7 +6,7 @@
 **Current QA build:** v1.9.0-qa.38
 
 
-## v1.9.0-qa.38 - QA / M8 Dynamic Contacts
+## v1.9.0-qa.38 - PASS / M8 Dynamic Contacts
 
 - Adds GM-only **New Contact** directly to the Ranger Relationships tab.
 - Dynamic Contacts store Name, Profession/Role, People/Culture, Location, Notes, current status and PLAY origin in normalized Social Network data.
@@ -17,7 +17,9 @@
 - Explicit NPC creation still routes to `NPC - PC Relations`.
 - Recruitment relationships and legacy fields remain untouched.
 - Circles live integration remains OFF.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.9.0-qa.38.md`.
+- Live Foundry 13.351 QA passed all qa.38 gates with no blocking issues reported.
+- Next M8 step is **Circles integration**: known Contacts + successful new-person outcomes should flow into the normalized Social Network without automatic NPC creation.
+- Test status: **PASS**. See `TEST_PROTOCOL_v1.9.0-qa.38.md`.
 
 
 ## v1.9.0-qa.37 - PASS / M8 Living Relationship Status
