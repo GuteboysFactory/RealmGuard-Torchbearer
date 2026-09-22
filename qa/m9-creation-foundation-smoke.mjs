@@ -41,8 +41,8 @@ assert.equal(draft.derivedValues.abilities.resources, 3);
 assert.equal(draft.derivedValues.abilities.circles, 3);
 assert.equal(draft.derivedValues.resources.fate, 1);
 assert.equal(draft.derivedValues.resources.persona, 1);
-assert.equal(draft.derivedValues.skillChecks.Farmer, 2);
-assert.equal(draft.derivedValues.skillChecks.Scout, 4);
+assert.equal(draft.derivedValues.skillChecks.Farmer, 3);
+assert.equal(draft.derivedValues.skillChecks.Scout, 5);
 assert.equal(draft.derivedValues.skillChecks.Pathfinder, 4);
 
 const plan = engine.buildCommitPlan(draft, new CreationPartyContext());
