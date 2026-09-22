@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json","utf8"));
-assert.match(manifest.version, /^1\.9\.0(?:-qa\.\d+)?$/, "Smoke must accept stable 1.9.0 and 1.9.0-qa.x builds.");
+assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0-qa\.\d+)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10.0 M9 QA line.");
 
 const recruitment = fs.readFileSync("module/recruitment.mjs","utf8");
 
