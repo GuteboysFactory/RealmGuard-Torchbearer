@@ -4,7 +4,7 @@ import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "../module/profiles/re
 import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "../module/profiles/realm-guard-legacy-mixed.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.10\.0(?:-qa\.\d+)?$/, "M9 closure smoke runs across the v1.10.0 QA/stable line.");
+assert.match(manifest.version, /^1\.(?:10|11)\.0(?:-qa\.\d+)?$/, "M9 closure regression smoke runs across the v1.10-v1.11 QA/stable lines.");
 const releaseChannel = manifest.version.includes("-") ? "qa" : "stable";
 assert.equal(
   manifest.manifest,
