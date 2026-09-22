@@ -1,7 +1,23 @@
 # Realm Guard - Update Log
 
 
-## v1.10.0-qa.3 - QA / M9 Transactional Commit Plan / Foundry Adapter Shadow
+## v1.10.0-qa.4 - QA / M9 CORE Live Transactional Commit
+
+- Built after v1.10.0-qa.3 live Foundry QA verified both derived parity and full commit-plan parity with zero mismatches.
+- CORE M9 is now the normal live Character Creation commit authority.
+- FoundryCreationCommitAdapter executes the verified plan: PC folder, Actor, canonical Skills + planned ratings, Traits, unrated Wises, Gear, Conditions, M8 Recruitment normalization and CreationProvenance.
+- CreationProvenance stores creation profile/version plus active Rules Profile id/version/rulesSnapshotHash and the creation answers, allocations, grants, derived values, overrides and optional rules.
+- New Recruitment relationships are normalized immediately through M8 repository migration from the preserved structured Recruitment compatibility flags, avoiding duplicate Person/Relationship creation.
+- Critical mutation phases use compensating rollback. Any failure after Actor creation deletes the new partial Ranger.
+- Adds QA-only one-shot fault injection via `game.realmGuard.core.m9.testCommitFailure("CREATE_ITEMS")` for rollback verification.
+- Preserves Legacy `createRanger` behind an explicit QA-only pre-mutation override via `setCommitMode("LEGACY")`; normal mode is CORE.
+- Final Legacy-vs-CORE derived and commit projection parity remains a pre-mutation safety guard; mismatch blocks CORE creation.
+- Recruitment Chat and GM Relationship NPC Review occur only after successful transaction and are not rollback-critical.
+- Existing Actors are not migrated and receive no synthetic CreationProvenance.
+- Gameplay/rules results: **NO INTENDED CHANGE**. Use `TEST_PROTOCOL_v1.10.0-qa.4.md`.
+
+
+## v1.10.0-qa.3 - 🟢✅ PASS / M9 Transactional Commit Plan / Foundry Adapter Shadow
 
 - Built after v1.10.0-qa.2 live QA passed in Foundry VTT 13.351.
 - Adds a full profile-owned CORE CreationCommitPlan for the current Legacy Mixed Recruitment result.
@@ -13,7 +29,8 @@
 - Chat output and GM-controlled Relationship NPC review are explicitly outside the atomic character transaction.
 - No second Actor is created, no CORE embedded documents are written, no provenance is written and no normalized M8 relationship write occurs in qa.3.
 - Legacy `createRanger` remains the sole live commit authority.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.3.md`.
+- Live Foundry VTT 13.351 QA verified derived parity and full commit-plan parity with zero mismatches.
+- Test status: **🟢✅ PASS**. See `TEST_PROTOCOL_v1.10.0-qa.3.md`.
 
 
 ## v1.10.0-qa.2 - 🟢✅ PASS / M9 Draft / Recalculation / Validation Live Handoff
@@ -51,7 +68,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.9.0  
-**Current QA build:** v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow
+**Current QA build:** v1.10.0-qa.4 — M9 CORE Live Transactional Commit
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD

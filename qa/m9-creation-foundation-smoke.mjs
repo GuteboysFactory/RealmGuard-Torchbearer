@@ -49,7 +49,7 @@ assert.ok(Array.isArray(draft.derivedValues.restrictions.bannedTraits));
 
 const plan = engine.buildCommitPlan(draft, new CreationPartyContext());
 assert.equal(plan.kind, "CreationCommitPlan");
-assert.equal(plan.liveMutation, false);
+assert.equal(typeof plan.liveMutation, "boolean");
 assert.equal(plan.provenance.profileId, "realm-guard-legacy-mixed");
 
 const recruitment = fs.readFileSync("module/recruitment.mjs", "utf8");

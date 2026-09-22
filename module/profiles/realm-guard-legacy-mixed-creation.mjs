@@ -450,7 +450,7 @@ function buildCommitSpec({ draft }) {
     relationships: {
       compatibilityFlag: structured,
       normalized: normalizedRelationshipPlan(a),
-      liveWrite: false,
+      liveWrite: true,
       plannedLiveService: "CORE_M8_SOCIAL_NETWORK"
     },
     postCommit: [
@@ -459,12 +459,12 @@ function buildCommitSpec({ draft }) {
     ],
     transaction: {
       mode: "COMPENSATING_ROLLBACK",
-      liveExecution: false,
+      liveExecution: true,
       atomicBoundary: "ACTOR_AND_EMBEDDED_DOCUMENTS",
-      criticalPhases: ["CREATE_ACTOR", "PROVISION_SKILLS", "CREATE_ITEMS", "PROVISION_CONDITIONS", "NORMALIZE_RELATIONSHIPS"],
+      criticalPhases: ["CREATE_ACTOR", "PROVISION_SKILLS", "CREATE_ITEMS", "PROVISION_CONDITIONS", "NORMALIZE_RELATIONSHIPS", "WRITE_PROVENANCE"],
       compensation: [{ onFailureAfter: "CREATE_ACTOR", action: "DELETE_CREATED_ACTOR" }],
-      provenanceWrite: false,
-      relationshipWrite: false,
+      provenanceWrite: true,
+      relationshipWrite: true,
       postCommitOutsideTransaction: ["CHAT_RECRUITED", "RELATIONSHIP_NPC_REVIEW"]
     }
   };
@@ -472,7 +472,7 @@ function buildCommitSpec({ draft }) {
 
 export const REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE = new CharacterCreationProfile({
   id: CREATION_PROFILE_ID,
-  version: 3,
+  version: 4,
   name: "Realm Guard — Legacy Mixed Recruitment",
   dimensions: [
     { id: "station", label: "Station", options: STATIONS },
@@ -506,10 +506,10 @@ export const REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE = new CharacterCreationPr
   },
   grants: { fate: 1, persona: 1, checks: 0 },
   metadata: {
-    liveAuthority: "CORE_M9_DRAFT_VALIDATION",
-    commitAuthority: "LEGACY_RECRUITMENT",
-    commitShadow: "CORE_M9_PLAN_AND_FOUNDRY_ADAPTER",
-    coreMode: "DRAFT_LIVE_COMMIT_PLAN_SHADOW",
+    liveAuthority: "CORE_M9",
+    commitAuthority: "CORE_M9",
+    commitShadow: "LEGACY_RECRUITMENT_PARITY_GUARD",
+    coreMode: "CORE_LIVE_COMMIT",
     source: "v1.9.0 STABLE Recruitment 2.0",
     strictRealmGuard: false
   },

@@ -1,15 +1,16 @@
-Realm Guard / Torchbearer v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow
+Realm Guard / Torchbearer v1.10.0-qa.4 — M9 CORE Live Transactional Commit
 
-Built from verified v1.10.0-qa.2 PASS.
+Built from verified v1.10.0-qa.3 PASS.
 
 Highlights:
-- CORE M9 now builds the complete CreationCommitPlan for current Legacy Mixed Recruitment.
-- Adds a FoundryCreationCommitAdapter preview with explicit transaction phases and compensating rollback semantics.
-- Adds independent Legacy commit projection and commit-level parity telemetry.
-- Actor data, legacy Recruitment flags, Skills, Traits, Wises, Gear, Conditions, Relationships and CreationProvenance are represented in the CORE plan.
-- Legacy createRanger remains the sole live mutation authority.
-- CORE adapter is shadow-only and refuses live execution.
-- No second Actor, no live provenance write and no normalized M8 relationship write.
-- Chat and GM-controlled Relationship NPC review remain post-commit/outside the atomic boundary.
+- CORE M9 is now the normal live Recruitment commit authority.
+- FoundryCreationCommitAdapter executes the verified Actor/Skills/Traits/Wises/Gear/Conditions plan.
+- Recruitment relationships are normalized immediately into M8 Social Network storage without automatic NPC creation.
+- New Rangers receive CreationProvenance with the active Rules Profile snapshot hash.
+- Critical failures after Actor creation trigger compensating rollback by deleting the partial Ranger.
+- Final Legacy-derived and commit projection parity remains a pre-mutation safety gate.
+- Legacy createRanger remains available only through an explicit QA-only pre-mutation fallback mode.
+- Recruitment Chat and Relationship NPC Review remain post-commit side effects and cannot invalidate a successfully created Ranger.
+- Existing Actors are untouched.
 - Gameplay change: NONE INTENDED.
 - Foundry VTT 13.351 target.

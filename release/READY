@@ -1,5 +1,5 @@
-1.10.0-qa.3
-# M9 Transactional Commit Plan / Foundry Adapter Shadow
-# release retrigger after permanent gated-channel release pipeline hardening
-# QA channel moves only after release assets are published and verified
+1.10.0-qa.4
+# M9 CORE Live Transactional Commit
+# Compensating rollback + CreationProvenance + M8 Recruitment normalization
+# Legacy createRanger retained as QA-only explicit pre-mutation fallback
 # NO INTENDED GAMEPLAY CHANGE

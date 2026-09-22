@@ -2,8 +2,8 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟡 COMMIT PLAN SHADOW / COMMIT LEGACY  
+**Current QA build:** v1.10.0-qa.4 — M9 CORE Live Transactional Commit  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟢 CORE LIVE COMMIT / QA  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
 **Internal system id:** `realm-guard` (do not rename)
 
@@ -12,7 +12,7 @@
 
 ### M9 — Creation / Recruitment Migration
 
-**Status:** 🟡 ACTIVE — v1.10.0-qa.3 transactional commit plan / Foundry adapter shadow.
+**Status:** 🟢 ACTIVE — v1.10.0-qa.4 CORE live transactional commit.
 
 qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
 
@@ -36,9 +36,11 @@ qa.1 establishes the generic Character Creation domain boundary without changing
 
 **qa.2 result:** 🟢✅ PASS in Foundry VTT 13.351. CORE draft/validation authority, Back recalculation, validation gates, UI cleanup and full creation regression verified.
 
-**qa.3 active scope:** CORE now builds the complete CreationCommitPlan and a Foundry commit adapter preview in shadow. The plan includes Actor payload, legacy compatibility flags, canonical Skill ratings, Traits, Wises, Gear, Conditions, relationships, provenance and compensating rollback semantics. Legacy Recruitment remains the only live mutation authority; the qa.3 adapter refuses live execution and never creates a second Actor. Relationship NPC review remains outside the atomic character transaction.
+**qa.3 result:** 🟢✅ PASS in Foundry VTT 13.351. Derived parity and full commit-plan parity both verified with zero mismatches.
 
-**Planned next:** qa.4 promotes the verified commit plan/adapter to live authority with compensating rollback, provenance write and normalized M8 relationship commit.
+**qa.4 active scope:** CORE M9 is the normal live commit authority. The Foundry adapter creates the Actor, provisions canonical Skills and planned ratings, creates Traits/Wises/Gear, provisions Conditions, normalizes Recruitment relationships through M8, and writes CreationProvenance with the active Rules Profile snapshot. All critical character mutations use compensating rollback: a failure after Actor creation deletes the new partial Ranger. Chat publication and GM Relationship NPC Review remain post-commit/outside the atomic boundary. Legacy createRanger is preserved only as an explicit QA emergency fallback selected before mutation.
+
+**Planned next:** qa.5 closure / cleanup after live commit, rollback, provenance, M8 normalization and full regression are verified.
 
 
 ### M8 — Social Network Migration

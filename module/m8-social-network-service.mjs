@@ -51,6 +51,21 @@ function previewActor(actorOrId) {
   });
 }
 
+export async function ensureM8RecruitmentNetwork(actorOrId) {
+  const actor = actorRef(actorOrId);
+  if (!actor) throw new Error("Could not resolve Ranger Actor for Recruitment Social Network normalization.");
+  if (actor.type !== "character") throw new Error("Recruitment Social Network normalization requires a character Actor.");
+  if (!game.user?.isGM && !actor.isOwner) throw new Error("Recruitment Social Network normalization requires ownership of the Ranger.");
+
+  const result = await services().repository.ensureMigrated(actor);
+  return Object.freeze({
+    actorId: actor.id ?? "",
+    actorName: actor.name ?? "",
+    created: Boolean(result.created),
+    snapshot: result.snapshot
+  });
+}
+
 async function migrateActor(actorOrId) {
   if (!game.user?.isGM) throw new Error("M8 Social Network migration is GM-only.");
   const actor = actorRef(actorOrId);

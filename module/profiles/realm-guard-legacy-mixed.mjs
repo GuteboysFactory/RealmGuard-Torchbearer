@@ -21,7 +21,7 @@ export const REALM_GUARD_LEGACY_MIXED_PROFILE = new RulesProfile({
     conflict: { mode: "legacy-current" },
     session: { mode: "legacy-current" },
     circles: { mode: "legacy-current" },
-    creation: { mode: "legacy-recruitment", coreEngine: "shadow", liveAuthority: "LEGACY_RECRUITMENT", profileId: "realm-guard-legacy-mixed", profileVersion: 1 },
+    creation: { mode: "legacy-mixed-profile", coreEngine: "live", liveAuthority: "CORE_M9", profileId: "realm-guard-legacy-mixed", profileVersion: 4 },
     progression: { levels: true, talents: true },
     tokensOfPower: { enabled: true }
   },
@@ -163,7 +163,7 @@ export const REALM_GUARD_LEGACY_MIXED_PROFILE = new RulesProfile({
       id: "CREATION.RECRUITMENT",
       domain: "creation",
       title: "Character Creation",
-      activeValue: "CREATE RANGER / CURRENT RECRUITMENT",
+      activeValue: "CORE M9 / LEGACY MIXED CREATION PROFILE",
       classification: "LEGACY COMPATIBILITY",
       automation: "GUIDED",
       source: LEGACY_SOURCE,

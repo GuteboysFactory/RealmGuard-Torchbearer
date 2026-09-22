@@ -3,7 +3,7 @@ import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS } from "./conditions.mjs
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
-import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions } from "./m9-creation-shadow.mjs";
+import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions, commitM9Recruitment, shouldUseLegacyM9Commit } from "./m9-creation-shadow.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -1216,15 +1216,27 @@ export function buildLegacyRecruitmentCommitProjection(state) {
         state.friend ? { slot: "friend", person: { name: state.friend, profession: state.friendProfession, people: "", location: state.friendLocation, role: "" }, role: "FRIEND", status: "FRIENDLY", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
         state.enemyName ? { slot: "enemy", person: { name: state.enemyName, profession: state.enemyProfession, people: state.enemyPeople, location: state.enemyLocation, role: "" }, role: "ENEMY", status: "HOSTILE", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null
       ].filter(Boolean),
-      liveWrite: false,
+      liveWrite: true,
       plannedLiveService: "CORE_M8_SOCIAL_NETWORK"
     },
     provenance: {
       profileId: "realm-guard-legacy-mixed",
-      profileVersion: 3,
-      writeLive: false
+      profileVersion: 4,
+      writeLive: true
     }
   };
+}
+
+async function createRecruitmentSuccessChat(actor, state) {
+  const s = station(state);
+  const home = HOMELANDS[state.homelandKey];
+  const draft = getM9RecruitmentDraft(state);
+  const skillChecks = Object.keys(draft.derivedValues?.skillChecks ?? {}).length;
+  const traitCount = Object.keys(draft.derivedValues?.traitChecks ?? {}).length;
+  const wiseCount = Object.keys(draft.derivedValues?.wiseChecks ?? {}).length;
+  await ChatMessage.create({
+    content: `<div class="realm-guard rg-chat-card rg-recruit-chat"><span class="rg-kicker">RANGER RECRUITED</span><h3>${esc(actor.name)}</h3><p>${esc(s.label)} of ${esc(home.label)} · Nature ${state.nature} · Will ${s.will} · Health ${s.health} · Resources ${state.resources} · Circles ${state.circles}</p><p><b>${skillChecks} trained Skills</b> · ${traitCount} Traits · ${wiseCount} Wises · Fate 1 · Persona 1</p></div>`
+  });
 }
 
 async function createRanger(state) {
@@ -1322,9 +1334,7 @@ async function createRanger(state) {
   if (traitDocs.length || wiseDocs.length || gearDocs.length) await actor.createEmbeddedDocuments("Item", [...traitDocs, ...wiseDocs, ...gearDocs]);
   await ensureDefaultConditions(actor);
 
-  await ChatMessage.create({
-    content: `<div class="realm-guard rg-chat-card rg-recruit-chat"><span class="rg-kicker">RANGER RECRUITED</span><h3>${esc(actor.name)}</h3><p>${esc(s.label)} of ${esc(home.label)} · Nature ${state.nature} · Will ${s.will} · Health ${s.health} · Resources ${state.resources} · Circles ${state.circles}</p><p><b>${skillChecks.size} trained Skills</b> · ${traitDocs.length} Traits · ${wiseDocs.length} Wises · Fate 1 · Persona 1</p></div>`
-  });
+  await createRecruitmentSuccessChat(actor, state);
   return actor;
 }
 
@@ -1342,22 +1352,55 @@ export async function openRecruitmentWizard({ mode = null } = {}) {
   }
   if (index !== STEPS.length) return null;
 
+  const legacyOverride = shouldUseLegacyM9Commit();
+  let parityEvent = null;
   try {
-    const m9Shadow = observeM9RecruitmentDraft(state, buildLegacyRecruitmentParitySnapshot(state), buildLegacyRecruitmentCommitProjection(state));
-    if (!m9Shadow.parity || m9Shadow.commitParity === false) console.warn("Realm Guard | M9 Creation parity mismatch", m9Shadow);
+    parityEvent = observeM9RecruitmentDraft(state, buildLegacyRecruitmentParitySnapshot(state), buildLegacyRecruitmentCommitProjection(state));
+    if (!parityEvent.parity || parityEvent.commitParity === false) console.warn("Realm Guard | M9 Creation parity mismatch", parityEvent);
   } catch (error) {
-    console.error("Realm Guard | M9 Creation shadow observation failed; Legacy Recruitment remains authoritative", error);
+    console.error("Realm Guard | M9 Creation parity observation failed", error);
+    if (!legacyOverride) {
+      ui.notifications.error("Realm Guard: CORE Creation parity could not be verified. The Ranger was not created.");
+      return null;
+    }
+  }
+
+  if (!legacyOverride && (!parityEvent?.parity || parityEvent?.commitParity !== true)) {
+    ui.notifications.error("Realm Guard: CORE Creation parity mismatch. The Ranger was not created; no data was changed.");
+    return null;
   }
 
   try {
-    const actor = await createRanger(state);
+    let actor = null;
+    if (legacyOverride) {
+      console.warn("Realm Guard | M9 QA Legacy commit override active. CORE live commit is bypassed before mutation.");
+      actor = await createRanger(state);
+    } else {
+      const committed = await commitM9Recruitment(state);
+      actor = committed.actor;
+      try {
+        await createRecruitmentSuccessChat(actor, state);
+      } catch (postError) {
+        console.error("Realm Guard | Ranger created but Recruitment chat publication failed", postError);
+        ui.notifications.warn("Realm Guard: Ranger created successfully, but the Recruitment chat card could not be posted.");
+      }
+    }
+
     ui.notifications.info(`Realm Guard: ${actor.name} has completed Recruitment and was placed in Actors > ${PC_FOLDER_NAME}.`);
-    await reviewRecruitmentRelationshipNpcs(actor, state);
+
+    try {
+      await reviewRecruitmentRelationshipNpcs(actor, state);
+    } catch (postError) {
+      console.error("Realm Guard | Ranger created but Relationship NPC review failed", postError);
+      ui.notifications.warn("Realm Guard: Ranger created successfully, but Relationship NPC review could not be opened.");
+    }
+
     if (state.openSheet) actor.sheet?.render(true);
     return actor;
   } catch (error) {
-    console.error("Realm Guard | Recruitment 2.0 failed", error);
-    ui.notifications.error("Realm Guard: Could not create the Ranger. Check Actor creation permission and the F12 Console.");
+    console.error("Realm Guard | Recruitment 2.0 CORE commit failed", error);
+    const rollback = error?.realmGuardCommit?.rolledBack ? " The partial Ranger was rolled back." : "";
+    ui.notifications.error(`Realm Guard: Could not create the Ranger.${rollback} Check the F12 Console.`);
     return null;
   }
 }

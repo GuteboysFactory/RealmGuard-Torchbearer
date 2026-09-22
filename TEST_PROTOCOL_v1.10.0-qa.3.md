@@ -1,5 +1,7 @@
 # v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow QA
 
+**QA RESULT:** 🟢✅ PASS — derived parity and full commit-plan parity verified with zero mismatches in Foundry VTT 13.351.
+
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.9.0  
 **Previous M9 gate:** v1.10.0-qa.2 PASS  

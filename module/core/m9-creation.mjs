@@ -115,7 +115,6 @@ export class CreationCommitPlan {
     transaction = {}
   } = {}) {
     this.kind = "CreationCommitPlan";
-    this.liveMutation = false;
     this.profileId = String(profileId ?? "");
     this.profileVersion = Number(profileVersion || 1);
     this.validation = clonePlain(validation ?? { valid: false, errors: [], warnings: [] });
@@ -133,6 +132,7 @@ export class CreationCommitPlan {
       compensation: [{ onFailureAfter: "CREATE_ACTOR", action: "DELETE_CREATED_ACTOR" }],
       ...transaction
     });
+    this.liveMutation = Boolean(this.transaction.liveExecution);
     deepFreeze(this);
   }
 }
