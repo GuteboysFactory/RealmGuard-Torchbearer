@@ -4,7 +4,7 @@ import { CharacterCreationEngine, CreationPartyContext } from "../module/core/m9
 import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "../module/profiles/realm-guard-legacy-mixed-creation.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.equal(manifest.version, "1.10.0-qa.1");
+assert.match(manifest.version, /^1\.10\.0-qa\.\d+$/, "M9 foundation smoke must accept the complete v1.10.0-qa.x line.");
 
 const engine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
 const draft = engine.createDraft({
