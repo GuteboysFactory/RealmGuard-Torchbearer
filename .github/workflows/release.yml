@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: realm-guard-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -17,14 +21,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read and validate manifest
+      - name: Read and validate candidate manifest
         id: manifest
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./system.json').version")"
           test -n "$VERSION"
+          if [[ "$VERSION" == *-* ]]; then CHANNEL="qa"; else CHANNEL="stable"; fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
           node <<'NODE'
           const fs = require('fs');
@@ -37,6 +43,17 @@ jobs:
           if (!/^\d+\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/.test(manifest.version)) {
             throw new Error(`Unexpected release version: ${manifest.version}`);
           }
+
+          const channel = manifest.version.includes('-') ? 'qa' : 'stable';
+          const expectedManifest = `https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/${channel}/system.json`;
+          const expectedDownload = `https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/${manifest.version}/realm-guard.zip`;
+          if (manifest.manifest !== expectedManifest) {
+            throw new Error(`Candidate manifest must use gated ${channel} channel: ${expectedManifest}`);
+          }
+          if (manifest.download !== expectedDownload) {
+            throw new Error(`Download URL does not match candidate ${manifest.version}: ${manifest.download}`);
+          }
+
           const runtimeFiles = [
             ...(manifest.esmodules || []),
             ...(manifest.styles || []),
@@ -65,25 +82,8 @@ jobs:
           test -f README.md
           test -f styles/realm-guard.css
           test -f lang/en.json
-
-      - name: Verify release URLs
-        shell: bash
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const fs = require('fs');
-          const m = JSON.parse(fs.readFileSync('system.json','utf8'));
-          const versionBase = `https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/${m.version}`;
-          const latestManifest = 'https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/latest/download/system.json';
-          const versionManifest = `${versionBase}/system.json`;
-          const qaManifest = 'https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json';
-          if (![latestManifest, versionManifest, qaManifest].includes(m.manifest)) {
-            throw new Error(`Manifest URL is not a supported release/update channel: ${m.manifest}`);
-          }
-          if (m.download !== `${versionBase}/realm-guard.zip`) {
-            throw new Error(`Download URL does not match release ${m.version}: ${m.download}`);
-          }
-          NODE
+          test -f channels/qa/system.json
+          test -f channels/stable/system.json
 
       - name: Build Foundry system package
         shell: bash
@@ -97,6 +97,7 @@ jobs:
             --exclude '.github/' \
             --exclude 'dist/' \
             --exclude 'release/' \
+            --exclude 'channels/' \
             --exclude 'realm-guard-foundry-v*.zip'
 
           cp system.json dist/system.json
@@ -119,7 +120,7 @@ jobs:
           for (const file of [...(m.esmodules || []), ...(m.styles || []), ...((m.languages || []).map((entry) => entry.path).filter(Boolean))]) {
             if (!files.has(file)) throw new Error(`Release ZIP is missing manifest runtime file: ${file}`);
           }
-          const forbiddenPrefixes = ['.git/', '.github/', 'dist/', 'release/'];
+          const forbiddenPrefixes = ['.git/', '.github/', 'dist/', 'release/', 'channels/'];
           for (const file of listed) {
             if (forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) throw new Error(`Release ZIP contains excluded path: ${file}`);
             if (/^realm-guard-foundry-v.*\.zip$/.test(file)) throw new Error(`Release ZIP contains legacy nested package: ${file}`);
@@ -152,3 +153,81 @@ jobs:
               "${NOTES_ARGS[@]}" \
               "${PRERELEASE_ARGS[@]}"
           fi
+
+      - name: Verify published release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/realm-guard-verify
+          mkdir -p /tmp/realm-guard-verify
+
+          gh release download "$VERSION" \
+            --dir /tmp/realm-guard-verify \
+            --pattern 'system.json' \
+            --pattern 'realm-guard.zip'
+
+          test -s /tmp/realm-guard-verify/system.json
+          test -s /tmp/realm-guard-verify/realm-guard.zip
+          unzip -t /tmp/realm-guard-verify/realm-guard.zip >/dev/null
+
+          node <<'NODE'
+          const fs = require('fs');
+          const local = JSON.parse(fs.readFileSync('system.json','utf8'));
+          const published = JSON.parse(fs.readFileSync('/tmp/realm-guard-verify/system.json','utf8'));
+          if (published.version !== local.version) throw new Error(`Published manifest version mismatch: ${published.version} != ${local.version}`);
+          if (published.download !== local.download) throw new Error('Published manifest download URL differs from candidate.');
+          if (published.manifest !== local.manifest) throw new Error('Published manifest channel differs from candidate.');
+          NODE
+
+      - name: Promote verified release to update channel
+        shell: bash
+        env:
+          VERSION: ${{ steps.manifest.outputs.version }}
+          CHANNEL: ${{ steps.manifest.outputs.channel }}
+        run: |
+          set -euo pipefail
+
+          REMOTE_SHA="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
+            echo "main advanced during release; refusing to move $CHANNEL channel from a stale build."
+            exit 1
+          fi
+
+          mkdir -p "channels/$CHANNEL"
+          cp dist/system.json "channels/$CHANNEL/system.json"
+
+          git config user.name "realm-guard-release-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "channels/$CHANNEL/system.json"
+
+          if git diff --cached --quiet; then
+            echo "$CHANNEL channel already points at $VERSION."
+            exit 0
+          fi
+
+          git commit -m "release: promote $VERSION to $CHANNEL channel [skip ci]"
+          git push origin HEAD:main
+
+      - name: Confirm channel only moved after verification
+        shell: bash
+        env:
+          VERSION: ${{ steps.manifest.outputs.version }}
+          CHANNEL: ${{ steps.manifest.outputs.channel }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            CHANNEL_JSON="$(curl -fsSL "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/$CHANNEL/system.json?attempt=$attempt" || true)"
+            if [[ -n "$CHANNEL_JSON" ]]; then
+              CHANNEL_VERSION="$(printf '%s' "$CHANNEL_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).version))")"
+              if [[ "$CHANNEL_VERSION" == "$VERSION" ]]; then
+                echo "$CHANNEL channel is live at $VERSION."
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+          echo "$CHANNEL channel did not become visible at $VERSION."
+          exit 1

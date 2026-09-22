@@ -1,5 +1,5 @@
 1.10.0-qa.3
 # M9 Transactional Commit Plan / Foundry Adapter Shadow
-# release retrigger after M9 regression smoke version-gate cleanup
-# CORE commit plan + adapter preview only; Legacy Recruitment commit retained
+# release retrigger after permanent gated-channel release pipeline hardening
+# QA channel moves only after release assets are published and verified
 # NO INTENDED GAMEPLAY CHANGE

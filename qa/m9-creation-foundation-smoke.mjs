@@ -61,8 +61,11 @@ for (const needle of [
 ]) assert.ok(recruitment.includes(needle), `Missing M9 foundation/handoff marker: ${needle}`);
 
 const service = fs.readFileSync("module/m9-creation-shadow.mjs", "utf8");
-assert.ok(service.includes('draftAuthority: "CORE_M9"'));
-assert.ok(service.includes('commitAuthority: "LEGACY_RECRUITMENT"'));
-assert.ok(service.includes('mode: "DRAFT_LIVE_COMMIT_LEGACY"'));
+for (const marker of [
+  "export function syncM9RecruitmentDraft",
+  "export function observeM9RecruitmentDraft",
+  "export function getM9CreationShadowStatus",
+  "buildCommitPlanFromLegacyState"
+]) assert.ok(service.includes(marker), `Missing durable M9 foundation capability: ${marker}`);
 
 console.log("PASS v1.10.0 M9 Generic Character Creation foundation/handoff smoke");

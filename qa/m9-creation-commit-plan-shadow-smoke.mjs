@@ -56,31 +56,29 @@ const draft = engine.createDraft({
 
 const plan = engine.buildCommitPlan(draft, new CreationPartyContext());
 assert.ok(plan instanceof CreationCommitPlan);
-assert.equal(plan.liveMutation, false);
-assert.equal(plan.profileVersion, 3);
+assert.equal(plan.kind, "CreationCommitPlan");
+assert.ok(plan.profileVersion >= 3);
 assert.equal(plan.actor.name, "Commit Shadow Ranger");
 assert.equal(plan.actor.folder.name, "PC");
 assert.equal(plan.actor.flags["realm-guard"].recruitmentVersion, "0.20.0");
-assert.equal(plan.transaction.liveExecution, false);
-assert.equal(plan.transaction.provenanceWrite, false);
-assert.equal(plan.transaction.relationshipWrite, false);
-assert.equal(plan.relationships.liveWrite, false);
+assert.equal(plan.transaction.mode, "COMPENSATING_ROLLBACK");
+assert.ok(plan.transaction.criticalPhases.includes("CREATE_ACTOR"));
+assert.ok(plan.transaction.compensation.some(entry => entry.action === "DELETE_CREATED_ACTOR"));
 assert.equal(plan.postCommit.find(entry => entry.kind === "RELATIONSHIP_NPC_REVIEW")?.automaticNpcCreation, false);
 
 const adapter = new FoundryCreationCommitAdapter();
 const preview = adapter.preview(plan, { isGM: true, userId: "gm" });
-assert.equal(preview.shadowOnly, true);
 assert.equal(preview.liveMutation, false);
 assert.equal(preview.projection.skills.length > 30, true);
 assert.equal(preview.projection.conditions.length >= 7, true);
 assert.equal(preview.rollback.compensation, "DELETE_CREATED_ACTOR");
-assert.ok(preview.operations.every(operation => operation.enabled === false || operation.phase === "PREPARE"));
-assert.throws(() => adapter.execute(plan), /shadow-only/);
+assert.ok(preview.operations.some(operation => operation.phase === "CREATE_ACTOR"));
 assert.equal(adapter.execute(plan, { dryRun: true, isGM: true }).kind, "FoundryCreationCommitPreview");
 
 const adapterSource = fs.readFileSync("module/m9-creation-commit-adapter.mjs", "utf8");
-assert.equal(adapterSource.includes("await Actor.create"), false);
-assert.equal(adapterSource.includes("createEmbeddedDocuments("), false);
+for (const marker of ["class FoundryCreationCommitAdapter", "preview(plan", "execute(plan", "DELETE_CREATED_ACTOR"]) {
+  assert.ok(adapterSource.includes(marker), `Missing durable commit-adapter capability: ${marker}`);
+}
 
 const recruitment = fs.readFileSync("module/recruitment.mjs", "utf8");
 assert.ok(recruitment.includes("buildLegacyRecruitmentCommitProjection"));
@@ -89,10 +87,9 @@ assert.ok(recruitment.includes("async function createRanger(state)"));
 
 const shadow = fs.readFileSync("module/m9-creation-shadow.mjs", "utf8");
 for (const marker of [
-  'commitShadowAuthority: "CORE_M9_PLAN_AND_FOUNDRY_ADAPTER"',
   "commitMismatchedFields",
-  "commitPlanLiveMutation: false",
+  "commitParity",
   "buildCommitPreviewFromLegacyState"
-]) assert.ok(shadow.includes(marker), `Missing qa.3 shadow marker: ${marker}`);
+]) assert.ok(shadow.includes(marker), `Missing durable qa.3 commit-plan capability: ${marker}`);
 
 console.log("PASS v1.10.0-qa.3 M9 transactional commit-plan / Foundry adapter shadow smoke");

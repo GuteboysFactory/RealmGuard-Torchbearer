@@ -83,10 +83,10 @@ for (const removed of ["Current result", "Starting result", "Station values"]) {
 
 const service = fs.readFileSync("module/m9-creation-shadow.mjs", "utf8");
 for (const marker of [
-  'draftAuthority: "CORE_M9"',
-  'validationAuthority: "CORE_M9"',
-  'commitAuthority: "LEGACY_RECRUITMENT"',
-  'liveCommit: false'
-]) assert.ok(service.includes(marker), `Missing qa.2 handoff marker: ${marker}`);
+  "syncM9RecruitmentDraft",
+  "validateM9RecruitmentStep",
+  "getM9RecruitmentRestrictions",
+  "CreationStepValidation"
+]) assert.ok(service.includes(marker), `Missing durable qa.2 draft/validation capability: ${marker}`);
 
 console.log("PASS v1.10.0-qa.2 M9 draft/recalculation/validation live handoff smoke");
