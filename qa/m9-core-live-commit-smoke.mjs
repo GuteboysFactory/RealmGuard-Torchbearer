@@ -5,7 +5,7 @@ import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "../module/profiles/re
 import { FoundryCreationCommitAdapter } from "../module/m9-creation-commit-adapter.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.10\.0-qa\.\d+$/);
+assert.match(manifest.version, /^1\.10\.0(?:-qa\.\d+)?$/);
 
 const engine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
 const draft = engine.createDraft({

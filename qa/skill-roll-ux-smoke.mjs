@@ -28,7 +28,7 @@ if (!manifest.styles?.includes("styles/skill-roll-ux.css")) {
   throw new Error("Skill Roll UX smoke: stylesheet missing from manifest.");
 }
 
-if (!/^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0-qa\.\d+)$/.test(manifest.version)) {
+if (!/^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0(?:-qa\.\d+)?)$/.test(manifest.version)) {
   throw new Error(`Skill Roll UX smoke: unexpected version ${manifest.version}`);
 }
 

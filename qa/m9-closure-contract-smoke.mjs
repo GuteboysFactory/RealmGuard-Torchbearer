@@ -4,7 +4,7 @@ import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "../module/profiles/re
 import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "../module/profiles/realm-guard-legacy-mixed.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.10\.0-qa\.\d+$/, "M9 closure smoke runs across the v1.10.0 QA line.");
+assert.match(manifest.version, /^1\.10\.0(?:-qa\.\d+)?$/, "M9 closure smoke runs across the v1.10.0 QA/stable line.");
 assert.equal(manifest.manifest, "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/qa/system.json");
 
 assert.equal(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.metadata.liveAuthority, "CORE_M9");
