@@ -48,7 +48,7 @@ import { installWindowPositionPersistence } from "./module/window-position-servi
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.9.0-qa.16"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.11.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };

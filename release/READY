@@ -1,6 +1,7 @@
-1.10.0
-# STABLE / GOLD promotion from verified v1.10.0-qa.5
-# release retrigger after channel-aware M9 closure smoke fix
-# M9 Generic Character Creation / Recruitment Migration VERIFIED / CLOSED
-# NO FUNCTIONAL GAMEPLAY/RUNTIME CHANGE FROM qa.5
-# Stable channel advances only after release assets are published and verified
+1.11.0-qa.1
+# M10A.0 Profile Foundation
+# NO INTENDED GAMEPLAY CHANGE
+# Legacy Mixed remains sole normal live profile
+# Strict Realm Guard and MG1E are foundation-only / non-selectable
+# Baseline no longer hard-locks Legacy Mixed id
+# QA channel advances only after release assets and all smokes verify
