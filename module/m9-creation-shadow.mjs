@@ -7,7 +7,10 @@ import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "./profiles/realm-guar
 
 const engine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
 const history = [];
+const draftEvents = [];
+const draftByState = new WeakMap();
 const MAX_HISTORY = 100;
+const MAX_DRAFT_EVENTS = 250;
 
 function freeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
@@ -32,10 +35,16 @@ function fromLegacyState(state = {}) {
       mentorTraining: state.mentorTraining,
       specialty: state.specialty,
       resourceAnswers: state.resourceAnswers,
+      resourceTrade: state.resourceTrade,
+      parentsResourceProfession: state.parentsResourceProfession,
       circleAnswers: state.circleAnswers,
+      rangerTiesBasis: state.rangerTiesBasis,
+      reputationNote: state.reputationNote,
       innateTrait: state.innateTrait,
       inheritedTrait: state.inheritedTrait,
       roadTrait: state.roadTrait,
+      mentorRuleConfirmed: Boolean(state.mentorRuleConfirmed),
+      allowEnemyServant: Boolean(state.allowEnemyServant),
       relationships: {
         lineage: state.lineage,
         insignia: state.insignia,
@@ -97,8 +106,66 @@ function partyContext() {
   });
 }
 
+function applyDerivedToLegacyState(state, draft) {
+  const abilities = draft.derivedValues?.abilities ?? {};
+  state.nature = Number(abilities.nature ?? state.nature ?? 3);
+  state.resources = Number(abilities.resources ?? state.resources ?? 0);
+  state.circles = Number(abilities.circles ?? state.circles ?? 1);
+  return draft;
+}
+
+function recordDraftEvent(event) {
+  draftEvents.push(freeze(event));
+  if (draftEvents.length > MAX_DRAFT_EVENTS) draftEvents.shift();
+}
+
+export function syncM9RecruitmentDraft(state, { stepId = "", reason = "sync" } = {}) {
+  const draft = applyDerivedToLegacyState(state, fromLegacyState(state));
+  draftByState.set(state, draft);
+  recordDraftEvent({
+    at: new Date().toISOString(),
+    scope: "M9_CREATION_DRAFT_LIVE",
+    stepId: String(stepId ?? ""),
+    reason: String(reason ?? "sync"),
+    draftAuthority: "CORE_M9",
+    validationAuthority: "CORE_M9",
+    commitAuthority: "LEGACY_RECRUITMENT",
+    liveDraft: true,
+    liveCommit: false,
+    profileId: draft.profileId,
+    profileVersion: draft.profileVersion
+  });
+  return draft;
+}
+
+export function getM9RecruitmentDraft(state) {
+  return draftByState.get(state) ?? syncM9RecruitmentDraft(state, { reason: "lazy" });
+}
+
+export function getM9RecruitmentRestrictions(state) {
+  const draft = getM9RecruitmentDraft(state);
+  return {
+    bannedTraits: new Set(draft.derivedValues?.restrictions?.bannedTraits ?? [])
+  };
+}
+
+export function getM9RecruitmentReview(state) {
+  const draft = getM9RecruitmentDraft(state);
+  return engine.buildReview(draft, partyContext());
+}
+
+export function validateM9RecruitmentStep(state, stepId) {
+  const draft = syncM9RecruitmentDraft(state, { stepId, reason: "validate" });
+  const validation = engine.validateStep(stepId, draft, partyContext());
+  return freeze({
+    draft,
+    validation,
+    error: validation.errors?.[0]?.message ?? null
+  });
+}
+
 export function observeM9RecruitmentDraft(state, legacyProjection = {}) {
-  const draft = fromLegacyState(state);
+  const draft = syncM9RecruitmentDraft(state, { stepId: "review", reason: "final-parity" });
   const core = coreSnapshot(draft);
   const legacy = comparableCreationSnapshot(legacyProjection);
   const fields = Object.keys(core);
@@ -106,9 +173,12 @@ export function observeM9RecruitmentDraft(state, legacyProjection = {}) {
   const commitPlan = engine.buildCommitPlan(draft, partyContext());
   const event = freeze({
     at: new Date().toISOString(),
-    scope: "M9_CREATION_SHADOW",
-    authority: "LEGACY_RECRUITMENT",
-    liveApplication: false,
+    scope: "M9_CREATION_PARITY",
+    draftAuthority: "CORE_M9",
+    validationAuthority: "CORE_M9",
+    commitAuthority: "LEGACY_RECRUITMENT",
+    liveDraft: true,
+    liveCommit: false,
     parity: mismatchedFields.length === 0,
     mismatchedFields,
     legacy,
@@ -125,24 +195,25 @@ export function getM9CreationShadowStatus() {
   const rows = [...history];
   return freeze({
     phase: "M9",
-    buildScope: "GENERIC_CHARACTER_CREATION_FOUNDATION",
-    mode: "SHADOW_ONLY",
-    authority: "LEGACY_RECRUITMENT",
-    liveApplication: false,
+    buildScope: "GENERIC_CHARACTER_CREATION_DRAFT_HANDOFF",
+    mode: "DRAFT_LIVE_COMMIT_LEGACY",
+    authority: "SPLIT",
+    draftAuthority: "CORE_M9",
+    validationAuthority: "CORE_M9",
+    commitAuthority: "LEGACY_RECRUITMENT",
+    liveApplication: { draft: true, validation: true, commit: false },
     profileId: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id,
     profileVersion: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.version,
     observations: rows.length,
+    draftUpdates: draftEvents.length,
     mismatches: rows.filter(row => !row.parity).length,
     allParity: rows.length > 0 && rows.every(row => row.parity),
     capabilities: [
       "CreationDraft",
       "CharacterCreationProfile",
-      "CreationStep",
-      "CreationQuestion",
-      "CreationAllocation",
+      "CreationStepValidation",
       "CreationRestriction",
       "CreationPartyContext",
-      "CreationValidator",
       "CreationReview",
       "CreationCommitPlan",
       "CreationProvenance"
@@ -158,11 +229,14 @@ export function installM9CreationShadow() {
     Object.assign(globalThis.game.realmGuard.core.m9, {
       getStatus: getM9CreationShadowStatus,
       history: () => Object.freeze([...history]),
-      clear: () => { history.length = 0; return getM9CreationShadowStatus(); },
+      draftHistory: () => Object.freeze([...draftEvents]),
+      clear: () => { history.length = 0; draftEvents.length = 0; return getM9CreationShadowStatus(); },
       profile: () => REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE,
       createDraftFromLegacyState: fromLegacyState,
+      syncDraft: syncM9RecruitmentDraft,
+      validateStep: validateM9RecruitmentStep,
       buildCommitPlanFromLegacyState: state => engine.buildCommitPlan(fromLegacyState(state), partyContext())
     });
-    console.log("realm-guard | CORE M9 Generic Character Creation shadow foundation ready", getM9CreationShadowStatus());
+    console.log("realm-guard | CORE M9 draft/recalculation/validation live; Legacy Recruitment commit retained", getM9CreationShadowStatus());
   });
 }

@@ -1,7 +1,22 @@
 # Realm Guard - Update Log
 
 
-## v1.10.0-qa.1 - QA / M9 Generic Character Creation Foundation / Shadow
+## v1.10.0-qa.2 - QA / M9 Draft / Recalculation / Validation Live Handoff
+
+- Built from v1.10.0-qa.1 after live Foundry 13.351 QA passed Guided/Quick, Back/Cancel, M8 regression and representative final CORE parity.
+- CORE M9 becomes live authority for Recruitment draft recalculation, derived restrictions and per-step validation.
+- The existing Recruitment UI remains in place; no redesign and no intentional rules/result changes.
+- Back commits the edited form state and recalculates the CORE CreationDraft before the previous step is shown.
+- Unique Specialty validation uses CreationPartyContext against existing Ranger Recruitment metadata.
+- Review/derived Skill, Trait and Wise summaries read CORE draft values.
+- Legacy `createRanger` remains the sole Actor/Item mutation commit authority.
+- Legacy calculations are retained independently for final parity comparison and safe validation fallback if the CORE validation layer throws.
+- Removes stale pseudo-live Station values, Nature Current result and Resources/Circles Starting result rows. Static budgets, rule copy, validation warnings and final Review remain.
+- No Actor migration, no CreationProvenance write and no automatic NPC creation.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.2.md`.
+
+
+## v1.10.0-qa.1 - 🟢✅ PASS / M9 Generic Character Creation Foundation / Shadow
 
 - Built from verified v1.9.0 STABLE / GOLD.
 - Starts M9 Creation / Recruitment Migration with **NO INTENDED GAMEPLAY CHANGE**.
@@ -13,13 +28,14 @@
 - No Actor migration and no Creation Provenance write occurs in qa.1.
 - M8 Social Network, relationship compatibility, optional NPC creation and Circles/Enmity remain unchanged.
 - Adds dedicated M9 smoke coverage and v1.10.0 QA version-gate compatibility.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.1.md`.
+- Live Foundry VTT 13.351 QA passed Guided + Quick, Back/Cancel, M8 relationship regression and representative CORE parity with zero mismatches.
+- Test status: **🟢✅ PASS**. See `TEST_PROTOCOL_v1.10.0-qa.1.md`.
 
 
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.9.0  
-**Current QA build:** v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow
+**Current QA build:** v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD

@@ -1,5 +1,7 @@
 # v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow QA
 
+**QA RESULT:** 🟢✅ PASS — Guided + Quick, Back/Cancel, relationship regression and representative CORE parity verified in Foundry VTT 13.351.
+
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.9.0  
 **Gameplay change:** NONE INTENDED  

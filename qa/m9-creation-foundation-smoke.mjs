@@ -17,6 +17,7 @@ const draft = engine.createDraft({
     homelandTrait: "Independent",
     natureAnswers: { danger: false, secondAge: true, loss: false, wilds: false, married: false, enemyFirst: false },
     resourceAnswers: { trade: true, parentsWealth: false, gifts: false, thrifty: false, debt: false, pack: false },
+    resourceTrade: "Farmer",
     circleAnswers: { gregarious: true, rangerTies: false, reputation: false, enemies: false, crime: false, loner: false },
     apprenticeship: "Farmer",
     mentorTraining: "Scout",
@@ -44,6 +45,7 @@ assert.equal(draft.derivedValues.resources.persona, 1);
 assert.equal(draft.derivedValues.skillChecks.Farmer, 3);
 assert.equal(draft.derivedValues.skillChecks.Scout, 5);
 assert.equal(draft.derivedValues.skillChecks.Pathfinder, 4);
+assert.ok(Array.isArray(draft.derivedValues.restrictions.bannedTraits));
 
 const plan = engine.buildCommitPlan(draft, new CreationPartyContext());
 assert.equal(plan.kind, "CreationCommitPlan");
@@ -53,12 +55,14 @@ assert.equal(plan.provenance.profileId, "realm-guard-legacy-mixed");
 const recruitment = fs.readFileSync("module/recruitment.mjs", "utf8");
 for (const needle of [
   "observeM9RecruitmentDraft",
-  "buildLegacyRecruitmentParitySnapshot",
-  "Legacy Recruitment remains authoritative"
-]) assert.ok(recruitment.includes(needle), `Missing M9 shadow marker: ${needle}`);
+  "validateM9RecruitmentStep",
+  "syncM9RecruitmentDraft",
+  "buildLegacyRecruitmentParitySnapshot"
+]) assert.ok(recruitment.includes(needle), `Missing M9 foundation/handoff marker: ${needle}`);
 
-const shadow = fs.readFileSync("module/m9-creation-shadow.mjs", "utf8");
-assert.ok(shadow.includes('authority: "LEGACY_RECRUITMENT"'));
-assert.ok(shadow.includes('liveApplication: false'));
+const service = fs.readFileSync("module/m9-creation-shadow.mjs", "utf8");
+assert.ok(service.includes('draftAuthority: "CORE_M9"'));
+assert.ok(service.includes('commitAuthority: "LEGACY_RECRUITMENT"'));
+assert.ok(service.includes('mode: "DRAFT_LIVE_COMMIT_LEGACY"'));
 
-console.log("PASS v1.10.0-qa.1 M9 Generic Character Creation shadow foundation smoke");
+console.log("PASS v1.10.0 M9 Generic Character Creation foundation/handoff smoke");

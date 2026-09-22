@@ -47,7 +47,7 @@ export class CreationDraft {
 }
 
 export class CharacterCreationProfile {
-  constructor({ id, version = 1, name, steps = [], dimensions = [], rules = {}, grants = {}, metadata = {}, derive } = {}) {
+  constructor({ id, version = 1, name, steps = [], dimensions = [], rules = {}, grants = {}, metadata = {}, derive, validateStep = null } = {}) {
     if (!id || !name) throw new Error("CharacterCreationProfile requires id and name.");
     if (typeof derive !== "function") throw new Error("CharacterCreationProfile requires a derive function.");
     this.id = String(id);
@@ -59,6 +59,7 @@ export class CharacterCreationProfile {
     this.grants = clonePlain(grants);
     this.metadata = clonePlain(metadata);
     this.derive = derive;
+    this.validateStep = typeof validateStep === "function" ? validateStep : null;
     Object.freeze(this.steps);
     Object.freeze(this.dimensions);
     Object.freeze(this.rules);
@@ -140,6 +141,20 @@ export class CharacterCreationEngine {
 
   validate(draft, partyContext = new CreationPartyContext()) {
     return this.validator.validate(this.recalculate(draft), partyContext);
+  }
+
+  validateStep(stepId, draft, partyContext = new CreationPartyContext()) {
+    const current = this.recalculate(draft);
+    if (!this.profile.validateStep) return deepFreeze({ valid: true, stepId: String(stepId ?? ""), errors: [], warnings: [] });
+    const result = this.profile.validateStep({
+      stepId: String(stepId ?? ""),
+      draft: current,
+      partyContext,
+      profile: this.profile
+    }) ?? {};
+    const errors = Array.isArray(result.errors) ? result.errors : [];
+    const warnings = Array.isArray(result.warnings) ? result.warnings : [];
+    return deepFreeze({ valid: errors.length === 0, stepId: String(stepId ?? ""), errors, warnings });
   }
 
   buildReview(draft, partyContext = new CreationPartyContext()) {

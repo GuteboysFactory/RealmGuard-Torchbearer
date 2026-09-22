@@ -2,8 +2,8 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟠 FOUNDATION / SHADOW  
+**Current QA build:** v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟡 DRAFT LIVE / COMMIT LEGACY  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
 **Internal system id:** `realm-guard` (do not rename)
 
@@ -12,7 +12,7 @@
 
 ### M9 — Creation / Recruitment Migration
 
-**Status:** 🟠 ACTIVE — v1.10.0-qa.1 foundation/shadow.
+**Status:** 🟡 ACTIVE — v1.10.0-qa.2 draft/recalculation/validation live handoff.
 
 qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
 
@@ -32,9 +32,11 @@ qa.1 establishes the generic Character Creation domain boundary without changing
 - no provenance write to existing/new Actors yet
 - M8 Social Network remains closed and unchanged
 
-**qa.1 gate:** Guided + Quick Recruitment regression-safe, zero representative shadow mismatches, Cancel/Back unchanged, M8 relationships intact, no unintended permanent CORE mutation.
+**qa.1 result:** 🟢✅ PASS in Foundry VTT 13.351. Guided + Quick, Back/Cancel, M8 relationship regression and representative final parity were verified with zero mismatches.
 
-**Planned next:** qa.2 moves draft/recalculation/validation behind the existing UI after qa.1 parity is verified.
+**qa.2 active scope:** CORE M9 now owns CreationDraft recalculation, derived restrictions and per-step validation behind the existing Recruitment UI. Back recalculates through CORE. Legacy Recruitment still owns the actual Actor/Item mutation commit. The unreliable pseudo-live Station/Nature/Resources/Circles summary rows are removed; static requirements and Review remain.
+
+**Planned next:** qa.3 introduces a transactional CORE CreationCommitPlan/Foundry adapter in shadow, without creating a second Actor.
 
 
 ### M8 — Social Network Migration

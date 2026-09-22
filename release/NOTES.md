@@ -1,15 +1,17 @@
-Realm Guard / Torchbearer v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow
+Realm Guard / Torchbearer v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff
 
-Built from v1.9.0 STABLE / GOLD.
+Built from verified v1.10.0-qa.1 PASS.
 
 Highlights:
-- Starts M9 Creation / Recruitment Migration.
-- Adds generic CORE CreationDraft, CharacterCreationProfile, CreationPartyContext, CreationValidator, CreationReview, CreationCommitPlan and CreationProvenance primitives.
-- Adds a Realm Guard Legacy Mixed Creation Profile that models the current Recruitment 2.0 outputs.
-- Adds read-only/shadow parity observation from the existing Recruitment wizard.
-- Legacy Recruitment remains the sole live creation authority.
-- CORE Commit plans are preview-only and perform no Actor/Item mutation.
-- No Actor migration and no Creation Provenance write yet.
-- Guided/Quick UI, M8 Social Network behavior and post-Recruitment relationship NPC review remain unchanged.
-- Foundry VTT 13.351 target.
+- CORE M9 now owns Recruitment CreationDraft recalculation, derived restrictions and step validation.
+- Existing Guided/Quick Recruitment UI remains in place.
+- Back recalculates through CORE before returning to earlier steps.
+- Legacy createRanger remains the sole live Actor/Item commit authority.
+- Final independent Legacy-vs-CORE parity observation remains active.
+- Unique Specialty validation uses CreationPartyContext.
+- Removes unreliable pseudo-live Station/Nature/Resources/Circles summary rows; static requirements and final Review remain.
+- No Actor migration.
+- No CreationProvenance write yet.
+- M8 Social Network / relationship NPC behavior remains unchanged.
 - Gameplay change: NONE INTENDED.
+- Foundry VTT 13.351 target.

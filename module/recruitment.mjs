@@ -3,7 +3,7 @@ import { ensureDefaultConditions } from "./conditions.mjs";
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
-import { observeM9RecruitmentDraft } from "./m9-creation-shadow.mjs";
+import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions } from "./m9-creation-shadow.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -138,7 +138,18 @@ function stepHeader(state, current, total, title, subtitle) {
 }
 
 async function showStep(state, { current, total = 11, title, subtitle, body, commit, validate = null, onRender = null, allowBack = true, nextLabel = "Continue", nextIcon = "fa-solid fa-arrow-right" }) {
+  const stepId = [
+    "identity", "nature", "homeland", "life-experience", "service-specialty", "wises",
+    "resources-circles", "traits", "relationships", "drives-gear", "review"
+  ][Math.max(0, current - 1)] ?? `step-${current}`;
+
   while (true) {
+    try {
+      syncM9RecruitmentDraft(state, { stepId, reason: "render" });
+    } catch (error) {
+      console.error("Realm Guard | M9 draft sync failed before render; retaining current Recruitment state", error);
+    }
+
     const result = await foundry.applications.api.DialogV2.wait({
       window: { title: `Realm Guard · Recruitment · ${title}`, resizable: true },
       position: { width: 860 },
@@ -152,9 +163,26 @@ async function showStep(state, { current, total = 11, title, subtitle, body, com
         { action: "cancel", label: "Cancel", callback: () => "cancel" }
       ]
     });
+
     if (!result || result === "cancel") return "cancel";
-    if (result === "back") return "back";
-    const error = validate?.();
+
+    if (result === "back") {
+      try {
+        syncM9RecruitmentDraft(state, { stepId, reason: "back" });
+      } catch (error) {
+        console.error("Realm Guard | M9 Back recalculation failed; retaining current Recruitment state", error);
+      }
+      return "back";
+    }
+
+    let error = null;
+    try {
+      error = validateM9RecruitmentStep(state, stepId).error;
+    } catch (coreError) {
+      console.error("Realm Guard | M9 step validation failed; using Legacy Recruitment validation fallback", coreError);
+      error = validate?.() ?? null;
+    }
+
     if (!error) return "next";
     ui.notifications.warn(`Realm Guard: ${error}`);
   }
@@ -312,7 +340,8 @@ function computeTraitChecks(state) {
 }
 
 function trainedTradeOptions(state) {
-  return [...computeSkillChecks(state).entries()].filter(([, checks]) => checks > 0).map(([name]) => name).sort((a, b) => a.localeCompare(b));
+  const checks = getM9RecruitmentDraft(state).derivedValues?.skillChecks ?? {};
+  return Object.entries(checks).filter(([, count]) => Number(count) > 0).map(([name]) => name).sort((a, b) => a.localeCompare(b));
 }
 
 function takenSpecialties() {
@@ -333,8 +362,7 @@ async function identityStep(state) {
       return `${modeHelp(state, `<p>Realm Guard Recruitment is intended to be taken question by question. Start with the kind of Ranger you want to play, then choose the Station that represents experience and responsibility.</p>`)}
       <div class="rg-recruit-mode-select"><label><input type="radio" name="mode" value="guided" ${state.mode === "guided" ? "checked" : ""}><span><b>GUIDED</b><small>Rule explanations and prompts on every step.</small></span></label><label><input type="radio" name="mode" value="quick" ${state.mode === "quick" ? "checked" : ""}><span><b>QUICK</b><small>Same rules, less explanatory text.</small></span></label></div>
       <div class="rg-recruit-grid two"><label>Ranger Name<input name="name" value="${esc(state.name)}" autofocus placeholder="Name"></label><label>Station<select name="rank">${stationOptions(state.rank)}</select></label><label>Age<input type="number" name="age" min="${s.ageMin}" max="${s.ageMax}" value="${esc(state.age)}"></label><label>Concept<input name="concept" value="${esc(state.concept)}" placeholder="Grizzled veteran, idealistic scout..."></label></div>
-      <label>Biography / Background<textarea name="background" rows="4" placeholder="A short history or personality sketch">${esc(state.background)}</textarea></label>
-      <div class="rg-recruit-summary"><span>Station values</span><b>${esc(s.label)} · Age ${s.ageMin}-${s.ageMax} · Will ${s.will} · Health ${s.health}</b></div>`;
+      <label>Biography / Background<textarea name="background" rows="4" placeholder="A short history or personality sketch">${esc(state.background)}</textarea></label>`;
     },
     commit: form => {
       state.mode = value(form, "mode", state.mode) || "guided";
@@ -380,24 +408,9 @@ async function natureStep(state) {
         ${natureQuestion("wilds", "Do you call the wilds home?", "YES: Nature -1; Open-Minded becomes unavailable.", state)}
         ${natureQuestion("married", "Are you married?", "YES: Nature +1; Independent becomes unavailable.", state)}
         ${natureQuestion("enemyFirst", "Is fighting the Enemy more important than maintaining close ties with friends and family?", "YES: Nature -1; Compassionate becomes unavailable.", state)}
-      </div>
-      <div class="rg-recruit-summary"><span>Current result</span><b>Nature ${computeNature(state)} · Descriptors: Tradition · Family · Grief</b></div>`,
+      </div>`,
     commit: form => {
       for (const key of Object.keys(state.natureAnswers)) state.natureAnswers[key] = checked(form, key);
-      state.nature = computeNature(state);
-    },
-    onRender: (_event, dialog) => {
-      const root = dialog.element;
-      const form = root?.querySelector?.("form.rg-recruitment");
-      const summary = form?.querySelector?.(".rg-recruit-summary b");
-      if (!form || !summary) return;
-      const refresh = () => {
-        for (const key of Object.keys(state.natureAnswers)) state.natureAnswers[key] = checked(form, key);
-        state.nature = computeNature(state);
-        summary.textContent = `Nature ${state.nature} · Descriptors: Tradition · Family · Grief`;
-      };
-      for (const key of Object.keys(state.natureAnswers)) form.elements?.[key]?.addEventListener?.("change", refresh);
-      refresh();
     },
     validate: () => state.nature < 2 || state.nature > 6 ? `These answers produce Nature ${state.nature}. A starting Ranger must have a playable starting Nature between 2 and 6; revise an answer.` : null
   });
@@ -414,7 +427,7 @@ function homelandDetailHtml(state, traitDisabled) {
 }
 
 async function homelandStep(state) {
-  const banned = bannedTraits(state);
+  const banned = getM9RecruitmentRestrictions(state).bannedTraits;
   const traitDisabled = new Map([...banned].map(name => [name, "Unavailable from your Nature answers"]));
   return showStep(state, {
     current: 3, title: "Homeland", subtitle: "Where were you born?",
@@ -570,8 +583,7 @@ async function resourcesCirclesStep(state) {
         ${simpleQuestion("cir-enemies", "Do you have powerful enemies?", "-1 Circles.", state.circleAnswers.enemies)}
         ${simpleQuestion("cir-crime", "Have you been convicted of a crime?", "-1 Circles.", state.circleAnswers.crime)}
         ${simpleQuestion("cir-loner", "Are you a loner?", "-1 Circles; Extrovert unavailable.", state.circleAnswers.loner)}
-      </section></div>
-      <div class="rg-recruit-summary"><span>Starting result</span><b>Resources ${computeResources(state)} · Circles ${computeCircles(state)}</b></div>`,
+      </section></div>`,
     commit: form => {
       state.resourceAnswers = {
         trade: checked(form, "res-trade"), parentsWealth: checked(form, "res-parents"), gifts: checked(form, "res-gifts"), thrifty: checked(form, "res-thrifty"), debt: checked(form, "res-debt"), pack: checked(form, "res-pack")
@@ -583,8 +595,6 @@ async function resourcesCirclesStep(state) {
       };
       state.rangerTiesBasis = value(form, "rangerTiesBasis");
       state.reputationNote = value(form, "reputationNote");
-      state.resources = computeResources(state);
-      state.circles = computeCircles(state);
     },
     validate: () => {
       if (state.resourceAnswers.trade && !state.resourceTrade) return "Practicing a trade requires a trained trade Skill. Choose it or answer NO.";
@@ -600,7 +610,7 @@ function simpleQuestion(name, question, effect, isChecked) {
 }
 
 async function traitsStep(state) {
-  const banned = bannedTraits(state);
+  const banned = getM9RecruitmentRestrictions(state).bannedTraits;
   const allowed = list => list.filter(name => !banned.has(name));
   const bannedText = [...banned].sort().join(", ") || "None";
   return showStep(state, {
@@ -763,13 +773,19 @@ async function bgiGearStep(state) {
 }
 
 function skillSummary(state) {
-  return [...computeSkillChecks(state).entries()]
+  const checks = getM9RecruitmentDraft(state).derivedValues?.skillChecks ?? {};
+  return Object.entries(checks)
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([name, checks]) => `${name} ${Math.min(6, checks + 1)} (${checks} check${checks === 1 ? "" : "s"})`);
+    .map(([name, count]) => `${name} ${Math.min(6, Number(count) + 1)} (${count} check${Number(count) === 1 ? "" : "s"})`);
 }
 
 function traitSummary(state) {
-  return [...computeTraitChecks(state).entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([name, rating]) => `${name} ${Math.min(3, rating)}`);
+  const checks = getM9RecruitmentDraft(state).derivedValues?.traitChecks ?? {};
+  return Object.entries(checks).sort((a, b) => a[0].localeCompare(b[0])).map(([name, rating]) => `${name} ${Math.min(3, Number(rating))}`);
+}
+
+function coreWiseCheckMap(state) {
+  return new Map(Object.entries(getM9RecruitmentDraft(state).derivedValues?.wiseChecks ?? {}));
 }
 
 function wiseCheckMap(state) {
@@ -780,13 +796,12 @@ function wiseCheckMap(state) {
 
 async function reviewStep(state) {
   const home = HOMELANDS[state.homelandKey];
-  state.nature = computeNature(state); state.resources = computeResources(state); state.circles = computeCircles(state);
   return showStep(state, {
     current: 11, title: "Review & Create", subtitle: "Create the finished Ranger Actor",
     nextLabel: "Create Ranger", nextIcon: "fa-solid fa-user-shield",
     body: () => `<div class="rg-recruit-review"><div class="rg-review-title"><span>${esc(station(state).label)} · ${esc(home?.label ?? "")}</span><h2>${esc(state.name)}</h2><p>${esc(state.concept)}</p></div>
       <div class="rg-review-stats"><span>Nature <b>${state.nature}</b></span><span>Will <b>${station(state).will}</b></span><span>Health <b>${station(state).health}</b></span><span>Resources <b>${state.resources}</b></span><span>Circles <b>${state.circles}</b></span><span>Fate <b>1</b></span><span>Persona <b>1</b></span></div>
-      <section><h3>Skills</h3><p>${skillSummary(state).map(esc).join(" · ")}</p></section><section><h3>Traits</h3><p>${traitSummary(state).map(esc).join(" · ")}</p></section><section><h3>Wises</h3><p>${[...wiseCheckMap(state).entries()].map(([w, c]) => `${esc(w)}${c > 1 ? ` (${c} Recruitment checks)` : ""}`).join(" · ")}</p><small>Wises remain unrated in this Foundry build; Recruitment checks are preserved in metadata.</small></section>
+      <section><h3>Skills</h3><p>${skillSummary(state).map(esc).join(" · ")}</p></section><section><h3>Traits</h3><p>${traitSummary(state).map(esc).join(" · ")}</p></section><section><h3>Wises</h3><p>${[...coreWiseCheckMap(state).entries()].map(([w, c]) => `${esc(w)}${c > 1 ? ` (${c} Recruitment checks)` : ""}`).join(" · ")}</p><small>Wises remain unrated in this Foundry build; Recruitment checks are preserved in metadata.</small></section>
       <section><h3>Belief · Goal · Instinct</h3><p><b>Belief:</b> ${esc(state.belief)}<br><b>Goal:</b> ${esc(state.goal)}<br><b>Instinct:</b> ${esc(state.instinct)}</p></section>
       <section><h3>Relationships</h3><p><b>House:</b> ${esc(state.lineage)} · <b>Insignia:</b> ${esc(state.insignia)}<br><b>Mother:</b> ${esc(formatLegacyPerson(state.mom, state.momProfession, state.momLocation) || "—")}<br><b>Father:</b> ${esc(formatLegacyPerson(state.dad, state.dadProfession, state.dadLocation) || "—")}<br><b>Senior Artisan:</b> ${esc(formatLegacyPerson(state.seniorArtisan, state.seniorArtisanProfession, state.seniorArtisanLocation))}<br><b>Mentor:</b> ${esc(formatLegacyPerson(state.mentor, state.mentorRole, state.mentorLocation))}<br><b>Friend:</b> ${esc(formatLegacyPerson(state.friend, state.friendProfession, state.friendLocation))}<br><b>Enemy:</b> ${esc(formatLegacyPerson(state.enemyName, state.enemyProfession || state.enemyPeople, state.enemyLocation))}${state.allowEnemyServant ? ` <b>(House Rule enabled)</b>` : ""}</p></section>
       <section><h3>Gear</h3><p>${esc(state.weapon)}${state.armor ? ` · ${esc(state.armor)}` : ""}${state.distinctiveGear ? ` · ${esc(state.distinctiveGear)}` : ""}</p></section></div>
@@ -794,7 +809,7 @@ async function reviewStep(state) {
     commit: form => { state.openSheet = checked(form, "openSheet"); },
     validate: () => {
       if (state.nature < 2 || state.nature > 6) return "Starting Nature is outside the valid Recruitment range.";
-      if ([...bannedTraits(state)].some(t => computeTraitChecks(state).has(t))) return "A selected Trait conflicts with a Recruitment answer. Go back to Traits and correct it.";
+      if ([...getM9RecruitmentRestrictions(state).bannedTraits].some(t => (getM9RecruitmentDraft(state).derivedValues?.traitChecks ?? {})[t])) return "A selected Trait conflicts with a Recruitment answer. Go back to Traits and correct it.";
       return null;
     }
   });
@@ -1082,11 +1097,11 @@ export function buildLegacyRecruitmentParitySnapshot(state) {
     rank: state.rank,
     age: state.age,
     homelandKey: state.homelandKey,
-    nature: state.nature,
+    nature: computeNature(state),
     will: s.will,
     health: s.health,
-    resources: state.resources,
-    circles: state.circles,
+    resources: computeResources(state),
+    circles: computeCircles(state),
     fate: 1,
     persona: 1,
     skillChecks: Object.fromEntries(computeSkillChecks(state)),
@@ -1145,8 +1160,8 @@ async function createRanger(state) {
     "realm-guard": {
       recruitmentVersion: "0.20.0",
       recruitmentSpecialty: state.specialty || "",
-      recruitmentWiseChecks: Object.fromEntries(wiseCheckMap(state)),
-      recruitmentSkillChecks: Object.fromEntries(computeSkillChecks(state)),
+      recruitmentWiseChecks: { ...(getM9RecruitmentDraft(state).derivedValues?.wiseChecks ?? {}) },
+      recruitmentSkillChecks: { ...(getM9RecruitmentDraft(state).derivedValues?.skillChecks ?? {}) },
       recruitmentNatureAnswers: foundry.utils.deepClone(state.natureAnswers),
       recruitmentResourceAnswers: foundry.utils.deepClone(state.resourceAnswers),
       recruitmentCircleAnswers: foundry.utils.deepClone(state.circleAnswers),
@@ -1171,7 +1186,7 @@ async function createRanger(state) {
   if (!actor) throw new Error("Actor.create returned no Actor.");
 
   await ensureDefaultSkills(actor);
-  const skillChecks = computeSkillChecks(state);
+  const skillChecks = new Map(Object.entries(getM9RecruitmentDraft(state).derivedValues?.skillChecks ?? {}));
   const updates = [];
   for (const item of actor.items.filter(i => i.type === "role")) {
     const checks = skillChecks.get(item.name) ?? 0;
@@ -1180,7 +1195,7 @@ async function createRanger(state) {
   }
   if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
 
-  const traitDocs = [...computeTraitChecks(state).entries()].map(([name, count]) => ({
+  const traitDocs = Object.entries(getM9RecruitmentDraft(state).derivedValues?.traitChecks ?? {}).map(([name, count]) => ({
     name, type: "trait", flags: { "realm-guard": { recruitmentTrait: true } }, system: { rating: Math.min(3, count), description: "Selected during Realm Guard Recruitment." }
   }));
   const wiseDocs = [...wiseCheckMap(state).keys()].map(name => ({
