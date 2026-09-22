@@ -14,7 +14,7 @@ const turns = fs.readFileSync("module/turns.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const bridge = fs.readFileSync("module/turn-authority-bridge.mjs", "utf8");
 
-assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0-qa\.\d+)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10.0 M9 QA line.");
+assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0(?:-qa\.\d+)?)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10.0 M9 QA/stable line.");
 
 const engine = new SessionEngine();
 const actor = { id: "A1", type: "character", system: { resources: { checks: { value: 2, max: 3 } } } };

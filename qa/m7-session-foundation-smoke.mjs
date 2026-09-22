@@ -46,6 +46,6 @@ must(shadow.includes("entry.ref === ref"), "M7 preview must prefer participant r
 must(entry.includes('installM7SessionShadow'), "M7 shadow installer not wired");
 must(entry.includes('installM7SessionShadow();'), "M7 shadow installer not invoked");
 must(manifest.id === "realm-guard", "System id changed unexpectedly");
-must(/^1\.(?:9\.0(?:-qa\.\d+)?|10\.0-qa\.\d+)$/.test(manifest.version), `Unexpected manifest version: ${manifest.version}`);
+must(/^1\.(?:9\.0(?:-qa\.\d+)?|10\.0(?:-qa\.\d+)?)$/.test(manifest.version), `Unexpected manifest version: ${manifest.version}`);
 
 console.log("PASS m7-session-foundation-smoke");
