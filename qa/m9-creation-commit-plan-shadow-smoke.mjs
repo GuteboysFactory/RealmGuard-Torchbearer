@@ -5,7 +5,7 @@ import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "../module/profiles/re
 import { FoundryCreationCommitAdapter } from "../module/m9-creation-commit-adapter.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.equal(manifest.version, "1.10.0-qa.3");
+assert.match(manifest.version, /^1\.10\.0-qa\.\d+$/, "M9 commit-plan shadow smoke must accept the complete v1.10.0-qa.x line.");
 
 const engine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
 const draft = engine.createDraft({
