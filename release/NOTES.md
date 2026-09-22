@@ -1,16 +1,18 @@
-Realm Guard / Torchbearer v1.10.0-qa.5 — M9 Closure / Hardening Candidate
+Realm Guard / Torchbearer v1.10.0 — STABLE / GOLD
 
-Built from verified v1.10.0-qa.4 PASS.
+Promoted from fully verified v1.10.0-qa.5 with no functional gameplay/runtime changes.
+
+M9 Generic Character Creation / Recruitment Migration is VERIFIED / CLOSED.
 
 Highlights:
-- No intended gameplay or rules change.
-- CORE M9 remains the sole normal Character Creation authority for draft, validation and transactional commit.
-- Legacy Recruitment comparison is terminology-cleaned as a parity guard, not a shadow/live authority.
-- Legacy createRanger remains only as an explicit QA fallback/reference.
-- QA fallback and fault-injection controls are exposed only in QA builds; stable public M9 API will not expose them.
-- Compensating rollback, CreationProvenance, Rules Profile snapshot hash and immediate M8 Recruitment normalization remain locked.
+- CORE M9 owns Character Creation draft, recalculation, validation and transactional commit.
+- Transactional Foundry commit uses compensating rollback for critical failures.
+- New Rangers receive CreationProvenance with the active Rules Profile snapshot hash.
+- Recruitment relationships normalize immediately into M8 Social Network storage without automatic NPC creation.
 - Legacy Mixed compatibility flags and unrated Wise behavior remain preserved.
-- Adds M9 closure-contract smoke and final live regression protocol.
+- Legacy Recruitment remains parity/reference compatibility infrastructure, not live stable authority.
+- QA-only Legacy commit override and fault-injection controls are not exposed in stable runtime.
 - Existing Actors are untouched; no synthetic provenance or bulk migration.
-- Gated QA release channel remains mandatory.
-- Foundry VTT 13.351 target.
+- Stable updates use the gated stable channel and are offered only after release assets are published and verified.
+- Foundry VTT 13.351 verified.
+- Next CORE milestone: M10 — Strict Realm Guard Profile / Rules Ownership.

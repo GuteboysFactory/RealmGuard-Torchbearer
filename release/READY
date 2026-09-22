@@ -1,5 +1,5 @@
-1.10.0-qa.5
-# M9 Closure / Hardening Candidate
-# CORE M9 normal authority; Legacy only QA fallback/reference + parity guard
-# QA-only test controls hidden from stable public API
-# NO INTENDED GAMEPLAY CHANGE
+1.10.0
+# STABLE / GOLD promotion from verified v1.10.0-qa.5
+# M9 Generic Character Creation / Recruitment Migration VERIFIED / CLOSED
+# NO FUNCTIONAL GAMEPLAY/RUNTIME CHANGE FROM qa.5
+# Stable channel advances only after release assets are published and verified

@@ -1,5 +1,7 @@
 # v1.10.0-qa.5 — M9 Closure / Hardening Candidate QA
 
+**QA RESULT:** 🟢✅ PASS — Guided/Quick, Back/Cancel, all Stations, validation/party restrictions, GM/player creation, reload persistence, provenance, M8 normalization, old-Actor safety, parity and gated release verified in Foundry VTT 13.351.
+
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.9.0  
 **Previous M9 gate:** v1.10.0-qa.4 PASS  

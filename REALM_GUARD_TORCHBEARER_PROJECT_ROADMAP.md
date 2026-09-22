@@ -1,10 +1,10 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** v1.10.0-qa.5 — M9 Closure / Hardening Candidate  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟢 CLOSURE CANDIDATE  
-**Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
+**Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
+**Current QA build:** none — v1.10.0 promoted from verified qa.5  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — ✅ VERIFIED / CLOSED  
+**Next CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M9 — Creation / Recruitment Migration
 
-**Status:** 🟢 ACTIVE — v1.10.0-qa.5 closure / hardening candidate.
+**Status:** ✅ VERIFIED / CLOSED — v1.10.0 STABLE / GOLD.
 
 qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
 
@@ -42,9 +42,11 @@ qa.1 establishes the generic Character Creation domain boundary without changing
 
 **qa.5 active scope:** closure/hardening only — no intended rules or gameplay changes. CORE M9 remains the single normal Creation authority. Legacy comparison remains a parity guard and its mutation implementation remains only as an explicit QA fallback/reference. QA-only fallback/fault controls are exposed only in QA builds. A dedicated closure smoke locks transactional commit, provenance, M8 normalization, Legacy Mixed compatibility and the gated release channel.
 
-**Closure gate:** Guided + Quick, Back + Cancel, all five Stations, validation/party restrictions, GM + player creation, reload persistence, provenance, M8 storage, old-Actor safety, zero parity mismatches and release-channel update.
+**qa.5 result:** 🟢✅ PASS in Foundry VTT 13.351. Guided + Quick, Back + Cancel, all five Stations, validation/party restrictions, GM + player creation, reload persistence, CreationProvenance, M8 storage, old-Actor safety, zero derived/commit parity mismatches and gated release were verified.
 
-**After qa.5 PASS:** promote the identical verified codebase to **v1.10.0 STABLE**, mark M9 **VERIFIED / CLOSED**, then move to M10.
+**Stable promotion:** 🟢✅ **v1.10.0 STABLE / GOLD** is promoted from the verified qa.5 codebase with no functional gameplay/runtime changes. CORE M9 owns Creation draft, validation and transactional commit. Legacy Recruitment remains compatibility/reference/parity infrastructure only; QA-only fallback/fault controls are not exposed in stable runtime.
+
+**M9 closure:** ✅ **VERIFIED / CLOSED**. Next: M10 — Strict Realm Guard Profile / Rules Ownership.
 
 
 ### M8 — Social Network Migration

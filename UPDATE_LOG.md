@@ -1,7 +1,26 @@
 # Realm Guard - Update Log
 
+## v1.10.0 - 🟢✅ STABLE / GOLD / M9 VERIFIED & CLOSED
 
-## v1.10.0-qa.5 - QA / M9 Closure / Hardening Candidate
+- Promoted directly from the fully verified `v1.10.0-qa.5` codebase.
+- No functional gameplay/runtime code changes are introduced by the stable promotion.
+- M9 Generic Character Creation / Recruitment Migration is **VERIFIED / CLOSED**.
+- CORE M9 is the normal authority for Creation draft, recalculation, validation and transactional commit.
+- Foundry commit uses compensating rollback for critical post-Actor failures.
+- New Rangers receive CreationProvenance including the active Rules Profile snapshot hash.
+- Recruitment relationships are normalized immediately into M8 Social Network storage without automatic NPC creation.
+- Legacy Mixed compatibility flags and unrated Wise behavior remain preserved.
+- Legacy Recruitment projection remains a parity/reference layer; its mutation implementation is retained only for development/QA reference and is not exposed as a stable runtime toggle.
+- QA-only fault injection and Legacy commit override controls are not exposed in the stable public M9 API.
+- Existing Actors remain untouched; no synthetic provenance or bulk migration is performed.
+- Stable release uses the gated `channels/stable/system.json` update channel, advanced only after release assets are published and verified.
+- Foundry VTT 13.351 is the verified stable target.
+- **Next CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership.
+
+
+
+
+## v1.10.0-qa.5 - 🟢✅ PASS / M9 Closure / Hardening Candidate
 
 - Built from live-verified v1.10.0-qa.4 PASS with **NO INTENDED GAMEPLAY CHANGE**.
 - M9 CORE remains the sole normal authority for Creation draft, recalculation, validation and transactional commit.
@@ -12,8 +31,8 @@
 - Adds a dedicated M9 closure-contract smoke covering authority, transaction semantics, compatibility, no automatic NPC creation and gated QA/stable release channels.
 - qa.4 live verification confirmed injected CREATE_ITEMS failure rolled the partial Actor back cleanly with `rollbackError = ""`.
 - Existing Actors remain untouched; no synthetic provenance or bulk creation migration is introduced.
-- Final live regression protocol: `TEST_PROTOCOL_v1.10.0-qa.5.md`.
-- After PASS, promote the identical verified codebase to **v1.10.0 STABLE** and close M9.
+- Live Foundry VTT 13.351 regression passed Guided/Quick, Back/Cancel, all Stations, validation/party restrictions, GM/player creation, reload persistence, provenance, M8 normalization, old-Actor safety, parity and gated release.
+- Test status: **🟢✅ PASS**. See `TEST_PROTOCOL_v1.10.0-qa.5.md`.
 
 
 ## v1.10.0-qa.4 - 🟢✅ PASS / M9 CORE Live Transactional Commit
@@ -83,8 +102,8 @@
 
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
-**Current GOLD baseline:** v1.9.0  
-**Current QA build:** v1.10.0-qa.5 — M9 Closure / Hardening Candidate
+**Current GOLD baseline:** v1.10.0  
+**Current QA build:** none — v1.10.0 STABLE / GOLD
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD
