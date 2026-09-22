@@ -3,8 +3,14 @@ import { getCoreBaselineStatus, LEGACY_PROFILE_ID } from "./core-baseline.mjs";
 import { ProfileResolver, createProfileSnapshot } from "./core/rules-profile.mjs";
 import { RulesRegistry } from "./core/rules-registry.mjs";
 import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "./profiles/realm-guard-legacy-mixed.mjs";
+import { MG1E_FOUNDATION_PROFILE } from "./profiles/mg1e-foundation.mjs";
+import { REALM_GUARD_STRICT_PROFILE } from "./profiles/realm-guard-strict.mjs";
 
-const resolver = new ProfileResolver([REALM_GUARD_LEGACY_MIXED_PROFILE]);
+const resolver = new ProfileResolver([
+  MG1E_FOUNDATION_PROFILE,
+  REALM_GUARD_LEGACY_MIXED_PROFILE,
+  REALM_GUARD_STRICT_PROFILE
+]);
 let runtime = null;
 
 function esc(value) {
@@ -77,8 +83,12 @@ function registryHtml(state) {
       <div><small>Rules snapshot</small><br><b>${esc(state.profile.rulesSnapshotHash)}</b></div>
     </div>
     <div style="padding:8px 10px;margin-bottom:14px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);">
-      <b>Compatibility profile</b><br>
-      <small>${esc(state.profile.id)} preserves the v1.2.0 GOLD behavior during the CORE refactor. Strict Realm Guard is not active.</small>
+      <b>${state.profile.metadata?.foundationOnly ? "Profile foundation" : state.profile.metadata?.compatibilityProfile ? "Compatibility profile" : "Rules profile"}</b><br>
+      <small>${state.profile.metadata?.foundationOnly
+        ? `${esc(state.profile.id)} is registered for M10 profile-resolution QA only. It is not selectable and does not own live gameplay yet.`
+        : state.profile.metadata?.compatibilityProfile
+          ? `${esc(state.profile.id)} preserves the v1.2.0 GOLD behavior during the CORE refactor.`
+          : `${esc(state.profile.id)} is the active explicit rules profile.`}</small>
     </div>
     ${sections}
   </div>`;
@@ -115,7 +125,15 @@ function exposeCoreApi() {
     getActiveRulesSnapshot,
     resolveRulesProfile,
     refreshRulesProfileRuntime,
-    registeredProfiles: () => resolver.list().map(profile => ({ id: profile.id, version: profile.version, name: profile.name })),
+    registeredProfiles: () => resolver.list().map(profile => ({
+      id: profile.id,
+      version: profile.version,
+      name: profile.name,
+      classification: profile.classification,
+      selectable: profile.metadata?.selectable !== false,
+      supported: profile.metadata?.supported !== false,
+      activationState: profile.metadata?.activationState ?? "ACTIVE"
+    })),
     currentSnapshot: state.snapshot
   });
 }
@@ -136,6 +154,19 @@ export function installRulesProfileInfrastructure() {
       console.log("realm-guard | CORE M1 Rules Profile ready", getActiveRulesSnapshot());
     } catch (error) {
       console.error("realm-guard | CORE M1 Rules Profile initialization failed", error);
+    }
+  });
+
+  // M10A foundation: keep profile snapshots coherent across clients if a later gated
+  // profile switch updates the world settings. qa.1 intentionally exposes no switch UI.
+  Hooks.on("updateSetting", setting => {
+    const key = String(setting?.key ?? "");
+    if (!["realm-guard.activeRulesProfileId", "realm-guard.activeRulesProfileVersion"].includes(key)) return;
+    try {
+      refreshRulesProfileRuntime();
+      exposeCoreApi();
+    } catch (error) {
+      console.error("realm-guard | Rules Profile refresh after setting update failed", error);
     }
   });
 }

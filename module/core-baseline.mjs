@@ -49,8 +49,8 @@ export function getCoreBaselineStatus() {
     lastError,
     ready: schemaVersion >= CORE_SCHEMA_VERSION
       && architectureVersion === CORE_ARCHITECTURE_VERSION
-      && profileId === LEGACY_PROFILE_ID
-      && profileVersion >= LEGACY_PROFILE_VERSION
+      && Boolean(profileId)
+      && profileVersion >= 1
   };
 }
 
@@ -83,9 +83,14 @@ export async function runCoreBaselineMigration() {
     const systemVersion = String(game.system?.version ?? "unknown");
 
     // M0 is metadata-only. Do not mutate Actors, Items, Scenes, Journals, Packs or runtime rules.
+    // New/uninitialized worlds default to Legacy Mixed. Once a world has an explicit profile,
+    // baseline repair must preserve it instead of silently forcing Legacy Mixed back on reload.
+    const targetProfileId = before.profileId || LEGACY_PROFILE_ID;
+    const targetProfileVersion = before.profileVersion >= 1 ? before.profileVersion : LEGACY_PROFILE_VERSION;
+
     await setIfDifferent(SETTINGS.architecture, CORE_ARCHITECTURE_VERSION);
-    await setIfDifferent(SETTINGS.profileId, LEGACY_PROFILE_ID);
-    await setIfDifferent(SETTINGS.profileVersion, LEGACY_PROFILE_VERSION);
+    if (!before.profileId) await setIfDifferent(SETTINGS.profileId, targetProfileId);
+    if (before.profileVersion < 1) await setIfDifferent(SETTINGS.profileVersion, targetProfileVersion);
 
     await appendMigrationHistory({
       id: M0_MIGRATION_ID,
@@ -93,8 +98,8 @@ export async function runCoreBaselineMigration() {
       fromSchema: before.schemaVersion,
       toSchema: CORE_SCHEMA_VERSION,
       architectureVersion: CORE_ARCHITECTURE_VERSION,
-      profileId: LEGACY_PROFILE_ID,
-      profileVersion: LEGACY_PROFILE_VERSION,
+      profileId: targetProfileId,
+      profileVersion: targetProfileVersion,
       systemVersion,
       appliedAt,
       destructive: false,
@@ -134,7 +139,7 @@ export function installCoreBaseline() {
   });
   game.settings.register(NS, SETTINGS.profileId, {
     name: "Active Rules Profile Id",
-    hint: "M0 metadata only. Existing worlds are tagged as Legacy Mixed; this setting does not change live rules yet.",
+    hint: "M0 metadata only. New worlds default to Legacy Mixed; an explicit later profile selection is preserved across baseline repair.",
     scope: "world",
     config: false,
     type: String,

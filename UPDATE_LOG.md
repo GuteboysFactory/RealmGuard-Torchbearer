@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.1 - 🟡 M10A.0 Profile Foundation / NO GAMEPLAY CHANGE
+
+- Starts M10 — Strict Realm Guard Profile / Rules Ownership from the verified v1.10.0 STABLE / GOLD baseline.
+- Registers an internal Mouse Guard 1E / 2008 foundation profile and a non-selectable `realm-guard-strict` foundation profile.
+- Strict source lineage is now explicit: Mouse Guard RPG 2008 / 1E inheritance with Realm Guard v1.6 overrides.
+- `realm-guard-legacy-mixed` remains the only normal live profile and its gameplay behavior is unchanged.
+- CORE baseline readiness no longer hard-requires the Legacy Mixed profile id.
+- Baseline repair now defaults only uninitialized worlds to Legacy Mixed and preserves any explicit later profile id/version instead of silently forcing Legacy back.
+- Rules Profile runtime can resolve the Strict foundation for read-only QA, but qa.1 exposes no profile switch UI/API and Strict owns no live gameplay.
+- Rules Registry presentation now distinguishes compatibility profiles from foundation-only profiles.
+- Profile metadata exposes selectability/support/activation state for future gated switching.
+- Multi-client profile runtime refresh plumbing is added for future world-setting changes.
+- Adds `qa/m10-profile-foundation-smoke.mjs`.
+- Historical regression smoke version gates are being generalized for the continuing 1.x line; rule assertions remain unchanged.
+- Foundry VTT target remains 13.351.
+- **Next after qa.1 PASS:** M10A.1 — Strict Registry + Conversion Preview.
+
 ## v1.10.0 - 🟢✅ STABLE / GOLD / M9 VERIFIED & CLOSED
 
 - Promoted directly from the fully verified `v1.10.0-qa.5` codebase.
@@ -103,7 +120,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.10.0  
-**Current QA build:** none — v1.10.0 STABLE / GOLD
+**Current QA build:** v1.11.0-qa.1 — M10A.0 Profile Foundation
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD

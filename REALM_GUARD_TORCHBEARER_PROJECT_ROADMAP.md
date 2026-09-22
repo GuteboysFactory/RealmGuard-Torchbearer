@@ -2,12 +2,40 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** none — v1.10.0 promoted from verified qa.5  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — ✅ VERIFIED / CLOSED  
-**Next CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership  
+**Current QA build:** v1.11.0-qa.1 — 🟡 M10A.0 Profile Foundation  
+**Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
+**Next CORE step:** M10A.1 — Strict Registry + Conversion Preview  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
+
+
+### M10 — Strict Realm Guard Profile / Rules Ownership
+
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.1 implements M10A.0 Profile Foundation with **NO INTENDED GAMEPLAY CHANGE**.
+
+Locked source lineage for Strict Realm Guard:
+
+1. Mouse Guard RPG 2008 / 1E provides inherited rules where Realm Guard does not override.
+2. Realm Guard v1.6 provides explicit Realm Guard overrides and setting rules.
+3. Legacy Mixed / Torchbearer-inspired project behavior remains compatibility/optional content and is not silently inherited by Strict Realm Guard.
+
+qa.1 foundation scope:
+
+- internal `mg1e` source foundation registered as non-selectable / non-live
+- `realm-guard-strict` registered as a non-selectable foundation inheriting `mg1e`
+- Legacy Mixed remains the sole normal live rules profile
+- CORE baseline no longer hard-locks readiness to the Legacy profile id
+- uninitialized worlds still default safely to Legacy Mixed
+- explicit future profile metadata survives baseline repair/reload
+- Rules Registry/profile API reports foundation/selectability/support state
+- no profile switch UI/API yet
+- no Actor/Item migration
+- no Wise/Trait/Condition/Inventory/Conflict/Session behavior change
+
+**qa.1 QA gate:** boot/reload v13.351; verify Legacy Mixed remains active; verify registered profiles include `mg1e` and `realm-guard-strict` as foundation-only; verify Strict resolves read-only with lineage `mg1e → realm-guard-strict`; verify no creation/roll/conflict/session regression.
+
+**Next:** M10A.1 — complete Strict Rules Registry manifest + non-destructive Profile Conversion Preview. No live Strict activation before preview/QA is complete.
 
 
 ### M9 — Creation / Recruitment Migration
@@ -126,10 +154,13 @@ The Turn Manager and End Session UI remain presentation/control clients over COR
 
 ## Rule-source precedence
 
-1. Realm Guard rules where the hack overrides the base game.
-2. Mouse Guard RPG 2nd Edition for inherited core mechanics.
-3. Torchbearer 2E only for selected compatible mechanics deliberately adopted by this project.
-4. Explicit Realm Guard / Torchbearer Foundry expansions and optional table rules.
+For **Strict Realm Guard**, source ownership is now locked to:
+
+1. Mouse Guard RPG 2008 / 1E for inherited mechanics.
+2. Realm Guard v1.6 for explicit Realm Guard overrides and setting rules.
+3. Optional/Foundry/Torchbearer-inspired mechanics only when an explicit non-Strict profile or domain override selects them.
+
+The older Realm Guard → Mouse Guard 2E → Torchbearer precedence describes historical Legacy Mixed development only and must not be used as Strict Realm Guard fallback authority.
 
 ## v1.0.6 - Playflow, Advancement & Conflict UX
 
