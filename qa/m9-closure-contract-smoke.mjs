@@ -5,7 +5,12 @@ import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "../module/profiles/realm-guard
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 assert.match(manifest.version, /^1\.10\.0(?:-qa\.\d+)?$/, "M9 closure smoke runs across the v1.10.0 QA/stable line.");
-assert.equal(manifest.manifest, "https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/qa/system.json");
+const releaseChannel = manifest.version.includes("-") ? "qa" : "stable";
+assert.equal(
+  manifest.manifest,
+  `https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/${releaseChannel}/system.json`,
+  `M9 closure manifest must use the gated ${releaseChannel} update channel.`
+);
 
 assert.equal(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.metadata.liveAuthority, "CORE_M9");
 assert.equal(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.metadata.commitAuthority, "CORE_M9");
