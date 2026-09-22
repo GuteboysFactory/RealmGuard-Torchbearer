@@ -2,8 +2,8 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟡 DRAFT LIVE / COMMIT LEGACY  
+**Current QA build:** v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟡 COMMIT PLAN SHADOW / COMMIT LEGACY  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
 **Internal system id:** `realm-guard` (do not rename)
 
@@ -12,7 +12,7 @@
 
 ### M9 — Creation / Recruitment Migration
 
-**Status:** 🟡 ACTIVE — v1.10.0-qa.2 draft/recalculation/validation live handoff.
+**Status:** 🟡 ACTIVE — v1.10.0-qa.3 transactional commit plan / Foundry adapter shadow.
 
 qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
 
@@ -34,9 +34,11 @@ qa.1 establishes the generic Character Creation domain boundary without changing
 
 **qa.1 result:** 🟢✅ PASS in Foundry VTT 13.351. Guided + Quick, Back/Cancel, M8 relationship regression and representative final parity were verified with zero mismatches.
 
-**qa.2 active scope:** CORE M9 now owns CreationDraft recalculation, derived restrictions and per-step validation behind the existing Recruitment UI. Back recalculates through CORE. Legacy Recruitment still owns the actual Actor/Item mutation commit. The unreliable pseudo-live Station/Nature/Resources/Circles summary rows are removed; static requirements and Review remain.
+**qa.2 result:** 🟢✅ PASS in Foundry VTT 13.351. CORE draft/validation authority, Back recalculation, validation gates, UI cleanup and full creation regression verified.
 
-**Planned next:** qa.3 introduces a transactional CORE CreationCommitPlan/Foundry adapter in shadow, without creating a second Actor.
+**qa.3 active scope:** CORE now builds the complete CreationCommitPlan and a Foundry commit adapter preview in shadow. The plan includes Actor payload, legacy compatibility flags, canonical Skill ratings, Traits, Wises, Gear, Conditions, relationships, provenance and compensating rollback semantics. Legacy Recruitment remains the only live mutation authority; the qa.3 adapter refuses live execution and never creates a second Actor. Relationship NPC review remains outside the atomic character transaction.
+
+**Planned next:** qa.4 promotes the verified commit plan/adapter to live authority with compensating rollback, provenance write and normalized M8 relationship commit.
 
 
 ### M8 — Social Network Migration

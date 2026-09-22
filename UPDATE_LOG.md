@@ -1,7 +1,22 @@
 # Realm Guard - Update Log
 
 
-## v1.10.0-qa.2 - QA / M9 Draft / Recalculation / Validation Live Handoff
+## v1.10.0-qa.3 - QA / M9 Transactional Commit Plan / Foundry Adapter Shadow
+
+- Built after v1.10.0-qa.2 live QA passed in Foundry VTT 13.351.
+- Adds a full profile-owned CORE CreationCommitPlan for the current Legacy Mixed Recruitment result.
+- Plan covers Actor system data, Recruitment compatibility flags, canonical Skill ratings, Traits, unrated Wises, Gear, canonical Conditions, structured/normalized relationships and CreationProvenance.
+- Adds a FoundryCreationCommitAdapter in strict shadow-only mode. It expands the abstract plan into Foundry mutation phases but refuses live execution.
+- Adds independent Legacy commit projection and compares it against the CORE/Foundry preview before the real Legacy commit.
+- Adds commitParity / commitMismatchedFields telemetry alongside the existing derived-result parity.
+- Defines compensating rollback semantics: any critical failure after Actor creation will delete the newly created Actor when CORE commit goes live.
+- Chat output and GM-controlled Relationship NPC review are explicitly outside the atomic character transaction.
+- No second Actor is created, no CORE embedded documents are written, no provenance is written and no normalized M8 relationship write occurs in qa.3.
+- Legacy `createRanger` remains the sole live commit authority.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.3.md`.
+
+
+## v1.10.0-qa.2 - 🟢✅ PASS / M9 Draft / Recalculation / Validation Live Handoff
 
 - Built from v1.10.0-qa.1 after live Foundry 13.351 QA passed Guided/Quick, Back/Cancel, M8 regression and representative final CORE parity.
 - CORE M9 becomes live authority for Recruitment draft recalculation, derived restrictions and per-step validation.
@@ -13,7 +28,8 @@
 - Legacy calculations are retained independently for final parity comparison and safe validation fallback if the CORE validation layer throws.
 - Removes stale pseudo-live Station values, Nature Current result and Resources/Circles Starting result rows. Static budgets, rule copy, validation warnings and final Review remain.
 - No Actor migration, no CreationProvenance write and no automatic NPC creation.
-- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.2.md`.
+- Live Foundry VTT 13.351 QA passed authority split, Back recalculation, validation gates, UI cleanup and full creation regression.
+- Test status: **🟢✅ PASS**. See `TEST_PROTOCOL_v1.10.0-qa.2.md`.
 
 
 ## v1.10.0-qa.1 - 🟢✅ PASS / M9 Generic Character Creation Foundation / Shadow
@@ -35,7 +51,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.9.0  
-**Current QA build:** v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff
+**Current QA build:** v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD

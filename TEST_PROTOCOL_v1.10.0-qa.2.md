@@ -1,5 +1,7 @@
 # v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff QA
 
+**QA RESULT:** 🟢✅ PASS — authority split, Back recalculation, validation gates, UI cleanup and full creation regression verified in Foundry VTT 13.351.
+
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.9.0  
 **Previous M9 gate:** v1.10.0-qa.1 PASS  

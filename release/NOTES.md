@@ -1,17 +1,15 @@
-Realm Guard / Torchbearer v1.10.0-qa.2 — M9 Draft / Recalculation / Validation Live Handoff
+Realm Guard / Torchbearer v1.10.0-qa.3 — M9 Transactional Commit Plan / Foundry Adapter Shadow
 
-Built from verified v1.10.0-qa.1 PASS.
+Built from verified v1.10.0-qa.2 PASS.
 
 Highlights:
-- CORE M9 now owns Recruitment CreationDraft recalculation, derived restrictions and step validation.
-- Existing Guided/Quick Recruitment UI remains in place.
-- Back recalculates through CORE before returning to earlier steps.
-- Legacy createRanger remains the sole live Actor/Item commit authority.
-- Final independent Legacy-vs-CORE parity observation remains active.
-- Unique Specialty validation uses CreationPartyContext.
-- Removes unreliable pseudo-live Station/Nature/Resources/Circles summary rows; static requirements and final Review remain.
-- No Actor migration.
-- No CreationProvenance write yet.
-- M8 Social Network / relationship NPC behavior remains unchanged.
+- CORE M9 now builds the complete CreationCommitPlan for current Legacy Mixed Recruitment.
+- Adds a FoundryCreationCommitAdapter preview with explicit transaction phases and compensating rollback semantics.
+- Adds independent Legacy commit projection and commit-level parity telemetry.
+- Actor data, legacy Recruitment flags, Skills, Traits, Wises, Gear, Conditions, Relationships and CreationProvenance are represented in the CORE plan.
+- Legacy createRanger remains the sole live mutation authority.
+- CORE adapter is shadow-only and refuses live execution.
+- No second Actor, no live provenance write and no normalized M8 relationship write.
+- Chat and GM-controlled Relationship NPC review remain post-commit/outside the atomic boundary.
 - Gameplay change: NONE INTENDED.
 - Foundry VTT 13.351 target.

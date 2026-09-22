@@ -4,8 +4,10 @@ import {
   comparableCreationSnapshot
 } from "./core/m9-creation.mjs";
 import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "./profiles/realm-guard-legacy-mixed-creation.mjs";
+import { FoundryCreationCommitAdapter, compareCommitProjections } from "./m9-creation-commit-adapter.mjs";
 
 const engine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
+const commitAdapter = new FoundryCreationCommitAdapter({ shadowOnly: true });
 const history = [];
 const draftEvents = [];
 const draftByState = new WeakMap();
@@ -164,26 +166,38 @@ export function validateM9RecruitmentStep(state, stepId) {
   });
 }
 
-export function observeM9RecruitmentDraft(state, legacyProjection = {}) {
+export function observeM9RecruitmentDraft(state, legacyProjection = {}, legacyCommitProjection = null) {
   const draft = syncM9RecruitmentDraft(state, { stepId: "review", reason: "final-parity" });
   const core = coreSnapshot(draft);
   const legacy = comparableCreationSnapshot(legacyProjection);
   const fields = Object.keys(core);
   const mismatchedFields = fields.filter(key => JSON.stringify(core[key]) !== JSON.stringify(legacy[key]));
   const commitPlan = engine.buildCommitPlan(draft, partyContext());
+  const commitPreview = commitAdapter.preview(commitPlan, {
+    isGM: Boolean(globalThis.game?.user?.isGM),
+    userId: String(globalThis.game?.user?.id ?? "")
+  });
+  const commitComparison = legacyCommitProjection
+    ? compareCommitProjections(commitPreview.projection, legacyCommitProjection)
+    : freeze({ parity: null, mismatchedFields: [], core: commitPreview.projection, legacy: null });
   const event = freeze({
     at: new Date().toISOString(),
     scope: "M9_CREATION_PARITY",
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "LEGACY_RECRUITMENT",
+    commitShadowAuthority: "CORE_M9_PLAN_AND_FOUNDRY_ADAPTER",
     liveDraft: true,
     liveCommit: false,
+    commitPlanLiveMutation: false,
     parity: mismatchedFields.length === 0,
     mismatchedFields,
+    commitParity: commitComparison.parity,
+    commitMismatchedFields: commitComparison.mismatchedFields,
     legacy,
     core,
-    commitPlan
+    commitPlan,
+    commitPreview
   });
   history.push(event);
   if (history.length > MAX_HISTORY) history.shift();
@@ -195,19 +209,23 @@ export function getM9CreationShadowStatus() {
   const rows = [...history];
   return freeze({
     phase: "M9",
-    buildScope: "GENERIC_CHARACTER_CREATION_DRAFT_HANDOFF",
-    mode: "DRAFT_LIVE_COMMIT_LEGACY",
+    buildScope: "GENERIC_CHARACTER_CREATION_COMMIT_PLAN_SHADOW",
+    mode: "DRAFT_LIVE_COMMIT_PLAN_SHADOW",
     authority: "SPLIT",
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "LEGACY_RECRUITMENT",
-    liveApplication: { draft: true, validation: true, commit: false },
+    commitShadowAuthority: "CORE_M9_PLAN_AND_FOUNDRY_ADAPTER",
+    liveApplication: { draft: true, validation: true, commitPlan: true, commit: false },
     profileId: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id,
     profileVersion: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.version,
     observations: rows.length,
     draftUpdates: draftEvents.length,
     mismatches: rows.filter(row => !row.parity).length,
     allParity: rows.length > 0 && rows.every(row => row.parity),
+    commitObservations: rows.filter(row => row.commitParity !== null).length,
+    commitMismatches: rows.filter(row => row.commitParity === false).length,
+    allCommitParity: rows.some(row => row.commitParity !== null) && rows.filter(row => row.commitParity !== null).every(row => row.commitParity === true),
     capabilities: [
       "CreationDraft",
       "CharacterCreationProfile",
@@ -216,6 +234,8 @@ export function getM9CreationShadowStatus() {
       "CreationPartyContext",
       "CreationReview",
       "CreationCommitPlan",
+      "FoundryCreationCommitAdapter",
+      "CompensatingRollbackPlan",
       "CreationProvenance"
     ]
   });
@@ -235,8 +255,12 @@ export function installM9CreationShadow() {
       createDraftFromLegacyState: fromLegacyState,
       syncDraft: syncM9RecruitmentDraft,
       validateStep: validateM9RecruitmentStep,
-      buildCommitPlanFromLegacyState: state => engine.buildCommitPlan(fromLegacyState(state), partyContext())
+      buildCommitPlanFromLegacyState: state => engine.buildCommitPlan(fromLegacyState(state), partyContext()),
+      buildCommitPreviewFromLegacyState: state => commitAdapter.preview(engine.buildCommitPlan(fromLegacyState(state), partyContext()), {
+        isGM: Boolean(globalThis.game?.user?.isGM),
+        userId: String(globalThis.game?.user?.id ?? "")
+      })
     });
-    console.log("realm-guard | CORE M9 draft/recalculation/validation live; Legacy Recruitment commit retained", getM9CreationShadowStatus());
+    console.log("realm-guard | CORE M9 commit plan + Foundry adapter shadow active; Legacy Recruitment commit retained", getM9CreationShadowStatus());
   });
 }

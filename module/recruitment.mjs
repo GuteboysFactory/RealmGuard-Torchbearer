@@ -1,5 +1,5 @@
-import { ensureDefaultSkills } from "./default-skills.mjs";
-import { ensureDefaultConditions } from "./conditions.mjs";
+import { ensureDefaultSkills, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
@@ -1115,6 +1115,118 @@ export function buildLegacyRecruitmentParitySnapshot(state) {
   };
 }
 
+
+export function buildLegacyRecruitmentCommitProjection(state) {
+  const s = station(state);
+  const home = HOMELANDS[state.homelandKey];
+  const structuredRelationships = structuredRelationshipFlag(state);
+  const enemy = formatLegacyPerson(state.enemyName, state.enemyPeople, state.enemyLocation);
+  const friend = formatLegacyPerson(state.friend, state.friendProfession, state.friendLocation);
+  const parentNames = [
+    state.mom ? `Mom: ${formatLegacyPerson(state.mom, state.momProfession, state.momLocation)}` : "",
+    state.dad ? `Dad: ${formatLegacyPerson(state.dad, state.dadProfession, state.dadLocation)}` : ""
+  ].filter(Boolean).join("; ");
+  const skillChecks = computeSkillChecks(state);
+  const traitChecks = computeTraitChecks(state);
+  const wiseChecks = wiseCheckMap(state);
+  const weapon = WEAPONS.find(w => w.name === state.weapon) ?? WEAPONS.find(w => w.name === "Sword");
+  const skillRatings = RG_DEFAULT_SKILLS.map(name => {
+    const checks = Number(skillChecks.get(name) ?? 0);
+    const rating = checks > 0 ? Math.min(6, checks + 1) : 0;
+    return { name, rating, learning: learningForRating(rating), beginnerAttempts: 0 };
+  });
+  const traits = [...traitChecks.entries()].map(([name, count]) => ({
+    name, type: "trait", flags: { "realm-guard": { recruitmentTrait: true } },
+    system: { rating: Math.min(3, Number(count) || 0), description: "Selected during Realm Guard Recruitment." }
+  }));
+  const wises = [...wiseChecks.keys()].map(name => ({
+    name, type: "wise", flags: { "realm-guard": { recruitmentWise: true } },
+    system: { description: "Selected during Realm Guard Recruitment. Wises are unrated in the current Realm Guard / Legacy Mixed profile. If your table uses Mouse Guard 1st Edition-style rated Wises, represent them as custom Skills." }
+  }));
+  const gear = [gearDocument(weapon.name, { hands: weapon.hands, mode: "hand", location: "right-hand", description: "Starting weapon chosen during Realm Guard Recruitment." })];
+  if (state.armor) gear.push(gearDocument(state.armor, { mode: "worn", location: "torso", description: "Armor recorded during Realm Guard Recruitment." }));
+  for (const name of state.distinctiveGear.split(",").map(value => value.trim()).filter(Boolean)) {
+    gear.push(gearDocument(name, { description: "Distinctive gear recorded during Realm Guard Recruitment." }));
+  }
+  return {
+    actor: {
+      name: state.name,
+      type: "character",
+      folder: PC_FOLDER_NAME,
+      ownershipPolicy: "CREATOR_OWNER_IF_NON_GM",
+      ownership: game.user?.isGM ? null : { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE, [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
+      system: {
+        biographySource: state.background,
+        notes: "",
+        concept: state.concept,
+        rank: state.rank,
+        homeland: home.label,
+        age: String(state.age),
+        lineage: state.lineage,
+        insignia: state.insignia,
+        seniorArtisan: `${state.seniorArtisan} - ${state.seniorArtisanProfession || state.apprenticeship}`,
+        friend,
+        cloak: "",
+        weapon: "",
+        mentor: formatLegacyPerson(state.mentor, state.mentorRole, state.mentorLocation),
+        enemy,
+        parents: parentNames,
+        belief: state.belief,
+        goal: state.goal,
+        instinct: state.instinct,
+        attributes: {
+          nature: { value: computeNature(state), maximum: computeNature(state) },
+          will: { value: s.will, max: 6 },
+          health: { value: s.health, max: 6 },
+          resources: { value: computeResources(state), max: 10 },
+          circles: { value: computeCircles(state), max: 10 }
+        },
+        resources: { fate: { value: 1, max: 5 }, persona: { value: 1, max: 5 }, checks: { value: 0, max: 9 } },
+        roll: { versus: false, obstacle: 1, modifier: 0 }
+      },
+      flags: {
+        "realm-guard": {
+          recruitmentVersion: "0.20.0",
+          recruitmentSpecialty: state.specialty || "",
+          recruitmentWiseChecks: Object.fromEntries(wiseChecks),
+          recruitmentSkillChecks: Object.fromEntries(skillChecks),
+          recruitmentNatureAnswers: foundry.utils.deepClone(state.natureAnswers),
+          recruitmentResourceAnswers: foundry.utils.deepClone(state.resourceAnswers),
+          recruitmentCircleAnswers: foundry.utils.deepClone(state.circleAnswers),
+          recruitmentMentorRuleConfirmed: Boolean(state.mentorRuleConfirmed),
+          recruitmentRelationships: structuredRelationships,
+          recruitmentMother: state.mom || "",
+          recruitmentFather: state.dad || "",
+          recruitmentEnemyHouseRule: Boolean(state.allowEnemyServant)
+        }
+      }
+    },
+    skills: skillRatings,
+    traits,
+    wises,
+    gear,
+    conditions: RG_DEFAULT_CONDITIONS.map(entry => entry.name),
+    relationships: {
+      compatibilityFlag: structuredRelationships,
+      normalized: [
+        state.mom ? { slot: "parent-mother", person: { name: state.mom, profession: state.momProfession, people: "", location: state.momLocation, role: "" }, role: "PARENT", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
+        state.dad ? { slot: "parent-father", person: { name: state.dad, profession: state.dadProfession, people: "", location: state.dadLocation, role: "" }, role: "PARENT", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
+        state.seniorArtisan ? { slot: "senior-artisan", person: { name: state.seniorArtisan, profession: state.seniorArtisanProfession, people: "", location: state.seniorArtisanLocation, role: "" }, role: "SENIOR_ARTISAN", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
+        state.mentor ? { slot: "mentor", person: { name: state.mentor, profession: "", people: "", location: state.mentorLocation, role: state.mentorRole }, role: "MENTOR", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
+        state.friend ? { slot: "friend", person: { name: state.friend, profession: state.friendProfession, people: "", location: state.friendLocation, role: "" }, role: "FRIEND", status: "FRIENDLY", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null,
+        state.enemyName ? { slot: "enemy", person: { name: state.enemyName, profession: state.enemyProfession, people: state.enemyPeople, location: state.enemyLocation, role: "" }, role: "ENEMY", status: "HOSTILE", origin: "RECRUITMENT", writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT" } : null
+      ].filter(Boolean),
+      liveWrite: false,
+      plannedLiveService: "CORE_M8_SOCIAL_NETWORK"
+    },
+    provenance: {
+      profileId: "realm-guard-legacy-mixed",
+      profileVersion: 3,
+      writeLive: false
+    }
+  };
+}
+
 async function createRanger(state) {
   const s = station(state);
   const home = HOMELANDS[state.homelandKey];
@@ -1231,8 +1343,8 @@ export async function openRecruitmentWizard({ mode = null } = {}) {
   if (index !== STEPS.length) return null;
 
   try {
-    const m9Shadow = observeM9RecruitmentDraft(state, buildLegacyRecruitmentParitySnapshot(state));
-    if (!m9Shadow.parity) console.warn("Realm Guard | M9 Creation shadow parity mismatch", m9Shadow);
+    const m9Shadow = observeM9RecruitmentDraft(state, buildLegacyRecruitmentParitySnapshot(state), buildLegacyRecruitmentCommitProjection(state));
+    if (!m9Shadow.parity || m9Shadow.commitParity === false) console.warn("Realm Guard | M9 Creation parity mismatch", m9Shadow);
   } catch (error) {
     console.error("Realm Guard | M9 Creation shadow observation failed; Legacy Recruitment remains authoritative", error);
   }

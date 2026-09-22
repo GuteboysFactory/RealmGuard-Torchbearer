@@ -47,7 +47,7 @@ export class CreationDraft {
 }
 
 export class CharacterCreationProfile {
-  constructor({ id, version = 1, name, steps = [], dimensions = [], rules = {}, grants = {}, metadata = {}, derive, validateStep = null } = {}) {
+  constructor({ id, version = 1, name, steps = [], dimensions = [], rules = {}, grants = {}, metadata = {}, derive, validateStep = null, buildCommitSpec = null } = {}) {
     if (!id || !name) throw new Error("CharacterCreationProfile requires id and name.");
     if (typeof derive !== "function") throw new Error("CharacterCreationProfile requires a derive function.");
     this.id = String(id);
@@ -60,6 +60,7 @@ export class CharacterCreationProfile {
     this.metadata = clonePlain(metadata);
     this.derive = derive;
     this.validateStep = typeof validateStep === "function" ? validateStep : null;
+    this.buildCommitSpec = typeof buildCommitSpec === "function" ? buildCommitSpec : null;
     Object.freeze(this.steps);
     Object.freeze(this.dimensions);
     Object.freeze(this.rules);
@@ -97,6 +98,42 @@ export class CreationValidator {
     }
 
     return deepFreeze({ valid: errors.length === 0, errors, warnings });
+  }
+}
+
+export class CreationCommitPlan {
+  constructor({
+    profileId,
+    profileVersion,
+    validation,
+    review,
+    provenance,
+    actor = {},
+    provisioning = {},
+    relationships = {},
+    postCommit = [],
+    transaction = {}
+  } = {}) {
+    this.kind = "CreationCommitPlan";
+    this.liveMutation = false;
+    this.profileId = String(profileId ?? "");
+    this.profileVersion = Number(profileVersion || 1);
+    this.validation = clonePlain(validation ?? { valid: false, errors: [], warnings: [] });
+    this.review = clonePlain(review ?? {});
+    this.provenance = clonePlain(provenance ?? {});
+    this.actor = clonePlain(actor);
+    this.provisioning = clonePlain(provisioning);
+    this.relationships = clonePlain(relationships);
+    this.postCommit = clonePlain(postCommit);
+    this.transaction = clonePlain({
+      mode: "COMPENSATING_ROLLBACK",
+      liveExecution: false,
+      atomicBoundary: "ACTOR_AND_EMBEDDED_DOCUMENTS",
+      criticalPhases: ["CREATE_ACTOR", "PROVISION_SKILLS", "CREATE_ITEMS", "PROVISION_CONDITIONS"],
+      compensation: [{ onFailureAfter: "CREATE_ACTOR", action: "DELETE_CREATED_ACTOR" }],
+      ...transaction
+    });
+    deepFreeze(this);
   }
 }
 
@@ -177,17 +214,26 @@ export class CharacterCreationEngine {
     });
   }
 
-  buildCommitPlan(draft, partyContext = new CreationPartyContext()) {
+  buildCommitPlan(draft, partyContext = new CreationPartyContext(), context = {}) {
     const current = this.recalculate(draft);
     const validation = this.validate(current, partyContext);
-    return deepFreeze({
-      kind: "CreationCommitPlan",
-      liveMutation: false,
+    const review = this.buildReview(current, partyContext);
+    const provenance = this.buildProvenance(current);
+    const spec = this.profile.buildCommitSpec?.({
+      draft: current,
+      partyContext,
+      profile: this.profile,
+      review,
+      provenance,
+      context: clonePlain(context)
+    }) ?? {};
+    return new CreationCommitPlan({
       profileId: this.profile.id,
       profileVersion: this.profile.version,
       validation,
-      review: this.buildReview(current, partyContext),
-      provenance: this.buildProvenance(current)
+      review,
+      provenance,
+      ...spec
     });
   }
 

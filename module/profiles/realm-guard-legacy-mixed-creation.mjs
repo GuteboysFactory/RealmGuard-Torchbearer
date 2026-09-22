@@ -23,7 +23,12 @@ const NATURE_EFFECTS = Object.freeze({ danger: -1, secondAge: 1, loss: 1, wilds:
 const RESOURCE_EFFECTS = Object.freeze({ trade: 1, parentsWealth: 1, gifts: -1, thrifty: 1, debt: -1, pack: 1 });
 const CIRCLES_EFFECTS = Object.freeze({ gregarious: 1, rangerTies: 1, reputation: 1, enemies: -1, crime: -1, loner: -1 });
 const ENEMY_SERVANTS_HOUSE_RULE = Object.freeze(["Orc", "Troll", "Warg", "Spider", "Other servant of the Enemy"]);
-const WEAPON_NAMES = Object.freeze(["Shield", "Knife", "Sword", "Staff", "Spear", "Whip", "Halberd", "Sling", "Bow"]);
+const WEAPONS = Object.freeze([
+  { name: "Shield", hands: 1 }, { name: "Knife", hands: 1 }, { name: "Sword", hands: 1 },
+  { name: "Staff", hands: 2 }, { name: "Spear", hands: 2 }, { name: "Whip", hands: 1 },
+  { name: "Halberd", hands: 2 }, { name: "Sling", hands: 1 }, { name: "Bow", hands: 2 }
+]);
+const WEAPON_NAMES = Object.freeze(WEAPONS.map(entry => entry.name));
 
 function sumChecks(...parts) {
   const map = {};
@@ -263,9 +268,211 @@ function validateStep({ stepId, draft, partyContext }) {
   return { errors, warnings: [] };
 }
 
+function cleanPerson(person = {}) {
+  return {
+    name: String(person.name ?? "").trim(),
+    profession: String(person.profession ?? "").trim(),
+    people: String(person.people ?? "").trim(),
+    location: String(person.location ?? "").trim(),
+    role: String(person.role ?? "").trim()
+  };
+}
+
+function structuredRelationships(answers = {}) {
+  const relationships = answers.relationships ?? {};
+  return {
+    version: 1,
+    homeland: HOMELANDS[answers.homelandKey]?.label ?? "",
+    mother: cleanPerson(relationships.mother),
+    father: cleanPerson(relationships.father),
+    seniorArtisan: cleanPerson(relationships.seniorArtisan),
+    mentor: cleanPerson({
+      ...relationships.mentor,
+      profession: relationships.mentor?.role || "Ranger"
+    }),
+    friend: cleanPerson(relationships.friend),
+    enemy: cleanPerson(relationships.enemy)
+  };
+}
+
+function formatLegacyPerson(person = {}, secondaryKey = "profession") {
+  const secondary = secondaryKey === "people" ? person.people : (person.profession || person.role);
+  return [person.name, secondary, person.location].map(value => String(value ?? "").trim()).filter(Boolean).join(", ");
+}
+
+function skillLearningForRating(rating) {
+  const r = Number(rating ?? 0);
+  if (r <= 0) return { passed: 0, failed: 0, passNeeded: 1, failNeeded: 1 };
+  if (r === 1) return { passed: 0, failed: 0, passNeeded: 1, failNeeded: 0 };
+  return { passed: 0, failed: 0, passNeeded: r, failNeeded: r - 1 };
+}
+
+function gearSpec(name, { hands = 0, location = "", mode = "unassigned", description = "Created during Realm Guard Recruitment." } = {}) {
+  return {
+    name,
+    type: "gear",
+    flags: { "realm-guard": { recruitmentGear: true } },
+    system: {
+      quantity: 1,
+      description,
+      inventory: { mode, location, containerId: "", slots: 1, bundle: 1, wieldHands: hands, containerType: "none", capacity: 0 }
+    }
+  };
+}
+
+function normalizedRelationshipPlan(answers = {}) {
+  const rel = answers.relationships ?? {};
+  const rows = [
+    ["parent-mother", rel.mother, "PARENT", "UNKNOWN"],
+    ["parent-father", rel.father, "PARENT", "UNKNOWN"],
+    ["senior-artisan", rel.seniorArtisan, "SENIOR_ARTISAN", "UNKNOWN"],
+    ["mentor", rel.mentor, "MENTOR", "UNKNOWN"],
+    ["friend", rel.friend, "FRIEND", "FRIENDLY"],
+    ["enemy", rel.enemy, "ENEMY", "HOSTILE"]
+  ];
+  return rows
+    .filter(([, person]) => String(person?.name ?? "").trim())
+    .map(([slot, person, role, status]) => ({
+      slot,
+      person: cleanPerson(person),
+      role,
+      status,
+      origin: "RECRUITMENT",
+      writeMode: "CORE_M8_SERVICE_ON_LIVE_COMMIT"
+    }));
+}
+
+function buildCommitSpec({ draft }) {
+  const a = draft.answers ?? {};
+  const d = draft.derivedValues ?? {};
+  const identity = d.identity ?? {};
+  const abilities = d.abilities ?? {};
+  const resources = d.resources ?? {};
+  const relationships = a.relationships ?? {};
+  const structured = structuredRelationships(a);
+  const mother = relationships.mother ?? {};
+  const father = relationships.father ?? {};
+  const artisan = relationships.seniorArtisan ?? {};
+  const mentor = relationships.mentor ?? {};
+  const friend = relationships.friend ?? {};
+  const enemy = relationships.enemy ?? {};
+  const parentNames = [
+    mother.name ? `Mom: ${formatLegacyPerson(mother)}` : "",
+    father.name ? `Dad: ${formatLegacyPerson(father)}` : ""
+  ].filter(Boolean).join("; ");
+  const skillRatings = Object.fromEntries(Object.entries(d.skillChecks ?? {}).map(([name, checks]) => {
+    const rating = Number(checks) > 0 ? Math.min(6, Number(checks) + 1) : 0;
+    return [name, { rating, learning: skillLearningForRating(rating), beginnerAttempts: 0 }];
+  }));
+  const traitDocs = Object.entries(d.traitChecks ?? {}).map(([name, count]) => ({
+    name,
+    type: "trait",
+    flags: { "realm-guard": { recruitmentTrait: true } },
+    system: { rating: Math.min(3, Number(count) || 0), description: "Selected during Realm Guard Recruitment." }
+  }));
+  const wiseDocs = Object.keys(d.wiseChecks ?? {}).map(name => ({
+    name,
+    type: "wise",
+    flags: { "realm-guard": { recruitmentWise: true } },
+    system: { description: "Selected during Realm Guard Recruitment. Wises are unrated in the current Realm Guard / Legacy Mixed profile. If your table uses Mouse Guard 1st Edition-style rated Wises, represent them as custom Skills." }
+  }));
+  const weapon = WEAPONS.find(entry => entry.name === a.weapon) ?? WEAPONS.find(entry => entry.name === "Sword");
+  const gearDocs = [
+    gearSpec(weapon.name, { hands: weapon.hands, mode: "hand", location: "right-hand", description: "Starting weapon chosen during Realm Guard Recruitment." }),
+    ...(String(a.armor ?? "").trim() ? [gearSpec(String(a.armor).trim(), { mode: "worn", location: "torso", description: "Armor recorded during Realm Guard Recruitment." })] : []),
+    ...String(a.distinctiveGear ?? "").split(",").map(value => value.trim()).filter(Boolean).map(name => gearSpec(name, { description: "Distinctive gear recorded during Realm Guard Recruitment." }))
+  ];
+
+  return {
+    actor: {
+      name: identity.name,
+      type: "character",
+      folder: { documentName: "Actor", name: "PC" },
+      ownershipPolicy: "CREATOR_OWNER_IF_NON_GM",
+      createOptions: { realmGuardSkipRecruitmentProvisioning: true },
+      system: {
+        biographySource: String(a.background ?? ""),
+        notes: "",
+        concept: identity.concept,
+        rank: identity.rank,
+        homeland: identity.homeland,
+        age: String(identity.age),
+        lineage: String(relationships.lineage ?? ""),
+        insignia: String(relationships.insignia ?? ""),
+        seniorArtisan: `${String(artisan.name ?? "")} - ${String(artisan.profession || a.apprenticeship || "")}`,
+        friend: formatLegacyPerson(friend),
+        cloak: "",
+        weapon: "",
+        mentor: formatLegacyPerson(mentor),
+        enemy: formatLegacyPerson(enemy, "people"),
+        parents: parentNames,
+        belief: String(a.drives?.belief ?? ""),
+        goal: String(a.drives?.goal ?? ""),
+        instinct: String(a.drives?.instinct ?? ""),
+        attributes: {
+          nature: { value: Number(abilities.nature ?? 0), maximum: Number(abilities.nature ?? 0) },
+          will: { value: Number(abilities.will ?? 0), max: 6 },
+          health: { value: Number(abilities.health ?? 0), max: 6 },
+          resources: { value: Number(abilities.resources ?? 0), max: 10 },
+          circles: { value: Number(abilities.circles ?? 0), max: 10 }
+        },
+        resources: {
+          fate: { value: Number(resources.fate ?? 1), max: 5 },
+          persona: { value: Number(resources.persona ?? 1), max: 5 },
+          checks: { value: Number(resources.checks ?? 0), max: 9 }
+        },
+        roll: { versus: false, obstacle: 1, modifier: 0 }
+      },
+      flags: {
+        "realm-guard": {
+          recruitmentVersion: "0.20.0",
+          recruitmentSpecialty: String(a.specialty ?? ""),
+          recruitmentWiseChecks: { ...(d.wiseChecks ?? {}) },
+          recruitmentSkillChecks: { ...(d.skillChecks ?? {}) },
+          recruitmentNatureAnswers: { ...(a.natureAnswers ?? {}) },
+          recruitmentResourceAnswers: { ...(a.resourceAnswers ?? {}) },
+          recruitmentCircleAnswers: { ...(a.circleAnswers ?? {}) },
+          recruitmentMentorRuleConfirmed: Boolean(a.mentorRuleConfirmed),
+          recruitmentRelationships: structured,
+          recruitmentMother: String(mother.name ?? ""),
+          recruitmentFather: String(father.name ?? ""),
+          recruitmentEnemyHouseRule: Boolean(a.allowEnemyServant)
+        }
+      }
+    },
+    provisioning: {
+      canonicalSkills: { mode: "ENSURE_DEFAULT_SET", ratings: skillRatings },
+      traits: traitDocs,
+      wises: wiseDocs,
+      gear: gearDocs,
+      canonicalConditions: { mode: "ENSURE_DEFAULT_SET" }
+    },
+    relationships: {
+      compatibilityFlag: structured,
+      normalized: normalizedRelationshipPlan(a),
+      liveWrite: false,
+      plannedLiveService: "CORE_M8_SOCIAL_NETWORK"
+    },
+    postCommit: [
+      { kind: "CHAT_RECRUITED", critical: false, outsideAtomicBoundary: true },
+      { kind: "RELATIONSHIP_NPC_REVIEW", critical: false, outsideAtomicBoundary: true, gmControlled: true, automaticNpcCreation: false }
+    ],
+    transaction: {
+      mode: "COMPENSATING_ROLLBACK",
+      liveExecution: false,
+      atomicBoundary: "ACTOR_AND_EMBEDDED_DOCUMENTS",
+      criticalPhases: ["CREATE_ACTOR", "PROVISION_SKILLS", "CREATE_ITEMS", "PROVISION_CONDITIONS", "NORMALIZE_RELATIONSHIPS"],
+      compensation: [{ onFailureAfter: "CREATE_ACTOR", action: "DELETE_CREATED_ACTOR" }],
+      provenanceWrite: false,
+      relationshipWrite: false,
+      postCommitOutsideTransaction: ["CHAT_RECRUITED", "RELATIONSHIP_NPC_REVIEW"]
+    }
+  };
+}
+
 export const REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE = new CharacterCreationProfile({
   id: CREATION_PROFILE_ID,
-  version: 2,
+  version: 3,
   name: "Realm Guard — Legacy Mixed Recruitment",
   dimensions: [
     { id: "station", label: "Station", options: STATIONS },
@@ -301,12 +508,14 @@ export const REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE = new CharacterCreationPr
   metadata: {
     liveAuthority: "CORE_M9_DRAFT_VALIDATION",
     commitAuthority: "LEGACY_RECRUITMENT",
-    coreMode: "DRAFT_LIVE_COMMIT_LEGACY",
+    commitShadow: "CORE_M9_PLAN_AND_FOUNDRY_ADAPTER",
+    coreMode: "DRAFT_LIVE_COMMIT_PLAN_SHADOW",
     source: "v1.9.0 STABLE Recruitment 2.0",
     strictRealmGuard: false
   },
   derive,
-  validateStep
+  validateStep,
+  buildCommitSpec
 });
 
 export {
