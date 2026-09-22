@@ -1,16 +1,16 @@
-Realm Guard / Torchbearer v1.10.0-qa.4 — M9 CORE Live Transactional Commit
+Realm Guard / Torchbearer v1.10.0-qa.5 — M9 Closure / Hardening Candidate
 
-Built from verified v1.10.0-qa.3 PASS.
+Built from verified v1.10.0-qa.4 PASS.
 
 Highlights:
-- CORE M9 is now the normal live Recruitment commit authority.
-- FoundryCreationCommitAdapter executes the verified Actor/Skills/Traits/Wises/Gear/Conditions plan.
-- Recruitment relationships are normalized immediately into M8 Social Network storage without automatic NPC creation.
-- New Rangers receive CreationProvenance with the active Rules Profile snapshot hash.
-- Critical failures after Actor creation trigger compensating rollback by deleting the partial Ranger.
-- Final Legacy-derived and commit projection parity remains a pre-mutation safety gate.
-- Legacy createRanger remains available only through an explicit QA-only pre-mutation fallback mode.
-- Recruitment Chat and Relationship NPC Review remain post-commit side effects and cannot invalidate a successfully created Ranger.
-- Existing Actors are untouched.
-- Gameplay change: NONE INTENDED.
+- No intended gameplay or rules change.
+- CORE M9 remains the sole normal Character Creation authority for draft, validation and transactional commit.
+- Legacy Recruitment comparison is terminology-cleaned as a parity guard, not a shadow/live authority.
+- Legacy createRanger remains only as an explicit QA fallback/reference.
+- QA fallback and fault-injection controls are exposed only in QA builds; stable public M9 API will not expose them.
+- Compensating rollback, CreationProvenance, Rules Profile snapshot hash and immediate M8 Recruitment normalization remain locked.
+- Legacy Mixed compatibility flags and unrated Wise behavior remain preserved.
+- Adds M9 closure-contract smoke and final live regression protocol.
+- Existing Actors are untouched; no synthetic provenance or bulk migration.
+- Gated QA release channel remains mandatory.
 - Foundry VTT 13.351 target.

@@ -1,7 +1,22 @@
 # Realm Guard - Update Log
 
 
-## v1.10.0-qa.4 - QA / M9 CORE Live Transactional Commit
+## v1.10.0-qa.5 - QA / M9 Closure / Hardening Candidate
+
+- Built from live-verified v1.10.0-qa.4 PASS with **NO INTENDED GAMEPLAY CHANGE**.
+- M9 CORE remains the sole normal authority for Creation draft, recalculation, validation and transactional commit.
+- Marks the preserved Legacy Recruitment projection as a parity guard rather than a shadow authority.
+- Keeps Legacy `createRanger` only as an explicit QA fallback/reference; normal mode remains CORE.
+- Public `game.realmGuard.core.m9` exposes Legacy fallback and fault-injection controls only in QA builds. Stable builds will not expose those test controls.
+- Retains compensating rollback, CreationProvenance, active Rules Profile snapshot hash, immediate M8 Recruitment normalization and Legacy Mixed compatibility flags.
+- Adds a dedicated M9 closure-contract smoke covering authority, transaction semantics, compatibility, no automatic NPC creation and gated QA/stable release channels.
+- qa.4 live verification confirmed injected CREATE_ITEMS failure rolled the partial Actor back cleanly with `rollbackError = ""`.
+- Existing Actors remain untouched; no synthetic provenance or bulk creation migration is introduced.
+- Final live regression protocol: `TEST_PROTOCOL_v1.10.0-qa.5.md`.
+- After PASS, promote the identical verified codebase to **v1.10.0 STABLE** and close M9.
+
+
+## v1.10.0-qa.4 - 🟢✅ PASS / M9 CORE Live Transactional Commit
 
 - Built after v1.10.0-qa.3 live Foundry QA verified both derived parity and full commit-plan parity with zero mismatches.
 - CORE M9 is now the normal live Character Creation commit authority.
@@ -14,7 +29,8 @@
 - Final Legacy-vs-CORE derived and commit projection parity remains a pre-mutation safety guard; mismatch blocks CORE creation.
 - Recruitment Chat and GM Relationship NPC Review occur only after successful transaction and are not rollback-critical.
 - Existing Actors are not migrated and receive no synthetic CreationProvenance.
-- Gameplay/rules results: **NO INTENDED CHANGE**. Use `TEST_PROTOCOL_v1.10.0-qa.4.md`.
+- Live Foundry VTT 13.351 QA passed normal CORE creation, rollback fault injection, provenance, M8 normalization, parity and Legacy QA fallback.
+- Test status: **🟢✅ PASS**. See `TEST_PROTOCOL_v1.10.0-qa.4.md`.
 
 
 ## v1.10.0-qa.3 - 🟢✅ PASS / M9 Transactional Commit Plan / Foundry Adapter Shadow
@@ -68,7 +84,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.9.0  
-**Current QA build:** v1.10.0-qa.4 — M9 CORE Live Transactional Commit
+**Current QA build:** v1.10.0-qa.5 — M9 Closure / Hardening Candidate
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD

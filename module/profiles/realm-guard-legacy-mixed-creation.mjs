@@ -508,7 +508,7 @@ export const REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE = new CharacterCreationPr
   metadata: {
     liveAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
-    commitShadow: "LEGACY_RECRUITMENT_PARITY_GUARD",
+    parityGuard: "LEGACY_RECRUITMENT",
     coreMode: "CORE_LIVE_COMMIT",
     source: "v1.9.0 STABLE Recruitment 2.0",
     strictRealmGuard: false

@@ -199,7 +199,7 @@ export function observeM9RecruitmentDraft(state, legacyProjection = {}, legacyCo
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
-    commitShadowAuthority: "LEGACY_RECRUITMENT_PARITY_GUARD",
+    parityGuard: "LEGACY_RECRUITMENT",
     liveDraft: true,
     liveCommit: true,
     commitPlanLiveMutation: Boolean(commitPlan.liveMutation),
@@ -339,8 +339,10 @@ export function getM9CreationShadowStatus() {
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
-    commitShadowAuthority: "LEGACY_RECRUITMENT_PARITY_GUARD",
-    legacyCommitAvailability: qaCommitMode === "LEGACY" ? "QA_OVERRIDE_ACTIVE" : "QA_EXPLICIT_ONLY",
+    parityGuard: "LEGACY_RECRUITMENT",
+    legacyCommitAvailability: qaRuntime()
+      ? (qaCommitMode === "LEGACY" ? "QA_OVERRIDE_ACTIVE" : "QA_EXPLICIT_ONLY")
+      : "DISABLED_IN_STABLE",
     liveApplication: { draft: true, validation: true, commitPlan: true, commit: true, provenance: true, relationships: true },
     profileId: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id,
     profileVersion: REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.version,
@@ -379,15 +381,13 @@ export function installM9CreationShadow() {
     globalThis.game.realmGuard ??= {};
     globalThis.game.realmGuard.core ??= {};
     globalThis.game.realmGuard.core.m9 ??= {};
-    Object.assign(globalThis.game.realmGuard.core.m9, {
+    const api = {
       getStatus: getM9CreationShadowStatus,
       history: () => Object.freeze([...history]),
       draftHistory: () => Object.freeze([...draftEvents]),
       clear: () => { history.length = 0; draftEvents.length = 0; commitEvents.length = 0; qaFaultPhase = ""; return getM9CreationShadowStatus(); },
       commitHistory: () => Object.freeze([...commitEvents]),
-      setCommitMode: setM9CommitMode,
       getCommitMode: () => qaCommitMode,
-      testCommitFailure: setM9CommitFailureTestPhase,
       profile: () => REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE,
       createDraftFromLegacyState: fromLegacyState,
       syncDraft: syncM9RecruitmentDraft,
@@ -398,7 +398,12 @@ export function installM9CreationShadow() {
         userId: String(globalThis.game?.user?.id ?? "")
       }),
       commitRecruitment: commitM9Recruitment
+    };
+    if (qaRuntime()) Object.assign(api, {
+      setCommitMode: setM9CommitMode,
+      testCommitFailure: setM9CommitFailureTestPhase
     });
-    console.log("realm-guard | CORE M9 transactional live commit active; Legacy commit retained as QA-only explicit override", getM9CreationShadowStatus());
+    Object.assign(globalThis.game.realmGuard.core.m9, api);
+    console.log("realm-guard | CORE M9 Character Creation live authority ready; Legacy comparison retained as parity guard", getM9CreationShadowStatus());
   });
 }

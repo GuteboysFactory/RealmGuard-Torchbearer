@@ -1,5 +1,7 @@
 # v1.10.0-qa.4 — M9 CORE Live Transactional Commit QA
 
+**QA RESULT:** 🟢✅ PASS — CORE live creation, rollback fault injection, provenance, M8 normalization, parity guard and Legacy QA fallback verified in Foundry VTT 13.351.
+
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.9.0  
 **Previous M9 gate:** v1.10.0-qa.3 PASS  

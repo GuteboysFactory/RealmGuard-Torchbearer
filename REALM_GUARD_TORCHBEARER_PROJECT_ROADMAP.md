@@ -2,8 +2,8 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** v1.10.0-qa.4 — M9 CORE Live Transactional Commit  
-**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟢 CORE LIVE COMMIT / QA  
+**Current QA build:** v1.10.0-qa.5 — M9 Closure / Hardening Candidate  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟢 CLOSURE CANDIDATE  
 **Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
 **Internal system id:** `realm-guard` (do not rename)
 
@@ -12,7 +12,7 @@
 
 ### M9 — Creation / Recruitment Migration
 
-**Status:** 🟢 ACTIVE — v1.10.0-qa.4 CORE live transactional commit.
+**Status:** 🟢 ACTIVE — v1.10.0-qa.5 closure / hardening candidate.
 
 qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
 
@@ -38,9 +38,13 @@ qa.1 establishes the generic Character Creation domain boundary without changing
 
 **qa.3 result:** 🟢✅ PASS in Foundry VTT 13.351. Derived parity and full commit-plan parity both verified with zero mismatches.
 
-**qa.4 active scope:** CORE M9 is the normal live commit authority. The Foundry adapter creates the Actor, provisions canonical Skills and planned ratings, creates Traits/Wises/Gear, provisions Conditions, normalizes Recruitment relationships through M8, and writes CreationProvenance with the active Rules Profile snapshot. All critical character mutations use compensating rollback: a failure after Actor creation deletes the new partial Ranger. Chat publication and GM Relationship NPC Review remain post-commit/outside the atomic boundary. Legacy createRanger is preserved only as an explicit QA emergency fallback selected before mutation.
+**qa.4 result:** 🟢✅ PASS in Foundry VTT 13.351. CORE live creation, explicit rollback fault injection, CreationProvenance, M8 normalization, Legacy parity guard and QA fallback were verified. Injected CREATE_ITEMS failure removed the partial Ranger and produced no rollback error.
 
-**Planned next:** qa.5 closure / cleanup after live commit, rollback, provenance, M8 normalization and full regression are verified.
+**qa.5 active scope:** closure/hardening only — no intended rules or gameplay changes. CORE M9 remains the single normal Creation authority. Legacy comparison remains a parity guard and its mutation implementation remains only as an explicit QA fallback/reference. QA-only fallback/fault controls are exposed only in QA builds. A dedicated closure smoke locks transactional commit, provenance, M8 normalization, Legacy Mixed compatibility and the gated release channel.
+
+**Closure gate:** Guided + Quick, Back + Cancel, all five Stations, validation/party restrictions, GM + player creation, reload persistence, provenance, M8 storage, old-Actor safety, zero parity mismatches and release-channel update.
+
+**After qa.5 PASS:** promote the identical verified codebase to **v1.10.0 STABLE**, mark M9 **VERIFIED / CLOSED**, then move to M10.
 
 
 ### M8 — Social Network Migration
