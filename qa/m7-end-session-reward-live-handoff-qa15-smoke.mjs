@@ -14,7 +14,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const endSession = fs.readFileSync("module/end-session.mjs", "utf8");
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 
-assert.match(manifest.version, /^1\.(?:9\.0(?:-qa\.\d+)?|10\.0(?:-qa\.\d+)?)$/, "Smoke must accept stable/QA 1.9.0 and 1.10.0 builds.");
+assert.match(manifest.version, /^1\.(?:9\.0(?:-qa\.\d+)?|1[01]\.0(?:-qa\.\d+)?)$/, "Smoke must accept stable/QA 1.9.0 through the current v1.11.0 CORE line.");
 
 const engine = new RewardEngine();
 

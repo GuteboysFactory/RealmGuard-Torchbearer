@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|10\.0(?:-qa\.\d+)?)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10.0 M9 QA/stable line.");
+assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|1[01]\.0(?:-qa\.\d+)?)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10-v1.11 CORE QA/stable lines.");
 assert.equal(manifest.compatibility.minimum, "13");
 assert.equal(manifest.compatibility.maximum, "14");
 assert.equal(manifest.esmodules[0], "module/foundry-compat.mjs");
