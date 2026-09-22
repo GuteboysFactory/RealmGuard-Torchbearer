@@ -2,12 +2,40 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.9.0 — 🟢✅ STABLE  
-**Current QA build:** none — v1.9.0 promoted from v1.9.0-qa.42  
-**Current CORE milestone:** M8 — Social Network Migration — ✅ VERIFIED / CLOSED  
-**Next CORE milestone:** M9 — Creation / Recruitment Migration — NEXT  
+**Current QA build:** v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow  
+**Current CORE milestone:** M9 — Creation / Recruitment Migration — 🟠 FOUNDATION / SHADOW  
+**Next CORE milestone:** M9 — Creation / Recruitment Migration — ACTIVE  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
+
+
+### M9 — Creation / Recruitment Migration
+
+**Status:** 🟠 ACTIVE — v1.10.0-qa.1 foundation/shadow.
+
+qa.1 establishes the generic Character Creation domain boundary without changing live Recruitment behavior:
+
+- CreationDraft
+- CharacterCreationProfile
+- CreationStep / Question / Allocation / Restriction concepts
+- CreationPartyContext
+- CreationValidator
+- CreationReview
+- CreationCommitPlan
+- CreationProvenance
+- Realm Guard Legacy Mixed Creation Profile
+- read-only parity observation from Recruitment 2.0
+- Legacy Recruitment remains the sole live authority
+- CORE Commit plans are preview-only (`liveMutation: false`)
+- no Actor migration
+- no provenance write to existing/new Actors yet
+- M8 Social Network remains closed and unchanged
+
+**qa.1 gate:** Guided + Quick Recruitment regression-safe, zero representative shadow mismatches, Cancel/Back unchanged, M8 relationships intact, no unintended permanent CORE mutation.
+
+**Planned next:** qa.2 moves draft/recalculation/validation behind the existing UI after qa.1 parity is verified.
+
 
 ### M8 — Social Network Migration
 

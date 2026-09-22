@@ -3,6 +3,7 @@ import { ensureDefaultConditions } from "./conditions.mjs";
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
+import { observeM9RecruitmentDraft } from "./m9-creation-shadow.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -1073,6 +1074,32 @@ async function reviewRecruitmentRelationshipNpcs(actor, state) {
 }
 
 
+
+export function buildLegacyRecruitmentParitySnapshot(state) {
+  const s = station(state);
+  const weapon = WEAPONS.find(w => w.name === state.weapon) ?? WEAPONS.find(w => w.name === "Sword");
+  return {
+    rank: state.rank,
+    age: state.age,
+    homelandKey: state.homelandKey,
+    nature: state.nature,
+    will: s.will,
+    health: s.health,
+    resources: state.resources,
+    circles: state.circles,
+    fate: 1,
+    persona: 1,
+    skillChecks: Object.fromEntries(computeSkillChecks(state)),
+    traitChecks: Object.fromEntries(computeTraitChecks(state)),
+    wiseChecks: Object.fromEntries(wiseCheckMap(state)),
+    gear: [
+      { name: weapon.name },
+      ...(state.armor ? [{ name: state.armor }] : []),
+      ...state.distinctiveGear.split(",").map(value => value.trim()).filter(Boolean).map(name => ({ name }))
+    ]
+  };
+}
+
 async function createRanger(state) {
   const s = station(state);
   const home = HOMELANDS[state.homelandKey];
@@ -1187,6 +1214,13 @@ export async function openRecruitmentWizard({ mode = null } = {}) {
     index += 1;
   }
   if (index !== STEPS.length) return null;
+
+  try {
+    const m9Shadow = observeM9RecruitmentDraft(state, buildLegacyRecruitmentParitySnapshot(state));
+    if (!m9Shadow.parity) console.warn("Realm Guard | M9 Creation shadow parity mismatch", m9Shadow);
+  } catch (error) {
+    console.error("Realm Guard | M9 Creation shadow observation failed; Legacy Recruitment remains authoritative", error);
+  }
 
   try {
     const actor = await createRanger(state);

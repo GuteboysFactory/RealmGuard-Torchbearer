@@ -21,7 +21,7 @@ export const REALM_GUARD_LEGACY_MIXED_PROFILE = new RulesProfile({
     conflict: { mode: "legacy-current" },
     session: { mode: "legacy-current" },
     circles: { mode: "legacy-current" },
-    creation: { mode: "legacy-recruitment" },
+    creation: { mode: "legacy-recruitment", coreEngine: "shadow", liveAuthority: "LEGACY_RECRUITMENT", profileId: "realm-guard-legacy-mixed", profileVersion: 1 },
     progression: { levels: true, talents: true },
     tokensOfPower: { enabled: true }
   },

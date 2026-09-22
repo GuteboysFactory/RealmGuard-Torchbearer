@@ -42,6 +42,7 @@ import { installM5CoreServices } from "./module/m5-core-service.mjs";
 import { installM6ConflictShadow } from "./module/m6-conflict-shadow.mjs";
 import { installM7SessionShadow } from "./module/m7-session-shadow.mjs";
 import { installM8SocialNetworkFoundation } from "./module/m8-social-network-service.mjs";
+import { installM9CreationShadow } from "./module/m9-creation-shadow.mjs";
 import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-state.mjs";
 import { installWindowPositionPersistence } from "./module/window-position-service.mjs";
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
@@ -85,6 +86,7 @@ Hooks.once("init", () => {
   installM6ConflictShadow();
   installM7SessionShadow();
   installM8SocialNetworkFoundation();
+  installM9CreationShadow();
 
   installTokenConditionHud();
   installConditionTokenHover();

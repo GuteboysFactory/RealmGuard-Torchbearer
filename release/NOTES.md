@@ -1,17 +1,15 @@
-Realm Guard / Torchbearer v1.9.0 — STABLE / GOLD
+Realm Guard / Torchbearer v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow
 
-Promoted directly from the verified v1.9.0-qa.42 codebase with no functional gameplay-code changes.
+Built from v1.9.0 STABLE / GOLD.
 
 Highlights:
-- M8 Social Network Migration VERIFIED / CLOSED.
-- Dynamic Contacts and living Relationship Status / History.
-- Circles Known Person / Find New Person integration.
-- GM-controlled Enmity Clause on failed new-person Circles.
-- Circles Obstacle remains locked to GM Obstacle Control authority.
-- Quick NPC individual and group templates.
-- Quick NPC Library 2.2.0 with 63 packaged role/culture-aware default portraits.
-- GM custom portraits remain non-destructive and preserved.
-- Legacy Recruitment fields and Legacy Mixed compatibility are preserved.
-- Foundry VTT 13.351 verified.
-
-Next development line: M9 Creation / Recruitment Migration on v1.10.0-qa.x.
+- Starts M9 Creation / Recruitment Migration.
+- Adds generic CORE CreationDraft, CharacterCreationProfile, CreationPartyContext, CreationValidator, CreationReview, CreationCommitPlan and CreationProvenance primitives.
+- Adds a Realm Guard Legacy Mixed Creation Profile that models the current Recruitment 2.0 outputs.
+- Adds read-only/shadow parity observation from the existing Recruitment wizard.
+- Legacy Recruitment remains the sole live creation authority.
+- CORE Commit plans are preview-only and perform no Actor/Item mutation.
+- No Actor migration and no Creation Provenance write yet.
+- Guided/Quick UI, M8 Social Network behavior and post-Recruitment relationship NPC review remain unchanged.
+- Foundry VTT 13.351 target.
+- Gameplay change: NONE INTENDED.

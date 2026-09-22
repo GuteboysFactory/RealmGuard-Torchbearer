@@ -1,9 +1,25 @@
 # Realm Guard - Update Log
 
+
+## v1.10.0-qa.1 - QA / M9 Generic Character Creation Foundation / Shadow
+
+- Built from verified v1.9.0 STABLE / GOLD.
+- Starts M9 Creation / Recruitment Migration with **NO INTENDED GAMEPLAY CHANGE**.
+- Adds generic CORE CreationDraft, CharacterCreationProfile, CreationPartyContext, CreationValidator, CreationReview, CreationCommitPlan and CreationProvenance primitives.
+- Adds a Realm Guard Legacy Mixed Creation Profile that models current Recruitment 2.0 derived outputs.
+- Recruitment 2.0 now reports read-only M9 shadow parity after the 11-step draft is complete.
+- Legacy Recruitment remains the only live authority and still performs the real Actor/Item creation.
+- CORE Commit plans are preview-only and explicitly carry `liveMutation: false`.
+- No Actor migration and no Creation Provenance write occurs in qa.1.
+- M8 Social Network, relationship compatibility, optional NPC creation and Circles/Enmity remain unchanged.
+- Adds dedicated M9 smoke coverage and v1.10.0 QA version-gate compatibility.
+- Test status: **QA**. Use `TEST_PROTOCOL_v1.10.0-qa.1.md`.
+
+
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.9.0  
-**Current QA build:** none — next line is M9 / v1.10.0-qa.x
+**Current QA build:** v1.10.0-qa.1 — M9 Generic Character Creation Foundation / Shadow
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD
