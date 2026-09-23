@@ -1,4 +1,20 @@
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
+import {
+  getStrictSessionCirclesProgressionStatus,
+  strictAdvancementPlan,
+  strictAdvancementRequirements,
+  strictBeginnerLearningPlan,
+  strictCirclesContactPlan,
+  strictConflictAdvancementPlan,
+  strictEndSessionValidation,
+  strictEnmityDispositionPlan,
+  strictPlayerTurnTestPlan,
+  strictProgressionDataPolicy,
+  strictRecoveryCheckPlan,
+  strictResourceSpendPlan,
+  strictRewardProposal,
+  strictSessionPolicy
+} from "./m10-strict-session-circles-progression.mjs";
 import { buildStrictConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import {
   getStrictGearInventoryConflictStatus,
@@ -54,8 +70,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.4",
-    mode: "STRICT_GEAR_INVENTORY_CONFLICT_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.5",
+    mode: "STRICT_SESSION_CIRCLES_PROGRESSION_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -70,7 +86,10 @@ export function getM10ProfilePreviewStatus() {
     recoveryWrites: false,
     inventoryWrites: false,
     conflictWrites: false,
-    nextStep: "M10A.5 Session / Circles / Progression"
+    sessionWrites: false,
+    circlesWrites: false,
+    progressionWrites: false,
+    nextStep: "M10A.6 Strict Character Creation"
   });
 }
 
@@ -139,9 +158,23 @@ export function installM10ProfileConversionPreview() {
         armorPlan: strictArmorPlan,
         gearRelevancePlan: strictGearRelevancePlan,
         disarmTargets: strictDisarmTargets,
-        weaponOfWitPlan: strictWeaponOfWitPlan
+        weaponOfWitPlan: strictWeaponOfWitPlan,
+        sessionCirclesProgressionStatus: getStrictSessionCirclesProgressionStatus,
+        sessionPolicy: strictSessionPolicy,
+        playerTurnTestPlan: strictPlayerTurnTestPlan,
+        recoveryCheckPlan: strictRecoveryCheckPlan,
+        endSessionValidation: strictEndSessionValidation,
+        rewardProposal: strictRewardProposal,
+        circlesContactPlan: strictCirclesContactPlan,
+        enmityDispositionPlan: strictEnmityDispositionPlan,
+        progressionDataPolicy: strictProgressionDataPolicy,
+        resourceSpendPlan: strictResourceSpendPlan,
+        advancementRequirements: strictAdvancementRequirements,
+        advancementPlan: strictAdvancementPlan,
+        conflictAdvancementPlan: strictConflictAdvancementPlan,
+        beginnerLearningPlan: strictBeginnerLearningPlan
       })
     });
-    console.log("realm-guard | M10A.4 Strict Gear / Inventory / Conflict ownership foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.5 Strict Session / Circles / Progression foundation ready", getM10ProfilePreviewStatus());
   });
 }
