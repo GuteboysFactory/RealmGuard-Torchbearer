@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.4 — 🟡 M10A.3 Conditions / Recovery  
+**Current QA build:** v1.11.0-qa.5 — 🟡 M10A.4 Gear / Inventory / Conflict Ownership  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.4 PASS:** M10A.4 — Gear / Inventory / Conflict Ownership  
+**Next CORE step after qa.5 PASS:** M10A.5 — Session / Circles / Progression  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.4 implements M10A.3 Conditions / Recovery policy/state foundations with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.5 implements M10A.4 Gear / Inventory / Conflict ownership foundations with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -77,7 +77,24 @@ qa.1 foundation scope:
 - helper lesser-Condition resolver
 - Legacy Mixed remains sole live authority
 
-**Next after qa.4 PASS:** M10A.4 — Gear / Inventory / Conflict Ownership. A fresh read-only audit is required before mutation.
+**qa.4 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict Condition set, Healthy derivation, zero-rating policy, recovery methods, Will/Health Help restriction, Injured/Strained state machines, lesser-condition resolver and Legacy Mixed regression verified.
+
+**qa.5 scope — M10A.4:**
+- Strict LOOSE inventory policy with paper-doll/container metadata preserved as UX data
+- physical Conflict Gear availability independent of hand slot under Strict
+- Strict no-tool/unarmed default = 0D
+- MG1E 2008 weapon catalog + Realm Guard Whip alias
+- action-set weapon scope retained
+- contextual weapon range/interaction planners
+- Leather/Chainmail MG1E armor inheritance + Realm Guard Plated Armor
+- guided relevant-Gear +1D planner
+- Disarm targets = weapon / Gear / Trait / natural weapon
+- MG1E Weapons of Wit
+- multi-effect Conflict Tools retained
+- no live Strict authority or data mutation
+- Legacy Mixed remains sole live authority
+
+**Next after qa.5 PASS:** M10A.5 — Session / Circles / Progression. A fresh read-only audit is required before mutation.
 
 
 ### M9 — Creation / Recruitment Migration
