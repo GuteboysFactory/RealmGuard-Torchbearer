@@ -323,7 +323,8 @@ export function strictWeaponActionPlan(name, action, context = {}) {
       break;
   }
 
-  if (def.key === "shield" && Boolean(context.usedPreviousTurn)) notes.push("Shield Heavy: -1D Health to recover from fatigue.");
+  const fatigueRecoveryHealthDice = def.key === "shield" && Boolean(context.usedPreviousTurn) ? -1 : 0;
+  if (fatigueRecoveryHealthDice) notes.push("Shield Heavy: -1D Health to recover from fatigue.");
   if (def.key === "sword" && !swordUsefulAction) notes.push("Sword Useful requires one action choice for the remainder of the fight.");
 
   return freeze({
@@ -340,6 +341,7 @@ export function strictWeaponActionPlan(name, action, context = {}) {
     expendedAfterAction,
     swordUsefulChoiceRequired: def.key === "sword" && !swordUsefulAction,
     swordUsefulAction,
+    fatigueRecoveryHealthDice,
     notes,
     liveApplication: false
   });
