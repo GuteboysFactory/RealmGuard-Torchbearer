@@ -4,25 +4,59 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 1,
+  version: 2,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
-    profile: { activationState: "FOUNDATION_ONLY" }
+    profile: { activationState: "FOUNDATION_ONLY" },
+    tests: { mode: "MG1E", ordinary: true, versus: true, beginnersLuck: true },
+    abilities: { advancement: "PASS_FAIL" },
+    nature: { mode: "MG1E", descriptors: "PROFILE_OWNED", tax: true, tapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
+    traits: {
+      mode: "MG1E",
+      positiveTraitsPerTest: 1,
+      levels: { 1: "PLUS_1D_ONCE_PER_SESSION", 2: "PLUS_1D_EVERY_APPLICABLE_TEST", 3: "REROLL_ALL_FAILED_DICE_ONCE_PER_SESSION" },
+      against: { impede: { dice: -1, checks: 1 }, hurtVersusOpponent: { dice: 2, checks: 2 }, breakTieForOpponent: { checks: 2 } },
+      chargeRecharge: { chargeChecks: 3, rechargeLevel1Checks: 2, rechargeLevel3Checks: 4 }
+    },
+    wises: { ratingMode: "RATED", advancement: "SKILL_LIKE", selfHelp: "I_AM_WISE" },
+    help: { teamwork: true, iAmWise: true, synergy: false, helperConsequences: true },
+    resources: { fatePersona: "MG1E", fateTiming: "AFTER_ROLL_OPEN_SIXES", personaTiming: "BEFORE_ROLL", personaDiceMax: 3, tapNature: true },
+    conditions: { set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"] },
+    recovery: { order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"], oneRecoveryTestPerConditionPerTurn: true, gmTurnCheckCost: 2, hungrySkills: ["Harvester", "Cook", "Brewer", "Baker", "Resources"] },
+    inventory: { policy: "LOOSE", structuredPlacementAuthority: false },
+    conflict: { mode: "MG1E", actionsPerExchange: 3, rotateParticipants: true, helpAllowed: true, toolScope: "EXCHANGE", unarmedDefaultDice: 0 },
+    session: { mode: "MG1E", freePlayerTurnTests: 1, additionalTestCheckCost: 1, recoveryDuringGmTurnCheckCost: 2, endSession: "MG1E", embodimentMayAwardEveryone: false },
+    circles: { mode: "MG1E", enmityClause: true },
+    creation: { mode: "MG1E", liveAuthority: "NONE" },
+    progression: { levels: false, talents: false },
+    tokensOfPower: { enabled: false },
+    scaleOfMight: { enabled: false, mode: "NONE" }
   },
   registry: [
-    {
-      id: "PROFILE.IDENTITY",
-      domain: "profile",
-      title: "Rules Profile",
-      activeValue: "MOUSE GUARD 1E FOUNDATION",
-      classification: "SOURCE FOUNDATION / NOT LIVE",
-      automation: "INACTIVE",
-      source: MG1E_SOURCE,
-      sourceVersion: "2008",
-      overrideReason: "Internal inheritance root for Strict Realm Guard. M10A.0 does not activate MG1E gameplay."
-    }
-  ],
+    ["PROFILE.IDENTITY","profile","Rules Profile","MOUSE GUARD 1E FOUNDATION","SOURCE FOUNDATION / NOT LIVE","INACTIVE"],
+    ["TEST.RESOLUTION","tests","Test Resolution","MG1E ORDINARY / VERSUS / BEGINNER'S LUCK","INHERITED CORE RULE","AUTOMATIC"],
+    ["ABILITY.ADVANCEMENT","abilities","Ability / Skill Advancement","PASS / FAIL ADVANCEMENT","INHERITED CORE RULE","AUTOMATIC"],
+    ["WISE.MODE","wises","Wise Rating Mode","RATED · TESTED / ADVANCED LIKE SKILLS","INHERITED CORE RULE","AUTOMATIC"],
+    ["TRAIT.MODE","traits","Trait Resolution","MG1E LEVEL 1 / 2 / 3 + TRAIT AGAINST / CHECKS","INHERITED CORE RULE","GUIDED"],
+    ["NATURE.MODE","nature","Nature Resolution","MG1E NATURE / TAX / TAP NATURE","INHERITED CORE RULE","GUIDED"],
+    ["HELP.MODE","help","Help / Teamwork","TEAMWORK + I AM WISE · NO SYNERGY","INHERITED CORE RULE","GUIDED"],
+    ["RESOURCES.FATE_PERSONA","resources","Fate / Persona","MG1E FATE / PERSONA + TAP NATURE","INHERITED CORE RULE","GUIDED"],
+    ["CONDITIONS.MODE","conditions","Conditions","HEALTHY · HUNGRY/THIRSTY · ANGRY · TIRED · INJURED · SICK","INHERITED CORE RULE","GUIDED"],
+    ["RECOVERY.MODE","recovery","Recovery","MG1E RECOVERY ORDER / CHECK ECONOMY","INHERITED CORE RULE","GUIDED"],
+    ["INVENTORY.POLICY","inventory","Inventory Policy","LOOSE","INHERITED CORE RULE","MANUAL"],
+    ["CONFLICT.ENGINE","conflict","Conflict Engine","MG1E THREE-ACTION EXCHANGES / PROFILE TOOLS","INHERITED CORE RULE","GUIDED"],
+    ["SESSION.TURN_MANAGER","session","Players' Turn / Checks","ONE FREE TEST · CHECKS FOR ADDITIONAL TESTS","INHERITED CORE RULE","GUIDED"],
+    ["SESSION.END_SESSION","session","End Session","MG1E FATE / PERSONA AWARDS","INHERITED CORE RULE","GUIDED"],
+    ["CIRCLES.MODE","circles","Circles","MG1E CIRCLES + ENMITY CLAUSE","INHERITED CORE RULE","GUIDED"],
+    ["CREATION.RECRUITMENT","creation","Character Creation","MG1E SOURCE FOUNDATION","INHERITED SOURCE RULE","INACTIVE"],
+    ["PROGRESSION.LEVELS_TALENTS","progression","Levels / Talents","DISABLED / NOT PART OF MG1E","INHERITED SOURCE RULE","INACTIVE"],
+    ["TOKENS_OF_POWER.MODE","tokensOfPower","Tokens of Power","NOT A BASE MG1E DOMAIN","NOT APPLICABLE","INACTIVE"],
+    ["SCALE_OF_MIGHT.MODE","scaleOfMight","Scale of Might","NOT A BASE MG1E DOMAIN","NOT APPLICABLE","INACTIVE"]
+  ].map(([id, domain, title, activeValue, classification, automation]) => ({
+    id, domain, title, activeValue, classification, automation,
+    source: MG1E_SOURCE, sourceVersion: "2008 / 1E"
+  })),
   metadata: {
     foundationOnly: true,
     selectable: false,
