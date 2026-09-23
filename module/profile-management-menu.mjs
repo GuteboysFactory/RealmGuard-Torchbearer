@@ -66,8 +66,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       previewAvailable: true,
       switchLocked: true,
       switchLockReason: "Strict activation remains locked until M10A.8 Profile Activation QA.",
-      phase: "M10A.6",
-      nextStep: "M10A.7 Scale / Docs / Rules Reference"
+      phase: "M10A.7",
+      nextStep: "M10A.8 Profile Activation QA"
     }, { inplace: false });
   }
 }
