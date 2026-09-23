@@ -1,6 +1,6 @@
 # v1.11.0-qa.2 — M10A.1 Strict Registry + Conversion Preview QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — registered profiles, Strict manifest, read-only conversion API/UI, data preservation after reload and ordinary Skill-roll regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Gameplay change:** NONE LIVE  
