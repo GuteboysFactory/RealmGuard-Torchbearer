@@ -2,6 +2,7 @@
 
 ## v1.11.0-qa.7 - 🟡 M10A.6 Strict Character Creation
 
+- Strict full-preflight now deduplicates overlapping CORE/step validation errors by rule identity; duplicate Specialty conflicts are shown once while preserving the richer human-readable message and Actor metadata.
 - Built after **v1.11.0-qa.6 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds a source-owned, read-only `realm-guard-strict` CharacterCreationProfile on the existing CORE M9 engine.
 - Reuses verified Realm Guard v1.6 Stations, ages, Will/Health, Nature questions, Homelands, life-experience checks, service checks, Specialty, Resources/Circles, Traits, relationships, drives and starting rewards.
