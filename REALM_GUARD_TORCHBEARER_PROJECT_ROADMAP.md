@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.3 — 🟡 M10A.2 Wises / Traits / Help + Profile Management  
+**Current QA build:** v1.11.0-qa.4 — 🟡 M10A.3 Conditions / Recovery  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.3 PASS:** M10A.3 — Conditions / Recovery  
+**Next CORE step after qa.4 PASS:** M10A.4 — Gear / Inventory / Conflict Ownership  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.3 implements M10A.2 Wises / Traits / Help policy foundations plus safe Game Settings Profile Management with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.4 implements M10A.3 Conditions / Recovery policy/state foundations with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -61,7 +61,23 @@ qa.1 foundation scope:
 - Strict switch visible but locked until M10A.8
 - Legacy Mixed gameplay unchanged
 
-**Next after qa.3 PASS:** M10A.3 — Conditions / Recovery. A fresh read-only audit is required before mutation.
+**qa.3 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Profile Management, Wise preservation, Strict Trait/Help planners, helper consequence contract, reload and Legacy Mixed regression verified.
+
+**qa.4 scope — M10A.3:**
+- Strict Healthy as derived state; no Healthy Item required
+- Strict adverse Conditions = Hungry & Thirsty / Angry / Tired / Injured / Strained
+- Fresh/Afraid preserved but mechanically ignored by Strict
+- read-only provisioning plan; no Condition mutation
+- Strict Injured/Strained roll penalties and recovery exemptions
+- zero-rating Condition policy
+- Harvester + good-rest recovery routes
+- no Help on Will/Health recovery
+- Injured Healer / permanent-reduction state contracts
+- Strained counsel state contract + 2-Check GM Turn economy
+- helper lesser-Condition resolver
+- Legacy Mixed remains sole live authority
+
+**Next after qa.4 PASS:** M10A.4 — Gear / Inventory / Conflict Ownership. A fresh read-only audit is required before mutation.
 
 
 ### M9 — Creation / Recruitment Migration
