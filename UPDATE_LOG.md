@@ -1,6 +1,6 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.6 - 🟡 M10A.5 Session / Circles / Progression
+## v1.11.0-qa.6 - 🟢✅ FULL PASS / M10A.5 Session / Circles / Progression
 
 - Built after **v1.11.0-qa.5 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds a non-live Strict Session / Circles / Progression ownership layer.
