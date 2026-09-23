@@ -163,10 +163,10 @@ assert.equal(strictWeaponOfWitPlan("Promises", "defend", { promiseMade: true }).
 assert.equal(strictWeaponOfWitPlan("Roleplay", "feint", { roleplayed: true, chosenAction: "feint" }).dice, 1);
 assert.equal(strictWeaponOfWitPlan("Repeating Yourself", "attack", { repeating: true }).dice, -1);
 
-assert.equal(REALM_GUARD_STRICT_PROFILE.version, 5);
+assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 5, "M10A.4 conflict policy must remain present in later Strict profile versions.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.unarmedDefaultDice, 0);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.weaponAlias["Hook and Line"], "Whip");
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, "M10A.4");
+assert.ok(["M10A.4","M10A.5","M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.4 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.gearInventoryConflictPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, false);
 
