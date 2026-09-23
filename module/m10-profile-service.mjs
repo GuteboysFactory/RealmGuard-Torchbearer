@@ -1,5 +1,17 @@
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { buildStrictConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
+import {
+  buildStrictHelperConsequenceContract,
+  classifyStrictHelp,
+  getStrictWisesTraitsHelpStatus,
+  planStrictWiseLearning,
+  planStrictWiseTest,
+  strictHelperEligibility,
+  strictTraitAgainstPlan,
+  strictTraitBenefitPlan,
+  strictTraitCheckEconomy,
+  strictWiseView
+} from "./m10-strict-wises-traits-help.mjs";
 
 function currentActors() {
   return globalThis.game?.actors?.contents ?? [];
@@ -13,8 +25,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.1",
-    mode: "READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.2",
+    mode: "STRICT_POLICY_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -22,7 +34,10 @@ export function getM10ProfilePreviewStatus() {
     actorItemWrites: false,
     worldSettingWrites: false,
     conversionPreviewAvailable: true,
-    nextStep: "M10A.2 Wises / Traits / Help"
+    strictRulesLive: false,
+    wiseAutoConversion: false,
+    profileSwitchAvailable: false,
+    nextStep: "M10A.3 Conditions / Recovery"
   });
 }
 
@@ -55,8 +70,20 @@ export function installM10ProfileConversionPreview() {
     globalThis.game.realmGuard.core.m10 = Object.freeze({
       getStatus: getM10ProfilePreviewStatus,
       previewStrictConversion,
-      openStrictConversionPreview: showStrictConversionPreview
+      openStrictConversionPreview: showStrictConversionPreview,
+      strict: Object.freeze({
+        getStatus: getStrictWisesTraitsHelpStatus,
+        wiseView: strictWiseView,
+        planWiseTest: planStrictWiseTest,
+        planWiseLearning: planStrictWiseLearning,
+        traitBenefitPlan: strictTraitBenefitPlan,
+        traitAgainstPlan: strictTraitAgainstPlan,
+        traitCheckEconomy: strictTraitCheckEconomy,
+        classifyHelp: classifyStrictHelp,
+        helperEligibility: strictHelperEligibility,
+        helperConsequenceContract: buildStrictHelperConsequenceContract
+      })
     });
-    console.log("realm-guard | M10A.1 Strict Profile conversion preview ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.2 Strict Wises / Traits / Help policy foundation ready", getM10ProfilePreviewStatus());
   });
 }
