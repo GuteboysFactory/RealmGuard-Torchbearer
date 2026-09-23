@@ -1,5 +1,25 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.7 - 🟡 M10A.6 Strict Character Creation
+
+- Built after **v1.11.0-qa.6 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds a source-owned, read-only `realm-guard-strict` CharacterCreationProfile on the existing CORE M9 engine.
+- Reuses verified Realm Guard v1.6 Stations, ages, Will/Health, Nature questions, Homelands, life-experience checks, service checks, Specialty, Resources/Circles, Traits, relationships, drives and starting rewards.
+- Strict starting Wises are rated: checks + 1, maximum starting rating 6, with normal Pass/Fail learning fields.
+- Strict personal Enemies are limited to Dúnadan/Dwarf/Elf/Hobbit/Man; the Legacy Enemy-servant house-rule override is disabled only in Strict.
+- Adds source-specific Mentor validation: Recruit -> PC Veteran/Captain; Scout/Veteran -> older mentor; Captain/Lord -> mentor with Greybeard.
+- Adds read-only Strict party-context metadata for mentor validation: Actor id/name, Station, age and Traits.
+- Makes Character Creation preview condition projection profile-aware.
+- Strict creation provisions Hungry & Thirsty, Angry, Tired, Injured and Strained; Healthy is derived; Fresh/Afraid/Sick are not Strict creation defaults.
+- Strict starting inventory is LOOSE. Existing hand/worn metadata may be retained as presentation but is not tabletop-rule authority.
+- Strict creation grants no Talent Items and no Level semantics.
+- Strict M8 relationship normalization and CreationProvenance contracts are planned but all Strict transaction writes remain OFF in qa.7.
+- Adds full Strict preflight validation before a commit plan/preview can be produced.
+- Legacy Mixed Recruitment remains the sole live CORE M9 creation path and is behaviorally unchanged.
+- Strict profile advances to version 7 / M10A.6 and remains PREVIEW_ONLY.
+- Adds `qa/m10-strict-character-creation-smoke.mjs`.
+- **Next after qa.7 PASS:** read-only audit for M10A.7 — Scale / Docs / Rules Reference.
+
 ## v1.11.0-qa.6 - 🟢✅ FULL PASS / M10A.5 Session / Circles / Progression
 
 - Built after **v1.11.0-qa.5 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
