@@ -1,9 +1,7 @@
-1.11.0-qa.7
-# M10A.6 Strict Character Creation
+1.11.0-qa.8
+# M10A.7 Scale / Docs / Rules Reference
 # NO LIVE STRICT ACTIVATION
-# Legacy Mixed remains sole normal live profile and live M9 creation authority
-# Strict Character Creation is draft/validation/review/commit-preview only
-# Rated Wises + Strict Enemy/Mentor/Condition/Inventory ownership
+# Legacy Mixed remains sole normal live profile
+# Strict Scale and Rules Reference are read-only/guided
+# Existing permanent Legacy Mixed Rules Journal remains untouched
 # QA channel advances only after release assets and all smokes verify
-# qa.7 Scout check tally smoke corrected
-# Strict Specialty preflight dedupe hotfix
