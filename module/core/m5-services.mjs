@@ -353,8 +353,9 @@ export class ConflictToolEffectProvider {
 }
 
 export class ConflictToolService {
-  constructor({ profileId = "realm-guard-legacy-mixed", effectProvider = new ConflictToolEffectProvider() } = {}) {
+  constructor({ profileId = "realm-guard-legacy-mixed", inventoryPolicy = INVENTORY_MODES.STRUCTURED, effectProvider = new ConflictToolEffectProvider() } = {}) {
     this.profileId = String(profileId ?? "realm-guard-legacy-mixed");
+    this.inventoryPolicy = String(inventoryPolicy ?? INVENTORY_MODES.STRUCTURED).toUpperCase();
     this.effectProvider = effectProvider;
   }
 
@@ -365,7 +366,13 @@ export class ConflictToolService {
 
   _physical(actor, { conflictType = "fight", disabled = [] } = {}) {
     if (!["fight", "fightCreature"].includes(String(conflictType))) return [];
-    return itemsOf(actor).filter(item => item?.type === "gear" && String(item?.system?.inventory?.mode ?? "") === "hand" && LEGACY_PHYSICAL_TOOL_NAMES.has(lower(item?.name))).map(item => {
+    const requiresHandPlacement = this.inventoryPolicy !== INVENTORY_MODES.LOOSE;
+    return itemsOf(actor).filter(item => {
+      if (item?.type !== "gear" || !LEGACY_PHYSICAL_TOOL_NAMES.has(lower(item?.name))) return false;
+      if (Number(item?.system?.quantity ?? 1) <= 0) return false;
+      if (!requiresHandPlacement) return true;
+      return String(item?.system?.inventory?.mode ?? "") === "hand";
+    }).map(item => {
       const rawId = itemId(item);
       const name = String(item?.name ?? "Gear");
       return Object.freeze({
@@ -474,6 +481,10 @@ export function createM5Services(profile = null) {
   const containers = new ContainerService(gear);
   const placement = new PlacementValidator({ policy, gear, containers });
   const conflictToolEffects = new ConflictToolEffectProvider();
-  const conflictTools = new ConflictToolService({ profileId: profile?.id ?? "realm-guard-legacy-mixed", effectProvider: conflictToolEffects });
+  const conflictTools = new ConflictToolService({
+    profileId: profile?.id ?? "realm-guard-legacy-mixed",
+    inventoryPolicy: policy.mode,
+    effectProvider: conflictToolEffects
+  });
   return Object.freeze({ policy, gear, containers, placement, conflictTools, conflictToolEffects });
 }
