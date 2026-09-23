@@ -1,11 +1,11 @@
 # v1.11.0-qa.1 — M10A.0 Profile Foundation QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — boot/reload, registered profiles, Strict read-only resolution and ordinary Skill-roll regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Gameplay change:** NONE INTENDED  
 **Live rules profile:** Realm Guard — Legacy Mixed  
-**Strict profile state:** FOUNDATION ONLY / NOT SELECTABLE
+**Strict profile state at qa.1:** FOUNDATION ONLY / NOT SELECTABLE
 
 ## Gate A — install / boot
 
