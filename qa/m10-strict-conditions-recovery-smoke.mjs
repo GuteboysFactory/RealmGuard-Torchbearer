@@ -59,7 +59,7 @@ assert.deepEqual(STRICT_IGNORED_LEGACY_CONDITIONS, ["Fresh", "Afraid"]);
 
 const health = strictHealthyState(actor);
 assert.equal(health.healthy, false);
-assert.deepEqual(health.ignoredPreserved.sort(), ["Afraid", "Fresh"]);
+assert.deepEqual([...health.ignoredPreserved].sort(), ["Afraid", "Fresh"]);
 
 const provision = strictConditionProvisionPlan(actor);
 assert.equal(provision.mode, "READ_ONLY_PROVISION_PLAN");
@@ -71,8 +71,8 @@ assert.equal(provision.create.some(row => row.name === "Afraid"), false);
 
 const pathfinder = strictConditionRollEffects(actor, "Pathfinder", { isSkill: true });
 assert.equal(pathfinder.diceModifier, -2);
-assert.deepEqual(pathfinder.applied.map(row => row.name).sort(), ["Injured", "Strained"]);
-assert.deepEqual(pathfinder.ignored.map(row => row.name).sort(), ["Afraid", "Fresh"]);
+assert.deepEqual([...pathfinder.applied.map(row => row.name)].sort(), ["Injured", "Strained"]);
+assert.deepEqual([...pathfinder.ignored.map(row => row.name)].sort(), ["Afraid", "Fresh"]);
 
 const willRecovery = strictConditionRollEffects(actor, "Will", { isSkill: false, recovery: true });
 assert.equal(willRecovery.diceModifier, 0);
