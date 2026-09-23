@@ -47,7 +47,22 @@ export class RealmGuardRoleData extends TypeDataModel {
   }
 }
 export class RealmGuardTraitData extends TypeDataModel { static defineSchema() { return { rating: int(1, 0, 6), description: str() }; } }
-export class RealmGuardWiseData extends TypeDataModel { static defineSchema() { return { description: str() }; } }
+export class RealmGuardWiseData extends TypeDataModel {
+  static defineSchema() {
+    return {
+      // M10A.2 additive Strict support. Existing Legacy Mixed Wises remain behaviorally
+      // unrated until an explicit future profile conversion assigns a rating.
+      rating: int(0, 0, 12),
+      learning: new fields.SchemaField({
+        passed: int(0),
+        failed: int(0),
+        passNeeded: int(1),
+        failNeeded: int(0)
+      }),
+      description: str()
+    };
+  }
+}
 export class RealmGuardGearData extends TypeDataModel {
   static defineSchema() {
     return {
