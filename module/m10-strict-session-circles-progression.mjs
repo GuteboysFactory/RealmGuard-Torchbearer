@@ -158,8 +158,8 @@ export function strictEnmityDispositionPlan({
 } = {}) {
   const type = String(conflictType ?? "").trim().toLowerCase();
   const hostileEnemy =
-    String(relationshipRole ?? "") === RelationshipRole.ENEMY
-    && String(relationshipStatus ?? "") === RelationshipStatus.HOSTILE;
+    String(relationshipRole ?? "").trim().toUpperCase() === RelationshipRole.ENEMY
+    && String(relationshipStatus ?? "").trim().toUpperCase() === RelationshipStatus.HOSTILE;
   const qualifyingConflict = ["argument", "speech"].includes(type);
   const active = hostileEnemy && qualifyingConflict && Boolean(againstRelationshipOwner);
   return freeze({
