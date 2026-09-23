@@ -1,6 +1,18 @@
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { buildStrictConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import {
+  getStrictGearInventoryConflictStatus,
+  strictArmorPlan,
+  strictAvailableConflictTools,
+  strictConflictToolPlan,
+  strictDisarmTargets,
+  strictGearRelevancePlan,
+  strictInventoryPolicyPlan,
+  strictWeaponActionPlan,
+  strictWeaponDefinition,
+  strictWeaponOfWitPlan
+} from "./m10-strict-gear-inventory-conflict.mjs";
+import {
   getStrictConditionsRecoveryStatus,
   strictConditionDispositionEffects,
   strictConditionProvisionPlan,
@@ -42,8 +54,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.3",
-    mode: "STRICT_CONDITIONS_RECOVERY_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.4",
+    mode: "STRICT_GEAR_INVENTORY_CONFLICT_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -56,7 +68,9 @@ export function getM10ProfilePreviewStatus() {
     profileSwitchAvailable: false,
     conditionWrites: false,
     recoveryWrites: false,
-    nextStep: "M10A.4 Gear / Inventory / Conflict Ownership"
+    inventoryWrites: false,
+    conflictWrites: false,
+    nextStep: "M10A.5 Session / Circles / Progression"
   });
 }
 
@@ -115,9 +129,19 @@ export function installM10ProfileConversionPreview() {
         injuryWaiverPlan: strictInjuryWaiverPlan,
         permanentReductionTargets: strictPermanentReductionTargets,
         lesserConditionOptions: strictLesserConditionOptions,
-        helperConsequenceResolution: strictHelperConsequenceResolution
+        helperConsequenceResolution: strictHelperConsequenceResolution,
+        gearInventoryConflictStatus: getStrictGearInventoryConflictStatus,
+        inventoryPolicyPlan: strictInventoryPolicyPlan,
+        availableConflictTools: strictAvailableConflictTools,
+        conflictToolPlan: strictConflictToolPlan,
+        weaponDefinition: strictWeaponDefinition,
+        weaponActionPlan: strictWeaponActionPlan,
+        armorPlan: strictArmorPlan,
+        gearRelevancePlan: strictGearRelevancePlan,
+        disarmTargets: strictDisarmTargets,
+        weaponOfWitPlan: strictWeaponOfWitPlan
       })
     });
-    console.log("realm-guard | M10A.3 Strict Conditions / Recovery policy foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.4 Strict Gear / Inventory / Conflict ownership foundation ready", getM10ProfilePreviewStatus());
   });
 }
