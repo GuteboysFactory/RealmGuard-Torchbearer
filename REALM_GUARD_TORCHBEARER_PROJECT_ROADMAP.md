@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.7 — 🟡 M10A.6 Strict Character Creation  
+**Current QA build:** v1.11.0-qa.7 — 🟢✅ FULL PASS / M10A.6 Strict Character Creation  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
 **Next CORE step after qa.7 PASS:** M10A.7 — Scale / Docs / Rules Reference  
 **Internal system id:** `realm-guard` (do not rename)
@@ -127,7 +127,9 @@ qa.1 foundation scope:
 - zero Strict live writes
 - Legacy Mixed Recruitment remains sole live M9 path
 
-**Next after qa.7 PASS:** M10A.7 — Scale / Docs / Rules Reference. A fresh read-only audit is required before mutation.
+**qa.7 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict Character Creation preview, rated Wises, source-correct Enemy/Mentor validation, Strict Conditions provisioning, LOOSE inventory ownership, provenance/transaction boundaries and Legacy Mixed Recruitment regression verified.
+
+**Next:** read-only audit for M10A.7 — Scale / Docs / Rules Reference before any mutation.
 
 
 ### M9 — Creation / Recruitment Migration
