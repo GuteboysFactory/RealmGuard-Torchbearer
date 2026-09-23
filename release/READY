@@ -6,3 +6,4 @@
 # Game Settings Profile Management exposes preview only; Switch remains locked
 # QA channel advances only after release assets and all smokes verify
 # QA smoke fixture corrected after pre-release validation
+# QA menu-template assertion corrected
