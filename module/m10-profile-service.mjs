@@ -29,6 +29,20 @@ import {
 } from "./m10-strict-session-circles-progression.mjs";
 import { buildStrictConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import {
+  getStrictScaleStatus,
+  strictFighterHunterOutcomePlan,
+  strictLoreMasterScalePlan,
+  strictMilitaristWarPlan,
+  strictScaleEntry,
+  strictScaleRankFor,
+  strictTokenScaleGuidance
+} from "./m10-strict-scale-of-might.mjs";
+import {
+  openStrictRulesReferencePreview,
+  strictRulesReferenceHtml,
+  strictRulesReferenceSnapshot
+} from "./m10-strict-rules-reference.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -82,8 +96,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.6",
-    mode: "STRICT_CHARACTER_CREATION_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.7",
+    mode: "STRICT_SCALE_DOCS_REFERENCE_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -103,7 +117,9 @@ export function getM10ProfilePreviewStatus() {
     progressionWrites: false,
     creationWrites: false,
     strictCreationLiveCommit: false,
-    nextStep: "M10A.7 Scale / Docs / Rules Reference"
+    scaleWrites: false,
+    rulesReferenceWrites: false,
+    nextStep: "M10A.8 Profile Activation QA"
   });
 }
 
@@ -196,9 +212,19 @@ export function installM10ProfileConversionPreview() {
         validateCreationStep: strictValidateCreationStep,
         creationReview: strictCreationReview,
         creationCommitPlan: strictCreationCommitPlan,
-        creationCommitPreview: strictCreationCommitPreview
+        creationCommitPreview: strictCreationCommitPreview,
+        scaleStatus: getStrictScaleStatus,
+        scaleRankFor: strictScaleRankFor,
+        scaleEntry: strictScaleEntry,
+        fighterHunterOutcomePlan: strictFighterHunterOutcomePlan,
+        militaristWarPlan: strictMilitaristWarPlan,
+        loreMasterScalePlan: strictLoreMasterScalePlan,
+        tokenScaleGuidance: strictTokenScaleGuidance,
+        rulesReferenceSnapshot: strictRulesReferenceSnapshot,
+        rulesReferenceHtml: strictRulesReferenceHtml,
+        openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10A.6 Strict Character Creation foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.7 Strict Scale / Docs / Rules Reference foundation ready", getM10ProfilePreviewStatus());
   });
 }
