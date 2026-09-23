@@ -1,6 +1,6 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.7 - 🟡 M10A.6 Strict Character Creation
+## v1.11.0-qa.7 - 🟢✅ FULL PASS / M10A.6 Strict Character Creation
 
 - Strict full-preflight now deduplicates overlapping CORE/step validation errors by rule identity; duplicate Specialty conflicts are shown once while preserving the richer human-readable message and Actor metadata.
 - Built after **v1.11.0-qa.6 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
