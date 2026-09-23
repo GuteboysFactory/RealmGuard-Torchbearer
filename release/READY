@@ -1,8 +1,7 @@
-1.11.0-qa.4
-# M10A.3 Conditions / Recovery
+1.11.0-qa.5
+# M10A.4 Gear / Inventory / Conflict Ownership
 # NO LIVE STRICT ACTIVATION
 # Legacy Mixed remains sole normal live profile
-# Strict Conditions/Recovery are policy/state planners only
-# Fresh/Afraid preserved; no Condition migration or deletion
+# Strict Gear/Inventory/Conflict are policy/planning only
+# LOOSE Strict inventory preserves all placement/container metadata
 # QA channel advances only after release assets and all smokes verify
-# QA frozen-array assertion corrected
