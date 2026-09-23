@@ -1,7 +1,7 @@
-1.11.0-qa.5
-# M10A.4 Gear / Inventory / Conflict Ownership
+1.11.0-qa.6
+# M10A.5 Session / Circles / Progression
 # NO LIVE STRICT ACTIVATION
 # Legacy Mixed remains sole normal live profile
-# Strict Gear/Inventory/Conflict are policy/planning only
-# LOOSE Strict inventory preserves all placement/container metadata
+# Strict Session/Circles/Progression are policy/planning only
+# Levels/Talents preserved but disabled under Strict planning
 # QA channel advances only after release assets and all smokes verify
