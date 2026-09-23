@@ -104,7 +104,7 @@ assert.equal(review.profileId, STRICT_CREATION_PROFILE_ID);
 assert.equal(review.abilities.will, 3);
 assert.equal(review.abilities.health, 5);
 assert.equal(review.abilities.nature, 3);
-assert.equal(review.skillChecks.Scout, 4);
+assert.equal(review.skillChecks.Scout, 5);
 assert.equal(review.skillChecks.Pathfinder, 4);
 assert.equal(review.wiseChecks["Road-wise"], 2);
 assert.equal(scoutDraft.derivedValues.wiseRatings["Road-wise"], 3);
