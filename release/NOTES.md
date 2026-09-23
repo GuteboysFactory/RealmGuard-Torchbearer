@@ -1,23 +1,26 @@
-Realm Guard / Torchbearer v1.11.0-qa.6 — M10A.5 Session / Circles / Progression
+Realm Guard / Torchbearer v1.11.0-qa.7 — M10A.6 Strict Character Creation
 
-Built after v1.11.0-qa.5 passed live Foundry VTT 13.351 QA.
+Built after v1.11.0-qa.6 passed live Foundry VTT 13.351 QA.
 
-This build does not activate Strict Realm Guard. Legacy Mixed remains the sole live gameplay profile.
+This build does not activate Strict Realm Guard. Legacy Mixed remains the sole live gameplay and Character Creation profile.
 
 Highlights:
-- Adds a non-live Strict Session / Circles / Progression ownership foundation.
-- Reuses CORE M7 for Players' Turn free tests, Check spending, alternation, solo exception and GM Turn recovery cost.
-- Adds Strict End Session validation with MG1E group-consensus reward ownership and separate Foundry GM commit authority.
-- Strict Embodiment may be awarded to multiple participants but never everyone, including a one-player session.
-- Adds MG1E Circles known-contact future +1D contract over existing CORE M8 Social Network storage/tooling.
-- Adds non-live Enmity disposition planning: +3s only in Argument/Speech against the relationship owner.
-- Disables Levels/Talents in Strict policy while preserving all existing progression data and Talent Items.
-- Separates Strict Fate/Persona spend from Legacy lifetime-spend Level/Talent progression.
-- Adds MG1E advancement requirements, clear-slate-on-advance and one advancement mark per Ability/Skill per conflict/scene.
-- Adds Beginner's Luck learning contract: attempts required = Maximum Nature, opens Skill at rating 2, no Will/Health advancement.
-- Strict profile advances to version 6 / M10A.5 and remains PREVIEW_ONLY.
-- No Strict Actor/Item/world-setting writes are introduced.
+- Adds a read-only Strict Realm Guard CharacterCreationProfile on the existing CORE M9 engine.
+- Reuses source-backed Realm Guard v1.6 Recruitment structure instead of duplicating the creation engine.
+- Strict Wises start rated from Recruitment checks (+1 rating, max starting 6) and receive normal Pass/Fail learning fields.
+- Strict personal Enemies are limited to Dúnadan, Dwarf, Elf, Hobbit or Man; the Legacy Enemy-servant house rule is unavailable in Strict.
+- Adds source-specific Mentor validation for Recruit, Scout/Veteran and Captain/Lord Stations.
+- Extends read-only creation party context with Station, age and Traits for mentor validation.
+- Makes creation preview condition projection profile-aware.
+- Strict creation plans Hungry & Thirsty, Angry, Tired, Injured and Strained; Healthy is derived; Fresh/Afraid/Sick are excluded as defaults.
+- Strict inventory is LOOSE while paper-doll placement metadata may remain as presentation.
+- No Strict Level/Talent grants.
+- CORE M8 relationship normalization and CreationProvenance remain in the future activation contract.
+- Strict commit plans are preview-only: liveExecution, provenanceWrite and relationshipWrite remain false.
+- Full Strict step preflight is required before commit preview.
+- Legacy Mixed Recruitment remains behaviorally unchanged.
+- Strict profile advances to version 7 / M10A.6 and remains PREVIEW_ONLY.
 - Foundry VTT target remains 13.351.
 
 Next after PASS:
-M10A.6 — Strict Character Creation, preceded by a fresh read-only audit.
+M10A.7 — Scale / Docs / Rules Reference, preceded by a fresh read-only audit.
