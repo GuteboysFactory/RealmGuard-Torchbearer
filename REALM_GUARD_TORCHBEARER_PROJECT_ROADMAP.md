@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.6 — 🟡 M10A.5 Session / Circles / Progression  
+**Current QA build:** v1.11.0-qa.6 — 🟢✅ FULL PASS / M10A.5 Session / Circles / Progression  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
 **Next CORE step after qa.6 PASS:** M10A.6 — Strict Character Creation  
 **Internal system id:** `realm-guard` (do not rename)
@@ -111,7 +111,9 @@ qa.1 foundation scope:
 - no live Strict authority or data mutation
 - Legacy Mixed remains sole live authority
 
-**Next after qa.6 PASS:** M10A.6 — Strict Character Creation. A fresh read-only audit is required before mutation.
+**qa.6 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict Session/Checks, End Session ownership, Circles/Enmity, progression-data preservation, Fate/Persona spend separation, advancement, Beginner's Luck and Legacy Mixed regression verified.
+
+**Next:** read-only audit for M10A.6 — Strict Character Creation before any mutation.
 
 
 ### M9 — Creation / Recruitment Migration
