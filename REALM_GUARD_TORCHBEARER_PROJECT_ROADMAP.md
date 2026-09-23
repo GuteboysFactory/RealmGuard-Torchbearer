@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.6 — 🟢✅ FULL PASS / M10A.5 Session / Circles / Progression  
+**Current QA build:** v1.11.0-qa.7 — 🟡 M10A.6 Strict Character Creation  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.6 PASS:** M10A.6 — Strict Character Creation  
+**Next CORE step after qa.7 PASS:** M10A.7 — Scale / Docs / Rules Reference  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.6 implements M10A.5 Session / Circles / Progression foundations with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.7 implements M10A.6 Strict Character Creation preview foundations with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -113,7 +113,21 @@ qa.1 foundation scope:
 
 **qa.6 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict Session/Checks, End Session ownership, Circles/Enmity, progression-data preservation, Fate/Persona spend separation, advancement, Beginner's Luck and Legacy Mixed regression verified.
 
-**Next:** read-only audit for M10A.6 — Strict Character Creation before any mutation.
+**qa.7 scope — M10A.6:**
+- CORE M9 reused; no new creation engine
+- read-only Strict CharacterCreationProfile
+- rated starting Wises (checks + 1, max 6)
+- source-correct Strict Enemy restrictions; no Enemy-servant house-rule override
+- source-specific Mentor validation using read-only party metadata
+- Strict Conditions provisioning plan: Hungry/Angry/Tired/Injured/Strained; Healthy derived; Fresh/Afraid/Sick excluded
+- LOOSE Strict inventory with placement metadata retained only as presentation
+- no Level/Talent grants
+- CORE M8 relationship plan and CreationProvenance contract retained
+- full Strict preflight before commit preview
+- zero Strict live writes
+- Legacy Mixed Recruitment remains sole live M9 path
+
+**Next after qa.7 PASS:** M10A.7 — Scale / Docs / Rules Reference. A fresh read-only audit is required before mutation.
 
 
 ### M9 — Creation / Recruitment Migration
