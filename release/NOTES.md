@@ -18,6 +18,7 @@ Highlights:
 - CORE M8 relationship normalization and CreationProvenance remain in the future activation contract.
 - Strict commit plans are preview-only: liveExecution, provenanceWrite and relationshipWrite remain false.
 - Full Strict step preflight is required before commit preview.
+- Overlapping CORE/step validation errors are deduplicated; a duplicate Specialty conflict is reported once with the richer contextual message.
 - Legacy Mixed Recruitment remains behaviorally unchanged.
 - Strict profile advances to version 7 / M10A.6 and remains PREVIEW_ONLY.
 - Foundry VTT target remains 13.351.
