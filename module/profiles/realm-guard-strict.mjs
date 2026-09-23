@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 7,
+  version: 8,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -85,7 +85,18 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       automaticNpcCreation: false
     },
     tokensOfPower: { enabled: true, source: "REALM_GUARD_V1_6", levelSemantics: "MG1E_TRAIT_LEVELS" },
-    scaleOfMight: { enabled: true, mode: "REALM_GUARD_V1_6", automation: "MANUAL_GUIDED", loreMasterRule: true, militaristRule: true }
+    scaleOfMight: {
+      enabled: true,
+      mode: "REALM_GUARD_V1_6",
+      automation: "MANUAL_GUIDED",
+      rankMin: 1,
+      rankMax: 6,
+      dunadanRank: 3,
+      fighterHunterOutcomePolicy: true,
+      loreMasterRule: true,
+      militaristRule: true,
+      tokenScaleGuidance: "MANUAL_GUIDED"
+    }
   },
   registry: [
     { id: "PROFILE.IDENTITY", domain: "profile", title: "Rules Profile", activeValue: "REALM GUARD — STRICT · PREVIEW ONLY", classification: "STRICT PROFILE MANIFEST / NOT LIVE", automation: "INACTIVE", source: STRICT_SOURCE, sourceVersion: "MG 2008 / RG 1.6", overrideReason: "M10A.1 completes the Strict manifest and conversion preview. Live activation remains blocked." },
@@ -99,7 +110,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     { id: "PROGRESSION.LEVELS_TALENTS", domain: "progression", title: "Progression", activeValue: "MG1E PASS/FAIL ADVANCEMENT · LEVELS/TALENTS DISABLED", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008", overrideReason: "Strict Realm Guard preserves Legacy Mixed level/talent data but does not use it mechanically." },
     { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · READ-ONLY PREVIEW", classification: "REALM GUARD OVERRIDE", automation: "PREVIEW", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.6 binds a source-correct Strict creation profile to CORE M9 for read-only draft, validation, review and commit-plan preview. Live commit remains locked." },
     { id: "TOKENS_OF_POWER.MODE", domain: "tokensOfPower", title: "Tokens of Power", activeValue: "ENABLED · MG1E TRAIT-LEVEL SEMANTICS", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
-    { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · MANUAL / GUIDED", classification: "REALM GUARD RULE", automation: "MANUAL", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.1 declares the source-owned domain without inventing automatic resolution." }
+    { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · RANKS 1-6 · MANUAL / GUIDED OUTCOME PLANNING", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.7 adds source-backed read-only rank/outcome, Militarist and Lore Master planning. Token applicability remains a table call; live conflict application is still off." }
   ],
   metadata: {
     strictRealmGuard: true,
@@ -113,7 +124,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.6",
+    implementationPhase: "M10A.7",
     strictRulesLive: false,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -126,6 +137,8 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     progressionPolicyReady: true,
     creationPolicyReady: true,
     strictCreationPreviewReady: true,
-    nextStep: "M10A.7 Scale / Docs / Rules Reference"
+    scalePolicyReady: true,
+    rulesReferencePreviewReady: true,
+    nextStep: "M10A.8 Profile Activation QA"
   }
 });
