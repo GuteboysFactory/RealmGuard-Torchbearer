@@ -6,3 +6,4 @@
 # Levels/Talents preserved but disabled under Strict planning
 # QA channel advances only after release assets and all smokes verify
 # M10A.4 regression smoke generalized for later profile versions
+# Enmity role/status normalization corrected
