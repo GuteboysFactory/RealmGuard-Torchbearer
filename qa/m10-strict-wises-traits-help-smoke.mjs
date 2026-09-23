@@ -17,7 +17,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 assert.match(manifest.version, /^1\.11\.0(?:-qa\.\d+)?$/, "M10A.2 smoke runs across v1.11.0.");
 
 const unratedWise = { id: "w0", name: "Road-wise", system: { rating: 0, learning: { passed: 0, failed: 0, passNeeded: 1, failNeeded: 0 } } };
-const ratedWise = { id: "w3", name: "Road-wise", system: { rating: 3, learning: { passed: 2, failed: 1, passNeeded: 3, failNeeded: 2 } } };
+const ratedWise = { id: "w3", name: "Road-wise", system: { rating: 3, learning: { passed: 3, failed: 1, passNeeded: 3, failNeeded: 2 } } };
 
 assert.equal(strictWiseView(unratedWise).conversionState, "UNASSIGNED_PRESERVED");
 assert.equal(planStrictWiseTest(unratedWise).ok, false);
