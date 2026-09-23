@@ -104,9 +104,13 @@ assert.ok(legacyTeamwork.includes('if (hasActiveCondition(actor, "Afraid"))'), "
 
 const menu = fs.readFileSync("module/profile-management-menu.mjs", "utf8");
 assert.ok(menu.includes('game.settings.registerMenu("realm-guard", "rulesProfileManagement"'));
-assert.ok(menu.includes("Preview Strict Conversion"));
+assert.ok(menu.includes("templates/apps/profile-management.hbs"));
 assert.ok(menu.includes("switchLocked: true"));
 assert.ok(menu.includes("M10A.8 Profile Activation QA"));
+const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
+assert.ok(menuTemplate.includes("Preview Strict Conversion"));
+assert.ok(menuTemplate.includes("Switch to Strict Realm Guard"));
+assert.ok(menuTemplate.includes("disabled title="));
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileId"'), false);
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileVersion"'), false);
 
