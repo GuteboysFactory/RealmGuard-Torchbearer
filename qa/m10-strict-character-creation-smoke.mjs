@@ -119,6 +119,17 @@ assert.equal(scoutDraft.derivedValues.creationPolicy.inventoryPolicy, "LOOSE");
 const scoutValidation = strictValidateCreation(scoutDraft, { partyContext: emptyParty });
 assert.equal(scoutValidation.valid, true);
 
+const duplicateSpecialtyParty = new CreationPartyContext({
+  existingCharacters:[{actorId:"existing",name:"TrueBlood",station:"veteran",age:55,specialty:"Pathfinder",traits:[]}]
+});
+const duplicateSpecialtyValidation = strictValidateCreation(scoutDraft, { partyContext: duplicateSpecialtyParty });
+const specialtyErrors = duplicateSpecialtyValidation.errors.filter(entry => entry.code === "SPECIALTY_NOT_UNIQUE");
+assert.equal(duplicateSpecialtyValidation.valid, false);
+assert.equal(specialtyErrors.length, 1, "Strict full preflight must report a duplicate Specialty only once.");
+assert.equal(specialtyErrors[0].field, "specialty");
+assert.equal(specialtyErrors[0].actorName, "TrueBlood");
+assert.match(specialtyErrors[0].message, /Pathfinder is already the Specialty of TrueBlood/);
+
 const wiseStep = strictValidateCreationStep("wises", scoutDraft, { partyContext: emptyParty });
 assert.equal(wiseStep.valid, true);
 
