@@ -1,24 +1,24 @@
-Realm Guard / Torchbearer v1.11.0-qa.3 — M10A.2 Wises / Traits / Help + Profile Management
+Realm Guard / Torchbearer v1.11.0-qa.4 — M10A.3 Conditions / Recovery
 
-Built after v1.11.0-qa.2 passed live Foundry VTT 13.351 QA.
+Built after v1.11.0-qa.3 passed live Foundry VTT 13.351 QA.
 
 This build does not activate Strict Realm Guard. Legacy Mixed remains the sole live gameplay profile.
 
 Highlights:
-- Adds additive Wise rating/learning schema fields without assigning ratings to existing Wises.
-- Existing Legacy Mixed Wises remain preserved and continue to use Legacy behavior.
-- Adds non-live Strict rated-Wise test/advancement policy.
-- Adds canonical non-live Strict Trait L1/L2/L3 policy, Trait Against Break Tie, and Charge/Recharge economy.
-- Separates Strict I Am Wise from another Ranger's Wise Teamwork.
-- Strict Synergy is OFF; Strict Afraid does not generically block Help.
-- Adds a helper-consequence contract for M10A.3 Conditions / Recovery.
-- Exposes non-live Strict policy QA functions under game.realmGuard.core.m10.strict.
-- Adds Game Settings → Rules Profile Management.
-- Profile Management exposes current profile, Strict target, world impact and the existing read-only conversion preview.
-- Switch to Strict Realm Guard is visible but locked until M10A.8 Profile Activation QA.
-- Raw active profile settings remain hidden; no live profile switch API exists.
-- Legacy Mixed gameplay behavior is intentionally unchanged.
+- Adds a non-live Strict Condition policy with derived Healthy plus Hungry & Thirsty, Angry, Tired, Injured and Strained.
+- Fresh and Afraid are preserved as Legacy Mixed data and have no Strict mechanical effect.
+- Adds a read-only Strict condition provisioning plan with zero Actor/Item writes.
+- Adds source-backed Strict Condition roll/disposition planners and zero-rating Condition policy.
+- Adds Harvester to Hungry recovery planning and good-night's-rest routes for Tired.
+- Adds no-Help policy for Will/Health recovery tests.
+- Adds Injured recovery state planning: Health Ob 4, Healer Ob 3 after failure, explicit permanent-reduction review on failed treatment, and Players' Turn waiver planning.
+- Permanent reduction targets exclude Resources/Circles and are never auto-selected.
+- Adds Strained Ob 4 Will counsel state planning with 2-Check GM Turn counsel economy.
+- Adds source-ordered helper lesser-Condition options; GM selection remains required and auto-application remains off.
+- Exposes Strict Conditions/Recovery planning under game.realmGuard.core.m10.strict.
+- Strict profile advances to version 4 / M10A.3 and remains PREVIEW_ONLY.
+- Legacy Mixed Condition provisioning/recovery remains untouched.
 - Foundry VTT target remains 13.351.
 
 Next after PASS:
-M10A.3 — Conditions / Recovery, preceded by a fresh read-only audit.
+M10A.4 — Gear / Inventory / Conflict Ownership, preceded by a fresh read-only audit.
