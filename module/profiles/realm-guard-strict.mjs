@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 3,
+  version: 4,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -21,7 +21,11 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     recovery: {
       mode: "REALM_GUARD_STRICT",
       order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"],
-      strained: { recoveryAbility: "Will", obstacle: 4, failedRecovery: "COUNSEL_FROM_FRIEND", gmTurnCounselCheckCost: 2, penaltyExclusions: ["Resources", "Circles", "Will Recovery", "Health Recovery"] }
+      hungry: { obstacle: 1, methods: ["Harvester", "Cook", "Brewer", "Baker", "Resources", "Narrative Feeding"] },
+      angry: { recoveryAbility: "Will", obstacle: 2, helpAllowed: false },
+      tired: { recoveryAbility: "Health", obstacle: 3, helpAllowed: false, goodRest: true, resourcesObstacle: 2 },
+      injured: { recoveryAbility: "Health", obstacle: 4, helpAllowed: false, failedRecovery: "HEALER_REQUIRED", healerObstacle: 3, permanentReductionExcludes: ["Resources", "Circles"] },
+      strained: { recoveryAbility: "Will", obstacle: 4, helpAllowed: false, failedRecovery: "COUNSEL_FROM_FRIEND", gmTurnCounselCheckCost: 2, penaltyExclusions: ["Resources", "Circles", "Will Recovery", "Health Recovery"] }
     },
     conflict: { mode: "MG1E_WITH_REALM_GUARD_CONTENT", toolContent: "REALM_GUARD_V1_6", toolScope: "EXCHANGE", unarmedDefaultDice: 0, scaleOfMightAware: true },
     creation: { mode: "REALM_GUARD_STRICT_PROFILE", coreEngine: "M9", liveAuthority: "NONE", profileId: "realm-guard-strict", profileVersion: 1, ratedWises: true, levelsTalents: false },
@@ -50,11 +54,13 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.2",
+    implementationPhase: "M10A.3",
     strictRulesLive: false,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
     helpPolicyReady: true,
-    nextStep: "M10A.3 Conditions / Recovery"
+    conditionPolicyReady: true,
+    recoveryPolicyReady: true,
+    nextStep: "M10A.4 Gear / Inventory / Conflict Ownership"
   }
 });
