@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 2,
+  version: 3,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -50,6 +50,11 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    nextStep: "M10A.2 Wises / Traits / Help"
+    implementationPhase: "M10A.2",
+    strictRulesLive: false,
+    ratedWiseSchemaReady: true,
+    traitPolicyReady: true,
+    helpPolicyReady: true,
+    nextStep: "M10A.3 Conditions / Recovery"
   }
 });
