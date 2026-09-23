@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.1 — 🟡 M10A.0 Profile Foundation  
+**Current QA build:** v1.11.0-qa.2 — 🟡 M10A.1 Strict Registry + Conversion Preview  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step:** M10A.1 — Strict Registry + Conversion Preview  
+**Next CORE step after qa.2 PASS:** M10A.2 — Wises / Traits / Help  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.1 implements M10A.0 Profile Foundation with **NO INTENDED GAMEPLAY CHANGE**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.2 implements M10A.1 Strict Registry + read-only Conversion Preview with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -33,9 +33,20 @@ qa.1 foundation scope:
 - no Actor/Item migration
 - no Wise/Trait/Condition/Inventory/Conflict/Session behavior change
 
-**qa.1 QA gate:** boot/reload v13.351; verify Legacy Mixed remains active; verify registered profiles include `mg1e` and `realm-guard-strict` as foundation-only; verify Strict resolves read-only with lineage `mg1e → realm-guard-strict`; verify no creation/roll/conflict/session regression.
+**qa.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Boot/reload, three-profile registration, Strict read-only resolver and ordinary Skill-roll regression verified with Legacy Mixed remaining active.
 
-**Next:** M10A.1 — complete Strict Rules Registry manifest + non-destructive Profile Conversion Preview. No live Strict activation before preview/QA is complete.
+**qa.2 scope — M10A.1:**
+- complete MG1E source manifest under the non-selectable `mg1e` foundation
+- complete `realm-guard-strict` PREVIEW_ONLY manifest with Realm Guard v1.6 overrides
+- read-only technical domain diff + reviewed conversion deltas
+- read-only World Impact Scan for Wises, Talents, progression, structured Gear, Fresh/Afraid and creation provenance
+- Rules Registry button: **Preview Strict Conversion**
+- `game.realmGuard.core.m10.previewStrictConversion()`
+- no live switch API, no Actor/Item mutation, no setting writes
+- no Wise schema migration yet
+- no destructive conversion
+
+**Next after qa.2 PASS:** M10A.2 — Wises / Traits / Help. A fresh read-only audit is required before that patch.
 
 
 ### M9 — Creation / Recruitment Migration
