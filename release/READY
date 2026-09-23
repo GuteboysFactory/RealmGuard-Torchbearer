@@ -1,7 +1,7 @@
-1.11.0-qa.2
-# M10A.1 Strict Registry + Conversion Preview
-# READ ONLY — NO LIVE PROFILE ACTIVATION
+1.11.0-qa.3
+# M10A.2 Wises / Traits / Help + Profile Management
+# NO LIVE STRICT ACTIVATION
 # Legacy Mixed remains sole normal live profile
-# Strict manifest resolves MG1E 2008 -> Realm Guard v1.6 overrides
-# World Impact Scan and conversion preview perform zero writes
+# Existing Wises preserved; no automatic rating assignment
+# Game Settings Profile Management exposes preview only; Switch remains locked
 # QA channel advances only after release assets and all smokes verify
