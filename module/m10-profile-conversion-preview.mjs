@@ -2,7 +2,7 @@ const STRICT_TARGET_ID = "realm-guard-strict";
 
 export const STRICT_CONVERSION_DELTAS = Object.freeze([
   Object.freeze({ id: "SOURCE_LINEAGE", domain: "profile", severity: "RULE_OWNERSHIP", title: "Rules source lineage", from: "Legacy Mixed project behavior", to: "Mouse Guard 1E / 2008 inheritance + Realm Guard v1.6 overrides", dataAction: "NONE", note: "Changes source ownership and interpretation, not stored campaign data." }),
-  Object.freeze({ id: "WISE_RATINGS", domain: "wises", severity: "DATA_REVIEW_REQUIRED", title: "Wises become rated", from: "Unrated Wise Items", to: "Rated Wises that test and advance like Skills", dataAction: "PRESERVE_AND_REVIEW", note: "Current Wise schema has no rating/learning fields. M10A.2 must add those fields non-destructively before activation." }),
+  Object.freeze({ id: "WISE_RATINGS", domain: "wises", severity: "DATA_REVIEW_REQUIRED", title: "Wises become rated", from: "Unrated Wise Items", to: "Rated Wises that test and advance like Skills", dataAction: "PRESERVE_AND_REVIEW", note: "Rated-Wise schema support is now additive and non-destructive. Existing preserved Wises remain rating 0 until an explicit future conversion or GM assignment." }),
   Object.freeze({ id: "TRAIT_SEMANTICS", domain: "traits", severity: "RULE_POLICY", title: "Trait level semantics", from: "Legacy Mixed trait behavior", to: "MG1E L1 once/session · L2 every applicable test · L3 reroll all failed dice once/session", dataAction: "NONE", note: "Trait Items are preserved; only future Strict rule interpretation changes." }),
   Object.freeze({ id: "HELP_I_AM_WISE", domain: "help", severity: "RULE_POLICY", title: "I Am Wise separated from Teamwork", from: "Legacy helper workflow / project Synergy", to: "Own Wise augmentation = I Am Wise; another Ranger's help = Teamwork; Synergy disabled", dataAction: "NONE", note: "No Actor write is required." }),
   Object.freeze({ id: "CONDITION_SET", domain: "conditions", severity: "DATA_PRESERVE_RULE_DISABLE", title: "Strict condition set", from: "Legacy Mixed includes supplementary Fresh / Afraid handling", to: "Healthy · Hungry & Thirsty · Angry · Tired · Injured · Strained", dataAction: "PRESERVE_EXISTING_ITEMS", note: "Fresh/Afraid Items are never deleted by conversion; they are flagged for GM review." }),
@@ -147,7 +147,7 @@ export function buildStrictConversionPreview({ fromProfile, toProfile, actors = 
       preserveInventoryMetadata: true,
       preserveFreshAfraidItems: true
     },
-    nextStep: "M10A.2 Wises / Traits / Help"
+    nextStep: "M10A.3 Conditions / Recovery"
   });
 }
 
