@@ -1,6 +1,26 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.3 - 🟡 M10A.2 Wises / Traits / Help + Profile Management
+## v1.11.0-qa.4 - 🟡 M10A.3 Conditions / Recovery
+
+- Built after **v1.11.0-qa.3 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds a non-live Strict Condition policy with derived Healthy plus Hungry & Thirsty, Angry, Tired, Injured and Strained.
+- Fresh and Afraid remain preserved Legacy Mixed Items and have no Strict mechanical effect.
+- Adds read-only Strict condition provisioning plans; qa.4 creates/deletes no Condition Items and performs no Actor migration.
+- Adds source-backed Strict Condition roll/disposition planners for Injured, Strained, Hungry, Angry and Tired.
+- Adds zero-rating policy for abilities/skills reduced to 0 by Conditions: no Beginner's Luck, Help/I Am Wise or Persona; Nature is required if the test is attempted.
+- Strict recovery methods now include Harvester for Hungry & Thirsty, good-night's-rest routes for Tired, and correct Angry/Injured/Strained obstacles.
+- Adds strict no-Help policy for Will/Health recovery tests.
+- Adds Injured recovery state planning: Health Ob 4 → Healer required on failure → Healer Ob 3 → permanent reduction contract on failed treatment.
+- Adds Players' Turn Injury waiver planning with 0 Check cost and explicit permanent-reduction target review excluding Resources/Circles.
+- Adds Strained counsel state planning with 2-Check GM Turn counsel economy.
+- Completes helper lesser-Condition option planning for failed helped tests; application remains GM-selected and non-live.
+- Strict Conditions/Recovery policy is exposed through `game.realmGuard.core.m10.strict`.
+- Strict profile advances to version 4 / implementation phase M10A.3 and remains PREVIEW_ONLY.
+- Legacy Mixed Condition provisioning, Fresh/Afraid behavior, recovery UI and live rules remain untouched.
+- Adds `qa/m10-strict-conditions-recovery-smoke.mjs`.
+- **Next after qa.4 PASS:** read-only audit for M10A.4 — Gear / Inventory / Conflict Ownership.
+
+## v1.11.0-qa.3 - 🟢✅ FULL PASS / M10A.2 Wises / Traits / Help + Profile Management
 
 - Built after **v1.11.0-qa.2 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds additive, non-destructive Wise schema fields: `rating` + `learning`; existing Legacy Mixed Wises default to rating 0 and are **not** automatically converted.
@@ -162,7 +182,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.10.0  
-**Current QA build:** v1.11.0-qa.3 — M10A.2 Wises / Traits / Help + Profile Management
+**Current QA build:** v1.11.0-qa.4 — M10A.3 Conditions / Recovery
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD
