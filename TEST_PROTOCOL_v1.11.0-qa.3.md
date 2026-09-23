@@ -1,6 +1,6 @@
 # v1.11.0-qa.3 — M10A.2 Wises / Traits / Help + Profile Management QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — Profile Management, Wise preservation, Strict Trait/Help planners, helper consequence contract, reload and Legacy Mixed regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Active gameplay profile:** Realm Guard — Legacy Mixed  
