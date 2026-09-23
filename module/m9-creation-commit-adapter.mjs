@@ -187,7 +187,9 @@ export class FoundryCreationCommitAdapter {
       traits: clone(plan.provisioning?.traits ?? []),
       wises: clone(plan.provisioning?.wises ?? []),
       gear: clone(plan.provisioning?.gear ?? []),
-      conditions: RG_DEFAULT_CONDITIONS.map(entry => entry.name),
+      conditions: Array.isArray(plan.provisioning?.canonicalConditions?.names)
+        ? [...plan.provisioning.canonicalConditions.names]
+        : RG_DEFAULT_CONDITIONS.map(entry => entry.name),
       relationships: clone(plan.relationships ?? {}),
       provenance: {
         profileId: plan.provenance?.profileId ?? plan.profileId,
