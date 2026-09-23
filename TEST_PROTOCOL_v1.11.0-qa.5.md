@@ -1,6 +1,6 @@
 # v1.11.0-qa.5 — M10A.4 Gear / Inventory / Conflict Ownership QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — M10A.4 Strict LOOSE inventory, unassigned physical weapon availability, 0D no-tool policy, MG1E/RG weapon ownership, armor, guided Gear relevance, Disarm, Weapons of Wit, reload and Legacy Mixed regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Active gameplay profile:** Realm Guard — Legacy Mixed  
