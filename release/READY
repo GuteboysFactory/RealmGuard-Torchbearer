@@ -1,9 +1,7 @@
-1.11.0-qa.6
-# M10A.5 Session / Circles / Progression
+1.11.0-qa.7
+# M10A.6 Strict Character Creation
 # NO LIVE STRICT ACTIVATION
-# Legacy Mixed remains sole normal live profile
-# Strict Session/Circles/Progression are policy/planning only
-# Levels/Talents preserved but disabled under Strict planning
+# Legacy Mixed remains sole normal live profile and live M9 creation authority
+# Strict Character Creation is draft/validation/review/commit-preview only
+# Rated Wises + Strict Enemy/Mentor/Condition/Inventory ownership
 # QA channel advances only after release assets and all smokes verify
-# M10A.4 regression smoke generalized for later profile versions
-# Enmity role/status normalization corrected
