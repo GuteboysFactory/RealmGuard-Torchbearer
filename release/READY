@@ -5,3 +5,4 @@
 # Strict Conditions/Recovery are policy/state planners only
 # Fresh/Afraid preserved; no Condition migration or deletion
 # QA channel advances only after release assets and all smokes verify
+# QA frozen-array assertion corrected
