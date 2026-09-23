@@ -73,9 +73,9 @@ function registryHtml(state) {
 
   return `<div class="realm-guard rg-rules-registry-scroll" style="padding:4px 10px 10px 2px;max-height:calc(100vh - 190px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;">
     <header style="margin-bottom:14px;">
-      <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M1</div>
+      <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">M1 documents and resolves the current compatibility profile. It does not replace the live gameplay engines yet.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10A.1 can preview the Strict Realm Guard conversion without changing the world.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
@@ -110,7 +110,20 @@ export async function openRulesRegistry() {
     content: registryHtml(state),
     modal: false,
     rejectClose: false,
-    buttons: [{ action: "close", label: "Close", default: true, callback: () => "close" }]
+    buttons: [
+      {
+        action: "preview-strict",
+        label: "Preview Strict Conversion",
+        icon: "fa-solid fa-magnifying-glass-chart",
+        callback: () => {
+          const openPreview = game.realmGuard?.core?.m10?.openStrictConversionPreview;
+          if (!openPreview) return ui.notifications.warn("Realm Guard: M10 Strict conversion preview is not ready.");
+          void openPreview();
+          return "preview-strict";
+        }
+      },
+      { action: "close", label: "Close", default: true, callback: () => "close" }
+    ]
   });
 }
 
@@ -132,7 +145,9 @@ function exposeCoreApi() {
       classification: profile.classification,
       selectable: profile.metadata?.selectable !== false,
       supported: profile.metadata?.supported !== false,
-      activationState: profile.metadata?.activationState ?? "ACTIVE"
+      activationState: profile.metadata?.activationState ?? "ACTIVE",
+      previewOnly: profile.metadata?.previewOnly === true,
+      conversionPreviewAvailable: profile.metadata?.conversionPreviewAvailable === true
     })),
     currentSnapshot: state.snapshot
   });
