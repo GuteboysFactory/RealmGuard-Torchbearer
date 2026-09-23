@@ -55,7 +55,30 @@ export function strictUpdateDraft(draft, changes = {}) {
 }
 
 export function strictValidateCreation(draft, { partyContext = null } = {}) {
-  return engine.validate(draft, partyContext ?? strictCreationPartyContext());
+  const context = partyContext ?? strictCreationPartyContext();
+  const generic = engine.validate(draft, context);
+  const errors = [...(generic.errors ?? [])];
+  const warnings = [...(generic.warnings ?? [])];
+  for (const step of REALM_GUARD_STRICT_CREATION_PROFILE.steps) {
+    const result = engine.validateStep(step.id, draft, context);
+    errors.push(...(result.errors ?? []));
+    warnings.push(...(result.warnings ?? []));
+  }
+  const uniqueErrors = [];
+  const seenErrors = new Set();
+  for (const entry of errors) {
+    const key = `${entry?.code ?? ""}|${entry?.field ?? ""}|${entry?.message ?? ""}`;
+    if (seenErrors.has(key)) continue;
+    seenErrors.add(key);
+    uniqueErrors.push(entry);
+  }
+  return freeze({
+    valid: uniqueErrors.length === 0,
+    errors: uniqueErrors,
+    warnings,
+    profileId: STRICT_CREATION_PROFILE_ID,
+    profileVersion: STRICT_CREATION_PROFILE_VERSION
+  });
 }
 
 export function strictValidateCreationStep(stepId, draft, { partyContext = null } = {}) {
@@ -67,7 +90,13 @@ export function strictCreationReview(draft, { partyContext = null } = {}) {
 }
 
 export function strictCreationCommitPlan(draft, { partyContext = null } = {}) {
-  return engine.buildCommitPlan(draft, partyContext ?? strictCreationPartyContext());
+  const context = partyContext ?? strictCreationPartyContext();
+  const validation = strictValidateCreation(draft, { partyContext: context });
+  if (!validation.valid) {
+    const first = validation.errors[0];
+    throw new Error(`Strict Realm Guard creation preflight failed: ${first?.message ?? first?.code ?? "unknown validation error"}`);
+  }
+  return engine.buildCommitPlan(draft, context);
 }
 
 export function strictCreationCommitPreview(draft, { partyContext = null, isGM = true, userId = "" } = {}) {
