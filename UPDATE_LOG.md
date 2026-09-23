@@ -1,6 +1,30 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.2 - 🟡 M10A.1 Strict Registry + Conversion Preview / READ ONLY
+## v1.11.0-qa.3 - 🟡 M10A.2 Wises / Traits / Help + Profile Management
+
+- Built after **v1.11.0-qa.2 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds additive, non-destructive Wise schema fields: `rating` + `learning`; existing Legacy Mixed Wises default to rating 0 and are **not** automatically converted.
+- Adds non-live Strict Wise planning and advancement policy matching MG1E rated-Wise behavior.
+- Adds non-live Strict Trait policy:
+  - L1 = +1D once/session
+  - L2 = +1D on every applicable test
+  - L3 = reroll all failed dice once/session
+  - Trait Against Impede / Hurt / Break Tie
+  - Charge 3 Checks; Recharge L1 2 Checks; Recharge L3 4 Checks.
+- Separates Strict **I Am Wise** (self-Wise +1D) from another Ranger's Wise Teamwork.
+- Strict Synergy = OFF; Strict Afraid does not generically block Help.
+- Adds a Strict helper-consequence contract for failed Help; actual lesser-Condition application is deferred to M10A.3.
+- Exposes non-live Strict QA planners under `game.realmGuard.core.m10.strict`.
+- Adds **Game Settings → Rules Profile Management** using Foundry's settings submenu registration.
+- Profile Management shows current profile, Strict preview target, world impact and opens the existing read-only conversion preview.
+- **Switch to Strict Realm Guard remains visibly locked** until M10A.8 Profile Activation QA.
+- Raw `activeRulesProfileId` / `activeRulesProfileVersion` settings remain hidden; qa.3 adds no switch API and writes neither setting.
+- Legacy Mixed Wise reroll, Trait behavior, Synergy and Afraid Help-block remain unchanged.
+- Strict profile metadata advances to version 3 / implementation phase M10A.2 while remaining PREVIEW_ONLY.
+- Adds `qa/m10-strict-wises-traits-help-smoke.mjs`.
+- **Next after qa.3 PASS:** new read-only audit for M10A.3 — Conditions / Recovery.
+
+## v1.11.0-qa.2 - 🟢✅ FULL PASS / M10A.1 Strict Registry + Conversion Preview / READ ONLY
 
 - Built after live Foundry VTT 13.351 verification of v1.11.0-qa.1 M10A.0 Profile Foundation.
 - qa.1 is now **🟢✅ FULL PASS**: boot/reload, three-profile registration, Strict read-only resolver and ordinary Skill-roll regression verified.
@@ -138,7 +162,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.10.0  
-**Current QA build:** v1.11.0-qa.2 — M10A.1 Strict Registry + Conversion Preview
+**Current QA build:** v1.11.0-qa.3 — M10A.2 Wises / Traits / Help + Profile Management
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD
