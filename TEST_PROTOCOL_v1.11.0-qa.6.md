@@ -1,6 +1,6 @@
 # v1.11.0-qa.6 — M10A.5 Session / Circles / Progression QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — M10A.5 Session / Circles / Progression policy, End Session ownership, Circles/Enmity, Strict resource-spend separation, advancement, Beginner's Luck, reload and Legacy Mixed regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Active gameplay profile:** Realm Guard — Legacy Mixed  
