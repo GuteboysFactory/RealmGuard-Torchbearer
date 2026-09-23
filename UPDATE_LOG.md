@@ -1,6 +1,24 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.1 - 🟡 M10A.0 Profile Foundation / NO GAMEPLAY CHANGE
+## v1.11.0-qa.2 - 🟡 M10A.1 Strict Registry + Conversion Preview / READ ONLY
+
+- Built after live Foundry VTT 13.351 verification of v1.11.0-qa.1 M10A.0 Profile Foundation.
+- qa.1 is now **🟢✅ FULL PASS**: boot/reload, three-profile registration, Strict read-only resolver and ordinary Skill-roll regression verified.
+- Expands the internal MG1E foundation into an explicit source-owned rules manifest.
+- Expands `realm-guard-strict` into a complete **PREVIEW_ONLY** Strict manifest inheriting MG1E and overriding Realm Guard v1.6 domains.
+- Strict inheritance now visibly resolves rated Wises, canonical MG1E Trait semantics, I Am Wise vs Teamwork, LOOSE inventory, no Levels/Talents and MG1E session/Circles ownership.
+- Realm Guard overrides now visibly resolve Dúnadan Nature descriptors, Strained replacing Sick, Tokens of Power and Scale of Might.
+- Adds a dedicated read-only Profile Conversion Preview engine with reviewed semantic deltas plus technical domain diff.
+- Adds a read-only World Impact Scan for Wises, Talents, progression data, structured Gear, Fresh/Afraid and Legacy Mixed CreationProvenance.
+- Adds **Preview Strict Conversion** to the GM Rules Registry and `game.realmGuard.core.m10` read-only QA API.
+- qa.2 has **no profile activation**, no Actor/Item conversion, no setting writes and no destructive data path.
+- Wise schema remains unchanged in qa.2; rated-Wise schema/behavior is intentionally deferred to M10A.2.
+- Existing Talent/Level data, inventory placement metadata and Fresh/Afraid Items are explicitly preserved.
+- Scale of Might is declared as Realm Guard v1.6 **MANUAL/GUIDED** ownership only; no invented automation is introduced.
+- Adds `qa/m10-strict-conversion-preview-smoke.mjs`.
+- **Next after qa.2 PASS:** new read-only audit for M10A.2 — Wises / Traits / Help.
+
+## v1.11.0-qa.1 - 🟢✅ FULL PASS / M10A.0 Profile Foundation / NO GAMEPLAY CHANGE
 
 - Starts M10 — Strict Realm Guard Profile / Rules Ownership from the verified v1.10.0 STABLE / GOLD baseline.
 - Registers an internal Mouse Guard 1E / 2008 foundation profile and a non-selectable `realm-guard-strict` foundation profile.
@@ -120,7 +138,7 @@
 **Active development line:** rebuilt/tested branch  
 **Foundry target:** VTT 13.351  
 **Current GOLD baseline:** v1.10.0  
-**Current QA build:** v1.11.0-qa.1 — M10A.0 Profile Foundation
+**Current QA build:** v1.11.0-qa.2 — M10A.1 Strict Registry + Conversion Preview
 
 
 ## v1.9.0 - 🟢✅ STABLE / GOLD
