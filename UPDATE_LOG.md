@@ -1,6 +1,6 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.5 - 🟡 M10A.4 Gear / Inventory / Conflict Ownership
+## v1.11.0-qa.5 - 🟢✅ FULL PASS / M10A.4 Gear / Inventory / Conflict Ownership
 
 - Built after **v1.11.0-qa.4 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds a non-live Strict Gear / Inventory / Conflict ownership layer.
