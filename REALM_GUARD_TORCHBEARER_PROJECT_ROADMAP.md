@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.5 — 🟢✅ FULL PASS / M10A.4 Gear / Inventory / Conflict Ownership  
+**Current QA build:** v1.11.0-qa.6 — 🟡 M10A.5 Session / Circles / Progression  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.5 PASS:** M10A.5 — Session / Circles / Progression  
+**Next CORE step after qa.6 PASS:** M10A.6 — Strict Character Creation  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.5 implements M10A.4 Gear / Inventory / Conflict ownership foundations with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.6 implements M10A.5 Session / Circles / Progression foundations with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -96,7 +96,22 @@ qa.1 foundation scope:
 
 **qa.5 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict LOOSE inventory, unassigned physical weapon availability, 0D no-tool policy, MG1E/RG weapon ownership, armor, guided Gear relevance, Disarm, Weapons of Wit, reload and Legacy Mixed regression verified.
 
-**Next:** read-only audit for M10A.5 — Session / Circles / Progression before any mutation.
+**qa.6 scope — M10A.5:**
+- CORE M7 retained for Players' Turn / Checks / recovery economy
+- Strict End Session group-consensus ownership + GM commit boundary
+- Strict Embodiment never awarded to everyone, including solo sessions
+- MG1E Circles known-contact +1D contract
+- Enmity Clause +3s disposition in Argument/Speech against relationship owner
+- M8 Social Network retained as Foundry storage/tooling
+- Levels/Talents disabled only under Strict; existing data preserved
+- Strict Fate/Persona spend separated from Legacy lifetime Level progression
+- MG1E Pass/Fail advancement requirements + clear-slate behavior
+- one advancement mark per Ability/Skill per conflict/scene
+- Beginner's Luck learning via Maximum Nature attempts, opening at rating 2
+- no live Strict authority or data mutation
+- Legacy Mixed remains sole live authority
+
+**Next after qa.6 PASS:** M10A.6 — Strict Character Creation. A fresh read-only audit is required before mutation.
 
 
 ### M9 — Creation / Recruitment Migration
