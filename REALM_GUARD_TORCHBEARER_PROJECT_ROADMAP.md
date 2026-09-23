@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.5 — 🟡 M10A.4 Gear / Inventory / Conflict Ownership  
+**Current QA build:** v1.11.0-qa.5 — 🟢✅ FULL PASS / M10A.4 Gear / Inventory / Conflict Ownership  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
 **Next CORE step after qa.5 PASS:** M10A.5 — Session / Circles / Progression  
 **Internal system id:** `realm-guard` (do not rename)
@@ -94,7 +94,9 @@ qa.1 foundation scope:
 - no live Strict authority or data mutation
 - Legacy Mixed remains sole live authority
 
-**Next after qa.5 PASS:** M10A.5 — Session / Circles / Progression. A fresh read-only audit is required before mutation.
+**qa.5 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict LOOSE inventory, unassigned physical weapon availability, 0D no-tool policy, MG1E/RG weapon ownership, armor, guided Gear relevance, Disarm, Weapons of Wit, reload and Legacy Mixed regression verified.
+
+**Next:** read-only audit for M10A.5 — Session / Circles / Progression before any mutation.
 
 
 ### M9 — Creation / Recruitment Migration
