@@ -28,6 +28,7 @@ import { installTokenNameHover } from "./module/token-hover.mjs";
 import { installCoreBaseline } from "./module/core-baseline.mjs";
 import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
 import { installM10ProfileConversionPreview } from "./module/m10-profile-service.mjs";
+import { installProfileManagementMenu } from "./module/profile-management-menu.mjs";
 import { installEffectEngineInfrastructure } from "./module/effect-engine-service.mjs";
 import { installTalentEffectShadow } from "./module/talent-effect-shadow.mjs";
 import { installTestEngineInfrastructure } from "./module/test-engine-service.mjs";
@@ -49,7 +50,7 @@ import { installWindowPositionPersistence } from "./module/window-position-servi
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.11.0-qa.2"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.11.0-qa.3"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -73,6 +74,7 @@ Hooks.once("init", () => {
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, { types: ["character"], makeDefault: true, label: "Realm Guard / Torchbearer Ranger Sheet" });
 
   installCoreBaseline();
+  installProfileManagementMenu();
   installRulesProfileInfrastructure();
   installM10ProfileConversionPreview();
   installEffectEngineInfrastructure();
