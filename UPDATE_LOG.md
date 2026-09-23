@@ -1,5 +1,24 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.6 - 🟡 M10A.5 Session / Circles / Progression
+
+- Built after **v1.11.0-qa.5 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds a non-live Strict Session / Circles / Progression ownership layer.
+- Reuses CORE M7 for Players' Turn, Checks, alternation, solo exception and GM Turn recovery economy.
+- Adds Strict End Session validation with MG1E group-consensus ownership and separate Foundry GM commit authority.
+- Fixes the Strict-only Embodiment rule contract: Embodiment may go to multiple participants but never everyone, including a one-player session.
+- Adds Strict Circles ownership over CORE M8 storage, including known-contact future +1D and Enmity Clause source semantics.
+- Adds non-live Enmity disposition planning: hostile Enemy gains +3s only in Argument/Speech against that relationship owner.
+- Adds Strict progression policy with Levels/Talents disabled while preserving all existing Legacy progression fields and Talent Items.
+- Separates Strict Fate/Persona spend from Legacy lifetime-spend Level progression; Strict resource spend never levels up or unlocks Talents.
+- Adds MG1E advancement requirements: Passes = rating, Fails = rating - 1; ratings 0/1 require one Pass.
+- Adds clear-slate-on-advance and one advancement test per Ability/Skill per conflict/scene planning.
+- Adds Beginner's Luck learning contract: attempts required = Maximum Nature, opens Skill at rating 2, no Will/Health advancement.
+- Strict profile advances to version 6 / M10A.5 and remains PREVIEW_ONLY.
+- No Strict Actor, Item or world-setting writes are introduced.
+- Adds `qa/m10-strict-session-circles-progression-smoke.mjs`.
+- **Next after qa.6 PASS:** read-only audit for M10A.6 — Strict Character Creation.
+
 ## v1.11.0-qa.5 - 🟢✅ FULL PASS / M10A.4 Gear / Inventory / Conflict Ownership
 
 - Built after **v1.11.0-qa.4 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
