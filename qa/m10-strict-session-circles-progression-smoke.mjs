@@ -227,12 +227,12 @@ learning = strictBeginnerLearningPlan({ maximumNature:5, attempts:4, attempted:t
 assert.equal(learning.opensSkill, true);
 assert.equal(learning.openingRating, 2);
 
-assert.equal(REALM_GUARD_STRICT_PROFILE.version, 6);
+assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 6, "M10A.5 policy must remain present in later Strict profile versions.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.session.playerTurnFreeTests, 1);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.circles.knownContactFutureDice, 1);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.progression.levels, false);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.progression.talents, false);
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, "M10A.5");
+assert.ok(["M10A.5","M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.5 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.sessionPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.circlesPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.progressionPolicyReady, true);
