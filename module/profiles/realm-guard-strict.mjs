@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 4,
+  version: 5,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -27,7 +27,17 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       injured: { recoveryAbility: "Health", obstacle: 4, helpAllowed: false, failedRecovery: "HEALER_REQUIRED", healerObstacle: 3, permanentReductionExcludes: ["Resources", "Circles"] },
       strained: { recoveryAbility: "Will", obstacle: 4, helpAllowed: false, failedRecovery: "COUNSEL_FROM_FRIEND", gmTurnCounselCheckCost: 2, penaltyExclusions: ["Resources", "Circles", "Will Recovery", "Health Recovery"] }
     },
-    conflict: { mode: "MG1E_WITH_REALM_GUARD_CONTENT", toolContent: "REALM_GUARD_V1_6", toolScope: "EXCHANGE", unarmedDefaultDice: 0, scaleOfMightAware: true },
+    conflict: {
+      mode: "MG1E_WITH_REALM_GUARD_CONTENT",
+      toolContent: "MG1E_2008_PLUS_REALM_GUARD_V1_6",
+      weaponAlias: { "Hook and Line": "Whip" },
+      toolScope: "EXCHANGE",
+      unarmedDefaultDice: 0,
+      scaleOfMightAware: true,
+      armorContent: "MG1E_LIGHT_HEAVY_PLUS_REALM_GUARD_PLATED",
+      weaponsOfWit: true,
+      disarmTargetKinds: ["weapon", "gear", "trait", "natural"]
+    },
     creation: { mode: "REALM_GUARD_STRICT_PROFILE", coreEngine: "M9", liveAuthority: "NONE", profileId: "realm-guard-strict", profileVersion: 1, ratedWises: true, levelsTalents: false },
     tokensOfPower: { enabled: true, source: "REALM_GUARD_V1_6", levelSemantics: "MG1E_TRAIT_LEVELS" },
     scaleOfMight: { enabled: true, mode: "REALM_GUARD_V1_6", automation: "MANUAL_GUIDED", loreMasterRule: true, militaristRule: true }
@@ -54,13 +64,14 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.3",
+    implementationPhase: "M10A.4",
     strictRulesLive: false,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
     helpPolicyReady: true,
     conditionPolicyReady: true,
     recoveryPolicyReady: true,
-    nextStep: "M10A.4 Gear / Inventory / Conflict Ownership"
+    gearInventoryConflictPolicyReady: true,
+    nextStep: "M10A.5 Session / Circles / Progression"
   }
 });
