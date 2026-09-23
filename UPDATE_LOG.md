@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.8 - 🟡 M10A.7 Scale / Docs / Rules Reference
+
+- Built after **v1.11.0-qa.7 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds a read-only Realm Guard v1.6 Scale of Might policy with the six source ranks.
+- Adds source-backed Fighter/Hunter outcome planning from rank difference.
+- Adds Militarist army-size planning: +2 = 10, +3 = 100, +4 = 1,000, +5 = 10,000; majority creature type determines army base rank.
+- Adds Lore Master effective-rank planning from success margin versus creature Nature.
+- Keeps Token of Power Scale interaction MANUAL/GUIDED; only the published Level 3 = Ent-rank example is encoded numerically.
+- Adds a separate Strict Rules Reference snapshot/HTML preview sourced from the resolved Strict Rules Registry.
+- Strict source lineage is explicitly Mouse Guard RPG 2008 / 1E -> Realm Guard v1.6 overrides.
+- Integrated System Manual now shows the active profile, uses runtime system version metadata, exposes **Preview Strict Rules**, and labels the existing permanent Journal as **Legacy Mixed**.
+- Existing permanent Rules Reference Journal is not overwritten or replaced.
+- Strict profile advances to version 8 / M10A.7 and remains PREVIEW_ONLY.
+- No Strict Actor, Item, Journal or world-setting writes are introduced.
+- Adds `qa/m10-strict-scale-docs-reference-smoke.mjs`.
+- **Next after qa.8 PASS:** read-only audit for M10A.8 — Profile Activation QA.
+
 ## v1.11.0-qa.7 - 🟢✅ FULL PASS / M10A.6 Strict Character Creation
 
 - Strict full-preflight now deduplicates overlapping CORE/step validation errors by rule identity; duplicate Specialty conflicts are shown once while preserving the richer human-readable message and Actor metadata.
