@@ -1,0 +1,46 @@
+<section class="rg-profile-management-body">
+  <header style="margin-bottom:14px;">
+    <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · {{phase}}</div>
+    <h2 style="margin:3px 0 4px;">Rules Profile Management</h2>
+    <p style="margin:0;">Manage profile readiness from Game Settings without exposing the raw world settings.</p>
+  </header>
+
+  <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
+    <h3 style="margin:0 0 8px;">Active Rules Profile</h3>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+      <div><b>{{activeProfile.name}}</b><br><small>{{activeProfile.id}} · v{{activeProfile.version}}</small></div>
+      <div style="text-align:right;"><b>{{activeProfile.activationState}}</b><br><small>{{activeProfile.classification}}</small></div>
+    </div>
+    <p><small>Rules snapshot: {{activeProfile.rulesSnapshotHash}}</small></p>
+  </section>
+
+  <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
+    <h3 style="margin:0 0 8px;">Strict Realm Guard</h3>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+      <div><b>{{strictProfile.name}}</b><br><small>{{strictProfile.sourceLineage}}</small></div>
+      <div style="text-align:right;"><b>{{strictProfile.activationState}}</b><br><small>v{{strictProfile.version}}</small></div>
+    </div>
+    <p><small>Rules snapshot: {{strictProfile.rulesSnapshotHash}}</small></p>
+    <button type="button" data-action="previewStrict" {{#unless previewAvailable}}disabled{{/unless}}>
+      <i class="fa-solid fa-magnifying-glass-chart"></i> Preview Strict Conversion
+    </button>
+  </section>
+
+  <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
+    <h3 style="margin:0 0 8px;">World Impact</h3>
+    {{#each impactRows}}
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid rgba(128,128,128,.16);">
+        <span>{{label}}</span><b>{{value}}</b>
+      </div>
+    {{/each}}
+  </section>
+
+  <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
+    <h3 style="margin:0 0 8px;">Switch to Strict Realm Guard</h3>
+    <p><b>Locked.</b> {{switchLockReason}}</p>
+    <button type="button" disabled title="{{switchLockReason}}">
+      <i class="fa-solid fa-lock"></i> Switch to Strict Realm Guard
+    </button>
+    <p style="margin-bottom:0;"><small>Next implementation step: {{nextStep}}. No profile id/version setting is written from this menu.</small></p>
+  </section>
+</section>
