@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 6,
+  version: 7,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -69,7 +69,21 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       oneTestPerAbilityOrSkillPerConflictScene: true,
       beginnerLearningOpensAt: 2
     },
-    creation: { mode: "REALM_GUARD_STRICT_PROFILE", coreEngine: "M9", liveAuthority: "NONE", profileId: "realm-guard-strict", profileVersion: 1, ratedWises: true, levelsTalents: false },
+    creation: {
+      mode: "REALM_GUARD_STRICT_PROFILE",
+      coreEngine: "M9",
+      liveAuthority: "NONE",
+      profileId: "realm-guard-strict",
+      profileVersion: 1,
+      ratedWises: true,
+      startingSkillWiseCap: 6,
+      levelsTalents: false,
+      inventoryPolicy: "LOOSE",
+      strictEnemyValidation: true,
+      mentorValidation: true,
+      conditionProvisioning: "REALM_GUARD_STRICT_SET",
+      automaticNpcCreation: false
+    },
     tokensOfPower: { enabled: true, source: "REALM_GUARD_V1_6", levelSemantics: "MG1E_TRAIT_LEVELS" },
     scaleOfMight: { enabled: true, mode: "REALM_GUARD_V1_6", automation: "MANUAL_GUIDED", loreMasterRule: true, militaristRule: true }
   },
@@ -83,7 +97,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     { id: "SESSION.END_SESSION", domain: "session", title: "End Session", activeValue: "MG1E REWARDS · GROUP CONSENSUS / GM COMMIT", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
     { id: "CIRCLES.MODE", domain: "circles", title: "Circles", activeValue: "MG1E CIRCLES + ENMITY CLAUSE · M8 STORAGE", classification: "MG1E INHERITANCE / FOUNDRY TOOLING", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
     { id: "PROGRESSION.LEVELS_TALENTS", domain: "progression", title: "Progression", activeValue: "MG1E PASS/FAIL ADVANCEMENT · LEVELS/TALENTS DISABLED", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008", overrideReason: "Strict Realm Guard preserves Legacy Mixed level/talent data but does not use it mechanically." },
-    { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · NOT LIVE YET", classification: "REALM GUARD OVERRIDE", automation: "INACTIVE", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.6 will bind the Strict creation profile; M10A.1 only declares ownership." },
+    { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · READ-ONLY PREVIEW", classification: "REALM GUARD OVERRIDE", automation: "PREVIEW", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.6 binds a source-correct Strict creation profile to CORE M9 for read-only draft, validation, review and commit-plan preview. Live commit remains locked." },
     { id: "TOKENS_OF_POWER.MODE", domain: "tokensOfPower", title: "Tokens of Power", activeValue: "ENABLED · MG1E TRAIT-LEVEL SEMANTICS", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
     { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · MANUAL / GUIDED", classification: "REALM GUARD RULE", automation: "MANUAL", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.1 declares the source-owned domain without inventing automatic resolution." }
   ],
@@ -99,7 +113,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.5",
+    implementationPhase: "M10A.6",
     strictRulesLive: false,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -110,6 +124,8 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     sessionPolicyReady: true,
     circlesPolicyReady: true,
     progressionPolicyReady: true,
-    nextStep: "M10A.6 Strict Character Creation"
+    creationPolicyReady: true,
+    strictCreationPreviewReady: true,
+    nextStep: "M10A.7 Scale / Docs / Rules Reference"
   }
 });
