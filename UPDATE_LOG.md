@@ -1,6 +1,26 @@
 # Realm Guard - Update Log
 
-## v1.11.0-qa.4 - 🟡 M10A.3 Conditions / Recovery
+## v1.11.0-qa.5 - 🟡 M10A.4 Gear / Inventory / Conflict Ownership
+
+- Built after **v1.11.0-qa.4 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Adds a non-live Strict Gear / Inventory / Conflict ownership layer.
+- Strict Inventory is LOOSE: paper-doll, slot, container and placement metadata is preserved but has no Strict tabletop-rule authority.
+- M5 ConflictToolService is now inventory-policy aware: LOOSE profiles can see available physical weapon Gear without requiring `inventory.mode === "hand"`; STRUCTURED Legacy Mixed keeps the current hand-placement requirement.
+- Strict no-tool / unarmed default is 0D; Legacy Mixed live -1D remains untouched.
+- Adds MG1E 2008 fighting-weapon planners with Realm Guard v1.6 Whip alias for Hook and Line.
+- Adds MG1E range/interaction handling foundations for Bow, Sling, Spear, Knife and Staff; Halberd selects Axe/Spear mode for the whole action set.
+- Adds Strict Sword Useful, Knife auto-Disarm context, thrown-weapon expenditure planning and Shield fatigue-recovery note/effect contract.
+- Adds Strict Armor ownership: Leather = MG1E Light Armor; Chainmail = MG1E Heavy Armor; Plated Armor = Realm Guard v1.6.
+- Adds GM-guided relevant-Gear +1D planner for ordinary obstacle tests; no automatic relevance inference.
+- Adds Strict Disarm target planning across weapons, Gear, Traits and natural Conflict Tools.
+- Adds MG1E Weapons of Wit planners: Intimidation/Deception, Evidence, Roleplay, Promises and Repeating Yourself.
+- Existing multi-effect Conflict Tool support and three-action Exchange weapon scope are retained.
+- Strict profile advances to version 5 / implementation phase M10A.4 and remains PREVIEW_ONLY.
+- No Gear/Inventory/Conflict Actor writes, Item writes or world-setting writes are introduced.
+- Adds `qa/m10-strict-gear-inventory-conflict-smoke.mjs`.
+- **Next after qa.5 PASS:** read-only audit for M10A.5 — Session / Circles / Progression.
+
+## v1.11.0-qa.4 - 🟢✅ FULL PASS / M10A.3 Conditions / Recovery
 
 - Built after **v1.11.0-qa.3 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds a non-live Strict Condition policy with derived Healthy plus Hungry & Thirsty, Angry, Tired, Injured and Strained.
