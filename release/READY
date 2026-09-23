@@ -1,9 +1,7 @@
-1.11.0-qa.3
-# M10A.2 Wises / Traits / Help + Profile Management
+1.11.0-qa.4
+# M10A.3 Conditions / Recovery
 # NO LIVE STRICT ACTIVATION
 # Legacy Mixed remains sole normal live profile
-# Existing Wises preserved; no automatic rating assignment
-# Game Settings Profile Management exposes preview only; Switch remains locked
+# Strict Conditions/Recovery are policy/state planners only
+# Fresh/Afraid preserved; no Condition migration or deletion
 # QA channel advances only after release assets and all smokes verify
-# QA smoke fixture corrected after pre-release validation
-# QA menu-template assertion corrected
