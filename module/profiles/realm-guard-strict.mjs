@@ -5,7 +5,7 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 5,
+  version: 6,
   name: "Realm Guard — Strict",
   parent: "mg1e",
   classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
@@ -38,6 +38,37 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       weaponsOfWit: true,
       disarmTargetKinds: ["weapon", "gear", "trait", "natural"]
     },
+    session: {
+      mode: "MG1E",
+      coreEngine: "M7",
+      playerTurnFreeTests: 1,
+      additionalTestCheckCost: 1,
+      alternation: true,
+      soloAlternationException: true,
+      gmTurnRecoveryCheckCost: 2,
+      tableRewardAuthority: "GROUP_CONSENSUS",
+      foundryCommitAuthority: "GM",
+      embodimentMayAwardEveryone: false
+    },
+    circles: {
+      mode: "MG1E",
+      socialStorage: "CORE_M8_FOUNDRY_TOOLING",
+      knownContactFutureDice: 1,
+      enmityClause: true,
+      enmityArgumentSpeechDispositionSuccess: 3
+    },
+    progression: {
+      mode: "MG1E",
+      levels: false,
+      talents: false,
+      preserveExistingData: true,
+      lifetimeSpendLevelTracking: false,
+      advancement: "PASS_EQUALS_RATING_FAIL_EQUALS_RATING_MINUS_1",
+      ratingZeroOnePassNeeded: 1,
+      clearSlateOnAdvance: true,
+      oneTestPerAbilityOrSkillPerConflictScene: true,
+      beginnerLearningOpensAt: 2
+    },
     creation: { mode: "REALM_GUARD_STRICT_PROFILE", coreEngine: "M9", liveAuthority: "NONE", profileId: "realm-guard-strict", profileVersion: 1, ratedWises: true, levelsTalents: false },
     tokensOfPower: { enabled: true, source: "REALM_GUARD_V1_6", levelSemantics: "MG1E_TRAIT_LEVELS" },
     scaleOfMight: { enabled: true, mode: "REALM_GUARD_V1_6", automation: "MANUAL_GUIDED", loreMasterRule: true, militaristRule: true }
@@ -48,6 +79,10 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     { id: "CONDITIONS.MODE", domain: "conditions", title: "Conditions", activeValue: "HEALTHY · HUNGRY/THIRSTY · ANGRY · TIRED · INJURED · STRAINED", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "Strained replaces Sick. Fresh and Afraid are not Strict Realm Guard default conditions." },
     { id: "RECOVERY.MODE", domain: "recovery", title: "Recovery", activeValue: "MG1E RECOVERY + REALM GUARD STRAINED RECOVERY", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
     { id: "CONFLICT.ENGINE", domain: "conflict", title: "Conflict Engine", activeValue: "MG1E CONFLICT + REALM GUARD TOOLS / SCALE OWNERSHIP", classification: "REALM GUARD OVERRIDE / MG1E INHERITANCE", automation: "GUIDED", source: STRICT_SOURCE, sourceVersion: "MG 2008 / RG 1.6", overrideReason: "The generic conflict engine is inherited; Realm Guard content and Scale interactions are profile-owned." },
+    { id: "SESSION.TURN_MANAGER", domain: "session", title: "Turn Manager / Checks", activeValue: "MG1E PLAYERS' TURN · 1 FREE TEST · EXTRA TESTS COST CHECKS", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
+    { id: "SESSION.END_SESSION", domain: "session", title: "End Session", activeValue: "MG1E REWARDS · GROUP CONSENSUS / GM COMMIT", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
+    { id: "CIRCLES.MODE", domain: "circles", title: "Circles", activeValue: "MG1E CIRCLES + ENMITY CLAUSE · M8 STORAGE", classification: "MG1E INHERITANCE / FOUNDRY TOOLING", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
+    { id: "PROGRESSION.LEVELS_TALENTS", domain: "progression", title: "Progression", activeValue: "MG1E PASS/FAIL ADVANCEMENT · LEVELS/TALENTS DISABLED", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008", overrideReason: "Strict Realm Guard preserves Legacy Mixed level/talent data but does not use it mechanically." },
     { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · NOT LIVE YET", classification: "REALM GUARD OVERRIDE", automation: "INACTIVE", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.6 will bind the Strict creation profile; M10A.1 only declares ownership." },
     { id: "TOKENS_OF_POWER.MODE", domain: "tokensOfPower", title: "Tokens of Power", activeValue: "ENABLED · MG1E TRAIT-LEVEL SEMANTICS", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
     { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · MANUAL / GUIDED", classification: "REALM GUARD RULE", automation: "MANUAL", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.1 declares the source-owned domain without inventing automatic resolution." }
@@ -64,7 +99,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: false,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.4",
+    implementationPhase: "M10A.5",
     strictRulesLive: false,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -72,6 +107,9 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     conditionPolicyReady: true,
     recoveryPolicyReady: true,
     gearInventoryConflictPolicyReady: true,
-    nextStep: "M10A.5 Session / Circles / Progression"
+    sessionPolicyReady: true,
+    circlesPolicyReady: true,
+    progressionPolicyReady: true,
+    nextStep: "M10A.6 Strict Character Creation"
   }
 });
