@@ -1,14 +1,22 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { openSystemAudit } from "./system-audit.mjs";
 import { RG_SYSTEM_NAME, rulesReferenceDetailsHtml, openRulesReferenceJournal, installRulesReferenceJournal } from "./rules-reference.mjs";
+import { openStrictRulesReferencePreview } from "./m10-strict-rules-reference.mjs";
 
 const SIDEBAR_HELP_ID = "rg-sidebar-manual";
 
 function manualContent() {
+  const active = globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.();
+  const systemVersion = String(globalThis.game?.system?.version ?? "unknown");
+  const activeName = String(active?.name ?? "Realm Guard — Legacy Mixed");
+  const activeId = String(active?.id ?? "realm-guard-legacy-mixed");
+  const activeVersion = String(active?.version ?? "1");
   return `<div class="realm-guard rg-system-manual">
-    <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · v1.0.4 · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
+    <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · system ${systemVersion} · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>How this rules engine is built</b><span>Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions.</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. The embedded manual text below describes the active Legacy Mixed workflow while Strict Realm Guard remains preview-only.</span></div></div>
+
+    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>How the active Legacy Mixed rules engine is built</b><span>Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions. Strict Realm Guard uses a separate MG1E 2008 → Realm Guard v1.6 lineage and is available through the read-only Strict preview.</span></div></div>
 
     <div class="rg-manual-legend">
       <span class="rg-rule-badge rule">RULE</span><small>tabletop rule used by the system</small>
@@ -54,7 +62,8 @@ function manualContent() {
 
 export async function openRealmGuardManual() {
   const buttons = [
-    { action: "rules", label: "Open Rules Journal", icon: "fa-solid fa-book-bookmark", callback: () => "rules" }
+    { action: "strict-preview", label: "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "strict-preview" },
+    { action: "rules", label: "Open Legacy Mixed Rules Journal", icon: "fa-solid fa-book-bookmark", callback: () => "rules" }
   ];
   if (game.user?.isGM) buttons.push({ action: "audit", label: "World Health Audit", icon: "fa-solid fa-shield-heart", callback: () => "audit" });
   buttons.push({ action: "close", label: "Close", default: true, callback: () => "close" });
@@ -68,6 +77,7 @@ export async function openRealmGuardManual() {
   });
   if (result === "audit") setTimeout(() => void openSystemAudit(), 0);
   if (result === "rules") setTimeout(() => void openRulesReferenceJournal(), 0);
+  if (result === "strict-preview") setTimeout(() => void openStrictRulesReferencePreview(), 0);
 }
 
 function injectManualTool(html) {
