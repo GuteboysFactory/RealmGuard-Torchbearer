@@ -1,6 +1,6 @@
 # v1.11.0-qa.7 — M10A.6 Strict Character Creation QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — M10A.6 Strict Character Creation draft/review/preflight/commit-preview, rated Wises, Strict Enemy/Mentor rules, profile-aware condition provisioning, LOOSE inventory ownership, provenance/transaction boundaries, reload and Legacy Mixed Recruitment regression verified in Foundry VTT 13.351.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Active gameplay profile:** Realm Guard — Legacy Mixed  
