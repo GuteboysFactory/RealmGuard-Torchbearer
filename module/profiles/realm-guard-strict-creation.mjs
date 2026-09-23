@@ -7,7 +7,7 @@ import {
   legacyCreationDerive,
   legacyCreationValidateStep
 } from "./realm-guard-legacy-mixed-creation.mjs";
-import { STRICT_ADVERSE_CONDITIONS } from "../m10-strict-conditions-recovery.mjs";
+import { STRICT_RECOVERY_ORDER } from "../m10-strict-conditions-recovery.mjs";
 
 export const STRICT_CREATION_PROFILE_ID = "realm-guard-strict";
 export const STRICT_CREATION_PROFILE_VERSION = 1;
@@ -133,7 +133,7 @@ function deriveStrict(args = {}) {
     levels: false,
     talents: false,
     inventoryPolicy: "LOOSE",
-    conditionSet: [...STRICT_ADVERSE_CONDITIONS],
+    conditionSet: [...STRICT_RECOVERY_ORDER],
     healthyDerived: true,
     enemyServantHouseRule: false
   };
@@ -201,7 +201,7 @@ function buildStrictCommitSpec(args = {}) {
     mode: "REALM_GUARD_STRICT_SET",
     profileId: STRICT_CREATION_PROFILE_ID,
     healthy: "DERIVED",
-    names: [...STRICT_ADVERSE_CONDITIONS],
+    names: [...STRICT_RECOVERY_ORDER],
     excludes: ["Fresh", "Afraid", "Sick"]
   };
   base.provisioning.inventory = {
