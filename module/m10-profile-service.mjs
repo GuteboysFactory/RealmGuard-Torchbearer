@@ -1,5 +1,17 @@
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import {
+  getStrictCreationStatus,
+  strictCreateDraft,
+  strictCreationCommitPlan,
+  strictCreationCommitPreview,
+  strictCreationPartyContext,
+  strictCreationProfile,
+  strictCreationReview,
+  strictUpdateDraft,
+  strictValidateCreation,
+  strictValidateCreationStep
+} from "./m10-strict-character-creation.mjs";
+import {
   getStrictSessionCirclesProgressionStatus,
   strictAdvancementPlan,
   strictAdvancementRequirements,
@@ -70,8 +82,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.5",
-    mode: "STRICT_SESSION_CIRCLES_PROGRESSION_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.6",
+    mode: "STRICT_CHARACTER_CREATION_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -89,7 +101,9 @@ export function getM10ProfilePreviewStatus() {
     sessionWrites: false,
     circlesWrites: false,
     progressionWrites: false,
-    nextStep: "M10A.6 Strict Character Creation"
+    creationWrites: false,
+    strictCreationLiveCommit: false,
+    nextStep: "M10A.7 Scale / Docs / Rules Reference"
   });
 }
 
@@ -172,9 +186,19 @@ export function installM10ProfileConversionPreview() {
         advancementRequirements: strictAdvancementRequirements,
         advancementPlan: strictAdvancementPlan,
         conflictAdvancementPlan: strictConflictAdvancementPlan,
-        beginnerLearningPlan: strictBeginnerLearningPlan
+        beginnerLearningPlan: strictBeginnerLearningPlan,
+        creationStatus: getStrictCreationStatus,
+        creationProfile: strictCreationProfile,
+        creationPartyContext: strictCreationPartyContext,
+        createCreationDraft: strictCreateDraft,
+        updateCreationDraft: strictUpdateDraft,
+        validateCreation: strictValidateCreation,
+        validateCreationStep: strictValidateCreationStep,
+        creationReview: strictCreationReview,
+        creationCommitPlan: strictCreationCommitPlan,
+        creationCommitPreview: strictCreationCommitPreview
       })
     });
-    console.log("realm-guard | M10A.5 Strict Session / Circles / Progression foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.6 Strict Character Creation foundation ready", getM10ProfilePreviewStatus());
   });
 }
