@@ -522,5 +522,8 @@ export {
   STATIONS as LEGACY_CREATION_STATIONS,
   HOMELANDS as LEGACY_CREATION_HOMELANDS,
   ENEMY_SERVANTS_HOUSE_RULE as LEGACY_CREATION_ENEMY_SERVANTS,
-  WEAPON_NAMES as LEGACY_CREATION_WEAPON_NAMES
+  WEAPON_NAMES as LEGACY_CREATION_WEAPON_NAMES,
+  derive as legacyCreationDerive,
+  validateStep as legacyCreationValidateStep,
+  buildCommitSpec as legacyCreationBuildCommitSpec
 };
