@@ -64,14 +64,24 @@ export function strictValidateCreation(draft, { partyContext = null } = {}) {
     errors.push(...(result.errors ?? []));
     warnings.push(...(result.warnings ?? []));
   }
-  const uniqueErrors = [];
-  const seenErrors = new Set();
+  const uniqueByRule = new Map();
   for (const entry of errors) {
-    const key = `${entry?.code ?? ""}|${entry?.field ?? ""}|${entry?.message ?? ""}`;
-    if (seenErrors.has(key)) continue;
-    seenErrors.add(key);
-    uniqueErrors.push(entry);
+    const key = `${entry?.code ?? ""}|${entry?.field ?? ""}`;
+    const prior = uniqueByRule.get(key);
+    if (!prior) {
+      uniqueByRule.set(key, { ...entry });
+      continue;
+    }
+    const richer = {
+      ...prior,
+      ...entry,
+      message: String(entry?.message ?? prior?.message ?? ""),
+      value: entry?.value ?? prior?.value,
+      actorName: entry?.actorName ?? prior?.actorName
+    };
+    uniqueByRule.set(key, richer);
   }
+  const uniqueErrors = [...uniqueByRule.values()];
   return freeze({
     valid: uniqueErrors.length === 0,
     errors: uniqueErrors,
