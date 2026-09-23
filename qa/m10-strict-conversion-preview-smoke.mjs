@@ -107,6 +107,8 @@ assert.ok(serviceSource.includes("Preview Strict Conversion"));
 assert.equal(serviceSource.includes("setActiveRulesProfile"), false);
 
 const dataModels = fs.readFileSync("module/data-models.mjs", "utf8");
-assert.ok(dataModels.includes("export class RealmGuardWiseData extends TypeDataModel { static defineSchema() { return { description: str() }; } }"), "qa.2 must not add rated-Wise schema fields.");
+assert.ok(dataModels.includes("export class RealmGuardWiseData extends TypeDataModel"), "Wise data model must remain registered.");
+assert.ok(dataModels.includes("rating: int(0, 0, 12)"), "M10A.2 additive Wise rating schema must remain available without forcing a rating.");
+assert.ok(dataModels.includes("learning: new fields.SchemaField"), "M10A.2 additive Wise learning schema must remain available.");
 
-console.log("PASS M10A.1 Strict Registry + read-only Conversion Preview · no world writes · no live activation");
+console.log("PASS M10A.1 regression · Strict Registry + read-only Conversion Preview · no world writes · no live activation");
