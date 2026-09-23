@@ -24,7 +24,9 @@ assert.deepEqual(legacy.lineage.map(row => row.id), ["realm-guard-legacy-mixed"]
 const strict = resolver.resolve("realm-guard-strict");
 assert.deepEqual(strict.lineage.map(row => row.id), ["mg1e", "realm-guard-strict"]);
 assert.equal(strict.metadata.strictRealmGuard, true);
-assert.equal(strict.metadata.foundationOnly, true);
+assert.equal(strict.metadata.foundationOnly, false);
+assert.equal(strict.metadata.previewOnly, true);
+assert.equal(strict.metadata.activationState, "PREVIEW_ONLY");
 assert.equal(strict.metadata.selectable, false);
 assert.equal(strict.metadata.supported, false);
 assert.equal(strict.metadata.liveRuleAuthority, false);
@@ -39,6 +41,6 @@ assert.ok(baseline.includes("if (before.profileVersion < 1) await setIfDifferent
 const profileService = fs.readFileSync("module/rules-profile-service.mjs", "utf8");
 assert.ok(profileService.includes("MG1E_FOUNDATION_PROFILE"));
 assert.ok(profileService.includes("REALM_GUARD_STRICT_PROFILE"));
-assert.equal(profileService.includes("setActiveRulesProfile"), false, "qa.1 must not expose a live profile switch before conversion preview exists.");
+assert.equal(profileService.includes("setActiveRulesProfile"), false, "M10 profile foundation must not expose a live profile switch before activation QA.");
 
-console.log("PASS M10A.0 profile foundation · strict inheritance registered · Legacy Mixed preserved · no live switch");
+console.log("PASS M10A.0 foundation regression · strict inheritance preserved · Legacy Mixed preserved · no live switch");
