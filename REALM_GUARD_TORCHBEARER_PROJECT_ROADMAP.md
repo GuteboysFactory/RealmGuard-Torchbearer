@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.2 — 🟡 M10A.1 Strict Registry + Conversion Preview  
+**Current QA build:** v1.11.0-qa.3 — 🟡 M10A.2 Wises / Traits / Help + Profile Management  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.2 PASS:** M10A.2 — Wises / Traits / Help  
+**Next CORE step after qa.3 PASS:** M10A.3 — Conditions / Recovery  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.2 implements M10A.1 Strict Registry + read-only Conversion Preview with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.3 implements M10A.2 Wises / Traits / Help policy foundations plus safe Game Settings Profile Management with **NO LIVE PROFILE ACTIVATION**.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -46,7 +46,22 @@ qa.1 foundation scope:
 - no Wise schema migration yet
 - no destructive conversion
 
-**Next after qa.2 PASS:** M10A.2 — Wises / Traits / Help. A fresh read-only audit is required before that patch.
+**qa.2 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Strict manifest, conversion API/UI, read-only safety, reload preservation and ordinary Skill regression verified.
+
+**qa.3 scope — M10A.2:**
+- additive rated-Wise schema with no automatic rating assignment
+- non-live Strict Wise test/advancement planners
+- canonical MG1E Strict Trait level semantics
+- Trait Against Break Tie + Charge/Recharge policy
+- I Am Wise separated from Wise Teamwork
+- Strict Synergy OFF and no generic Strict Afraid Help-block
+- helper consequence contract owned for later application by M10A.3
+- Game Settings → Rules Profile Management
+- preview available from Settings
+- Strict switch visible but locked until M10A.8
+- Legacy Mixed gameplay unchanged
+
+**Next after qa.3 PASS:** M10A.3 — Conditions / Recovery. A fresh read-only audit is required before mutation.
 
 
 ### M9 — Creation / Recruitment Migration
