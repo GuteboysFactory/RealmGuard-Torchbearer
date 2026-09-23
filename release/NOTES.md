@@ -1,22 +1,24 @@
-Realm Guard / Torchbearer v1.11.0-qa.2 — M10A.1 Strict Registry + Conversion Preview
+Realm Guard / Torchbearer v1.11.0-qa.3 — M10A.2 Wises / Traits / Help + Profile Management
 
-Built after v1.11.0-qa.1 M10A.0 passed live Foundry VTT 13.351 QA.
+Built after v1.11.0-qa.2 passed live Foundry VTT 13.351 QA.
 
-This build changes no live gameplay and does not activate Strict Realm Guard.
+This build does not activate Strict Realm Guard. Legacy Mixed remains the sole live gameplay profile.
 
 Highlights:
-- Completes the MG1E / 2008 source foundation rules manifest.
-- Completes the realm-guard-strict PREVIEW_ONLY manifest with Realm Guard v1.6 overrides.
-- Makes inherited vs overridden rule ownership visible in the Rules Registry.
-- Adds a read-only Legacy Mixed → Strict domain diff and reviewed conversion delta report.
-- Adds a read-only World Impact Scan for Wises, Talents, progression data, structured Gear, Fresh/Afraid and Legacy creation provenance.
-- Adds Preview Strict Conversion to the GM Rules Registry.
-- Adds game.realmGuard.core.m10 read-only QA/status/preview API.
-- Preserves all existing Actor/Item data.
-- Does not change the Wise schema yet.
-- Does not add any profile activation/switch API.
-- Scale of Might is declared MANUAL/GUIDED only.
+- Adds additive Wise rating/learning schema fields without assigning ratings to existing Wises.
+- Existing Legacy Mixed Wises remain preserved and continue to use Legacy behavior.
+- Adds non-live Strict rated-Wise test/advancement policy.
+- Adds canonical non-live Strict Trait L1/L2/L3 policy, Trait Against Break Tie, and Charge/Recharge economy.
+- Separates Strict I Am Wise from another Ranger's Wise Teamwork.
+- Strict Synergy is OFF; Strict Afraid does not generically block Help.
+- Adds a helper-consequence contract for M10A.3 Conditions / Recovery.
+- Exposes non-live Strict policy QA functions under game.realmGuard.core.m10.strict.
+- Adds Game Settings → Rules Profile Management.
+- Profile Management exposes current profile, Strict target, world impact and the existing read-only conversion preview.
+- Switch to Strict Realm Guard is visible but locked until M10A.8 Profile Activation QA.
+- Raw active profile settings remain hidden; no live profile switch API exists.
+- Legacy Mixed gameplay behavior is intentionally unchanged.
 - Foundry VTT target remains 13.351.
 
 Next after PASS:
-M10A.2 — Wises / Traits / Help, preceded by a fresh read-only audit.
+M10A.3 — Conditions / Recovery, preceded by a fresh read-only audit.
