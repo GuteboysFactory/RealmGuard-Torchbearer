@@ -239,6 +239,9 @@ export class FoundryCreationCommitAdapter {
     if (!rulesSnapshot?.profileId || !rulesSnapshot?.profileVersion || !rulesSnapshot?.rulesSnapshotHash) {
       throw new Error("CORE M9 live commit requires an active Rules Profile snapshot before mutation.");
     }
+    if (String(rulesSnapshot.profileId) !== String(plan.profileId)) {
+      throw new Error(`CORE M9 profile mismatch: active Rules Profile is '${rulesSnapshot.profileId}', but the creation plan belongs to '${plan.profileId}'.`);
+    }
 
     let actor = null;
     let phase = "PREPARE";
