@@ -15,6 +15,7 @@ import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
 import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
+import { strictRecoveryState } from "../module/m10-strict-conditions-recovery.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, requestM8EnmityDecision, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1369,11 +1370,31 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       if (method.kind === "ability") await recordAbilityTest(this.actor, method.key, Boolean(result.passed));
       if (method.kind === "role") await RealmGuardActorSheet._recordLearning.call(this, method.item, Boolean(result.passed));
     }
-    if (result.passed) await setConditionActive(this.actor, item, false);
+    let strictRecovery = null;
+    if (isStrictRealmGuard()) {
+      strictRecovery = strictRecoveryState(item.name, {
+        passed: Boolean(result.passed),
+        phase: spent.phase,
+        turnManagerEnabled: turnManagerEnabled(),
+        checks: Number(this.actor.system?.resources?.checks?.value ?? 0)
+      });
+      if (result.passed) {
+        await item.unsetFlag("realm-guard", "strictRecoveryState");
+        await setConditionActive(this.actor, item, false);
+      } else {
+        await item.setFlag("realm-guard", "strictRecoveryState", {
+          state: strictRecovery.state,
+          nextAction: strictRecovery.nextAction,
+          updatedAt: Date.now()
+        });
+      }
+    } else if (result.passed) {
+      await setConditionActive(this.actor, item, false);
+    }
 
     const esc = foundry.utils.escapeHTML;
     const economy = spent.phase === "free" ? "Free Play · no Turn/Check cost" : spent.phase === "gm" ? `2 Checks · ${spent.before} → ${spent.after}` : "Players' Turn Free Test/Check economy (see roll card)";
-    await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-recovery-roll"><div class="rg-custom-chat-tag">RECOVERY · ${turnLabel()}</div><h3>${esc(item.name)}</h3><p><b>Method:</b> ${esc(method.name)} · Ob ${method.obstacle}</p><p><b>Recovery economy:</b> ${economy}</p><p><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "RECOVERED" : "NOT RECOVERED"}</strong></p>${result.passed ? "" : `<p><small>The Condition remains active. Recovery failure does not create an additional twist or Condition.</small></p>`}</div>` });
+    await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-recovery-roll"><div class="rg-custom-chat-tag">RECOVERY · ${turnLabel()}</div><h3>${esc(item.name)}</h3><p><b>Method:</b> ${esc(method.name)} · Ob ${method.obstacle}</p><p><b>Recovery economy:</b> ${economy}</p><p><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "RECOVERED" : "NOT RECOVERED"}</strong></p>${result.passed ? "" : `<p><small>${isStrictRealmGuard() && strictRecovery?.nextAction && strictRecovery.nextAction !== "RETRY_WHEN_ALLOWED" ? `Strict recovery route: ${esc(strictRecovery.nextAction.replaceAll("_"," "))}.` : "The Condition remains active. Recovery failure does not create an additional twist or Condition."}</small></p>`}</div>` });
     ui.notifications.info(`Realm Guard: ${item.name} ${result.passed ? "recovered" : "remains active"}.`);
   }
 
