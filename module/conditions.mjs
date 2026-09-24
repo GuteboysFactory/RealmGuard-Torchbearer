@@ -1,5 +1,10 @@
 import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
-import { strictConditionRollEffects } from "./m10-strict-conditions-recovery.mjs";
+import {
+  strictConditionRollEffects,
+  strictRecoveryBlocker,
+  strictRecoveryEconomy,
+  strictRecoveryMethods
+} from "./m10-strict-conditions-recovery.mjs";
 import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
@@ -55,6 +60,12 @@ function recoveryOrderIndex(name) {
 }
 
 export function recoveryBlocker(actor, condition) {
+  if (isStrictRealmGuard()) {
+    const blocker = strictRecoveryBlocker(actor, condition?.name);
+    if (!blocker) return null;
+    return (actor?.conditions ?? []).find(c => Boolean(c.system?.active) && normalize(c.name) === normalize(blocker.name))
+      ?? { name: blocker.name, strict: true };
+  }
   const idx = recoveryOrderIndex(condition?.name);
   if (idx < 0) return null; // Supplemental/custom Conditions do not change Realm Guard's canonical recovery order.
   for (let i = 0; i < idx; i += 1) {
@@ -72,13 +83,33 @@ export function validateRecoveryAttempt(actor, condition) {
   if (turnManagerEnabled() && recoveryAttempted(actor, condition.name)) return { ok: false, reason: `${condition.name} already had a recovery attempt this ${turnLabel()}.` };
   if (turnManagerEnabled() && currentTurnPhase() === "gm") {
     const checks = Math.max(0, Number(actor.system?.resources?.checks?.value ?? 0));
-    if (checks < 2) return { ok: false, reason: `GM Turn recovery costs 2 Checks; ${actor.name} has ${checks}.` };
+    const economy = isStrictRealmGuard()
+      ? strictRecoveryEconomy({ phase:"gm", turnManagerEnabled:true, checks, kind:"TEST" })
+      : { costChecks:2, affordable:checks >= 2 };
+    if (!economy.affordable) return { ok: false, reason: `GM Turn recovery costs ${economy.costChecks} Checks; ${actor.name} has ${checks}.` };
   }
   return { ok: true };
 }
 
 export function recoveryMethods(actor, condition) {
   const key = normalize(condition?.name);
+  if (isStrictRealmGuard()) {
+    return strictRecoveryMethods(actor, condition?.name).map(entry => {
+      if (entry.kind === "skill") {
+        const item = (actor?.roles ?? []).find(role => normalize(role.name) === normalize(entry.name) && Number(role.system?.rating ?? 0) > 0);
+        return item ? { kind:"role", item, name:item.name, obstacle:Number(entry.obstacle ?? 0), dice:Number(item.system?.rating ?? 0), strict:true, helpAllowed:entry.helpAllowed !== false } : null;
+      }
+      if (entry.kind === "ability") {
+        const key = normalize(entry.name);
+        const stat = actor?.system?.attributes?.[key];
+        return stat ? { kind:"ability", key, name:entry.name, obstacle:Number(entry.obstacle ?? 0), dice:Math.max(0,Number(stat.value ?? 0)), strict:true, helpAllowed:entry.helpAllowed !== false, purpose:entry.purpose ?? "" } : null;
+      }
+      if (entry.kind === "narrative") {
+        return { kind:"narrative", name:entry.name, obstacle:0, dice:0, strict:true, testRequired:false, helpAllowed:false, purpose:entry.purpose ?? "" };
+      }
+      return null;
+    }).filter(Boolean);
+  }
   const ability = (name, obstacle) => {
     const abilityKey = normalize(name);
     const stat = actor?.system?.attributes?.[abilityKey];
