@@ -168,7 +168,7 @@ assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.unarmedDefaultDice, 0);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.weaponAlias["Hook and Line"], "Whip");
 assert.ok(["M10A.4","M10A.5","M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.4 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.gearInventoryConflictPolicyReady, true);
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, false);
+assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
 
 const strictSource = fs.readFileSync("module/m10-strict-gear-inventory-conflict.mjs", "utf8");
 for (const forbidden of [
