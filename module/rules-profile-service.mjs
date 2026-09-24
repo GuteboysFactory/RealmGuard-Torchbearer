@@ -178,8 +178,20 @@ export function installRulesProfileInfrastructure() {
     const key = String(setting?.key ?? "");
     if (!["realm-guard.activeRulesProfileId", "realm-guard.activeRulesProfileVersion"].includes(key)) return;
     try {
-      refreshRulesProfileRuntime();
+      const before = runtime?.profile?.id ?? "";
+      const state = refreshRulesProfileRuntime();
       exposeCoreApi();
+      try {
+        globalThis.Hooks?.callAll?.("realmGuardRulesProfileChanged", Object.freeze({
+          phase:"M10A.8",
+          source:"SETTING_UPDATE",
+          fromProfileId:before,
+          toProfileId:state.profile.id,
+          toProfileVersion:state.profile.version,
+          rulesSnapshotHash:state.profile.rulesSnapshotHash,
+          at:Date.now()
+        }));
+      } catch (_ignored) {}
     } catch (error) {
       console.error("realm-guard | Rules Profile refresh after setting update failed", error);
     }
