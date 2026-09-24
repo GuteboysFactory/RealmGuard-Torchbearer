@@ -3,6 +3,7 @@ import {
   CreationPartyContext
 } from "./core/m9-creation.mjs";
 import { FoundryCreationCommitAdapter } from "./m9-creation-commit-adapter.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 import {
   REALM_GUARD_STRICT_CREATION_PROFILE,
   STRICT_CREATION_PROFILE_ID,
@@ -115,14 +116,15 @@ export function strictCreationCommitPreview(draft, { partyContext = null, isGM =
 }
 
 export function getStrictCreationStatus() {
+  const live = isStrictRealmGuard();
   return freeze({
-    phase: "M10A.6",
+    phase: "M10A.8",
     profileId: STRICT_CREATION_PROFILE_ID,
     profileVersion: STRICT_CREATION_PROFILE_VERSION,
     coreEngine: "CORE_M9",
-    mode: "READ_ONLY_PREVIEW",
-    liveAuthority: false,
-    liveCommit: false,
+    mode: live ? "QA_PROFILE_ROUTED_LIVE" : "READ_ONLY_PREVIEW",
+    liveAuthority: live ? "CORE_M9" : false,
+    liveCommit: live,
     ratedWises: true,
     startingSkillWiseCap: 6,
     strictEnemyValidation: true,
@@ -135,12 +137,13 @@ export function getStrictCreationStatus() {
     },
     levels: false,
     talents: false,
-    relationships: "CORE_M8_PLAN_ONLY",
-    provenance: "STRICT_PROFILE_PLAN_READY",
-    writesActors: false,
-    writesItems: false,
-    writesRelationships: false,
-    nextStep: "M10A.7 Scale / Docs / Rules Reference"
+    relationships: live ? "CORE_M8_LIVE_COMMIT" : "CORE_M8_PLAN_ONLY",
+    provenance: live ? "STRICT_PROFILE_LIVE_WRITE" : "STRICT_PROFILE_PLAN_READY",
+    liveCommitAvailable: live,
+    writesActorsOnCommit: live,
+    writesItemsOnCommit: live,
+    writesRelationshipsOnCommit: live,
+    nextStep: "M10A.8 Profile Activation QA · LIVE VERIFICATION"
   });
 }
 
