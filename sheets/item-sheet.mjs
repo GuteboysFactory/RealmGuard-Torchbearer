@@ -1,4 +1,5 @@
 import { normalizeContainerPreset, detachContainedGear } from "../module/inventory.mjs";
+import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -15,6 +16,14 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
   static async _onSubmit(event, form, formData) {
     if (!this.isEditable) return;
     let updateData = formData.object;
+    if (this.item.type === "wise" && isStrictRealmGuard()) {
+      const previousRating = Number(this.item.system?.rating ?? 0);
+      const nextRating = Number(foundry.utils.getProperty(updateData, "system.rating") ?? previousRating);
+      if (nextRating !== previousRating && nextRating > 0) {
+        foundry.utils.setProperty(updateData, "system.learning.passNeeded", nextRating);
+        foundry.utils.setProperty(updateData, "system.learning.failNeeded", Math.max(0, nextRating - 1));
+      }
+    }
     if (this.item.type === "gear") {
       const previousType = String(this.item.system.inventory?.containerType ?? "none");
       updateData = normalizeContainerPreset(updateData, this.item.system);
@@ -44,6 +53,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
       isRole: this.item.type === "role",
       isTrait: this.item.type === "trait",
       isWise: this.item.type === "wise",
+      isStrictProfile: isStrictRealmGuard(),
       isTokenOfPower: this.item.type === "tokenOfPower",
       isTalent: this.item.type === "talent",
       talentFrequencyPassive: this.item.type === "talent" && String(this.item.system.frequency ?? "session") === "passive",
