@@ -120,6 +120,8 @@ assert.ok(conditions.includes('role("Harvester"') === false, "Harvester ownershi
 const documents = fs.readFileSync("module/documents.mjs","utf8");
 assert.ok(documents.includes("ratedStrictWise"));
 assert.ok(documents.includes("wiseDice"));
+assert.ok(documents.includes("traitPoolDice"), "Strict roll presentation must keep Trait dice separate from I Am Wise dice.");
+assert.ok(documents.includes('["I Am Wise", signedDice(assist.wiseDice)]') || documents.includes('["I Am Wise",signedDice(assist.wiseDice)]'), "Strict roll breakdown must label own Wise bonus as I Am Wise.");
 assert.ok(documents.includes("traitRerollFaces"));
 assert.ok(documents.includes("consumeTraitPositiveUse(this, trait)"));
 
