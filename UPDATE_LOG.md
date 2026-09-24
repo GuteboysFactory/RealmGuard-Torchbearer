@@ -1,5 +1,27 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.9 - 🟡 M10A.8 Profile Activation QA
+
+- Built after **v1.11.0-qa.8 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Advances Strict Realm Guard to profile v9 / `QA_ACTIVE`; Legacy Mixed remains the default compatibility profile.
+- Adds a reversible GM-only profile activation router. Switching writes only `activeRulesProfileId` and `activeRulesProfileVersion`, with setting rollback on failure and reload recommended.
+- Game Settings → Rules Profile Management can preview impact, switch Legacy → Strict, and switch back Strict → Legacy during QA.
+- Profile switching performs **zero Actor, Item or Journal mutation** and never auto-rates old Wises, deletes Talents/Fresh/Afraid, or rewrites inventory placement metadata.
+- Adds cross-client profile refresh events and invalidates cached M5 profile-bound services after a profile change.
+- Routes CORE M9 Character Creation through the active creation profile. Strict live Recruitment uses the verified Strict creation profile, rated starting Wises, Strict Enemy/Mentor validation, Strict Conditions, LOOSE inventory semantics, M8 relationships and CreationProvenance.
+- CORE M9 rejects cross-profile live commit plans and disables the QA Legacy commit override while Strict is active.
+- Routes Strict live Trait semantics: L1 +1D once/session, L2 +1D every applicable test, L3 reroll all failed dice once/session; Legacy L3 +1s is disabled under Strict.
+- Routes Strict I Am Wise / Wise Teamwork semantics. Strict helper Wises require ratings, another Ranger's Wise is Teamwork rather than I Am Wise, and Synergy is disabled.
+- Preserved rating-0 Legacy Wises are not converted automatically and cannot be tested until given an explicit Strict rating.
+- Routes Strict Condition roll effects and recovery methods; Fresh/Afraid remain preserved but lose Strict automatic mechanics, Angry no longer applies the Legacy Trait/Wise block, and Hungry recovery can use Harvester.
+- Strict failed Injured/Strained recovery stores the guided next-route state for Healer/Counsel handling.
+- Suppresses Levels/Talents mechanically under Strict while preserving existing data; Fate/Persona spend remains available without Level advancement or Talent unlock.
+- Routes Strict Conflict inventory/tool ownership: physical weapons no longer require hand-slot placement, no-tool uses the Strict 0D default, Strict CORE M5 evaluation is authoritative, and Strict Conflict UI suppresses Talents / Legacy Wise rerolls / Legacy Trait L3 success.
+- Routes Strict End Session validation including the no-everyone Embodiment rule; Talent session reset is skipped while Strict is active.
+- System Manual and Strict Rules Reference become activation-aware while the permanent Legacy Mixed Rules Journal remains untouched.
+- Adds `qa/m10-profile-activation-smoke.mjs`.
+- **No stable promotion is implied by qa.9.** Strict remains QA_ACTIVE until full switch/reload/rollback live QA passes.
+
 ## v1.11.0-qa.8 - 🟢✅ FULL PASS / M10A.7 Scale / Docs / Rules Reference
 
 - qa.8 UI hotfix: System Manual and Strict Rules Preview now use an independently scrollable content area with live search, Clear/Escape restore, match auto-open, and Expand All / Collapse All controls.
