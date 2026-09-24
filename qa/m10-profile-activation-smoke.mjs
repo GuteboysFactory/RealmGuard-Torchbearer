@@ -128,11 +128,23 @@ assert.ok(traits.includes("isStrictRealmGuard() && level === 2"));
 assert.ok(traits.includes("isStrictRealmGuard() && level === 3"));
 
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs","utf8");
+const itemSheet = fs.readFileSync("sheets/item-sheet.mjs","utf8");
 const character = fs.readFileSync("templates/actor/character.hbs","utf8");
+const itemTemplate = fs.readFileSync("templates/item/item.hbs","utf8");
 assert.ok(sheet.includes("static async _rollWise"));
 assert.ok(sheet.includes("needs an explicit Strict rating"));
 assert.ok(sheet.includes("Levels and Talents are disabled under Strict Realm Guard"));
 assert.ok(character.includes('data-action="rollWise"'));
+assert.ok(character.includes("rg-wise-roll-icon"));
+assert.ok(character.includes("UNRATED"), "Preserved rating-0 Wises must be visibly marked rather than displayed as a valid 0 rating.");
+assert.ok(itemTemplate.includes("Rated Wise"));
+assert.ok(itemTemplate.includes('name="system.rating"'));
+assert.ok(itemTemplate.includes('name="system.learning.passNeeded"'));
+assert.ok(itemSheet.includes("isStrictProfile: isStrictRealmGuard()"));
+assert.ok(itemSheet.includes('"system.learning.passNeeded", nextRating'));
+assert.ok(itemSheet.includes('"system.learning.failNeeded", Math.max(0, nextRating - 1)'));
+assert.ok(sheet.includes("Preserved unrated Wises are not listed here."));
+assert.ok(sheet.includes("Number(w.system?.rating ?? 0) > 0"), "I Am Wise selector must exclude preserved unrated Wises.");
 assert.ok(character.includes("PRESERVED · INACTIVE"));
 
 const conflicts = fs.readFileSync("module/conflicts.mjs","utf8");
