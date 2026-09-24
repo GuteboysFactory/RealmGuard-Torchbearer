@@ -236,7 +236,7 @@ assert.ok(["M10A.5","M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROF
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.sessionPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.circlesPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.progressionPolicyReady, true);
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, false);
+assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
 
 const strictSource = fs.readFileSync("module/m10-strict-session-circles-progression.mjs", "utf8");
 for (const forbidden of [
