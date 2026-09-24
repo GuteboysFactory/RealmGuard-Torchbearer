@@ -1,4 +1,5 @@
 import { EFFECT_TYPES, EFFECT_TIMINGS, EFFECT_STACKING } from "../core/effects.mjs";
+import { isStrictRealmGuard } from "../m10-profile-activation.mjs";
 
 export const WISE_SELECTION_PROVIDER_ID = "wises.selected-reroll";
 
@@ -43,7 +44,7 @@ export const WISE_SELECTION_EFFECT_PROVIDER = Object.freeze({
   priority: 35,
   collect(context = {}) {
     const wise = context.wise;
-    if (!wise || wise.type !== "wise") return [];
+    if (!wise || wise.type !== "wise" || isStrictRealmGuard()) return [];
 
     if (hasActiveCondition(context.actor, "Angry")) {
       return [{
