@@ -156,6 +156,10 @@ const conflicts = fs.readFileSync("module/conflicts.mjs","utf8");
 assert.ok(conflicts.includes("i.type === \"gear\"\n    && (isStrictRealmGuard() || String(i.system.inventory?.mode ?? \"\") === \"hand\")"));
 assert.ok(conflicts.includes("const talentUse = isStrictRealmGuard() ? null"));
 assert.ok(conflicts.includes("!isStrictRealmGuard() && Number(assist?.traitStatus?.level"));
+assert.ok(conflicts.includes("function conflictUnarmedLabel()"));
+assert.ok(conflicts.includes('isStrictRealmGuard() ? "Unarmed / no tool" : "Unarmed · −1D"'));
+assert.ok(conflicts.includes('dice: strict ? 0 : -1'), "Strict unarmed/no-tool must be 0D while Legacy Mixed retains -1D.");
+assert.ok(conflicts.includes("Strict Realm Guard: no universal unarmed / no-tool penalty."));
 
 const m5 = fs.readFileSync("module/m5-conflict-live-handoff.mjs","utf8");
 assert.ok(m5.includes("STRICT_CORE_EVALUATION_APPLIED"));
