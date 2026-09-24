@@ -25,6 +25,10 @@ function normalize(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
+function strictProfileLive() {
+  return String(globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.()?.id ?? "") === STRICT_CREATION_PROFILE_ID;
+}
+
 function skillLearningForRating(rating) {
   const r = Math.max(0, Number(rating ?? 0));
   if (r <= 1) return { passed: 0, failed: 0, passNeeded: 1, failNeeded: 0 };
@@ -216,16 +220,17 @@ function buildStrictCommitSpec(args = {}) {
     gear.flags["realm-guard"].strictPlacementPresentationOnly = true;
   }
 
-  base.relationships.liveWrite = false;
-  base.relationships.plannedLiveService = "CORE_M8_SOCIAL_NETWORK_ON_STRICT_ACTIVATION";
+  const live = strictProfileLive();
+  base.relationships.liveWrite = live;
+  base.relationships.plannedLiveService = live ? "CORE_M8_SOCIAL_NETWORK" : "CORE_M8_SOCIAL_NETWORK_ON_STRICT_ACTIVATION";
   for (const row of base.relationships.normalized ?? []) {
-    row.writeMode = "CORE_M8_SERVICE_ON_STRICT_ACTIVATION";
+    row.writeMode = live ? "CORE_M8_SERVICE" : "CORE_M8_SERVICE_ON_STRICT_ACTIVATION";
   }
 
-  base.transaction.liveExecution = false;
-  base.transaction.provenanceWrite = false;
-  base.transaction.relationshipWrite = false;
-  base.transaction.previewOnly = true;
+  base.transaction.liveExecution = live;
+  base.transaction.provenanceWrite = live;
+  base.transaction.relationshipWrite = live;
+  base.transaction.previewOnly = !live;
   base.transaction.activationRequired = STRICT_CREATION_PROFILE_ID;
 
   return base;
@@ -269,10 +274,10 @@ export const REALM_GUARD_STRICT_CREATION_PROFILE = new CharacterCreationProfile(
   },
   grants: { fate: 1, persona: 1, checks: 0 },
   metadata: {
-    liveAuthority: "NONE",
-    commitAuthority: "NONE",
+    liveAuthority: "CORE_M9_WHEN_STRICT_ACTIVE",
+    commitAuthority: "CORE_M9_WHEN_STRICT_ACTIVE",
     coreEngine: "CORE_M9",
-    mode: "READ_ONLY_PREVIEW",
+    mode: "QA_PROFILE_ROUTED",
     source: "Realm Guard v1.6 + Mouse Guard RPG 2008 / 1E inheritance",
     strictRealmGuard: true,
     ratedWises: true,
