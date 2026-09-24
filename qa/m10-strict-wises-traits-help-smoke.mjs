@@ -111,11 +111,12 @@ assert.ok(menu.includes('phase: "M10A.8"'));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
 assert.ok(menuTemplate.includes("Preview Strict Conversion"));
 assert.ok(menuTemplate.includes("Switch to Strict Realm Guard"));
-assert.ok(menuTemplate.includes("disabled title="));
+assert.ok(menuTemplate.includes('data-action="switchStrict"'));
+assert.ok(menuTemplate.includes('data-action="switchLegacy"'));
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileId"'), false);
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileVersion"'), false);
 
 const profileService = fs.readFileSync("module/rules-profile-service.mjs", "utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "No live profile switch API may exist in M10A.2.");
 
-console.log("PASS M10A.2 Wises / Traits / Help foundation + Game Settings Profile Management · Legacy Mixed untouched · no live Strict activation");
+console.log("PASS M10A.2 Wises / Traits / Help + Profile Management regression · Legacy routing preserved · QA activation controls present");
