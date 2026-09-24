@@ -4,6 +4,120 @@ import { RG_SYSTEM_NAME, rulesReferenceDetailsHtml, openRulesReferenceJournal, i
 import { openStrictRulesReferencePreview } from "./m10-strict-rules-reference.mjs";
 
 const SIDEBAR_HELP_ID = "rg-sidebar-manual";
+let referenceControlsInstalled = false;
+
+function referenceToolbar(placeholder = "Search manual & rules…") {
+  return `<div class="rg-reference-toolbar">
+    <label class="rg-reference-search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="search" data-rg-reference-search placeholder="${placeholder}" autocomplete="off" spellcheck="false" aria-label="${placeholder}">
+      <button type="button" data-rg-reference-clear title="Clear search" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+    </label>
+    <div class="rg-reference-toolbar-actions">
+      <span class="rg-reference-search-count" data-rg-reference-search-count>All sections</span>
+      <button type="button" data-rg-reference-expand><i class="fa-solid fa-angles-down"></i><span>Expand All</span></button>
+      <button type="button" data-rg-reference-collapse><i class="fa-solid fa-angles-up"></i><span>Collapse All</span></button>
+    </div>
+  </div>`;
+}
+
+function restoreReferenceSearch(root) {
+  const details = Array.from(root?.querySelectorAll?.(".rg-reference-scroll details") ?? []);
+  for (const detail of details) {
+    detail.hidden = false;
+    if (detail.dataset.rgSearchOriginalOpen !== undefined) {
+      detail.open = detail.dataset.rgSearchOriginalOpen === "1";
+      delete detail.dataset.rgSearchOriginalOpen;
+    }
+  }
+  for (const heading of root?.querySelectorAll?.(".rg-manual-section-title") ?? []) heading.hidden = false;
+  const count = root?.querySelector?.("[data-rg-reference-search-count]");
+  if (count) count.textContent = "All sections";
+}
+
+function updateReferenceSectionHeadings(root) {
+  const headings = Array.from(root?.querySelectorAll?.(".rg-manual-section-title") ?? []);
+  for (const heading of headings) {
+    let node = heading.nextElementSibling;
+    let hasVisible = false;
+    while (node && !node.classList?.contains("rg-manual-section-title")) {
+      if (node.matches?.("details") && !node.hidden) {
+        hasVisible = true;
+        break;
+      }
+      node = node.nextElementSibling;
+    }
+    heading.hidden = !hasVisible;
+  }
+}
+
+function filterReference(root, rawQuery) {
+  if (!root) return;
+  const query = String(rawQuery ?? "").trim().toLocaleLowerCase();
+  const details = Array.from(root.querySelectorAll(".rg-reference-scroll details"));
+  const count = root.querySelector("[data-rg-reference-search-count]");
+
+  if (!query) {
+    restoreReferenceSearch(root);
+    return;
+  }
+
+  let matches = 0;
+  for (const detail of details) {
+    if (detail.dataset.rgSearchOriginalOpen === undefined) {
+      detail.dataset.rgSearchOriginalOpen = detail.open ? "1" : "0";
+    }
+    const hit = String(detail.textContent ?? "").toLocaleLowerCase().includes(query);
+    detail.hidden = !hit;
+    if (hit) {
+      detail.open = true;
+      matches += 1;
+    }
+  }
+  updateReferenceSectionHeadings(root);
+  if (count) count.textContent = `${matches} match${matches === 1 ? "" : "es"}`;
+}
+
+function installReferenceControls() {
+  if (referenceControlsInstalled) return;
+  referenceControlsInstalled = true;
+
+  document.addEventListener("input", event => {
+    const input = event.target?.closest?.("[data-rg-reference-search]");
+    if (!input) return;
+    filterReference(input.closest("[data-rg-reference-root]"), input.value);
+  });
+
+  document.addEventListener("keydown", event => {
+    const input = event.target?.closest?.("[data-rg-reference-search]");
+    if (!input || event.key !== "Escape") return;
+    event.preventDefault();
+    input.value = "";
+    filterReference(input.closest("[data-rg-reference-root]"), "");
+  });
+
+  document.addEventListener("click", event => {
+    const clear = event.target?.closest?.("[data-rg-reference-clear]");
+    if (clear) {
+      const root = clear.closest("[data-rg-reference-root]");
+      const input = root?.querySelector?.("[data-rg-reference-search]");
+      if (input) input.value = "";
+      restoreReferenceSearch(root);
+      input?.focus?.();
+      return;
+    }
+
+    const expand = event.target?.closest?.("[data-rg-reference-expand]");
+    const collapse = event.target?.closest?.("[data-rg-reference-collapse]");
+    const control = expand ?? collapse;
+    if (!control) return;
+    const root = control.closest("[data-rg-reference-root]");
+    const shouldOpen = Boolean(expand);
+    for (const detail of root?.querySelectorAll?.(".rg-reference-scroll details") ?? []) {
+      if (!detail.hidden) detail.open = shouldOpen;
+    }
+  });
+}
 
 function manualContent() {
   const active = globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.();
@@ -11,7 +125,10 @@ function manualContent() {
   const activeName = String(active?.name ?? "Realm Guard — Legacy Mixed");
   const activeId = String(active?.id ?? "realm-guard-legacy-mixed");
   const activeVersion = String(active?.version ?? "1");
-  return `<div class="realm-guard rg-system-manual">
+  return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
+    ${referenceToolbar("Search manual & rules…")}
+    <div class="rg-reference-scroll">
+    <div class="rg-system-manual">
     <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · system ${systemVersion} · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
 
     <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. The embedded manual text below describes the active Legacy Mixed workflow while Strict Realm Guard remains preview-only.</span></div></div>
@@ -57,6 +174,8 @@ function manualContent() {
 
     <section class="rg-manual-section-title"><i class="fa-solid fa-scale-balanced"></i><div><h3>Rules Reference</h3><p>A practical summary of the tabletop rules and project expansions the system actually implements.</p></div></section>
     ${rulesReferenceDetailsHtml()}
+  </div>
+  </div>
   </div>`;
 }
 
@@ -153,6 +272,7 @@ function ensureSidebarHelpButton(html) {
 }
 
 export function installRealmGuardManual() {
+  installReferenceControls();
   registerGmDockTool({ id: "system-manual", icon: "fa-solid fa-book-open-reader", tooltip: `Open ${RG_SYSTEM_NAME} Manual`, order: 7, onClick: openRealmGuardManual });
   Hooks.on("renderChatLog", (_app, html) => injectManualTool(html));
   Hooks.on("renderSidebar", (_app, html) => ensureSidebarHelpButton(html));
