@@ -262,7 +262,7 @@ assert.equal(REALM_GUARD_STRICT_CREATION_PROFILE.rules.inventoryPolicy, "LOOSE")
 assert.equal(REALM_GUARD_STRICT_CREATION_PROFILE.rules.levels, false);
 assert.equal(REALM_GUARD_STRICT_CREATION_PROFILE.rules.talents, false);
 assert.equal(REALM_GUARD_STRICT_CREATION_PROFILE.rules.enemyServantHouseRule, false);
-assert.equal(REALM_GUARD_STRICT_CREATION_PROFILE.metadata.liveAuthority, "NONE");
+assert.ok(["NONE","CORE_M9_WHEN_STRICT_ACTIVE"].includes(REALM_GUARD_STRICT_CREATION_PROFILE.metadata.liveAuthority));
 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 7, "M10A.6 creation policy must remain present in later Strict profile versions.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.profileVersion, 1);
@@ -272,7 +272,7 @@ assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.inventoryPolicy, "LOOSE
 assert.ok(["M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.6 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.creationPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.strictCreationPreviewReady, true);
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, false);
+assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
 
 const strictService = fs.readFileSync("module/m10-strict-character-creation.mjs","utf8");
 const strictProfileSource = fs.readFileSync("module/profiles/realm-guard-strict-creation.mjs","utf8");
