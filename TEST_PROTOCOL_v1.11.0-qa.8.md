@@ -1,6 +1,6 @@
 # v1.11.0-qa.8 — M10A.7 Scale / Docs / Rules Reference QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — M10A.7 Scale / Docs / Rules Reference verified in Foundry VTT 13.351, including Scale planners, searchable/scrollable Manual + Strict Rules Preview, permanent Legacy Mixed Journal safety, reload and Legacy Mixed regression.  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Active gameplay profile:** Realm Guard — Legacy Mixed  
