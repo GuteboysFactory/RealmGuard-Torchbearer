@@ -95,18 +95,19 @@ assert.ok(models.includes("learning: new fields.SchemaField"));
 assert.ok(models.includes("description: str()"));
 
 const legacyTraits = fs.readFileSync("module/traits.mjs", "utf8");
-assert.ok(legacyTraits.includes("if (level === 2) return 2;"), "Legacy Mixed L2 two-use behavior must remain untouched in qa.3.");
+assert.ok(legacyTraits.includes("if (level === 2) return isStrictRealmGuard() ? null : 2;"), "Legacy Mixed L2 two-use behavior must remain preserved behind profile routing.");
 assert.ok(legacyTraits.includes("+1s on relevant passed/tied tests"), "Legacy Mixed L3 +1s behavior must remain untouched in qa.3.");
 
 const legacyTeamwork = fs.readFileSync("module/teamwork.mjs", "utf8");
 assert.ok(legacyTeamwork.includes("Use Synergy - spend 1 Fate"), "Legacy Mixed Synergy must remain available.");
-assert.ok(legacyTeamwork.includes('if (hasActiveCondition(actor, "Afraid"))'), "Legacy Mixed Afraid help block must remain unchanged.");
+assert.ok(legacyTeamwork.includes('!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid")'), "Legacy Mixed Afraid help block must remain preserved behind profile routing.");
 
 const menu = fs.readFileSync("module/profile-management-menu.mjs", "utf8");
 assert.ok(menu.includes('game.settings.registerMenu("realm-guard", "rulesProfileManagement"'));
 assert.ok(menu.includes("templates/apps/profile-management.hbs"));
-assert.ok(menu.includes("switchLocked: true"));
-assert.ok(menu.includes("M10A.8 Profile Activation QA"));
+assert.ok(menu.includes("switchToStrictRealmGuard"));
+assert.ok(menu.includes("switchToLegacyMixed"));
+assert.ok(menu.includes('phase: "M10A.8"'));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
 assert.ok(menuTemplate.includes("Preview Strict Conversion"));
 assert.ok(menuTemplate.includes("Switch to Strict Realm Guard"));
