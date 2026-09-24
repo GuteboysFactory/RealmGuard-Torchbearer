@@ -1,19 +1,6 @@
-1.11.0-qa.9
-# M10A.8 Profile Activation QA
-# Strict profile = QA_ACTIVE, not stable
-# Reversible Legacy Mixed <-> Strict switch
-# Profile switch writes only active profile id/version settings
-# NO automatic old-Actor/Item/Journal conversion
-# Reload required during live activation QA
-# Strict CORE M9 creation and live rule routing enabled only when Strict active
-# Legacy rollback path retained
-# QA channel advances only after release assets and all smokes verify
-# Early M10 smoke expectations advanced for QA_ACTIVE
-# M10A.6 status smoke advanced for activation-aware fields
-# M10A.6 live-routing regression expectations advanced
-# M10A.2 routing regression expectations advanced
-# M10A.2 Profile Management smoke advanced
-# M9 closure regression advanced for profile-routed qa.9
-# Live QA Gate F Strict Wise editor / row UX hotfix
-# Live QA Gate F Strict Wise form normalization hotfix
-# Live QA Gate F I Am Wise roll attribution hotfix
+1.11.0-qa.10
+# Quick NPC Provider API
+# Exposes game.realmGuard.quickNpc on ready
+# Public provider methods: open, openGroups, createFromTemplate, matches, resolveBestTemplate
+# Provider remains system-owned; external consumers call the API without importing Realm Guard internals
+# Existing Quick NPC Library and GM Dock behavior unchanged
