@@ -105,11 +105,16 @@
           <main class="rg-character-grid">
             <section class="rg-panel rg-drives"><div class="rg-panel-title"><h2>Belief · Goal · Instinct</h2></div><label>Belief<textarea name="system.belief">{{system.belief}}</textarea></label><label>Goal<textarea name="system.goal">{{system.goal}}</textarea></label><label>Instinct<textarea name="system.instinct">{{system.instinct}}</textarea></label></section>
             <section class="rg-character-support-grid">
-              <section class="rg-panel"><div class="rg-panel-title"><h2>Wises</h2><button type="button" data-action="createWise">+ Wise</button></div>{{#each wises as |item|}}<div class="rg-line" data-item-id="{{item.id}}"><span>{{item.name}}</span><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No wises.</p>{{/each}}</section>
+              <section class="rg-panel"><div class="rg-panel-title"><div><h2>Wises</h2>{{#if isStrictProfile}}<small>Rated Skills under Strict Realm Guard</small>{{/if}}</div><button type="button" data-action="createWise">+ Wise</button></div>{{#each wises as |item|}}<div class="rg-line" data-item-id="{{item.id}}">{{#if ../isStrictProfile}}<button type="button" class="rg-wise-roll" data-action="rollWise" title="Test {{item.name}}"><span>{{item.name}}</span><b>{{item.system.rating}}</b></button>{{else}}<span>{{item.name}}</span>{{/if}}<button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No wises.</p>{{/each}}</section>
               <section class="rg-panel"><div class="rg-panel-title"><h2>Traits</h2><button type="button" data-action="createTrait">+ Trait</button></div>{{#each traits as |trait|}}<div class="rg-line" data-item-id="{{trait.id}}"><span>{{trait.name}}</span><b>{{trait.system.rating}}</b><button type="button" data-action="editItem">✎</button><button type="button" data-action="deleteItem">×</button></div>{{else}}<p class="rg-empty">No traits.</p>{{/each}}</section>
             </section>
 
             <section class="rg-panel rg-progression-panel">
+              {{#if isStrictProfile}}
+              <div class="rg-panel-title"><div><h2><i class="fa-solid fa-lock"></i> Levels &amp; Talents</h2><small>Disabled by Strict Realm Guard rules.</small></div></div>
+              <div class="rg-progression-note"><i class="fa-solid fa-box-archive"></i><span>Legacy Level counters and Talent Items are preserved as campaign data, but have no mechanical authority while the Strict profile is active.</span></div>
+              <div class="rg-talent-list">{{#each talents as |talent|}}<article class="rg-talent-card" data-item-id="{{talent.id}}"><div class="rg-talent-card-icon"><i class="fa-solid fa-box-archive"></i></div><div class="rg-talent-card-body"><div><strong>{{talent.name}}</strong><span class="rg-talent-state">PRESERVED · INACTIVE</span></div><small>{{talent.linkSummary}}</small></div></article>{{else}}<p class="rg-empty">No preserved Talents.</p>{{/each}}</div>
+              {{else}}
               <div class="rg-panel-title">
                 <div><h2><i class="fa-solid fa-sparkles"></i> Level &amp; Talents</h2><small>Long-term Realm Guard progression driven by Fate and Persona actually spent in play.</small></div>
                 <div class="rg-progression-actions">{{#if progression.pendingTalents}}{{#if canChooseTalent}}<button type="button" class="rg-talent-ready-button" data-action="chooseTalent"><i class="fa-solid fa-star"></i> Choose Talent {{#if progression.pendingTalents}}({{progression.pendingTalents}}){{/if}}</button>{{/if}}{{/if}}{{#if isGM}}<button type="button" data-action="manageProgression" title="Credit historical Fate/Persona spend"><i class="fa-solid fa-sliders"></i></button><button type="button" data-action="createTalent" title="Create a custom Talent"><i class="fa-solid fa-plus"></i> Talent</button>{{/if}}</div>
@@ -131,6 +136,7 @@
                 </article>
                 {{else}}<p class="rg-empty">No Talents yet. Level 2 unlocks the first Talent choice.</p>{{/each}}
               </div>
+              {{/if}}
             </section>
           </main>
         </section>
