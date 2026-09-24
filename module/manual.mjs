@@ -2,6 +2,7 @@ import { registerGmDockTool } from "./gm-dock.mjs";
 import { openSystemAudit } from "./system-audit.mjs";
 import { RG_SYSTEM_NAME, rulesReferenceDetailsHtml, openRulesReferenceJournal, installRulesReferenceJournal } from "./rules-reference.mjs";
 import { openStrictRulesReferencePreview } from "./m10-strict-rules-reference.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 
 const SIDEBAR_HELP_ID = "rg-sidebar-manual";
 let referenceControlsInstalled = false;
@@ -125,15 +126,16 @@ function manualContent() {
   const activeName = String(active?.name ?? "Realm Guard — Legacy Mixed");
   const activeId = String(active?.id ?? "realm-guard-legacy-mixed");
   const activeVersion = String(active?.version ?? "1");
+  const strictActive = isStrictRealmGuard();
   return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
     ${referenceToolbar("Search manual & rules…")}
     <div class="rg-reference-scroll">
     <div class="rg-system-manual">
     <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · system ${systemVersion} · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. The embedded manual text below describes the active Legacy Mixed workflow while Strict Realm Guard remains preview-only.</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. ${strictActive ? "Strict Realm Guard is active for M10A.8 QA. Use the Strict Rules Reference for current source-owned mechanics." : "The embedded manual text below describes the active Legacy Mixed workflow."}</span></div></div>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>How the active Legacy Mixed rules engine is built</b><span>Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions. Strict Realm Guard uses a separate MG1E 2008 → Realm Guard v1.6 lineage and is available through the read-only Strict preview.</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>${strictActive ? "Strict QA activation" : "How the active Legacy Mixed rules engine is built"}</b><span>${strictActive ? "The long-form manual below is retained as Legacy Mixed compatibility documentation. Strict gameplay uses Mouse Guard RPG 2008 / 1E inheritance with Realm Guard v1.6 overrides. Existing campaign data is preserved non-destructively." : "Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions. Strict Realm Guard uses a separate MG1E 2008 → Realm Guard v1.6 lineage and is available through the read-only Strict preview."}</span></div></div>
 
     <div class="rg-manual-legend">
       <span class="rg-rule-badge rule">RULE</span><small>tabletop rule used by the system</small>
@@ -181,7 +183,7 @@ function manualContent() {
 
 export async function openRealmGuardManual() {
   const buttons = [
-    { action: "strict-preview", label: "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "strict-preview" },
+    { action: "strict-preview", label: isStrictRealmGuard() ? "Open Strict Rules" : "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "strict-preview" },
     { action: "rules", label: "Open Legacy Mixed Rules Journal", icon: "fa-solid fa-book-bookmark", callback: () => "rules" }
   ];
   if (game.user?.isGM) buttons.push({ action: "audit", label: "World Health Audit", icon: "fa-solid fa-shield-heart", callback: () => "audit" });
