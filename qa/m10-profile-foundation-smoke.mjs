@@ -26,7 +26,7 @@ assert.deepEqual(strict.lineage.map(row => row.id), ["mg1e", "realm-guard-strict
 assert.equal(strict.metadata.strictRealmGuard, true);
 assert.equal(strict.metadata.foundationOnly, false);
 assert.equal(typeof strict.metadata.previewOnly, "boolean");
-assert.ok(["PREVIEW_ONLY","QA_ACTIVE"].includes(strict.metadata.activationState));
+assert.ok(["PREVIEW_ONLY","QA_ACTIVE","SUPPORTED"].includes(strict.metadata.activationState));
 assert.equal(typeof strict.metadata.selectable, "boolean");
 assert.equal(typeof strict.metadata.supported, "boolean");
 assert.equal(typeof strict.metadata.liveRuleAuthority, "boolean");

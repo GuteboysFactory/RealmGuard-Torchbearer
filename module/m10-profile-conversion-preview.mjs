@@ -147,7 +147,7 @@ export function buildStrictConversionPreview({ fromProfile, toProfile, actors = 
       preserveInventoryMetadata: true,
       preserveFreshAfraidItems: true
     },
-    nextStep: "M10A.8 Profile Activation QA"
+    nextStep: "M10A.9 Stable Activation Candidate · CLOSURE QA"
   });
 }
 

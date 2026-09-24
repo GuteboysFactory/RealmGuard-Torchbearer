@@ -107,7 +107,7 @@ assert.ok(menu.includes('game.settings.registerMenu("realm-guard", "rulesProfile
 assert.ok(menu.includes("templates/apps/profile-management.hbs"));
 assert.ok(menu.includes("switchToStrictRealmGuard"));
 assert.ok(menu.includes("switchToLegacyMixed"));
-assert.ok(menu.includes('phase: "M10A.8"'));
+assert.ok(menu.includes('phase: "M10A.9"'));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
 assert.ok(menuTemplate.includes("Preview Strict Conversion"));
 assert.ok(menuTemplate.includes("Switch to Strict Realm Guard"));
