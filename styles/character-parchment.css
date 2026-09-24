@@ -272,3 +272,26 @@
     grid-template-columns:1fr;
   }
 }
+
+
+/* v1.11.0-qa.9 live QA hotfix — compact Strict Wise rows */
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-wise-line.is-strict .rg-wise-rating {
+  color:#5a401e !important;
+  background:rgba(173,128,58,.14) !important;
+  border-color:rgba(137,94,37,.42) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-wise-line.is-strict .rg-wise-unrated {
+  color:#77674f !important;
+  background:rgba(115,98,71,.08) !important;
+  border-color:rgba(106,88,61,.30) !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-wise-line.is-strict .rg-wise-roll-icon {
+  color:#f2e2bf !important;
+  background:linear-gradient(180deg,#4b4b31,#2b2e20) !important;
+  border-color:#806a45 !important;
+}
+.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-wise-line.is-strict .rg-wise-roll-icon:disabled {
+  color:#b5aa91 !important;
+  background:rgba(67,65,48,.62) !important;
+  border-color:rgba(105,91,65,.38) !important;
+}
