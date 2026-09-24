@@ -72,6 +72,13 @@ import {
   strictZeroRatingPolicy
 } from "./m10-strict-conditions-recovery.mjs";
 import {
+  activeRulesProfileId,
+  isStrictRealmGuard,
+  profileActivationStatus,
+  switchToLegacyMixed,
+  switchToStrictRealmGuard
+} from "./m10-profile-activation.mjs";
+import {
   buildStrictHelperConsequenceContract,
   classifyStrictHelp,
   getStrictWisesTraitsHelpStatus,
@@ -96,18 +103,18 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.7",
-    mode: "STRICT_SCALE_DOCS_REFERENCE_FOUNDATION_PLUS_READ_ONLY_CONVERSION_PREVIEW",
+    phase: "M10A.8",
+    mode: "QA_PROFILE_ACTIVATION_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
-    liveActivation: false,
+    liveActivation: isStrictRealmGuard(),
     actorItemWrites: false,
     worldSettingWrites: false,
     conversionPreviewAvailable: true,
-    strictRulesLive: false,
+    strictRulesLive: isStrictRealmGuard(),
     wiseAutoConversion: false,
-    profileSwitchAvailable: false,
+    profileSwitchAvailable: true,
     conditionWrites: false,
     recoveryWrites: false,
     inventoryWrites: false,
@@ -119,7 +126,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: false,
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10A.8 Profile Activation QA"
+    nextStep: "M10A.8 Profile Activation QA · SWITCH / RELOAD / ROLLBACK"
   });
 }
 
@@ -151,6 +158,10 @@ export function installM10ProfileConversionPreview() {
     globalThis.game.realmGuard.core ??= {};
     globalThis.game.realmGuard.core.m10 = Object.freeze({
       getStatus: getM10ProfilePreviewStatus,
+      activationStatus: profileActivationStatus,
+      activeProfileId: activeRulesProfileId,
+      switchToStrict: switchToStrictRealmGuard,
+      switchToLegacy: switchToLegacyMixed,
       previewStrictConversion,
       openStrictConversionPreview: showStrictConversionPreview,
       strict: Object.freeze({
@@ -225,6 +236,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10A.7 Strict Scale / Docs / Rules Reference foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.8 QA Profile Activation router ready", getM10ProfilePreviewStatus());
   });
 }
