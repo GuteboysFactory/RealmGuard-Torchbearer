@@ -35,15 +35,17 @@ for (const marker of [
   'draftAuthority: "CORE_M9"',
   'validationAuthority: "CORE_M9"',
   'commitAuthority: "CORE_M9"',
-  'parityGuard: "LEGACY_RECRUITMENT"',
+  '"STRICT_SOURCE_PROFILE" : "LEGACY_RECRUITMENT"',
   '"TransactionalLiveCommit"',
   '"CreationProvenanceWrite"',
   '"M8RecruitmentNormalization"',
-  'legacyCommitAvailability: qaRuntime()',
+  'legacyCommitAvailability: isStrictRealmGuard()',
+  '"DISABLED_UNDER_STRICT"',
   'if (qaRuntime()) Object.assign(api, {'
 ]) assert.ok(m9.includes(marker), `Missing M9 closure authority marker: ${marker}`);
 
 assert.ok(m9.includes("setCommitMode: setM9CommitMode"));
+assert.ok(m9.includes('return qaCommitMode === "LEGACY" && !isStrictRealmGuard();'), "Strict activation must override any stale Legacy QA commit mode.");
 assert.ok(m9.includes("testCommitFailure: setM9CommitFailureTestPhase"));
 assert.ok(m9.indexOf("if (qaRuntime()) Object.assign(api, {") < m9.indexOf("setCommitMode: setM9CommitMode"));
 assert.equal(m9.includes("commitShadowAuthority:"), false);
@@ -79,4 +81,4 @@ const channelSmoke = fs.readFileSync("qa/release-channel-contract-smoke.mjs", "u
 assert.ok(channelSmoke.includes("gated qa/stable manifests"));
 assert.ok(channelSmoke.includes("no exact QA version pins"));
 
-console.log("PASS M9 qa.5 closure contract · CORE authority · transactional commit · compatibility · gated release");
+console.log("PASS M9 closure contract · profile-routed CORE authority · transactional commit · compatibility · gated release");

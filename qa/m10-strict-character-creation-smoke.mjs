@@ -169,6 +169,26 @@ assert.deepEqual(preview.projection.conditions, ["Hungry & Thirsty","Angry","Tir
 assert.equal(preview.projection.wises[0].system.rating, 3);
 assert.equal(preview.operations.every(operation => operation.enabled === false), true);
 
+globalThis.game = {
+  ...(globalThis.game ?? {}),
+  realmGuard: {
+    ...(globalThis.game?.realmGuard ?? {}),
+    core: {
+      ...(globalThis.game?.realmGuard?.core ?? {}),
+      getActiveRulesProfile: () => ({ id: STRICT_CREATION_PROFILE_ID })
+    }
+  }
+};
+const livePlan = strictCreationCommitPlan(scoutDraft, { partyContext: emptyParty });
+assert.equal(livePlan.profileId, STRICT_CREATION_PROFILE_ID);
+assert.equal(livePlan.liveMutation, true);
+assert.equal(livePlan.transaction.liveExecution, true);
+assert.equal(livePlan.transaction.previewOnly, false);
+assert.equal(livePlan.transaction.provenanceWrite, true);
+assert.equal(livePlan.transaction.relationshipWrite, true);
+assert.equal(livePlan.relationships.liveWrite, true);
+assert.equal(livePlan.relationships.plannedLiveService, "CORE_M8_SOCIAL_NETWORK");
+
 const orcDraft = strictCreateDraft(scoutSeed({
   answers: {
     relationships: baseRelationships({

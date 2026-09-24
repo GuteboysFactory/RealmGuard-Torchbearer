@@ -264,7 +264,7 @@ export function setM9CommitMode(mode = "CORE") {
 }
 
 export function shouldUseLegacyM9Commit() {
-  return qaCommitMode === "LEGACY";
+  return qaCommitMode === "LEGACY" && !isStrictRealmGuard();
 }
 
 export function setM9CommitFailureTestPhase(phase = "") {

@@ -90,6 +90,7 @@ assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"));
 assert.ok(m9.includes("activeCreationEngine"));
 assert.ok(m9.includes("STRICT_SOURCE_PROFILE"));
 assert.ok(m9.includes("DISABLED_UNDER_STRICT"));
+assert.ok(m9.includes('return qaCommitMode === "LEGACY" && !isStrictRealmGuard();'), "Strict must not inherit a stale Legacy QA commit override.");
 assert.ok(m9.includes("isStrictRealmGuard() ? REALM_GUARD_STRICT_CREATION_PROFILE"));
 
 const strictCreation = fs.readFileSync("module/profiles/realm-guard-strict-creation.mjs","utf8");
