@@ -10,3 +10,4 @@
 # QA channel advances only after release assets and all smokes verify
 # Early M10 smoke expectations advanced for QA_ACTIVE
 # M10A.6 status smoke advanced for activation-aware fields
+# M10A.6 live-routing regression expectations advanced
