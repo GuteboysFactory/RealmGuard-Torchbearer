@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.8 — 🟡 M10A.7 Scale / Docs / Rules Reference  
+**Current QA build:** v1.11.0-qa.8 — 🟢✅ FULL PASS / M10A.7 Scale / Docs / Rules Reference  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
 **Next CORE step after qa.8 PASS:** M10A.8 — Profile Activation QA  
 **Internal system id:** `realm-guard` (do not rename)
@@ -141,7 +141,9 @@ qa.1 foundation scope:
 - existing permanent Legacy Mixed Rules Journal preserved unchanged
 - zero Strict live writes or profile activation
 
-**Next after qa.8 PASS:** M10A.8 — Profile Activation QA. A fresh read-only audit is required before mutation.
+**qa.8 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Scale planners, Strict read-only Rules Reference, searchable/scrollable Manual UI, permanent Legacy Mixed Journal safety, reload and Legacy Mixed regression verified.
+
+**Next:** read-only audit for M10A.8 — Profile Activation QA before any mutation.
 
 
 ### M9 — Creation / Recruitment Migration
