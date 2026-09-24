@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.8 — 🟢✅ FULL PASS / M10A.7 Scale / Docs / Rules Reference  
+**Current QA build:** v1.11.0-qa.9 — 🟡 M10A.8 Profile Activation QA  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Next CORE step after qa.8 PASS:** M10A.8 — Profile Activation QA  
+**Current CORE gate:** M10A.8 — Legacy ↔ Strict switch / reload / rollback verification  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.8 implements M10A.7 Scale / Docs / Rules Reference foundations with **NO LIVE PROFILE ACTIVATION**.
+**Status:** 🟡 IN PROGRESS — v1.11.0-qa.9 enables reversible **QA_ACTIVE** Strict profile activation with non-destructive rollback. Stable activation remains blocked until live QA passes.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -143,7 +143,24 @@ qa.1 foundation scope:
 
 **qa.8 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Scale planners, Strict read-only Rules Reference, searchable/scrollable Manual UI, permanent Legacy Mixed Journal safety, reload and Legacy Mixed regression verified.
 
-**Next:** read-only audit for M10A.8 — Profile Activation QA before any mutation.
+**qa.9 scope — M10A.8:**
+- reversible Game Settings profile activation: Legacy Mixed ↔ Strict
+- profile switch writes only active profile id/version settings; no Actor/Item/Journal conversion
+- reload required during activation QA
+- cross-client runtime refresh + M5 cache invalidation
+- CORE M9 routes to the active creation profile; Strict creation commits live only while Strict is active
+- old unrated Wises preserved at rating 0; no guessed conversion
+- Strict live routing for rated Wises / I Am Wise / Teamwork / Traits
+- Fresh/Afraid preserved but ignored mechanically under Strict
+- Strict recovery method/order routing and guided Injured/Strained failure state
+- Levels/Talents disabled mechanically while preserving data
+- LOOSE Strict Conflict ownership; no hand-slot authority / no universal unarmed -1D
+- Strict End Session validation and no Talent reset
+- activation-aware Manual / Strict Rules Reference
+- rollback to Legacy restores compatibility behavior without deleting Strict-created data
+- Strict profile metadata = QA_ACTIVE, not stable
+
+**qa.9 PASS gate:** Legacy → Strict → Legacy → Strict must be idempotent and data-safe across reload/multiplayer, with Strict Recruitment live through CORE M9 and no automatic old-Actor migration.
 
 
 ### M9 — Creation / Recruitment Migration
