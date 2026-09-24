@@ -257,6 +257,7 @@ function qaRuntime() {
 export function setM9CommitMode(mode = "CORE") {
   const next = String(mode || "CORE").trim().toUpperCase();
   if (!["CORE", "LEGACY"].includes(next)) throw new Error("M9 commit mode must be CORE or LEGACY.");
+  if (next === "LEGACY" && isStrictRealmGuard()) throw new Error("Legacy M9 commit override is disabled while Strict Realm Guard is active.");
   if (next === "LEGACY" && !qaRuntime()) throw new Error("Legacy M9 commit override is available only in QA builds.");
   qaCommitMode = next;
   return getM9CreationShadowStatus();
@@ -368,9 +369,11 @@ export function getM9CreationShadowStatus() {
     validationAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
     parityGuard: isStrictRealmGuard() ? "STRICT_SOURCE_PROFILE" : "LEGACY_RECRUITMENT",
-    legacyCommitAvailability: qaRuntime()
-      ? (qaCommitMode === "LEGACY" ? "QA_OVERRIDE_ACTIVE" : "QA_EXPLICIT_ONLY")
-      : "DISABLED_IN_STABLE",
+    legacyCommitAvailability: isStrictRealmGuard()
+      ? "DISABLED_UNDER_STRICT"
+      : qaRuntime()
+        ? (qaCommitMode === "LEGACY" ? "QA_OVERRIDE_ACTIVE" : "QA_EXPLICIT_ONLY")
+        : "DISABLED_IN_STABLE",
     liveApplication: { draft: true, validation: true, commitPlan: true, commit: true, provenance: true, relationships: true },
     profileId: activeCreationProfile().id,
     profileVersion: activeCreationProfile().version,
