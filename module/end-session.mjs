@@ -1,4 +1,6 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { strictEndSessionValidation } from "./m10-strict-session-circles-progression.mjs";
 import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
 import { resetTalentSessionState } from "./talents.mjs";
 import { resetTraitSessionUses } from "./traits.mjs";
@@ -143,7 +145,25 @@ async function collectCriteria(actors, cycle) {
           });
 
           const embodimentCount = rows.filter(row => row.criteria.personaEmbodiment).length;
-          if (rows.length > 1 && embodimentCount === rows.length) return { error: "Embodiment may be awarded to more than one Ranger, but not to everyone in a multi-Ranger session." };
+          if (isStrictRealmGuard()) {
+            const strictValidation = strictEndSessionValidation({
+              participantIds: rows.map(row => row.actor.id),
+              mvpId,
+              workhorseId,
+              embodimentIds: rows.filter(row => row.criteria.personaEmbodiment).map(row => row.actor.id)
+            });
+            if (!strictValidation.ok) {
+              const code = strictValidation.errors[0] ?? "STRICT_END_SESSION_INVALID";
+              const message = code === "EMBODIMENT_CANNOT_BE_EVERYONE"
+                ? "Strict Realm Guard: Embodiment may be awarded to more than one Ranger, but never to every participating Ranger."
+                : code === "MVP_WORKHORSE_MUST_DIFFER"
+                  ? "A Ranger cannot be both MVP and Workhorse in the same session."
+                  : "Strict Realm Guard: End Session selections are not valid.";
+              return { error: message };
+            }
+          } else if (rows.length > 1 && embodimentCount === rows.length) {
+            return { error: "Embodiment may be awarded to more than one Ranger, but not to everyone in a multi-Ranger session." };
+          }
 
           return { rows, mvpId, workhorseId };
         }
@@ -344,7 +364,7 @@ async function confirmNextCycle(cycle) {
   let talentsReset = 0;
   for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
     recharged += await resetTokenPowerSessionState(actor);
-    if (actor.type === "character") talentsReset += await resetTalentSessionState(actor);
+    if (actor.type === "character" && !isStrictRealmGuard()) talentsReset += await resetTalentSessionState(actor);
   }
   observeM7Lifecycle("SESSION_STARTED", {
     source: "LEGACY_END_SESSION",
