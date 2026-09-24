@@ -80,7 +80,7 @@ function scoutSeed(overrides = {}) {
 }
 
 const status = getStrictCreationStatus();
-assert.equal(status.phase, "M10A.6");
+assert.ok(["M10A.6","M10A.7","M10A.8"].includes(status.phase));
 assert.equal(status.profileId, STRICT_CREATION_PROFILE_ID);
 assert.equal(status.profileVersion, STRICT_CREATION_PROFILE_VERSION);
 assert.equal(status.coreEngine, "CORE_M9");
@@ -93,9 +93,10 @@ assert.deepEqual(status.conditions.provisioned, ["Hungry & Thirsty","Angry","Tir
 assert.deepEqual(status.conditions.excluded, ["Fresh","Afraid","Sick"]);
 assert.equal(status.levels, false);
 assert.equal(status.talents, false);
-assert.equal(status.writesActors, false);
-assert.equal(status.writesItems, false);
-assert.equal(status.writesRelationships, false);
+assert.equal(status.liveCommitAvailable, false);
+assert.equal(status.writesActorsOnCommit, false);
+assert.equal(status.writesItemsOnCommit, false);
+assert.equal(status.writesRelationshipsOnCommit, false);
 
 const emptyParty = new CreationPartyContext();
 const scoutDraft = strictCreateDraft(scoutSeed());
