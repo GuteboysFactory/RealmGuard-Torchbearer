@@ -30,7 +30,7 @@ assert.equal(status.dunadanRank, 3);
 assert.equal(status.writesActors, false);
 assert.equal(status.writesItems, false);
 assert.equal(status.writesWorldSettings, false);
-assert.equal(status.nextStep, "M10A.8 Profile Activation QA");
+assert.equal(status.nextStep, "M10A.9 Stable Activation Candidate · CLOSURE QA");
 
 assert.equal(strictScaleRankFor("Hobbit"), 1);
 assert.equal(strictScaleRankFor("Goblin"), 1);
@@ -110,11 +110,11 @@ assert.equal(tokenYes.level3PublishedExample.conflictOnly, true);
 assert.equal(tokenYes.liveApplication, false);
 
 const ref = strictRulesReferenceSnapshot();
-assert.ok(["M10A.7","M10A.8"].includes(ref.phase));
+assert.ok(["M10A.7","M10A.8","M10A.9"].includes(ref.phase));
 assert.equal(ref.mode, "STRICT_READ_ONLY_REFERENCE");
 assert.equal(ref.profileId, "realm-guard-strict");
 assert.ok(ref.profileVersion >= 8);
-assert.ok(["PREVIEW_ONLY","QA_ACTIVE"].includes(ref.activationState));
+assert.ok(["PREVIEW_ONLY","QA_ACTIVE","SUPPORTED"].includes(ref.activationState));
 assert.deepEqual(ref.sourceLineage, ["Mouse Guard RPG 2008 / 1E","Realm Guard v1.6 overrides"]);
 assert.equal(ref.liveAuthority, false);
 assert.equal(ref.writesJournal, false);
@@ -139,7 +139,7 @@ assert.match(html, /(does not switch the world|active QA rules profile)/i);
 assert.match(html, /Scale of Might/);
 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 8);
-assert.ok(["M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase));
+assert.ok(["M10A.7","M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase));
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.scalePolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.rulesReferencePreviewReady, true);
 assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");

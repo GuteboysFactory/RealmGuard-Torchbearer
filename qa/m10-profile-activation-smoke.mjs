@@ -11,7 +11,7 @@ const settings = new Map([
 ]);
 const settingWrites = [];
 globalThis.game = {
-  system:{version:"1.11.0-qa.9"},
+  system:{version:"1.11.0"},
   user:{isGM:true,id:"gm"},
   settings:{
     get:(ns,key)=>settings.get(`${ns}.${key}`),
@@ -28,15 +28,16 @@ const activation = await import("../module/m10-profile-activation.mjs");
 const { REALM_GUARD_STRICT_PROFILE } = await import("../module/profiles/realm-guard-strict.mjs");
 const { resolveRulesProfile } = await import("../module/rules-profile-service.mjs");
 
-assert.equal(REALM_GUARD_STRICT_PROFILE.version, 9);
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, "M10A.8");
-assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.activationState, "QA_ACTIVE");
+assert.equal(REALM_GUARD_STRICT_PROFILE.version, 10);
+assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, "M10A.9");
+assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.activationState, "SUPPORTED");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.selectable, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.supported, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.previewOnly, false);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.strictRulesLive, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.profileActivationQaReady, true);
+assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.stableActivationReady, true);
 
 assert.equal(activation.activeRulesProfileId(), "realm-guard-legacy-mixed");
 assert.equal(activation.isLegacyMixed(), true);
@@ -45,6 +46,7 @@ assert.equal(activation.strictActivationAvailable(), true);
 
 const beforeStatus = activation.profileActivationStatus();
 assert.equal(beforeStatus.activeProfileId, "realm-guard-legacy-mixed");
+assert.equal(beforeStatus.switchAvailable, true);
 assert.equal(beforeStatus.qaSwitchAvailable, true);
 assert.equal(beforeStatus.actorWritesOnSwitch, 0);
 assert.equal(beforeStatus.itemWritesOnSwitch, 0);
@@ -60,7 +62,7 @@ assert.equal(activation.isStrictRealmGuard(), true);
 assert.deepEqual(settingWrites.map(row=>row.key), ["activeRulesProfileId","activeRulesProfileVersion"]);
 assert.equal(settingWrites.some(row=>/actor|item|journal/i.test(row.key)), false);
 assert.equal(resolveRulesProfile().profile.id, "realm-guard-strict");
-assert.equal(resolveRulesProfile().profile.version, 9);
+assert.equal(resolveRulesProfile().profile.version, 10);
 
 settingWrites.length = 0;
 const legacySwitch = await activation.switchToLegacyMixed();
@@ -74,6 +76,8 @@ for (const forbidden of ["Actor.create","createEmbeddedDocuments","deleteEmbedde
   assert.equal(activationSource.includes(forbidden), false, `Profile switch must not mutate campaign documents: ${forbidden}`);
 }
 assert.ok(activationSource.includes("restoreProfileSettings"), "Profile switch must include setting rollback.");
+assert.equal(activationSource.includes("qaRuntime"), false, "Supported Strict activation must not depend on a -qa. runtime.");
+assert.equal(activationSource.includes("activation is QA-only"), false, "Supported Strict activation must remain available in stable runtime.");
 assert.ok(activationSource.includes("reloadRecommended:true"), "QA activation must recommend reload.");
 
 const profileMenu = fs.readFileSync("module/profile-management-menu.mjs","utf8");
@@ -178,9 +182,9 @@ assert.ok(rulesProfileService.includes('source:"SETTING_UPDATE"'));
 
 const manual = fs.readFileSync("module/manual.mjs","utf8");
 const strictReference = fs.readFileSync("module/m10-strict-rules-reference.mjs","utf8");
-assert.ok(manual.includes("Strict Realm Guard is active for M10A.8 QA"));
+assert.ok(manual.includes("Strict Realm Guard is active. Use the Strict Rules Reference"));
 assert.ok(manual.includes('"Open Strict Rules" : "Preview Strict Rules"'));
 assert.ok(strictReference.includes("STRICT_ACTIVE_REFERENCE"));
 assert.ok(strictReference.includes("ACTIVE RULES PROFILE"));
 
-console.log("PASS M10A.8 Profile Activation foundation · reversible settings-only switch · Strict live routing gates · Legacy rollback retained");
+console.log("PASS M10A.9 Stable Activation Candidate · stable-runtime selectable · reversible settings-only switch · Legacy rollback retained");

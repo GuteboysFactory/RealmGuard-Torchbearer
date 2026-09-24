@@ -1,5 +1,26 @@
 # Realm Guard - Update Log
 
+## v1.11.0-qa.11 - 🟡 M10A.9 Stable Activation Candidate
+
+- Built after **M10A.8 live QA = 🟢✅ FULL PASS** in Foundry VTT 13.351.
+- Advances Strict Realm Guard to profile v10 / `SUPPORTED` while keeping **Realm Guard — Legacy Mixed** as the default compatibility profile.
+- Removes the `-qa.` runtime requirement from Strict profile activation so the same verified profile switch can function in a future stable `v1.11.0` build.
+- Keeps conversion preview, explicit GM confirmation, reload guidance and reversible Legacy ↔ Strict switching.
+- Profile switching still writes only `activeRulesProfileId` and `activeRulesProfileVersion`; no Actor, Item or Journal conversion is performed by the switch.
+- Preserves old unrated Wises, Levels/Talents, Fresh/Afraid, structured inventory metadata and Strict-created data rather than cleaning between profiles.
+- Updates Profile Management, Manual, Strict Rules Reference and Rules Registry from QA-only activation wording to supported-profile wording.
+- Updates M10 regression smokes for M10A.9 and adds a stable-runtime activation assertion using simulated `game.system.version = "1.11.0"`.
+- Carries forward the qa.10 Quick NPC Provider API unchanged.
+- **No STABLE/GOLD promotion is implied by qa.11.** Promotion requires the M10A.9 closure protocol to pass.
+
+## v1.11.0-qa.10 - Quick NPC Provider API / M10A.8 QA carry-forward
+
+- Exposes the system-owned `game.realmGuard.quickNpc` provider API for external adapters without importing Realm Guard internals.
+- Public provider methods: `open`, `openGroups`, `createFromTemplate`, `matches`, `resolveBestTemplate`.
+- Existing Quick NPC Library and GM Dock behavior remain unchanged.
+- Carries the M10A.8 Gate J Strict unarmed/no-tool presentation hotfix and Gate K Strict header Level visibility hotfix.
+- No M10 rules-profile authority change beyond the verified qa.9 activation line.
+
 ## v1.11.0-qa.9 - 🟡 M10A.8 Profile Activation QA
 
 - Built after **v1.11.0-qa.8 = 🟢✅ FULL PASS** in Foundry VTT 13.351.

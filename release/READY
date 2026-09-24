@@ -1,8 +1,9 @@
-1.11.0-qa.10
-# Quick NPC Provider API
-# Exposes game.realmGuard.quickNpc on ready
-# Public provider methods: open, openGroups, createFromTemplate, matches, resolveBestTemplate
-# Provider remains system-owned; external consumers call the API without importing Realm Guard internals
-# Existing Quick NPC Library and GM Dock behavior unchanged
-# Gate J Strict unarmed/no-tool presentation hotfix
-# Gate K Strict header Level visibility hotfix
+1.11.0-qa.11
+# M10A.9 Stable Activation Candidate / Closure QA
+# Strict profile v10 = SUPPORTED
+# Removes QA-runtime dependency from Strict activation
+# Legacy Mixed remains default; conversion preview + explicit GM confirmation retained
+# Profile switch remains settings-only and reversible
+# No automatic Wise rating, Talent/Condition deletion, or inventory cleanup
+# Stable-runtime closure smoke simulates game.system.version = 1.11.0
+# Carries forward Quick NPC Provider API unchanged

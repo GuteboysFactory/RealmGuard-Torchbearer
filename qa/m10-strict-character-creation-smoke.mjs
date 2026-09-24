@@ -80,7 +80,7 @@ function scoutSeed(overrides = {}) {
 }
 
 const status = getStrictCreationStatus();
-assert.ok(["M10A.6","M10A.7","M10A.8"].includes(status.phase));
+assert.ok(["M10A.6","M10A.7","M10A.8","M10A.9"].includes(status.phase));
 assert.equal(status.profileId, STRICT_CREATION_PROFILE_ID);
 assert.equal(status.profileVersion, STRICT_CREATION_PROFILE_VERSION);
 assert.equal(status.coreEngine, "CORE_M9");
@@ -290,7 +290,7 @@ assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.profileVersion, 1);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.ratedWises, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.levelsTalents, false);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.creation.inventoryPolicy, "LOOSE");
-assert.ok(["M10A.6","M10A.7","M10A.8"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.6 smoke must survive later M10 phases.");
+assert.ok(["M10A.6","M10A.7","M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.6 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.creationPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.strictCreationPreviewReady, true);
 assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
@@ -315,9 +315,9 @@ assert.ok(legacyProfile.includes("ENEMY_SERVANTS_HOUSE_RULE"), "Legacy Mixed ene
 
 const m9 = fs.readFileSync("module/m9-creation-shadow.mjs","utf8");
 assert.ok(m9.includes("REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE"), "CORE M9 must preserve the Legacy Mixed creation profile.");
-if (REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase === "M10A.8") {
-  assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), "M10A.8 must route CORE M9 to the Strict creation profile when active.");
-  assert.ok(m9.includes("activeCreationEngine"), "M10A.8 must select the creation engine from the active Rules Profile.");
+if (["M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase)) {
+  assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), "M10A.8+ must route CORE M9 to the Strict creation profile when active.");
+  assert.ok(m9.includes("activeCreationEngine"), "M10A.8+ must select the creation engine from the active Rules Profile.");
 } else {
   assert.equal(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), false, "Pre-activation phases must not route Strict creation into live M9.");
 }

@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.9 — 🟡 M10A.8 Profile Activation QA  
+**Current QA build:** v1.11.0-qa.11 — 🟡 M10A.9 Stable Activation Candidate  
 **Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Current CORE gate:** M10A.8 — Legacy ↔ Strict switch / reload / rollback verification  
+**Current CORE gate:** M10A.9 — stable-channel activation / closure verification  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — v1.11.0-qa.9 enables reversible **QA_ACTIVE** Strict profile activation with non-destructive rollback. Stable activation remains blocked until live QA passes.
+**Status:** 🟡 IN PROGRESS — M10A.8 live activation QA is ✅ FULL PASS. v1.11.0-qa.11 promotes Strict to **SUPPORTED** inside the QA candidate and removes the QA-version activation lock; stable promotion remains blocked until M10A.9 closure QA passes.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -161,6 +161,22 @@ qa.1 foundation scope:
 - Strict profile metadata = QA_ACTIVE, not stable
 
 **qa.9 PASS gate:** Legacy → Strict → Legacy → Strict must be idempotent and data-safe across reload/multiplayer, with Strict Recruitment live through CORE M9 and no automatic old-Actor migration.
+
+**qa.9 / qa.10 result — M10A.8:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Legacy → Strict → Legacy → Strict round-trip, reload persistence, Strict rated Wises/Traits/Conditions/Recovery/Inventory/Conflict/End Session, live CORE M9 Strict Recruitment, provenance, rollback fault handling, Manual/Registry routing and non-destructive data preservation were verified. qa.10 additionally carries the system-owned Quick NPC Provider API for external adapters; it does not change M10 rules ownership.
+
+**qa.11 scope — M10A.9 Stable Activation Candidate:**
+- Strict profile v10 / `SUPPORTED`
+- remove the `-qa.` runtime dependency from Strict profile selection
+- Legacy Mixed remains the default profile for existing/new worlds unless explicitly changed
+- conversion preview and explicit GM confirmation remain mandatory before switching
+- profile switching remains settings-only and reversible
+- no automatic Wise rating, Talent deletion, Condition deletion or inventory cleanup
+- existing dormant profile-specific data remains preserved for rollback safety
+- Manual / Rules Registry / Profile Management remove QA-only activation wording
+- closure smoke runs with simulated `game.system.version = "1.11.0"` and must still activate Strict
+- qa.10 Quick NPC Provider API remains unchanged
+
+**qa.11 PASS gate:** stable-runtime simulation, Legacy → Strict → Legacy round-trip, reload, representative Strict routing and zero destructive conversion must pass before `v1.11.0 STABLE / GOLD` promotion.
 
 
 ### M9 — Creation / Recruitment Migration
