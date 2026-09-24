@@ -2,6 +2,7 @@
 
 ## v1.11.0-qa.8 - 🟡 M10A.7 Scale / Docs / Rules Reference
 
+- qa.8 UI hotfix: System Manual and Strict Rules Preview now use an independently scrollable content area with live search, Clear/Escape restore, match auto-open, and Expand All / Collapse All controls.
 - Built after **v1.11.0-qa.7 = 🟢✅ FULL PASS** in Foundry VTT 13.351.
 - Adds a read-only Realm Guard v1.6 Scale of Might policy with the six source ranks.
 - Adds source-backed Fighter/Hunter outcome planning from rank difference.
