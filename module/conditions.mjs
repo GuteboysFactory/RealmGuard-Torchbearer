@@ -1,3 +1,5 @@
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { strictConditionRollEffects } from "./m10-strict-conditions-recovery.mjs";
 import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
@@ -31,6 +33,13 @@ export function conditionAppliesToRoll(condition, rollName, { isSkill = true } =
 }
 
 export function conditionRollData(actor, rollName, { isSkill = true } = {}) {
+  if (isStrictRealmGuard()) {
+    const strict = strictConditionRollEffects(actor, rollName, { isSkill });
+    const active = (actor?.conditions ?? []).filter(c =>
+      strict.applied.some(entry => normalize(entry.name) === normalize(c.name))
+    );
+    return { active, dice: Number(strict.diceModifier ?? 0), strict };
+  }
   const active = (actor?.conditions ?? []).filter(c => conditionAppliesToRoll(c, rollName, { isSkill }));
   const dice = active.reduce((sum, c) => sum + Number(c.system.rollModifier ?? 0), 0);
   return { active, dice };
@@ -118,7 +127,10 @@ export async function ensureDefaultConditions(actor) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
   const existing = new Map(actor.conditions.map(c => [normalize(c.name), c]));
   const create = [];
-  for (const c of RG_DEFAULT_CONDITIONS) {
+  const defaults = isStrictRealmGuard()
+    ? RG_DEFAULT_CONDITIONS.filter(c => !["fresh","afraid"].includes(normalize(c.name)))
+    : RG_DEFAULT_CONDITIONS;
+  for (const c of defaults) {
     const found = existing.get(normalize(c.name));
     if (found) {
       if (!isDefaultCondition(found)) await found.setFlag("realm-guard", "defaultCondition", true);
@@ -204,6 +216,7 @@ async function migrateAndProvisionConditions() {
 async function enrichCanonicalConditionData(actor) {
   for (const condition of actor.conditions ?? []) {
     if (!isDefaultCondition(condition)) continue;
+    if (isStrictRealmGuard() && ["fresh","afraid"].includes(normalize(condition.name))) continue;
     const def = RG_DEFAULT_CONDITIONS.find(c => normalize(c.name) === normalize(condition.name));
     if (!def) continue;
     const update = {};
@@ -279,14 +292,14 @@ export async function setConditionActive(actor, item, active) {
   if (!actor || item?.type !== "condition") return false;
   const next = Boolean(active);
   const isFresh = normalize(item.name) === "fresh";
-  if (next && isFresh) {
+  if (!isStrictRealmGuard() && next && isFresh) {
     const adverse = (actor.conditions ?? []).find(c => c.id !== item.id && Boolean(c.system?.active));
     if (adverse) {
       ui.notifications.warn(`Realm Guard: Fresh cannot be activated while ${adverse.name} is active.`);
       return false;
     }
   }
-  if (next && !isFresh) {
+  if (!isStrictRealmGuard() && next && !isFresh) {
     const fresh = (actor.conditions ?? []).find(c => normalize(c.name) === "fresh" && Boolean(c.system?.active));
     if (fresh) {
       await fresh.update({ "system.active": false }, { realmGuardSkipConditionSync: true });
