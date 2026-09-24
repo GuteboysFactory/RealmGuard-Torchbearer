@@ -441,9 +441,22 @@ function setDraft(side, state, plan) {
   d[side] = plan;
   draftPlans.set(state.id, d);
 }
+function conflictUnarmedLabel() {
+  return isStrictRealmGuard() ? "Unarmed / no tool" : "Unarmed · −1D";
+}
+function conflictUnarmedRuleText() {
+  return isStrictRealmGuard()
+    ? "Strict Realm Guard: no universal unarmed / no-tool penalty."
+    : "No valid tool = Unarmed −1D.";
+}
+function conflictUnarmedWarningText() {
+  return isStrictRealmGuard()
+    ? "No Conflict Weapon / Tool selected · No universal penalty"
+    : "No valid Conflict Weapon / Tool selected · Unarmed −1D";
+}
 function planWeaponName(actor, state, side, weaponId) {
-  if (!actor) return "Unarmed · −1D";
-  return selectedConflictWeapon(actor, state, side, weaponId)?.name ?? "Unarmed · −1D";
+  if (!actor) return conflictUnarmedLabel();
+  return selectedConflictWeapon(actor, state, side, weaponId)?.name ?? conflictUnarmedLabel();
 }
 function planWeaponSummary(actor, state, side) {
   const selectedId = weaponDraftFor(actor, state, side);
@@ -484,7 +497,7 @@ function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) 
   const custom = canCreate ? `<button type="button" class="rg-plan-custom-tool" data-conflict-custom-tool-actor="${actor.id}" data-side="${side}" title="Create a custom or improvised Conflict Weapon / Tool"><i class="fa-solid fa-plus"></i> Custom Tool</button>` : "";
   const weaponName = planWeaponName(actor, state, side, defaultWeaponId);
   const unarmed = !defaultWeaponId || weaponName.startsWith("Unarmed");
-  return `<div class="rg-plan-slot editable has-action ${unarmed ? "is-unarmed" : ""}" data-plan-slot="${index}"><span class="rg-plan-no">${index + 1}</span><div class="rg-plan-action-head">${conflictCard(action, side, { small: true })}<div><b>${esc(actionLabel(action))}</b><span>Action ${index + 1}</span></div></div><div class="rg-plan-fields">${actorSelect}${planWeaponSummary(actor, state, side)}${custom}${unarmed ? `<div class="rg-plan-unarmed"><i class="fa-solid fa-triangle-exclamation"></i><span>No valid Conflict Weapon / Tool selected · <b>Unarmed −1D</b></span></div>` : ""}</div><button type="button" class="rg-plan-clear" data-clear-plan="${index}" title="Clear this planned Action"><i class="fa-solid fa-xmark"></i></button></div>`;
+  return `<div class="rg-plan-slot editable has-action ${unarmed ? "is-unarmed" : ""}" data-plan-slot="${index}"><span class="rg-plan-no">${index + 1}</span><div class="rg-plan-action-head">${conflictCard(action, side, { small: true })}<div><b>${esc(actionLabel(action))}</b><span>Action ${index + 1}</span></div></div><div class="rg-plan-fields">${actorSelect}${planWeaponSummary(actor, state, side)}${custom}${unarmed ? `<div class="rg-plan-unarmed"><i class="fa-solid fa-triangle-exclamation"></i><span>${esc(conflictUnarmedWarningText())}</span></div>` : ""}</div><button type="button" class="rg-plan-clear" data-clear-plan="${index}" title="Clear this planned Action"><i class="fa-solid fa-xmark"></i></button></div>`;
 }
 
 function weaponPlannerHtml(side, state, editable) {
@@ -495,9 +508,9 @@ function weaponPlannerHtml(side, state, editable) {
     const weapons = availableConflictWeapons(actor, state, side);
     const selected = weaponDraftFor(actor, state, side);
     const canCreate = game.user?.isGM || actor.isOwner;
-    return `<div class="rg-conflict-weapon-row rg-conflict-weapon-edit"><b>${esc(actor.name)}</b><select data-conflict-weapon-actor="${actorId}"><option value="" ${!selected ? "selected" : ""}>Unarmed / no tool · −1D</option>${weapons.map(w => `<option value="${w.id}" ${selected === w.id ? "selected" : ""}>${esc(w.name)}${w.kind === "tool" ? " · Conflict Tool" : " · Gear"}</option>`).join("")}</select>${canCreate ? `<button type="button" data-conflict-custom-tool-actor="${actorId}" data-side="${side}" title="Create a custom/improvised Conflict Weapon or Tool"><i class="fa-solid fa-plus"></i> Custom</button>` : ""}</div>`;
+    return `<div class="rg-conflict-weapon-row rg-conflict-weapon-edit"><b>${esc(actor.name)}</b><select data-conflict-weapon-actor="${actorId}"><option value="" ${!selected ? "selected" : ""}>${esc(conflictUnarmedLabel())}</option>${weapons.map(w => `<option value="${w.id}" ${selected === w.id ? "selected" : ""}>${esc(w.name)}${w.kind === "tool" ? " · Conflict Tool" : " · Gear"}</option>`).join("")}</select>${canCreate ? `<button type="button" data-conflict-custom-tool-actor="${actorId}" data-side="${side}" title="Create a custom/improvised Conflict Weapon or Tool"><i class="fa-solid fa-plus"></i> Custom</button>` : ""}</div>`;
   }).join("");
-  return `<section class="rg-conflict-weapon-defaults rg-conflict-exchange-tools"><div class="rg-plan-step-head"><div><b><i class="fa-solid fa-wand-sparkles"></i> Exchange Weapon / Tool</b><span>Declare one Weapon / Tool per Actor for this three-Action Exchange.</span></div></div><div class="rg-conflict-weapons"><small class="rg-conflict-weapon-rule"><b>Locked for the Exchange:</b> an Actor uses this same Weapon / Tool on every Action they take in these three cards. A different Weapon / Tool may be declared when the next Exchange begins. No valid tool = Unarmed −1D.</small>${rows}</div></section>`;
+  return `<section class="rg-conflict-weapon-defaults rg-conflict-exchange-tools"><div class="rg-plan-step-head"><div><b><i class="fa-solid fa-wand-sparkles"></i> Exchange Weapon / Tool</b><span>Declare one Weapon / Tool per Actor for this three-Action Exchange.</span></div></div><div class="rg-conflict-weapons"><small class="rg-conflict-weapon-rule"><b>Locked for the Exchange:</b> an Actor uses this same Weapon / Tool on every Action they take in these three cards. A different Weapon / Tool may be declared when the next Exchange begins. ${esc(conflictUnarmedRuleText())}</small>${rows}</div></section>`;
 }
 
 function conflictActionGuideHtml() {
@@ -854,7 +867,19 @@ function gearActionModifiers(actor, action, state, side, weaponId = null) {
   const selected = selectedConflictWeapon(actor, state, side, weaponId);
   let dice = 0, conditionalSuccess = 0, successPenalty = 0; const notes = [];
   if (!selected) {
-    return { dice: -1, conditionalSuccess: 0, successPenalty: 0, notes: [`Unarmed / no valid Conflict Weapon or Tool −1D`], hasSword: false, swordAction: "", requirement: "", toolName: "Unarmed" };
+    const strict = isStrictRealmGuard();
+    return {
+      dice: strict ? 0 : -1,
+      conditionalSuccess: 0,
+      successPenalty: 0,
+      notes: [strict
+        ? "Strict Realm Guard: no universal unarmed / no-tool penalty."
+        : "Unarmed / no valid Conflict Weapon or Tool −1D"],
+      hasSword: false,
+      swordAction: "",
+      requirement: "",
+      toolName: "Unarmed"
+    };
   }
   if (selected.kind === "tool") {
     const tool = selected.tool ?? {};
