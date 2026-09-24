@@ -170,6 +170,23 @@ assert.ok(manual.includes("Preview Strict Rules"), "Integrated manual must expos
 assert.ok(manual.includes("Open Legacy Mixed Rules Journal"), "Existing permanent journal must remain explicitly Legacy Mixed.");
 assert.ok(manual.includes("game?.system?.version"), "Manual runtime version metadata must not be hard-coded to an obsolete release.");
 
+const strictReferenceSource = fs.readFileSync("module/m10-strict-rules-reference.mjs","utf8");
+assert.ok(strictReferenceSource.includes("data-rg-reference-root"), "Strict reference must use the shared searchable reference shell.");
+assert.ok(strictReferenceSource.includes("data-rg-reference-search"), "Strict reference must expose a search field.");
+assert.ok(strictReferenceSource.includes("data-rg-reference-expand"), "Strict reference must expose Expand All.");
+assert.ok(strictReferenceSource.includes("data-rg-reference-collapse"), "Strict reference must expose Collapse All.");
+
+const manualSource = fs.readFileSync("module/manual.mjs","utf8");
+assert.ok(manualSource.includes("data-rg-reference-root"), "System Manual must use the shared searchable reference shell.");
+assert.ok(manualSource.includes("data-rg-reference-search"), "System Manual must expose a search field.");
+assert.ok(manualSource.includes("filterReference"), "System Manual must provide live reference filtering.");
+assert.ok(manualSource.includes("restoreReferenceSearch"), "System Manual must restore search state safely.");
+
+const cssSource = fs.readFileSync("styles/realm-guard.css","utf8");
+assert.ok(cssSource.includes(".rg-reference-scroll"), "Reference content must own an explicit scroll container.");
+assert.ok(cssSource.includes("overflow-y:auto"), "Reference content must be vertically scrollable.");
+assert.ok(cssSource.includes(".rg-reference-toolbar"), "Reference search controls must have a persistent toolbar.");
+
 const profileService = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "M10A.7 must not expose profile activation.");
 
