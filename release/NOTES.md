@@ -13,6 +13,7 @@ Highlights:
 - Adds a separate Strict Rules Reference preview generated from the resolved Strict Rules Registry.
 - Strict lineage is Mouse Guard RPG 2008 / 1E -> Realm Guard v1.6 overrides.
 - Integrated System Manual shows the active profile and runtime system version.
+- System Manual and Strict Rules Preview are searchable, independently scrollable, and include Expand All / Collapse All controls.
 - System Manual exposes a read-only Strict preview while the existing permanent Rules Reference Journal remains explicitly Legacy Mixed.
 - Existing Journal pages are not rewritten and no Strict Journal is automatically created.
 - Strict profile advances to version 8 / M10A.7 and remains PREVIEW_ONLY.
