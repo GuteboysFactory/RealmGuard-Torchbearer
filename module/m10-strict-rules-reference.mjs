@@ -2,6 +2,7 @@ import { ProfileResolver } from "./core/rules-profile.mjs";
 import { RulesRegistry } from "./core/rules-registry.mjs";
 import { MG1E_FOUNDATION_PROFILE } from "./profiles/mg1e-foundation.mjs";
 import { REALM_GUARD_STRICT_PROFILE } from "./profiles/realm-guard-strict.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 
 const resolver = new ProfileResolver([MG1E_FOUNDATION_PROFILE, REALM_GUARD_STRICT_PROFILE]);
 
@@ -115,27 +116,28 @@ const PAGE_SPECS = Object.freeze([
     bullets:[
       "CORE M9 is reused with the Realm Guard v1.6 Strict creation profile.",
       "Starting Wises are rated; Strict Enemy and Mentor restrictions are validated before commit planning.",
-      "Strict creation remains preview-only until profile activation QA."
+      "CORE M9 uses the Strict Realm Guard creation profile while Strict is active; otherwise this remains a read-only preview."
     ]
   }
 ]);
 
 export function strictRulesReferenceSnapshot() {
   const { profile, registry } = strictState();
+  const live = isStrictRealmGuard();
   const pages = PAGE_SPECS.map(spec => ({
     ...spec,
     rules: spec.ruleIds.map(id => registry.explain(id)).filter(Boolean)
   }));
   return freeze({
-    phase:"M10A.7",
-    mode:"STRICT_READ_ONLY_REFERENCE",
+    phase:"M10A.8",
+    mode:live ? "STRICT_ACTIVE_REFERENCE" : "STRICT_READ_ONLY_REFERENCE",
     profileId:profile.id,
     profileName:profile.name,
     profileVersion:profile.version,
     rulesSnapshotHash:profile.rulesSnapshotHash,
     activationState:profile.metadata?.activationState ?? "PREVIEW_ONLY",
     sourceLineage:[...(profile.metadata?.sourceLineage ?? [])],
-    liveAuthority:false,
+    liveAuthority:live,
     writesJournal:false,
     writesActors:false,
     writesItems:false,
@@ -158,6 +160,7 @@ export function strictRulesReferenceHtml() {
       </div>
     </details>`).join("");
 
+  const live = snapshot.liveAuthority;
   return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
     <div class="rg-reference-toolbar">
       <label class="rg-reference-search">
@@ -173,8 +176,8 @@ export function strictRulesReferenceHtml() {
     </div>
     <div class="rg-reference-scroll">
     <div class="rg-system-manual">
-    <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10A.7</div><h2>Strict Realm Guard · Rules Reference Preview</h2><p>${esc(snapshot.profileName)} · profile v${esc(snapshot.profileVersion)} · ${esc(snapshot.activationState)}</p></div><i class="fa-solid fa-scale-balanced"></i></header>
-    <div class="rg-manual-callout"><i class="fa-solid fa-lock"></i><div><b>READ ONLY</b><span>This reference previews Strict Realm Guard ownership. It does not switch the world, update the permanent Legacy Mixed Rules Journal, or write Actors, Items or settings.</span></div></div>
+    <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10A.8</div><h2>Strict Realm Guard · Rules Reference${live ? "" : " Preview"}</h2><p>${esc(snapshot.profileName)} · profile v${esc(snapshot.profileVersion)} · ${esc(snapshot.activationState)}</p></div><i class="fa-solid fa-scale-balanced"></i></header>
+    <div class="rg-manual-callout"><i class="fa-solid ${live ? "fa-circle-check" : "fa-lock"}"></i><div><b>${live ? "ACTIVE RULES PROFILE" : "READ ONLY PREVIEW"}</b><span>${live ? "Strict Realm Guard is the active QA rules profile. This reference is read-only presentation; gameplay routes through the active Strict policies." : "This reference previews Strict Realm Guard ownership. It does not switch the world, update the permanent Legacy Mixed Rules Journal, or write Actors, Items or settings."}</span></div></div>
     <div class="rg-manual-callout"><i class="fa-solid fa-code-branch"></i><div><b>Source lineage</b><span>${snapshot.sourceLineage.map(esc).join(" → ")}</span></div></div>
     ${pages}
   </div>
@@ -185,7 +188,7 @@ export function strictRulesReferenceHtml() {
 export async function openStrictRulesReferencePreview() {
   if (!globalThis.foundry?.applications?.api?.DialogV2) return strictRulesReferenceSnapshot();
   return foundry.applications.api.DialogV2.wait({
-    window:{title:"Realm Guard · Strict Rules Reference Preview",resizable:true},
+    window:{title:`Realm Guard · Strict Rules Reference${isStrictRealmGuard() ? "" : " Preview"}`,resizable:true},
     position:{width:820,height:840},
     content:strictRulesReferenceHtml(),
     modal:false,
