@@ -4016,3 +4016,101 @@ body:has(#join-game) {
 .rg-gm-dock-provider-footer strong{font-size:11px;color:#f2e2c6}
 .rg-gm-dock-provider-footer small{overflow:hidden;color:#9f9583;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
 .rg-gm-dock-provider-footer b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgba(211,154,88,.16);color:#e2bd84;font-size:9px}
+
+/* v1.11.0-qa.8 - searchable / scrollable manual and Strict rules preview */
+.rg-reference-shell{
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  height:min(78vh,760px);
+  gap:8px;
+}
+.rg-reference-toolbar{
+  position:sticky;
+  top:0;
+  z-index:3;
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:8px;
+  border:1px solid #5f624f;
+  border-radius:7px;
+  background:linear-gradient(180deg,#171a15,#11130f);
+  box-shadow:0 3px 12px #0005;
+}
+.rg-reference-search{
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr) 28px;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.rg-reference-search > i{color:#c4a66f;text-align:center}
+.rg-reference-search input{
+  width:100%;
+  min-width:0;
+  height:30px;
+  padding:4px 8px;
+  color:#eee7d0!important;
+  background:#0d0f0c!important;
+  border:1px solid #5d5d4b!important;
+  border-radius:5px;
+}
+.rg-reference-search input:focus{border-color:#aa884c!important;box-shadow:0 0 0 1px #aa884c55}
+.rg-reference-search button,
+.rg-reference-toolbar-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:28px;
+  padding:4px 7px;
+  color:#d6c7a8;
+  background:#1c1f18;
+  border:1px solid #5f604f;
+  border-radius:5px;
+}
+.rg-reference-search button{width:28px;padding:0}
+.rg-reference-toolbar-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  min-width:0;
+}
+.rg-reference-search-count{
+  color:#9f9885;
+  font-size:9px;
+  white-space:nowrap;
+}
+.rg-reference-toolbar-actions button span{font-size:9px;white-space:nowrap}
+.rg-reference-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding-right:4px;
+}
+.rg-reference-scroll > .rg-system-manual{
+  padding-bottom:6px;
+}
+.rg-reference-scroll details[hidden],
+.rg-reference-scroll .rg-manual-section-title[hidden]{
+  display:none!important;
+}
+@media(max-width:700px){
+  .rg-reference-shell{height:min(80vh,720px)}
+  .rg-reference-toolbar{grid-template-columns:1fr}
+  .rg-reference-toolbar-actions{justify-content:flex-start;flex-wrap:wrap}
+}
+@media(max-width:480px){
+  .rg-reference-toolbar-actions button span{display:none}
+  .rg-reference-search-count{margin-right:auto}
+}
+
