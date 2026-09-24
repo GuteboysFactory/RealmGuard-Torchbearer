@@ -7,3 +7,4 @@
 # No automatic Wise rating, Talent/Condition deletion, or inventory cleanup
 # Stable-runtime closure smoke simulates game.system.version = 1.11.0
 # Carries forward Quick NPC Provider API unchanged
+# Retrigger after closure docs landed
