@@ -7,10 +7,6 @@ const PROFILE_VERSION_KEY = "activeRulesProfileVersion";
 
 export const STRICT_PROFILE_ID = "realm-guard-strict";
 
-function qaRuntime() {
-  return String(globalThis.game?.system?.version ?? "").includes("-qa.");
-}
-
 export function activeRulesProfileId() {
   try {
     return String(globalThis.game?.settings?.get?.(NS, PROFILE_ID_KEY) ?? "") || LEGACY_PROFILE_ID;
@@ -37,19 +33,20 @@ export function isLegacyMixed() {
 
 export function strictActivationAvailable() {
   const strict = resolveRulesProfile(STRICT_PROFILE_ID).profile;
+  const activationState = String(strict?.metadata?.activationState ?? "");
   return Boolean(
-    qaRuntime()
-    && strict?.metadata?.selectable !== false
+    strict?.metadata?.selectable !== false
     && strict?.metadata?.supported !== false
-    && strict?.metadata?.activationState === "QA_ACTIVE"
+    && ["SUPPORTED", "STABLE", "ACTIVE"].includes(activationState)
   );
 }
 
 export function profileActivationStatus() {
   const active = getRulesProfileRuntime().profile;
   const strict = resolveRulesProfile(STRICT_PROFILE_ID).profile;
+  const switchAvailable = strictActivationAvailable();
   return Object.freeze({
-    phase: "M10A.8",
+    phase: "M10A.9",
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
@@ -59,7 +56,8 @@ export function profileActivationStatus() {
     strictSelectable: strict.metadata?.selectable !== false,
     strictSupported: strict.metadata?.supported !== false,
     strictRulesLive: isStrictRealmGuard(),
-    qaSwitchAvailable: strictActivationAvailable(),
+    switchAvailable,
+    qaSwitchAvailable: switchAvailable,
     switchBackToLegacyAvailable: active.id !== LEGACY_PROFILE_ID,
     actorWritesOnSwitch: 0,
     itemWritesOnSwitch: 0,
@@ -79,11 +77,10 @@ async function restoreProfileSettings(id, version) {
   await globalThis.game.settings.set(NS, PROFILE_VERSION_KEY, version);
 }
 
-export async function switchRulesProfile(targetProfileId, { requireQa = true } = {}) {
+export async function switchRulesProfile(targetProfileId, _options = {}) {
   if (!globalThis.game?.user?.isGM) throw new Error("Rules Profile switching is GM-only.");
   const targetId = String(targetProfileId ?? "").trim();
   if (![LEGACY_PROFILE_ID, STRICT_PROFILE_ID].includes(targetId)) throw new Error(`Unsupported Rules Profile '${targetId}'.`);
-  if (targetId === STRICT_PROFILE_ID && requireQa && !qaRuntime()) throw new Error("Strict Realm Guard activation is QA-only in M10A.8.");
 
   const target = resolveRulesProfile(targetId).profile;
   if (target.metadata?.selectable === false) throw new Error(`${target.name} is not selectable.`);
@@ -135,7 +132,7 @@ export async function switchRulesProfile(targetProfileId, { requireQa = true } =
 }
 
 export async function switchToStrictRealmGuard() {
-  return switchRulesProfile(STRICT_PROFILE_ID, { requireQa:true });
+  return switchRulesProfile(STRICT_PROFILE_ID);
 }
 
 export async function switchToLegacyMixed() {

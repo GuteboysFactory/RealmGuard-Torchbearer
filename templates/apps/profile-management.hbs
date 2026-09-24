@@ -36,9 +36,9 @@
   </section>
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
-    <h3 style="margin:0 0 8px;">QA Profile Activation</h3>
+    <h3 style="margin:0 0 8px;">Rules Profile Activation</h3>
     {{#if canSwitchStrict}}
-      <p><b>Strict Realm Guard is QA-active.</b> Switching changes only the active Rules Profile world settings. Existing Actor/Item data is preserved.</p>
+      <p><b>Strict Realm Guard is supported.</b> Switching changes only the active Rules Profile world settings. Existing Actor/Item data is preserved.</p>
       <button type="button" data-action="switchStrict">
         <i class="fa-solid fa-scale-balanced"></i> Switch to Strict Realm Guard
       </button>
@@ -50,6 +50,6 @@
     {{else}}
       <p><b>Switch unavailable.</b> {{switchLockReason}}</p>
     {{/if}}
-    <p style="margin-bottom:0;"><small>{{nextStep}}. Reload the world after every profile switch during qa.9.</small></p>
+    <p style="margin-bottom:0;"><small>{{nextStep}}. Reload the world after every profile switch.</small></p>
   </section>
 </section>

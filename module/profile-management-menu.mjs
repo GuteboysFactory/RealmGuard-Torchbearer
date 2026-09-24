@@ -24,7 +24,7 @@ async function switchStrictAction() {
   const confirmed = await foundry.applications.api.DialogV2.wait({
     window:{title:"Realm Guard · Activate Strict Profile",resizable:true},
     content:`<div class="realm-guard"><h2>Switch this world to Strict Realm Guard?</h2>
-      <p>This is a <b>QA activation</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
+      <p>This is a <b>supported profile switch</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
       <p><b>World impact:</b> ${preview.worldImpact?.rangers ?? 0} Rangers · ${preview.worldImpact?.wiseItems ?? 0} Wise Items · ${preview.worldImpact?.actorsWithFreshOrAfraid ?? 0} Actor(s) with Fresh/Afraid.</p>
       <p>No automatic Wise rating, Talent deletion, Condition deletion or inventory migration will occur.</p>
       <p><b>Reload the world after switching.</b></p></div>`,
@@ -37,7 +37,7 @@ async function switchStrictAction() {
   });
   if (!confirmed) return;
   const result = await switchToStrictRealmGuard();
-  ui.notifications.info("Realm Guard: Strict profile activated for QA. Reload the world before testing.");
+  ui.notifications.info("Realm Guard: Strict profile activated. Reload the world before continuing.");
   return result;
 }
 
@@ -108,12 +108,12 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       impactRows: impactRows(preview.worldImpact),
       previewAvailable: true,
       switchLocked: false,
-      canSwitchStrict: active.profile.id !== "realm-guard-strict" && activation.qaSwitchAvailable,
+      canSwitchStrict: active.profile.id !== "realm-guard-strict" && activation.switchAvailable,
       canSwitchLegacy: active.profile.id !== "realm-guard-legacy-mixed",
-      switchLockReason: activation.qaSwitchAvailable ? "" : "Strict activation is available only in QA builds.",
+      switchLockReason: activation.switchAvailable ? "" : "Strict Realm Guard is not selectable or supported in this build.",
       reloadRecommended: true,
-      phase: "M10A.8",
-      nextStep: "Profile Activation QA · switch / reload / rollback"
+      phase: "M10A.9",
+      nextStep: "Stable activation candidate · switch / reload / rollback"
     }, { inplace: false });
   }
 }
@@ -122,7 +122,7 @@ export function installProfileManagementMenu() {
   game.settings.registerMenu("realm-guard", "rulesProfileManagement", {
     name: "Rules Profile Management",
     label: "Manage Rules Profile",
-    hint: "Review the active rules profile, inspect Strict Realm Guard impact, and perform reversible QA profile switching.",
+    hint: "Review the active rules profile, inspect Strict Realm Guard impact, and perform reversible profile switching.",
     icon: "fa-solid fa-scale-balanced",
     type: RealmGuardProfileManagement,
     restricted: true
