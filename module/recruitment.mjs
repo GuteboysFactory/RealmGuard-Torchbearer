@@ -4,6 +4,7 @@ import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTempl
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
 import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions, commitM9Recruitment, shouldUseLegacyM9Commit } from "./m9-creation-shadow.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -235,6 +236,8 @@ function blankState() {
     mentor: "",
     mentorRole: "",
     mentorLocation: "",
+    mentorAge: 0,
+    mentorTraits: "",
     mentorRuleConfirmed: false,
     friend: "",
     friendProfession: "",
@@ -704,6 +707,7 @@ async function relationshipsStep(state) {
           <label>Name<input name="mentor" value="${esc(state.mentor)}" placeholder="Name"></label>
           ${relationshipInput("Ranger role / station", "mentorRole", state.mentorRole, "rg-relationship-mentor-roles", "Ranger Veteran, Ranger Captain...")}
           ${relationshipInput("Location", "mentorLocation", state.mentorLocation, "rg-relationship-locations", "Choose or type location")}
+          ${isStrictRealmGuard() ? `<label>Mentor Age<input type="number" name="mentorAge" min="0" value="${Number(state.mentorAge ?? 0)}" placeholder="Age"></label><label>Mentor Traits<input name="mentorTraits" value="${esc(state.mentorTraits)}" placeholder="e.g. Greybeard"></label>` : ""}
         </div>
         <label class="rg-rule-confirm"><input type="checkbox" name="mentorRuleConfirmed" ${state.mentorRuleConfirmed ? "checked" : ""}><span><b>Confirm Mentor rule</b><small>${esc(mentorRule)}</small></span></label>
       </section>
@@ -719,10 +723,10 @@ async function relationshipsStep(state) {
 
       <section class="rg-recruit-relationship-group">
         <h3><i class="fa-solid fa-user-slash"></i> Enemy / Rival</h3>
-        <label class="rg-rule-confirm"><input type="checkbox" name="allowEnemyServant" ${state.allowEnemyServant ? "checked" : ""}><span><b>Allow Servants of the Enemy as personal Enemies (House Rule)</b><small>Off by default. Enable this only if your table wants personal Enemies such as Orcs, Trolls, Wargs, Spiders or another servant of the Enemy.</small></span></label>
+        ${isStrictRealmGuard() ? `<div class="rg-recruit-note"><b>Strict Realm Guard:</b> a personal Enemy must be a Dúnadan, Dwarf, Elf, Hobbit or Man. The Legacy servant-of-the-Enemy house rule is disabled.</div>` : `<label class="rg-rule-confirm"><input type="checkbox" name="allowEnemyServant" ${state.allowEnemyServant ? "checked" : ""}><span><b>Allow Servants of the Enemy as personal Enemies (House Rule)</b><small>Off by default. Enable this only if your table wants personal Enemies such as Orcs, Trolls, Wargs, Spiders or another servant of the Enemy.</small></span></label>`}
         <div class="rg-recruit-grid four">
           <label>Name<input name="enemyName" value="${esc(state.enemyName)}" placeholder="Name"></label>
-          <label>People / Type<select name="enemyPeople">${options([...ENEMY_FREE_PEOPLES, ...ENEMY_SERVANTS_HOUSE_RULE.map(name => ({ value: name, label: `${name} (House Rule)` }))], state.enemyPeople)}</select></label>
+          <label>People / Type<select name="enemyPeople">${options(isStrictRealmGuard() ? ENEMY_FREE_PEOPLES : [...ENEMY_FREE_PEOPLES, ...ENEMY_SERVANTS_HOUSE_RULE.map(name => ({ value: name, label: `${name} (House Rule)` }))], state.enemyPeople)}</select></label>
           ${relationshipInput("Role / Profession", "enemyProfession", state.enemyProfession, "rg-relationship-professions", "Optional role or profession")}
           ${relationshipInput("Location", "enemyLocation", state.enemyLocation, "rg-relationship-locations", "Choose or type location")}
         </div>
@@ -738,8 +742,10 @@ async function relationshipsStep(state) {
         "enemyName", "enemyPeople", "enemyProfession", "enemyLocation"
       ]) state[key] = value(form, key);
       state.parents = [state.mom, state.dad].filter(Boolean).join(" · ");
+      state.mentorAge = Number(form.elements.namedItem("mentorAge")?.value ?? state.mentorAge ?? 0);
+      state.mentorTraits = String(form.elements.namedItem("mentorTraits")?.value ?? state.mentorTraits ?? "");
       state.mentorRuleConfirmed = checked(form, "mentorRuleConfirmed");
-      state.allowEnemyServant = checked(form, "allowEnemyServant");
+      state.allowEnemyServant = isStrictRealmGuard() ? false : checked(form, "allowEnemyServant");
     },
     validate: () => {
       if (!state.lineage || !state.insignia) return "Enter both Lineage / House and House Insignia.";
@@ -748,6 +754,8 @@ async function relationshipsStep(state) {
       if (state.dad && (!state.dadProfession || !state.dadLocation)) return "Father needs a profession and location.";
       if (!state.seniorArtisanProfession || !state.seniorArtisanLocation) return "Senior Artisan needs a profession and location.";
       if (!state.mentorRole || !state.mentorLocation) return "Mentor needs a Ranger role/station and location.";
+      if (isStrictRealmGuard() && ["scout","veteran"].includes(state.rank) && !(Number(state.mentorAge) > Number(state.age))) return "Strict Realm Guard: a Scout or Veteran needs an older Mentor.";
+      if (isStrictRealmGuard() && ["captain","lord"].includes(state.rank) && !String(state.mentorTraits).split(",").map(v => v.trim().toLowerCase()).includes("greybeard")) return "Strict Realm Guard: a Captain or Lord needs a Mentor with the Greybeard trait.";
       if (!state.mentorRuleConfirmed) return "Confirm that the Mentor follows the Station-specific Recruitment rule.";
       if (!state.friend || !state.friendProfession || !state.friendLocation) return "A Friend needs a name, profession/specialty and typical location.";
       if (!state.enemyName || !state.enemyPeople || !state.enemyLocation) return "An Enemy needs a name, people/type and location.";
@@ -801,7 +809,7 @@ async function reviewStep(state) {
     nextLabel: "Create Ranger", nextIcon: "fa-solid fa-user-shield",
     body: () => `<div class="rg-recruit-review"><div class="rg-review-title"><span>${esc(station(state).label)} · ${esc(home?.label ?? "")}</span><h2>${esc(state.name)}</h2><p>${esc(state.concept)}</p></div>
       <div class="rg-review-stats"><span>Nature <b>${state.nature}</b></span><span>Will <b>${station(state).will}</b></span><span>Health <b>${station(state).health}</b></span><span>Resources <b>${state.resources}</b></span><span>Circles <b>${state.circles}</b></span><span>Fate <b>1</b></span><span>Persona <b>1</b></span></div>
-      <section><h3>Skills</h3><p>${skillSummary(state).map(esc).join(" · ")}</p></section><section><h3>Traits</h3><p>${traitSummary(state).map(esc).join(" · ")}</p></section><section><h3>Wises</h3><p>${[...coreWiseCheckMap(state).entries()].map(([w, c]) => `${esc(w)}${c > 1 ? ` (${c} Recruitment checks)` : ""}`).join(" · ")}</p><small>Wises remain unrated in this Foundry build; Recruitment checks are preserved in metadata.</small></section>
+      <section><h3>Skills</h3><p>${skillSummary(state).map(esc).join(" · ")}</p></section><section><h3>Traits</h3><p>${traitSummary(state).map(esc).join(" · ")}</p></section><section><h3>Wises</h3><p>${[...coreWiseCheckMap(state).entries()].map(([w, checks]) => isStrictRealmGuard() ? `${esc(w)} ${Number(getM9RecruitmentDraft(state).derivedValues?.wiseRatings?.[w] ?? Number(checks) + 1)} (${checks} Recruitment check${Number(checks) === 1 ? "" : "s"})` : `${esc(w)}${checks > 1 ? ` (${checks} Recruitment checks)` : ""}`).join(" · ")}</p><small>${isStrictRealmGuard() ? "Strict Realm Guard Wises are rated and advance like Skills." : "Wises remain unrated in Legacy Mixed; Recruitment checks are preserved in metadata."}</small></section>
       <section><h3>Belief · Goal · Instinct</h3><p><b>Belief:</b> ${esc(state.belief)}<br><b>Goal:</b> ${esc(state.goal)}<br><b>Instinct:</b> ${esc(state.instinct)}</p></section>
       <section><h3>Relationships</h3><p><b>House:</b> ${esc(state.lineage)} · <b>Insignia:</b> ${esc(state.insignia)}<br><b>Mother:</b> ${esc(formatLegacyPerson(state.mom, state.momProfession, state.momLocation) || "—")}<br><b>Father:</b> ${esc(formatLegacyPerson(state.dad, state.dadProfession, state.dadLocation) || "—")}<br><b>Senior Artisan:</b> ${esc(formatLegacyPerson(state.seniorArtisan, state.seniorArtisanProfession, state.seniorArtisanLocation))}<br><b>Mentor:</b> ${esc(formatLegacyPerson(state.mentor, state.mentorRole, state.mentorLocation))}<br><b>Friend:</b> ${esc(formatLegacyPerson(state.friend, state.friendProfession, state.friendLocation))}<br><b>Enemy:</b> ${esc(formatLegacyPerson(state.enemyName, state.enemyProfession || state.enemyPeople, state.enemyLocation))}${state.allowEnemyServant ? ` <b>(House Rule enabled)</b>` : ""}</p></section>
       <section><h3>Gear</h3><p>${esc(state.weapon)}${state.armor ? ` · ${esc(state.armor)}` : ""}${state.distinctiveGear ? ` · ${esc(state.distinctiveGear)}` : ""}</p></section></div>
