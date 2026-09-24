@@ -562,7 +562,7 @@ export class RealmGuardActor extends Actor {
 
   async rollBeginnerLuck(role, { abilityKey = "will", modifier = 0, extraDice = 0, help = [], obstacle = 1, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, opponent = null, opposition = null, countLearning = true, tapNature = false, natureScope = "within" } = {}) {
     const personaDice = personaDiceCount(persona);
-    if (hasActiveCondition(this, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
+    if (!isStrictRealmGuard() && hasActiveCondition(this, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
     const abilityLabel = this._abilityLabel(abilityKey);
     const ability = this.system.attributes?.[abilityKey];
     const abilityBase = Number(ability?.value ?? 0);
