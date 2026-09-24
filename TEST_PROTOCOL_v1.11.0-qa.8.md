@@ -153,12 +153,21 @@ Expected:
 - current active profile is shown explicitly as Realm Guard — Legacy Mixed
 - the normal embedded manual remains the Legacy Mixed reference
 - button **Preview Strict Rules** exists
-- button **Open Legacy Mixed Rules Journal** exists.
+- button **Open Legacy Mixed Rules Journal** exists
+- the content area is independently scrollable when the window is shorter than the document
+- a sticky **Search manual & rules…** field is visible
+- **Expand All** / **Collapse All** controls are visible
+- typing a term such as `Conditions` hides non-matching detail sections and opens matching sections
+- clearing the search restores all sections and their pre-search open/closed state.
 
 Open **Preview Strict Rules**.
 
 Expected:
 - separate non-modal read-only Strict reference
+- independent scrollable content area
+- sticky **Search Strict rules…** field
+- **Expand All** / **Collapse All** controls
+- search filters matching Strict sections live and Clear/Escape restores the full reference
 - visible source lineage MG1E 2008 -> RG v1.6
 - Scale of Might section
 - rated Wises
