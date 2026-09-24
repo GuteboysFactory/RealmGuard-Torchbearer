@@ -695,7 +695,51 @@ function bindCanvasImageDrop() {
   element.addEventListener("drop", canvasDropHandler, true);
 }
 
+function installQuickNpcPublicApi() {
+  Hooks.once("ready", () => {
+    globalThis.game.realmGuard ??= {};
+    const api = Object.freeze({
+      contract: "realm-guard-quick-npc-provider",
+      version: 1,
+      libraryVersion: QUICK_NPC_LIBRARY_VERSION,
+      groupLibraryVersion: QUICK_NPC_GROUP_LIBRARY_VERSION,
+      capabilities: Object.freeze([
+        "openLibrary",
+        "openGroups",
+        "createFromTemplate",
+        "matches",
+        "resolveBestTemplate"
+      ]),
+      open: options => openNpcTemplateLibrary(options),
+      openGroups: () => openNpcGroupTemplateLibrary(),
+      createFromTemplate: (templateId, options = {}) => createNpcFromTemplate(templateId, options),
+      matches: options => quickNpcTemplateMatches(options),
+      resolveBestTemplate: options => resolveBestQuickNpcTemplate(options)
+    });
+
+    globalThis.game.realmGuard.quickNpc = api;
+    try {
+      Hooks.callAll("realmGuardQuickNpcProviderReady", Object.freeze({
+        contract: api.contract,
+        version: api.version,
+        libraryVersion: api.libraryVersion,
+        groupLibraryVersion: api.groupLibraryVersion,
+        capabilities: api.capabilities
+      }));
+    } catch (_error) {}
+
+    console.info("realm-guard | Quick NPC provider API ready", {
+      contract: api.contract,
+      version: api.version,
+      libraryVersion: api.libraryVersion,
+      groupLibraryVersion: api.groupLibraryVersion
+    });
+  });
+}
+
 export function installNpcBuilder() {
+  installQuickNpcPublicApi();
+
   registerGmDockTool({
     id: "npc-templates",
     icon: "fa-solid fa-people-group",
