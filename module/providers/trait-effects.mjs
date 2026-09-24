@@ -1,4 +1,5 @@
 import { EFFECT_TYPES, EFFECT_TIMINGS, EFFECT_STACKING } from "../core/effects.mjs";
+import { isStrictRealmGuard } from "../m10-profile-activation.mjs";
 
 export const TRAIT_SELECTION_PROVIDER_ID = "traits.selected-use";
 
@@ -13,7 +14,8 @@ function traitLevel(trait) {
 function traitLimit(trait) {
   const level = traitLevel(trait);
   if (level === 1) return 1;
-  if (level === 2) return 2;
+  if (level === 2) return isStrictRealmGuard() ? null : 2;
+  if (level === 3) return isStrictRealmGuard() ? 1 : null;
   return null;
 }
 
@@ -24,7 +26,8 @@ function traitUsed(actor, trait) {
 
 function traitAvailable(actor, trait) {
   const level = traitLevel(trait);
-  if (level === 3) return true;
+  if (isStrictRealmGuard() && level === 2) return true;
+  if (!isStrictRealmGuard() && level === 3) return true;
   const limit = traitLimit(trait);
   if (!limit) return false;
   return traitUsed(actor, trait) < limit;
@@ -93,7 +96,7 @@ export const TRAIT_SELECTION_EFFECT_PROVIDER = Object.freeze({
     const requestedMode = String(context.traitMode || "help");
     const level = traitLevel(trait);
     const available = traitAvailable(context.actor, trait);
-    const angry = hasActiveCondition(context.actor, "Angry");
+    const angry = !isStrictRealmGuard() && hasActiveCondition(context.actor, "Angry");
     const blockedHelp = requestedMode === "help" && (angry || !available);
     const resolvedMode = blockedHelp ? "blocked-help" : requestedMode;
     const commonMetadata = {
@@ -130,7 +133,18 @@ export const TRAIT_SELECTION_EFFECT_PROVIDER = Object.freeze({
           metadata: { ...commonMetadata, channel: "self", sessionUseRequired: true, used: traitUsed(context.actor, trait), limit: traitLimit(trait) }
         });
       }
-      if (level === 3 && Number(context.baseSuccesses ?? 0) >= Number(context.target ?? 0)) {
+      if (level === 3 && isStrictRealmGuard() && available) {
+        effects.push({
+          id: effectId(context, "benefit-reroll"),
+          type: EFFECT_TYPES.REROLL,
+          value: Object.freeze({ selector: "failed-dice", successThreshold: 4, replacement: true }),
+          timing: EFFECT_TIMINGS.POST_ROLL,
+          appliesTo: ["trait-selected-use"],
+          source: sourceFor(context),
+          stacking: EFFECT_STACKING.REPLACE,
+          metadata: { ...commonMetadata, channel: "self", sessionUseRequired: true, used: traitUsed(context.actor, trait), limit: 1 }
+        });
+      } else if (level === 3 && Number(context.baseSuccesses ?? 0) >= Number(context.target ?? 0)) {
         effects.push({
           id: effectId(context, "benefit-success"),
           type: EFFECT_TYPES.SUCCESS_MODIFIER,
