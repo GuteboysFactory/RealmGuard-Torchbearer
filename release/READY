@@ -1,8 +1,10 @@
-1.11.0-qa.8
-# M10A.7 Scale / Docs / Rules Reference
-# NO LIVE STRICT ACTIVATION
-# Legacy Mixed remains sole normal live profile
-# Strict Scale and Rules Reference are read-only/guided
-# Existing permanent Legacy Mixed Rules Journal remains untouched
+1.11.0-qa.9
+# M10A.8 Profile Activation QA
+# Strict profile = QA_ACTIVE, not stable
+# Reversible Legacy Mixed <-> Strict switch
+# Profile switch writes only active profile id/version settings
+# NO automatic old-Actor/Item/Journal conversion
+# Reload required during live activation QA
+# Strict CORE M9 creation and live rule routing enabled only when Strict active
+# Legacy rollback path retained
 # QA channel advances only after release assets and all smokes verify
-# Searchable scrollable reference UI hotfix
