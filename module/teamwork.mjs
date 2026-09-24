@@ -1,4 +1,5 @@
 import { hasActiveCondition } from "./conditions.mjs";
+import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 
 const NS = "realm-guard";
 const CHANNEL = `system.${NS}`;
@@ -50,7 +51,8 @@ function helperSources(actor) {
       .filter(source => source.rating > 0),
     ...actor.items
       .filter(item => item.type === "wise")
-      .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: 0 }))
+      .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: isStrictRealmGuard() ? Number(item.system?.rating ?? 0) : 0 }))
+      .filter(source => !isStrictRealmGuard() || source.rating > 0)
   ];
 }
 
@@ -58,7 +60,7 @@ export function helperEligibility(actor, { excludedActorIds = [], allowedActorId
   if (!actor || actor.type !== "character") return { ok:false, reason:"Not an eligible Ranger." };
   if ((excludedActorIds ?? []).includes(actor.id)) return { ok:false, reason:"This Ranger is already taking the action." };
   if (Array.isArray(allowedActorIds) && allowedActorIds.length && !allowedActorIds.includes(actor.id)) return { ok:false, reason:"Not participating in this Conflict." };
-  if (hasActiveCondition(actor, "Afraid")) return { ok:false, reason:"Afraid — this Condition prevents the Ranger from helping." };
+  if (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid")) return { ok:false, reason:"Afraid — this Condition prevents the Ranger from helping." };
   if (!helperSources(actor).length) return { ok:false, reason:"No legal Help source is currently available." };
   return { ok:true, reason:"Available" };
 }
@@ -95,7 +97,7 @@ function activeHelperTargets(session) {
 
 function sourceStillValid(entry) {
   const actor = game.actors.get(entry.actorId);
-  if (!actor || hasActiveCondition(actor, "Afraid")) return false;
+  if (!actor || (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid"))) return false;
   if (entry.sourceKind === "Skill") {
     const item = actor.items.get(entry.sourceId);
     return Boolean(item?.type === "role" && Number(item.system?.rating ?? 0) > 0);
@@ -122,7 +124,7 @@ function renderRequesterSession(sessionId) {
   const summary = root.querySelector("[data-rg-help-summary]");
   if (summary) {
     summary.innerHTML = accepted.length
-      ? accepted.map(entry => `<div class="rg-teamwork-accepted"><i class="fa-solid fa-handshake"></i><span><b>${esc(entry.actorName)}</b> - ${entry.sourceKind === "Wise" ? "I Am Wise: " : ""}${esc(entry.sourceName)}</span><strong>+1D</strong>${entry.synergy ? `<span class="rg-teamwork-synergy-tag">Synergy</span>` : ""}</div>`).join("")
+      ? accepted.map(entry => `<div class="rg-teamwork-accepted"><i class="fa-solid fa-handshake"></i><span><b>${esc(entry.actorName)}</b> - ${entry.sourceKind === "Wise" ? (isStrictRealmGuard() ? "Teamwork Wise: " : "I Am Wise: ") : ""}${esc(entry.sourceName)}</span><strong>+1D</strong>${entry.synergy ? `<span class="rg-teamwork-synergy-tag">Synergy</span>` : ""}</div>`).join("")
       : `<span class="rg-muted">No Help accepted yet.</span>`;
   }
   const status = root.querySelector("[data-rg-help-request-status]");
@@ -255,7 +257,7 @@ function openHelperRequest(message) {
     return ["Skill", "Ability", "Wise"].map(kind => {
       const rows = sources.filter(source => source.kind === kind);
       if (!rows.length) return "";
-      const label = kind === "Wise" ? "I Am Wise - Wises" : `Normal Help - ${kind}s`;
+      const label = kind === "Wise" ? (isStrictRealmGuard() ? "Teamwork - Wises" : "I Am Wise - Wises") : `Normal Help - ${kind}s`;
       return `<optgroup label="${label}">${rows.map(source => `<option value="${source.kind}|${source.id}">${esc(source.name)}${source.rating ? ` ${source.rating}` : ""}</option>`).join("")}</optgroup>`;
     }).join("");
   };
@@ -264,9 +266,9 @@ function openHelperRequest(message) {
     <div class="rg-teamwork-request-head"><div class="rg-custom-chat-tag">HELP REQUEST</div><h2>${esc(message.requesterActorName)} asks for Help</h2><p><b>Test:</b> ${esc(message.testName)}</p></div>
     ${actors.length > 1 ? `<label>Help as <select data-helper-actor>${actorOptions}</select></label>` : `<p class="rg-teamwork-helper-name"><b>${esc(initialActor.name)}</b></p>`}
     <label>How will you help?<select data-helper-source>${sourceOptions(initialActor)}</select></label>
-    <div class="rg-teamwork-source-help" data-helper-source-help>Choose an appropriate trained Skill or Ability for normal Help, or a relevant Wise for I Am Wise.</div>
+    <div class="rg-teamwork-source-help" data-helper-source-help>${isStrictRealmGuard() ? "Choose an appropriate trained Skill, Ability or rated Wise for Teamwork. I Am Wise is reserved for the acting Ranger\'s own Wise." : "Choose an appropriate trained Skill or Ability for normal Help, or a relevant Wise for I Am Wise."}</div>
     <label>How do you help? <textarea rows="3" data-helper-note placeholder="Optional — describe what your Ranger does, especially useful without voice chat."></textarea></label>
-    <label class="rg-teamwork-request-synergy"><input type="checkbox" data-helper-synergy> <span><b>Use Synergy - spend 1 Fate</b><small data-helper-synergy-note></small></span></label>
+    ${isStrictRealmGuard() ? "" : `<label class="rg-teamwork-request-synergy"><input type="checkbox" data-helper-synergy> <span><b>Use Synergy - spend 1 Fate</b><small data-helper-synergy-note></small></span></label>`}
     <div class="rg-teamwork-request-actions"><button type="button" data-helper-accept><i class="fa-solid fa-handshake"></i> Help +1D</button><button type="button" data-helper-decline><i class="fa-solid fa-xmark"></i> Decline</button></div>
     <small>You can answer while ${esc(message.requesterActorName)} continues preparing the roll. Helper Traits are not used for Teamwork.</small>
   </div>`;
@@ -298,6 +300,7 @@ function openHelperRequest(message) {
       const source = currentSource();
       const fate = Number(actor.system?.resources?.fate?.value ?? 0);
       const eligible = Boolean(source && ["Skill", "Ability"].includes(source.kind) && fate > 0);
+      if (!synergy || !synergyNote) return;
       synergy.disabled = !eligible;
       if (!eligible) synergy.checked = false;
       synergyNote.textContent = source?.kind === "Wise"
@@ -322,7 +325,7 @@ function openHelperRequest(message) {
       if (!source) return ui.notifications.warn("Realm Guard: Choose how this Ranger is helping first.");
       const legality = helperEligibility(actor,{excludedActorIds:message.excludedActorIds ?? [],allowedActorIds:message.allowedActorIds ?? []});
       if(!legality.ok) return ui.notifications.warn(`Realm Guard: ${actor.name} cannot Help: ${legality.reason}`);
-      const useSynergy = Boolean(synergy.checked && !synergy.disabled && ["Skill", "Ability"].includes(source.kind));
+      const useSynergy = Boolean(!isStrictRealmGuard() && synergy?.checked && !synergy?.disabled && ["Skill", "Ability"].includes(source.kind));
       const note=String(root.querySelector("[data-helper-note]")?.value ?? "").trim();
       sendHelperResponse(message, {
         actorId: actor.id,
@@ -380,7 +383,7 @@ function receiveResponse(message) {
   const session = sessions.get(message.requestId);
   if (!session) return;
   const actor = game.actors.get(message.actorId);
-  if (!actor || hasActiveCondition(actor, "Afraid")) return;
+  if (!actor || (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid"))) return;
   const entry = {
     actorId: message.actorId,
     actorName: message.actorName ?? actor.name,
