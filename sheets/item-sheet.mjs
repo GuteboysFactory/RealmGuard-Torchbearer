@@ -15,11 +15,16 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
 
   static async _onSubmit(event, form, formData) {
     if (!this.isEditable) return;
-    let updateData = formData.object;
+    // DocumentSheetV2 expects handlers to normalize FormDataExtended through
+    // _processFormData before document updates. This yields one expanded object
+    // and prevents dotted form keys from conflicting with nested Strict Wise data.
+    let updateData = this._processFormData(event, form, formData);
+    let wiseRerender = false;
     if (this.item.type === "wise" && isStrictRealmGuard()) {
       const previousRating = Number(this.item.system?.rating ?? 0);
       const nextRating = Number(foundry.utils.getProperty(updateData, "system.rating") ?? previousRating);
-      if (nextRating !== previousRating && nextRating > 0) {
+      wiseRerender = nextRating !== previousRating;
+      if (wiseRerender && nextRating > 0) {
         foundry.utils.setProperty(updateData, "system.learning.passNeeded", nextRating);
         foundry.utils.setProperty(updateData, "system.learning.failNeeded", Math.max(0, nextRating - 1));
       }
@@ -42,7 +47,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
       String(this.item.system.frequency ?? "session") !== String(foundry.utils.getProperty(updateData, "system.frequency") ?? this.item.system.frequency ?? "session")
     );
     await this.item.update(updateData);
-    if (gearRerender || tokenRerender || talentRerender) await this.render({ force: true });
+    if (wiseRerender || gearRerender || tokenRerender || talentRerender) await this.render({ force: true });
   }
 
   async _prepareContext(options) {
