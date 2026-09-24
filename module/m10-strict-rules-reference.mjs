@@ -158,11 +158,27 @@ export function strictRulesReferenceHtml() {
       </div>
     </details>`).join("");
 
-  return `<div class="realm-guard rg-system-manual">
+  return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
+    <div class="rg-reference-toolbar">
+      <label class="rg-reference-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" data-rg-reference-search placeholder="Search Strict rules…" autocomplete="off" spellcheck="false" aria-label="Search Strict rules">
+        <button type="button" data-rg-reference-clear title="Clear search" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+      </label>
+      <div class="rg-reference-toolbar-actions">
+        <span class="rg-reference-search-count" data-rg-reference-search-count>All sections</span>
+        <button type="button" data-rg-reference-expand><i class="fa-solid fa-angles-down"></i><span>Expand All</span></button>
+        <button type="button" data-rg-reference-collapse><i class="fa-solid fa-angles-up"></i><span>Collapse All</span></button>
+      </div>
+    </div>
+    <div class="rg-reference-scroll">
+    <div class="rg-system-manual">
     <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10A.7</div><h2>Strict Realm Guard · Rules Reference Preview</h2><p>${esc(snapshot.profileName)} · profile v${esc(snapshot.profileVersion)} · ${esc(snapshot.activationState)}</p></div><i class="fa-solid fa-scale-balanced"></i></header>
     <div class="rg-manual-callout"><i class="fa-solid fa-lock"></i><div><b>READ ONLY</b><span>This reference previews Strict Realm Guard ownership. It does not switch the world, update the permanent Legacy Mixed Rules Journal, or write Actors, Items or settings.</span></div></div>
     <div class="rg-manual-callout"><i class="fa-solid fa-code-branch"></i><div><b>Source lineage</b><span>${snapshot.sourceLineage.map(esc).join(" → ")}</span></div></div>
     ${pages}
+  </div>
+  </div>
   </div>`;
 }
 
