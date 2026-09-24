@@ -1,24 +1,24 @@
-Realm Guard / Torchbearer v1.11.0-qa.8 — M10A.7 Scale / Docs / Rules Reference
+Realm Guard / Torchbearer v1.11.0-qa.9 — M10A.8 Profile Activation QA
 
-Built after v1.11.0-qa.7 passed live Foundry VTT 13.351 QA.
+Built after v1.11.0-qa.8 passed live Foundry VTT 13.351 QA.
 
-This build does not activate Strict Realm Guard. Legacy Mixed remains the sole live gameplay profile.
+Strict Realm Guard is now available as a reversible QA_ACTIVE rules profile. This is not a stable promotion.
 
 Highlights:
-- Adds a read-only Realm Guard v1.6 Scale of Might policy with source-backed ranks 1-6.
-- Adds Fighter/Hunter outcome planning from Scale rank difference.
-- Adds Militarist army planning with source thresholds: +2 ranks = 10, +3 = 100, +4 = 1,000, +5 = 10,000.
-- Adds Lore Master effective-rank planning from success margin versus creature Nature.
-- Keeps Token of Power Scale effects MANUAL/GUIDED; no speculative L1/L2 numeric Scale automation is introduced.
-- Adds a separate Strict Rules Reference preview generated from the resolved Strict Rules Registry.
-- Strict lineage is Mouse Guard RPG 2008 / 1E -> Realm Guard v1.6 overrides.
-- Integrated System Manual shows the active profile and runtime system version.
-- System Manual and Strict Rules Preview are searchable, independently scrollable, and include Expand All / Collapse All controls.
-- System Manual exposes a read-only Strict preview while the existing permanent Rules Reference Journal remains explicitly Legacy Mixed.
-- Existing Journal pages are not rewritten and no Strict Journal is automatically created.
-- Strict profile advances to version 8 / M10A.7 and remains PREVIEW_ONLY.
-- No Strict Actor, Item, Journal or world-setting writes are introduced.
-- Foundry VTT target remains 13.351.
+- Adds GM-only Rules Profile activation in Game Settings with conversion-impact preview.
+- Profile switching writes only the active profile id/version world settings. It does not migrate Actors, Items or Journals.
+- Supports reversible Legacy Mixed → Strict → Legacy Mixed switching with reload recommended after each switch.
+- Existing unrated Wises, Talents, Fresh/Afraid Conditions and structured inventory metadata are preserved exactly; no old-data rating or conversion is guessed.
+- Strict profile v9 becomes selectable/supported only as QA_ACTIVE.
+- CORE M9 Character Creation routes to the active profile. Strict live Recruitment uses rated starting Wises, Strict Enemy/Mentor rules, Strict Condition provisioning, LOOSE inventory ownership, M8 relationships and Strict CreationProvenance.
+- Cross-profile M9 commits are rejected and the QA Legacy creation override is disabled while Strict is active.
+- Strict live Wises/Traits/Help routing: rated Wises, own I Am Wise +1D, other-Ranger Wise Teamwork, Synergy OFF, canonical MG1E Trait L1/L2/L3 semantics.
+- Strict Fresh/Afraid automatic effects are disabled; Angry no longer blocks beneficial Trait/Wise use. Strict recovery methods include Harvester and preserve guided Injured/Strained failure routes.
+- Strict Levels/Talents are mechanically disabled while stored data is preserved; Fate/Persona still spend normally.
+- Strict Conflict uses LOOSE gear ownership, no hand-slot rule authority, no universal no-tool -1D, active-profile CORE M5 tool evaluation, and no Talent/Legacy Wise-reroll mechanics.
+- Strict End Session validation uses the source-correct Embodiment boundary and skips Talent reset.
+- Manual/Strict Rules Reference reflect whether Strict is previewed or active; the permanent Legacy Mixed Rules Journal remains unchanged.
+- Adds a dedicated activation smoke and live QA protocol.
+- Foundry target remains 13.351.
 
-Next after PASS:
-M10A.8 — Profile Activation QA, preceded by a fresh read-only audit.
+PASS requires successful Legacy → Strict → Legacy → Strict switch/reload/rollback QA with data preservation, Strict live rule behavior and Strict CORE M9 Recruitment verified.
