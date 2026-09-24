@@ -14,6 +14,7 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
+import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, requestM8EnmityDecision, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -129,6 +130,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       addDefaultConditions: RealmGuardActorSheet._addDefaultConditions,
       deleteItem: RealmGuardActorSheet._deleteItem,
       rollRole: RealmGuardActorSheet._rollRole,
+      rollWise: RealmGuardActorSheet._rollWise,
       rollUntrained: RealmGuardActorSheet._rollUntrained,
       rollAbility: RealmGuardActorSheet._rollAbility,
       toggleRoleVersus: RealmGuardActorSheet._toggleRoleVersus,
@@ -504,7 +506,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       editable: this.isEditable,
       isGM: Boolean(game.user?.isGM),
       canChooseTalent: Boolean(game.user?.isGM || actor.testUserPermission?.(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)),
-      turn: actor.type === "character" ? playerTurnStatus(actor) : null
+      turn: actor.type === "character" ? playerTurnStatus(actor) : null,
+      isStrictProfile: isStrictRealmGuard()
     }, { inplace: false });
   }
 
@@ -520,14 +523,17 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     return RealmGuardActorSheet._createItem.call(this,e,t,"tokenOfPower","New Token of Power");
   }
   static _createTalent(e,t){
+    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Levels and Talents are disabled under Strict Realm Guard. Existing Talent data is preserved.");
     if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Custom Talent definitions are GM-managed.");
     return RealmGuardActorSheet._createItem.call(this,e,t,"talent","New Talent");
   }
   static async _chooseTalent(){
+    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Talent choices are disabled under Strict Realm Guard.");
     const created = await chooseTalentForActor(this.actor);
     if (created) await this.render({ force: true });
   }
   static async _manageProgression(){
+    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Level progression is disabled under Strict Realm Guard. Preserved counters are read-only rule data.");
     if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Lifetime progression counters are GM-managed.");
     const view = progressionView(this.actor);
     const result = await foundry.applications.api.DialogV2.wait({
@@ -544,6 +550,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (updated?.ok) { ui.notifications.info(`Realm Guard: Progression updated · Level ${updated.level}.`); await this.render({ force: true }); }
   }
   static _talentUse(talentId, sourceName, { isSkill = true } = {}) {
+    if (isStrictRealmGuard()) return null;
     return resolveTalentUse(this.actor, talentId, sourceName, { isSkill });
   }
   static async _commitTalentAfterRoll(use, label) {
@@ -709,7 +716,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       }
       await role.update({ "system.beginnerAbility": abilityKey });
     }
-    if (hasActiveCondition(this.actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
+    if (!isStrictRealmGuard() && hasActiveCondition(this.actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
     const ability = this.actor.system.attributes?.[abilityKey];
     const abilityValue = Number(ability?.value ?? 0);
     if (abilityValue <= 0) return ui.notifications.warn(`Realm Guard: ${abilityKey === "health" ? "Health" : "Will"} is 0. Beginner's Luck cannot be used; recover first or use Nature.`);
@@ -784,6 +791,16 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static async _learnSkill(event, target) {
     const id = target.closest("[data-item-id]")?.dataset.itemId;
     return RealmGuardActorSheet._autoLearnSkill.call(this, this.actor.items.get(id));
+  }
+
+  static async _rollWise(event, target) {
+    if (!isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Wises are unrated in Legacy Mixed and cannot be rolled as Skills.");
+    const id = target.closest("[data-item-id]")?.dataset.itemId;
+    const wise = this.actor.items.get(id);
+    if (!wise || wise.type !== "wise") return;
+    const rating = Number(wise.system?.rating ?? 0);
+    if (rating <= 0) return ui.notifications.warn(`Realm Guard: ${wise.name} is preserved from Legacy Mixed but needs an explicit Strict rating before it can be tested.`);
+    return RealmGuardActorSheet._rollRole.call(this, event, target);
   }
 
   static async _rollRole(event, target) {
@@ -1029,8 +1046,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const conditionPreview = conditionData.active.length
       ? conditionData.active.map(c => `<span class="rg-chat-condition">${foundry.utils.escapeHTML(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D</span>`).join(" ")
       : `<span class="rg-muted">No active Conditions affect this roll.</span>`;
-    const angryActive = hasActiveCondition(this.actor, "Angry");
-    const afraidActive = hasActiveCondition(this.actor, "Afraid");
+    const angryActive = !isStrictRealmGuard() && hasActiveCondition(this.actor, "Angry");
+    const afraidActive = !isStrictRealmGuard() && hasActiveCondition(this.actor, "Afraid");
     const hardConditionNotes = [
       angryActive ? "Angry: beneficial Trait/Wise effects are blocked." : "",
       afraidActive ? "Afraid: this Ranger cannot Help or use Beginner's Luck." : "",
@@ -1038,7 +1055,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     ].filter(Boolean);
 
     const teamworkSessionId = createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, excludedActorIds: [opponent?.id].filter(Boolean) });
-    const teamworkBlock = `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small><b>Normal Help:</b> a Ranger answers with an appropriate trained Skill or Ability for +1D. <b>I Am Wise:</b> a relevant Wise can instead give +1D. <b>Synergy:</b> the helper chooses it in their own Help request and spends their own Fate if the roll resolves. You can keep preparing the roll while Help replies arrive.</small></fieldset>`;
+    const teamworkHelp = isStrictRealmGuard()
+      ? "<b>Teamwork:</b> another Ranger may help with an appropriate trained Skill, Ability or rated Wise for +1D. <b>I Am Wise</b> is the acting Ranger's own relevant rated Wise and is selected separately below. Synergy is disabled."
+      : "<b>Normal Help:</b> a Ranger answers with an appropriate trained Skill or Ability for +1D. <b>I Am Wise:</b> a relevant Wise can instead give +1D. <b>Synergy:</b> the helper chooses it in their own Help request and spends their own Fate if the roll resolves.";
+    const teamworkBlock = `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small>${teamworkHelp} You can keep preparing the roll while Help replies arrive.</small></fieldset>`;
 
     const n = this.actor.system.attributes?.nature ?? {}, natureCurrent = Math.max(0, Number(n.value ?? 0)), natureMaximum = Math.max(natureCurrent, Number(n.maximum ?? natureCurrent));
     const isNatureRoll = String(abilityKey) === "nature", canTapNature = !isNatureRoll && !["resources", "circles"].includes(String(abilityKey)) && natureCurrent > 0;
@@ -1049,7 +1069,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const tokenRollIsSkill = tokenSourceIsSkill === null || tokenSourceIsSkill === undefined ? isSkill : Boolean(tokenSourceIsSkill);
     const tokenOptions = tokenPowerOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
     const tokenPowerBlock = tokenOptions.length ? `<fieldset class="rg-token-roll-choice"><legend><i class="fa-solid fa-gem"></i> Token of Power</legend><label>Invoke Token <select name="tokenPowerId"><option value="">None</option>${tokenOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Skill-linked Tokens are filtered to this roll. Specific-use Tokens are marked TABLE CHECK.</small></fieldset>` : "";
-    const talentOptions = talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
+    const talentOptions = isStrictRealmGuard() ? [] : talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
     const talentBlock = talentOptions.length ? `<fieldset class="rg-talent-roll-choice"><legend><i class="fa-solid fa-sparkles"></i> Talent</legend><label>Use Talent <select name="talentId"><option value="">None</option>${talentOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Once/session Talents are consumed only after a committed roll.</small></fieldset>` : "";
 
     const circlesBlock = String(abilityKey) === "circles" && circlesContext
@@ -1093,7 +1113,13 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const traitOptionsHtml = this.actor.traits.map(trait => {
       const status = traitPositiveStatus(this.actor, trait);
       const level = Number(trait.system.rating ?? 0);
-      const state = level === 3 ? "+1s · always when relevant" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session";
+      const state = isStrictRealmGuard()
+        ? (level === 3
+          ? (status.available ? "reroll failures · 1/session" : "reroll · USED")
+          : level === 2
+            ? "+1D · every applicable test"
+            : status.available ? "+1D · 1/session" : "+1D · USED")
+        : (level === 3 ? "+1s · always when relevant" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
       return `<option value="${trait.id}">${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
     }).join("");
     const content = `<div class="rg-roll-dialog"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
@@ -1109,7 +1135,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         ${canCountLearning ? `<fieldset class="rg-learning-choice"><legend>Learning & Advancement <span class="rg-help-tip" title="Pass and Fail results are tracked automatically. When both requirements are met, the Skill or Ability advances immediately.">?</span></legend><label><input type="checkbox" name="countLearning" ${this.actor.type === "npc" ? "" : "checked"}> Count this test for Learning</label><small>${beginnerLuck ? "This marks one Beginner's Luck attempt only. It does not advance the Will/Health base Ability." : "Turn this off only when this test should not earn an advancement mark."}</small></fieldset>` : ""}
         <fieldset><legend>Spend before roll</legend><label>Persona dice <select name="persona" ${personaValue < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= Math.max(0, personaValue)).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select> <small>(${personaValue} available; max +3D)${personaValue < 1 ? ` <b class="rg-disabled-reason">No Persona available.</b>` : ""}</small></label></fieldset>
         ${tokenPowerBlock}${talentBlock}
-        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small><b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork.</small><label>Wise <select name="wiseId"><option value="">None</option>${this.actor.wises.map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)} (reroll failed dice)</option>`).join("")}</select></label></fieldset>
+        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${isStrictRealmGuard() ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${isStrictRealmGuard() ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => !isStrictRealmGuard() || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id)).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${isStrictRealmGuard() ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : " (reroll failed dice)"}</option>`).join("")}</select></label></fieldset>
       </div>`;
 
     const DialogV2 = foundry.applications.api.DialogV2;
