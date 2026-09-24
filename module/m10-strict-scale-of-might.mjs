@@ -216,6 +216,6 @@ export function getStrictScaleStatus() {
     writesActors:false,
     writesItems:false,
     writesWorldSettings:false,
-    nextStep:"M10A.8 Profile Activation QA"
+    nextStep:"M10A.9 Stable Activation Candidate · CLOSURE QA"
   });
 }

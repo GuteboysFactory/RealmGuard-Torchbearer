@@ -103,8 +103,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.8",
-    mode: "QA_PROFILE_ACTIVATION_ROUTER",
+    phase: "M10A.9",
+    mode: "SUPPORTED_PROFILE_ACTIVATION_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -126,7 +126,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: isStrictRealmGuard(),
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10A.8 Profile Activation QA · SWITCH / RELOAD / ROLLBACK"
+    nextStep: "M10A.9 Stable Activation Candidate · CLOSURE QA"
   });
 }
 
@@ -236,6 +236,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10A.8 QA Profile Activation router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10A.9 supported Profile Activation router ready", getM10ProfilePreviewStatus());
   });
 }

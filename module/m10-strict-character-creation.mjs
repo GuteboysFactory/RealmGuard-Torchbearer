@@ -118,11 +118,11 @@ export function strictCreationCommitPreview(draft, { partyContext = null, isGM =
 export function getStrictCreationStatus() {
   const live = isStrictRealmGuard();
   return freeze({
-    phase: "M10A.8",
+    phase: "M10A.9",
     profileId: STRICT_CREATION_PROFILE_ID,
     profileVersion: STRICT_CREATION_PROFILE_VERSION,
     coreEngine: "CORE_M9",
-    mode: live ? "QA_PROFILE_ROUTED_LIVE" : "READ_ONLY_PREVIEW",
+    mode: live ? "SUPPORTED_PROFILE_ROUTED_LIVE" : "READ_ONLY_PREVIEW",
     liveAuthority: live ? "CORE_M9" : false,
     liveCommit: live,
     ratedWises: true,
@@ -143,7 +143,7 @@ export function getStrictCreationStatus() {
     writesActorsOnCommit: live,
     writesItemsOnCommit: live,
     writesRelationshipsOnCommit: live,
-    nextStep: "M10A.8 Profile Activation QA · LIVE VERIFICATION"
+    nextStep: "M10A.9 Stable Activation Candidate · CLOSURE QA"
   });
 }
 

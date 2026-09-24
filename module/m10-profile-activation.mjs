@@ -103,7 +103,7 @@ export async function switchRulesProfile(targetProfileId, _options = {}) {
     await writeProfileSettings(target);
     const runtime = refreshRulesProfileRuntime();
     const event = Object.freeze({
-      phase:"M10A.8",
+      phase:"M10A.9",
       fromProfileId:before.id,
       fromProfileVersion:beforeVersion,
       toProfileId:runtime.profile.id,

@@ -129,7 +129,7 @@ export function strictRulesReferenceSnapshot() {
     rules: spec.ruleIds.map(id => registry.explain(id)).filter(Boolean)
   }));
   return freeze({
-    phase:"M10A.8",
+    phase:"M10A.9",
     mode:live ? "STRICT_ACTIVE_REFERENCE" : "STRICT_READ_ONLY_REFERENCE",
     profileId:profile.id,
     profileName:profile.name,
@@ -176,8 +176,8 @@ export function strictRulesReferenceHtml() {
     </div>
     <div class="rg-reference-scroll">
     <div class="rg-system-manual">
-    <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10A.8</div><h2>Strict Realm Guard · Rules Reference${live ? "" : " Preview"}</h2><p>${esc(snapshot.profileName)} · profile v${esc(snapshot.profileVersion)} · ${esc(snapshot.activationState)}</p></div><i class="fa-solid fa-scale-balanced"></i></header>
-    <div class="rg-manual-callout"><i class="fa-solid ${live ? "fa-circle-check" : "fa-lock"}"></i><div><b>${live ? "ACTIVE RULES PROFILE" : "READ ONLY PREVIEW"}</b><span>${live ? "Strict Realm Guard is the active QA rules profile. This reference is read-only presentation; gameplay routes through the active Strict policies." : "This reference previews Strict Realm Guard ownership. It does not switch the world, update the permanent Legacy Mixed Rules Journal, or write Actors, Items or settings."}</span></div></div>
+    <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10A.9</div><h2>Strict Realm Guard · Rules Reference${live ? "" : " Preview"}</h2><p>${esc(snapshot.profileName)} · profile v${esc(snapshot.profileVersion)} · ${esc(snapshot.activationState)}</p></div><i class="fa-solid fa-scale-balanced"></i></header>
+    <div class="rg-manual-callout"><i class="fa-solid ${live ? "fa-circle-check" : "fa-lock"}"></i><div><b>${live ? "ACTIVE RULES PROFILE" : "READ ONLY PREVIEW"}</b><span>${live ? "Strict Realm Guard is the active supported rules profile. This reference is read-only presentation; gameplay routes through the active Strict policies." : "This reference previews Strict Realm Guard ownership. It does not switch the world, update the permanent Legacy Mixed Rules Journal, or write Actors, Items or settings."}</span></div></div>
     <div class="rg-manual-callout"><i class="fa-solid fa-code-branch"></i><div><b>Source lineage</b><span>${snapshot.sourceLineage.map(esc).join(" → ")}</span></div></div>
     ${pages}
   </div>
