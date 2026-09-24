@@ -8,3 +8,4 @@
 # Strict CORE M9 creation and live rule routing enabled only when Strict active
 # Legacy rollback path retained
 # QA channel advances only after release assets and all smokes verify
+# Early M10 smoke expectations advanced for QA_ACTIVE
