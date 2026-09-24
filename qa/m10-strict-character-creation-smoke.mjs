@@ -294,10 +294,15 @@ assert.ok(legacyProfile.includes('inventoryPolicy: "STRUCTURED"'), "Legacy Mixed
 assert.ok(legacyProfile.includes("ENEMY_SERVANTS_HOUSE_RULE"), "Legacy Mixed enemy house-rule compatibility must remain available.");
 
 const m9 = fs.readFileSync("module/m9-creation-shadow.mjs","utf8");
-assert.ok(m9.includes("REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE"), "Live CORE M9 must remain bound to Legacy Mixed in qa.7.");
-assert.equal(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), false, "qa.7 must not activate Strict creation in live M9.");
+assert.ok(m9.includes("REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE"), "CORE M9 must preserve the Legacy Mixed creation profile.");
+if (REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase === "M10A.8") {
+  assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), "M10A.8 must route CORE M9 to the Strict creation profile when active.");
+  assert.ok(m9.includes("activeCreationEngine"), "M10A.8 must select the creation engine from the active Rules Profile.");
+} else {
+  assert.equal(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), false, "Pre-activation phases must not route Strict creation into live M9.");
+}
 
 const profileService = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "No live profile switch API may exist in M10A.6.");
 
-console.log("PASS M10A.6 Strict Character Creation preview · rated Wises · strict Enemy/Mentor validation · profile-aware condition plan · Legacy Mixed untouched · no live activation");
+console.log("PASS M10A.6 Strict Character Creation regression · rated Wises · Enemy/Mentor validation · condition plan · Legacy compatibility preserved through activation");
