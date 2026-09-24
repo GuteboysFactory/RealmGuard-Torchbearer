@@ -5,12 +5,12 @@ const STRICT_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E) + Realm Guard v1
 
 export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   id: "realm-guard-strict",
-  version: 8,
+  version: 9,
   name: "Realm Guard — Strict",
   parent: "mg1e",
-  classification: "STRICT PROFILE MANIFEST / PREVIEW ONLY",
+  classification: "STRICT PROFILE / QA ACTIVE",
   domains: {
-    profile: { activationState: "PREVIEW_ONLY" },
+    profile: { activationState: "QA_ACTIVE" },
     nature: { mode: "MG1E_WITH_REALM_GUARD_OVERRIDES", descriptors: ["Tradition", "Family", "Grief"] },
     conditions: {
       mode: "REALM_GUARD_STRICT",
@@ -72,7 +72,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     creation: {
       mode: "REALM_GUARD_STRICT_PROFILE",
       coreEngine: "M9",
-      liveAuthority: "NONE",
+      liveAuthority: "CORE_M9_WHEN_ACTIVE",
       profileId: "realm-guard-strict",
       profileVersion: 1,
       ratedWises: true,
@@ -99,7 +99,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     }
   },
   registry: [
-    { id: "PROFILE.IDENTITY", domain: "profile", title: "Rules Profile", activeValue: "REALM GUARD — STRICT · PREVIEW ONLY", classification: "STRICT PROFILE MANIFEST / NOT LIVE", automation: "INACTIVE", source: STRICT_SOURCE, sourceVersion: "MG 2008 / RG 1.6", overrideReason: "M10A.1 completes the Strict manifest and conversion preview. Live activation remains blocked." },
+    { id: "PROFILE.IDENTITY", domain: "profile", title: "Rules Profile", activeValue: "REALM GUARD — STRICT · QA ACTIVE", classification: "STRICT PROFILE / QA ACTIVE", automation: "PROFILE ROUTED", source: STRICT_SOURCE, sourceVersion: "MG 2008 / RG 1.6", overrideReason: "M10A.8 enables reversible QA activation after conversion preview; stable promotion remains gated by activation QA." },
     { id: "NATURE.MODE", domain: "nature", title: "Nature Resolution", activeValue: "MG1E NATURE · DÚNADAN: TRADITION / FAMILY / GRIEF", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "Realm Guard supplies the Dúnadan Nature descriptors over the inherited MG1E Nature engine." },
     { id: "CONDITIONS.MODE", domain: "conditions", title: "Conditions", activeValue: "HEALTHY · HUNGRY/THIRSTY · ANGRY · TIRED · INJURED · STRAINED", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "Strained replaces Sick. Fresh and Afraid are not Strict Realm Guard default conditions." },
     { id: "RECOVERY.MODE", domain: "recovery", title: "Recovery", activeValue: "MG1E RECOVERY + REALM GUARD STRAINED RECOVERY", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
@@ -108,24 +108,24 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     { id: "SESSION.END_SESSION", domain: "session", title: "End Session", activeValue: "MG1E REWARDS · GROUP CONSENSUS / GM COMMIT", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
     { id: "CIRCLES.MODE", domain: "circles", title: "Circles", activeValue: "MG1E CIRCLES + ENMITY CLAUSE · M8 STORAGE", classification: "MG1E INHERITANCE / FOUNDRY TOOLING", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008" },
     { id: "PROGRESSION.LEVELS_TALENTS", domain: "progression", title: "Progression", activeValue: "MG1E PASS/FAIL ADVANCEMENT · LEVELS/TALENTS DISABLED", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008", overrideReason: "Strict Realm Guard preserves Legacy Mixed level/talent data but does not use it mechanically." },
-    { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · READ-ONLY PREVIEW", classification: "REALM GUARD OVERRIDE", automation: "PREVIEW", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.6 binds a source-correct Strict creation profile to CORE M9 for read-only draft, validation, review and commit-plan preview. Live commit remains locked." },
+    { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · LIVE WHEN STRICT ACTIVE", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.8 routes CORE M9 to the Strict creation profile only while realm-guard-strict is the active world profile." },
     { id: "TOKENS_OF_POWER.MODE", domain: "tokensOfPower", title: "Tokens of Power", activeValue: "ENABLED · MG1E TRAIT-LEVEL SEMANTICS", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
     { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · RANKS 1-6 · MANUAL / GUIDED OUTCOME PLANNING", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.7 adds source-backed read-only rank/outcome, Militarist and Lore Master planning. Token applicability remains a table call; live conflict application is still off." }
   ],
   metadata: {
     strictRealmGuard: true,
     foundationOnly: false,
-    previewOnly: true,
-    selectable: false,
-    supported: false,
-    activationState: "PREVIEW_ONLY",
+    previewOnly: false,
+    selectable: true,
+    supported: true,
+    activationState: "QA_ACTIVE",
     sourceLineage: ["Mouse Guard RPG 2008 / 1E", "Realm Guard v1.6 overrides"],
-    gameplayChangeIntended: false,
-    liveRuleAuthority: false,
+    gameplayChangeIntended: true,
+    liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.7",
-    strictRulesLive: false,
+    implementationPhase: "M10A.8",
+    strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
     helpPolicyReady: true,
@@ -137,8 +137,10 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     progressionPolicyReady: true,
     creationPolicyReady: true,
     strictCreationPreviewReady: true,
+    strictCreationLiveReady: true,
+    profileActivationQaReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10A.8 Profile Activation QA"
+    nextStep: "M10A.8 Profile Activation QA · LIVE VERIFICATION"
   }
 });
