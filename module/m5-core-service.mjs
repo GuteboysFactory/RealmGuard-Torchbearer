@@ -221,6 +221,12 @@ export function installM5CoreServices() {
     })
   });
 
+  Hooks.on("realmGuardRulesProfileChanged", () => {
+    runtime = null;
+    parityBridge = null;
+    try { exposeApi(); } catch (_error) {}
+  });
+
   Hooks.once("ready", () => {
     runtime = createM5Services(getActiveRulesProfile());
     parityBridge = createM5ParityBridge({ services: runtime });
