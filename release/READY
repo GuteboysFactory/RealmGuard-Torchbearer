@@ -4,3 +4,4 @@
 # Public provider methods: open, openGroups, createFromTemplate, matches, resolveBestTemplate
 # Provider remains system-owned; external consumers call the API without importing Realm Guard internals
 # Existing Quick NPC Library and GM Dock behavior unchanged
+# Gate J Strict unarmed/no-tool presentation hotfix
