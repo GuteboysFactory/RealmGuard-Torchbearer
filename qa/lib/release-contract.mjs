@@ -77,3 +77,16 @@ export function assertNoProfileManagementCopyPins(source, file = "unknown") {
     }
   }
 }
+
+
+export function assertNoRetiredM10BBranchPins(source, file = "unknown") {
+  const lines = source.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const positiveStrictPin = /assert\.ok\([^\n]*(?:teamwork|traits|documents)[^\n]*\.includes\([^\n]*isStrictRealmGuard/.test(line);
+    const retiredWisePin = /assert\.ok\([^\n]*documents[^\n]*\.includes\([^\n]*ratedStrictWise/.test(line);
+    if (positiveStrictPin || retiredWisePin) {
+      throw new Error(`${file}:${i + 1} pins a retired M10B binary implementation detail. Assert resolved profile semantics instead.`);
+    }
+  }
+}
