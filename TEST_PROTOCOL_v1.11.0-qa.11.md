@@ -1,6 +1,6 @@
 # v1.11.0-qa.11 — M10A.9 Stable Activation Candidate / Closure QA
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.10.0  
 **Default profile:** Realm Guard — Legacy Mixed  
@@ -104,3 +104,15 @@ It must still verify:
 qa.11 passes when supported Strict activation works in live qa.11, the stable-runtime smoke passes, rollback remains non-destructive, and no M10A.8 rule regression is observed.
 
 After PASS, promote the same functional code to **v1.11.0 STABLE / GOLD** and close **M10A — Realm Guard Strict**.
+
+
+## Live closure result
+
+- Gate A — Legacy boot / SUPPORTED v10 metadata: ✅ PASS
+- Gate B — Strict activation + reload: ✅ PASS
+- Gate C — representative Strict regression: ✅ PASS
+- Gate D — Strict → Legacy rollback: ✅ PASS
+- Gate E — stable-runtime closure smoke: ✅ PASS
+- Release workflow for qa.11: ✅ PASS
+
+**Promotion approved:** v1.11.0 STABLE / GOLD. M10A is closed.

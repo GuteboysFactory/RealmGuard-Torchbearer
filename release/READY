@@ -1,10 +1,7 @@
-1.11.0-qa.11
-# M10A.9 Stable Activation Candidate / Closure QA
-# Strict profile v10 = SUPPORTED
-# Removes QA-runtime dependency from Strict activation
-# Legacy Mixed remains default; conversion preview + explicit GM confirmation retained
-# Profile switch remains settings-only and reversible
-# No automatic Wise rating, Talent/Condition deletion, or inventory cleanup
-# Stable-runtime closure smoke simulates game.system.version = 1.11.0
-# Carries forward Quick NPC Provider API unchanged
-# Retrigger after closure docs landed
+1.11.0
+# M10A Realm Guard Strict stable promotion
+# Promoted from verified v1.11.0-qa.11 with no functional gameplay/runtime changes
+# Strict profile v10 remains SUPPORTED
+# Legacy Mixed remains default; Strict is explicit and reversible
+# M10A VERIFIED / CLOSED
+# Next: M10B MG1E explicit profile

@@ -1,10 +1,10 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.10.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.11.0-qa.11 — 🟡 M10A.9 Stable Activation Candidate  
-**Current CORE milestone:** M10 — Strict Realm Guard Profile / Rules Ownership — 🟡 IN PROGRESS  
-**Current CORE gate:** M10A.9 — stable-channel activation / closure verification  
+**Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
+**Current QA build:** none — next development line is M10B / MG1E  
+**Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
+**Current CORE gate:** M10B — MG1E explicit profile  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -12,7 +12,7 @@
 
 ### M10 — Strict Realm Guard Profile / Rules Ownership
 
-**Status:** 🟡 IN PROGRESS — M10A.8 live activation QA is ✅ FULL PASS. v1.11.0-qa.11 promotes Strict to **SUPPORTED** inside the QA candidate and removes the QA-version activation lock; stable promotion remains blocked until M10A.9 closure QA passes.
+**Status:** ✅ **M10A VERIFIED / CLOSED** — v1.11.0 STABLE / GOLD promotes the verified qa.11 codebase with no functional gameplay/runtime changes. Realm Guard Strict profile v10 remains `SUPPORTED`, Legacy Mixed remains the default compatibility profile, and reversible profile switching is available through Rules Profile Management.
 
 Locked source lineage for Strict Realm Guard:
 
@@ -177,6 +177,12 @@ qa.1 foundation scope:
 - qa.10 Quick NPC Provider API remains unchanged
 
 **qa.11 PASS gate:** stable-runtime simulation, Legacy → Strict → Legacy round-trip, reload, representative Strict routing and zero destructive conversion must pass before `v1.11.0 STABLE / GOLD` promotion.
+
+**qa.11 result — M10A.9:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Supported Strict v10 activation, reload, representative Strict regression, Strict → Legacy rollback, dormant-data preservation and the simulated stable-runtime activation smoke all passed.
+
+**Stable promotion:** 🟢✅ **v1.11.0 STABLE / GOLD** is promoted from the verified qa.11 codebase with no functional gameplay/runtime changes. Legacy Mixed remains the default compatibility profile; Strict Realm Guard is an explicit supported profile with conversion preview and reversible activation.
+
+**M10A closure:** ✅ **VERIFIED / CLOSED**. Next: **M10B — MG1E explicit profile**.
 
 
 ### M9 — Creation / Recruitment Migration

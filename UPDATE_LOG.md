@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.11.0 - 🟢✅ STABLE / GOLD / M10A CLOSED
+
+- Promoted directly from the verified **v1.11.0-qa.11** codebase after M10A.9 closure QA passed in Foundry VTT 13.351.
+- No functional gameplay/runtime changes from qa.11.
+- Realm Guard Strict remains profile v10 / `SUPPORTED`.
+- Legacy Mixed remains the default compatibility profile; Strict remains an explicit GM-selected profile after conversion preview.
+- Reversible Legacy ↔ Strict switching remains settings-only and preserves dormant profile-specific data for rollback safety.
+- Stable runtime is no longer dependent on a `-qa.` version string for Strict activation.
+- Rated Wises, Strict Traits, Conditions/Recovery, LOOSE inventory, Conflict ownership, Session/Circles/Progression rules, Strict Recruitment, Scale of Might and Strict Rules Reference carry forward unchanged from the verified M10A QA line.
+- The qa.10 Quick NPC Provider API is included unchanged.
+- **M10A — Realm Guard Strict = VERIFIED / CLOSED.**
+- Next CORE profile: **M10B — MG1E**.
+
 ## v1.11.0-qa.11 - 🟡 M10A.9 Stable Activation Candidate
 
 - Built after **M10A.8 live QA = 🟢✅ FULL PASS** in Foundry VTT 13.351.
