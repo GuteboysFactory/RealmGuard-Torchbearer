@@ -2,7 +2,7 @@
   <header style="margin-bottom:14px;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · {{phase}}</div>
     <h2 style="margin:3px 0 4px;">Rules Profile Management</h2>
-    <p style="margin:0;">Manage profile readiness from Game Settings without exposing the raw world settings.</p>
+    <p style="margin:0;">Review the active profile, compare available rule models and preserve campaign data across profile changes.</p>
   </header>
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
@@ -15,24 +15,40 @@
   </section>
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
-    <h3 style="margin:0 0 8px;">Strict Realm Guard</h3>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
-      <div><b>{{strictProfile.name}}</b><br><small>{{strictProfile.sourceLineage}}</small></div>
-      <div style="text-align:right;"><b>{{strictProfile.activationState}}</b><br><small>v{{strictProfile.version}}</small></div>
+    <h3 style="margin:0 0 8px;">Available / Preview Profiles</h3>
+
+    <div style="padding:8px 0 12px;border-bottom:1px solid rgba(128,128,128,.22);">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+        <div><b>{{strictProfile.name}}</b><br><small>{{strictProfile.sourceLineage}}</small></div>
+        <div style="text-align:right;"><b>{{strictProfile.activationState}}</b><br><small>v{{strictProfile.version}}</small></div>
+      </div>
+      <p><small>Rules snapshot: {{strictProfile.rulesSnapshotHash}}</small></p>
+      <button type="button" data-action="previewStrict" {{#unless previewAvailable}}disabled{{/unless}}>
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Preview Strict Conversion
+      </button>
     </div>
-    <p><small>Rules snapshot: {{strictProfile.rulesSnapshotHash}}</small></p>
-    <button type="button" data-action="previewStrict" {{#unless previewAvailable}}disabled{{/unless}}>
-      <i class="fa-solid fa-magnifying-glass-chart"></i> Preview Strict Conversion
-    </button>
+
+    <div style="padding:12px 0 2px;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+        <div><b>{{mg1eProfile.name}}</b><br><small>{{mg1eProfile.sourceLineage}}</small></div>
+        <div style="text-align:right;"><b>{{mg1eProfile.activationState}}</b><br><small>v{{mg1eProfile.version}}</small></div>
+      </div>
+      <p><small>{{mg1eProfile.classification}} · Rules snapshot: {{mg1eProfile.rulesSnapshotHash}}</small></p>
+      <button type="button" data-action="previewMg1e" {{#unless previewAvailable}}disabled{{/unless}}>
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG1E Conversion
+      </button>
+      <p style="margin-bottom:0;"><small>Mouse Guard 1E is preview-only in M10B.2 and cannot be activated yet.</small></p>
+    </div>
   </section>
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
-    <h3 style="margin:0 0 8px;">World Impact</h3>
+    <h3 style="margin:0 0 8px;">World Impact Snapshot</h3>
     {{#each impactRows}}
       <div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid rgba(128,128,128,.16);">
         <span>{{label}}</span><b>{{value}}</b>
       </div>
     {{/each}}
+    <p style="margin-bottom:0;"><small>This is an impact scan only. Hidden or inactive profile data is preserved, not deleted.</small></p>
   </section>
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
@@ -43,13 +59,13 @@
         <i class="fa-solid fa-scale-balanced"></i> Switch to Strict Realm Guard
       </button>
     {{else if canSwitchLegacy}}
-      <p><b>Strict Realm Guard is currently active.</b> You can roll back to Legacy Mixed without deleting Strict-created data.</p>
+      <p><b>Strict Realm Guard is currently active.</b> You can roll back to Legacy Mixed without deleting profile-specific data.</p>
       <button type="button" data-action="switchLegacy">
         <i class="fa-solid fa-rotate-left"></i> Switch back to Legacy Mixed
       </button>
     {{else}}
       <p><b>Switch unavailable.</b> {{switchLockReason}}</p>
     {{/if}}
-    <p style="margin-bottom:0;"><small>{{nextStep}}. Reload the world after every profile switch.</small></p>
+    <p style="margin-bottom:0;"><small>{{nextStep}}. Reload the world after every supported profile switch.</small></p>
   </section>
 </section>
