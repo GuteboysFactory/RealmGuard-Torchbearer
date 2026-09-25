@@ -1,4 +1,6 @@
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
+
+function usesMg1eTraits() { return getActiveM10BFamilyRulePolicy().mg1eTraits; }
 const NS = "realm-guard";
 const USE_FLAG = "traitSessionUses";
 
@@ -9,8 +11,8 @@ export function traitLevel(trait) {
 export function traitPositiveLimit(trait) {
   const level = traitLevel(trait);
   if (level === 1) return 1;
-  if (level === 2) return isStrictRealmGuard() ? null : 2;
-  if (level === 3) return isStrictRealmGuard() ? 1 : null;
+  if (level === 2) return usesMg1eTraits() ? null : 2;
+  if (level === 3) return usesMg1eTraits() ? 1 : null;
   return null;
 }
 
@@ -28,8 +30,8 @@ export function traitPositiveRemaining(actor, trait) {
 
 export function traitPositiveAvailable(actor, trait) {
   const level = traitLevel(trait);
-  if (isStrictRealmGuard() && level === 2) return true;
-  if (!isStrictRealmGuard() && level === 3) return true;
+  if (usesMg1eTraits() && level === 2) return true;
+  if (!usesMg1eTraits() && level === 3) return true;
   const remaining = traitPositiveRemaining(actor, trait);
   return level > 0 && Number(remaining ?? 0) > 0;
 }
@@ -41,7 +43,7 @@ export function traitPositiveDice(actor, trait) {
 }
 
 export function traitPositiveSuccessBonus(actor, trait, { baseSuccesses = 0, target = 0, versus = false } = {}) {
-  if (isStrictRealmGuard() || traitLevel(trait) !== 3) return 0;
+  if (usesMg1eTraits() || traitLevel(trait) !== 3) return 0;
   const own = Number(baseSuccesses ?? 0);
   const opposition = Number(target ?? 0);
   // MG2E +1s is added after a passed/tied roll. It can break a Versus tie,
@@ -53,7 +55,7 @@ export function traitPositiveStatus(actor, trait) {
   const level = traitLevel(trait);
   if (level === 1 || level === 2) {
     const limit = traitPositiveLimit(trait);
-    if (isStrictRealmGuard() && level === 2) {
+    if (usesMg1eTraits() && level === 2) {
       return { level, limit: null, used: traitPositiveUsed(actor, trait), remaining: null, available: true, label: "+1D on every applicable test", effect: "+1D" };
     }
     const used = Math.min(limit, traitPositiveUsed(actor, trait));
@@ -69,7 +71,7 @@ export function traitPositiveStatus(actor, trait) {
     };
   }
   if (level === 3) {
-    if (isStrictRealmGuard()) {
+    if (usesMg1eTraits()) {
       const limit = 1;
       const used = Math.min(limit, traitPositiveUsed(actor, trait));
       return { level, limit, used, remaining: Math.max(0, limit-used), available: used < limit, label: used < limit ? "reroll all failed dice once this session" : "reroll spent this session", effect: "reroll failed dice" };
@@ -82,8 +84,8 @@ export function traitPositiveStatus(actor, trait) {
 export async function consumeTraitPositiveUse(actor, trait) {
   if (!actor || !trait) return { consumed: false, reason: "missing" };
   const level = traitLevel(trait);
-  if (!isStrictRealmGuard() && level === 3) return { consumed: false, unlimited: true, level };
-  if (isStrictRealmGuard() && level === 2) return { consumed: false, unlimited: true, level };
+  if (!usesMg1eTraits() && level === 3) return { consumed: false, unlimited: true, level };
+  if (usesMg1eTraits() && level === 2) return { consumed: false, unlimited: true, level };
   const limit = traitPositiveLimit(trait);
   if (!limit) return { consumed: false, reason: "no-effect", level };
   const used = traitPositiveUsed(actor, trait);
