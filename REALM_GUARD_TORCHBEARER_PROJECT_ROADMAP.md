@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** none — next development line is M10B / MG1E  
+**Current QA build:** v1.12.0-qa.1 — 🟡 M10B.1 Generic Profile Presentation & Rule Router  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B — MG1E explicit profile  
+**Current CORE gate:** M10B.1 — generic capability/presentation shadow parity  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -183,6 +183,27 @@ qa.1 foundation scope:
 **Stable promotion:** 🟢✅ **v1.11.0 STABLE / GOLD** is promoted from the verified qa.11 codebase with no functional gameplay/runtime changes. Legacy Mixed remains the default compatibility profile; Strict Realm Guard is an explicit supported profile with conversion preview and reversible activation.
 
 **M10A closure:** ✅ **VERIFIED / CLOSED**. Next: **M10B — MG1E explicit profile**.
+
+### M10B — Mouse Guard 1E explicit profile
+
+**Status:** 🟡 IN PROGRESS — v1.12.0-qa.1 starts M10B.1 with a read-only Generic Profile Presentation & Rule Router. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+
+**M10B.1 scope:**
+- normalize resolved Rules Profile domains into generic rule and presentation capabilities
+- expose active/resolved capability snapshots through the existing CORE Rules Profile API
+- preserve current Legacy Mixed and Realm Guard Strict live routing unchanged
+- shadow-verify Legacy Mixed capability parity with current published behavior
+- shadow-verify Realm Guard Strict capability parity with v1.11.0 GOLD behavior
+- verify MG1E foundation resolves its inherited rule model without Realm Guard overrides
+- explicitly model UI visibility separately from stored data
+- preserve dormant Conditions, Levels/Talents, Tokens of Power, Scale and inventory placement metadata
+- no Actor/Item/Journal/world-setting writes
+- no profile conversion
+- MG1E remains non-selectable and cannot become active in qa.1
+
+**Locked profile-switch principle:** profiles change rule authority and presentation, not campaign-data ownership. Profile-specific data may be hidden/inactive but is not deleted merely because another profile is active.
+
+**M10B.1 PASS gate:** automated shadow parity must show zero Legacy/Strict capability mismatch and MG1E must remain non-selectable/read-only before any live consumer is moved from `isStrictRealmGuard()` branching to generic capability routing.
 
 
 ### M9 — Creation / Recruitment Migration

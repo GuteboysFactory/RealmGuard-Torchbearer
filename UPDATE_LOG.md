@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.1 - 🟡 M10B.1 Generic Profile Presentation & Rule Router
+
+- Starts **M10B — Mouse Guard 1E explicit profile** from the v1.11.0 STABLE / GOLD baseline.
+- Adds a pure, read-only capability router that normalizes a resolved Rules Profile into rule and presentation flags.
+- Exposes active/resolved capability snapshots through the CORE Rules Profile API.
+- Shadow-verifies the current Legacy Mixed and Realm Guard Strict behavior without replacing any live routing yet.
+- Resolves the existing MG1E foundation through the same generic capability model while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Separates presentation visibility from stored data: profile-specific Conditions, Levels/Talents, Tokens of Power, Scale and inventory placement metadata are preserved even when hidden/inactive.
+- Adds `qa/m10b-profile-capability-router-smoke.mjs`.
+- No Actor, Item, Journal or world-setting writes are introduced.
+- No automatic conversion, cleanup or deletion is introduced.
+- **v1.11.0 remains STABLE / GOLD.**
+
 ## v1.11.0 - 🟢✅ STABLE / GOLD / M10A CLOSED
 
 - Promoted directly from the verified **v1.11.0-qa.11** codebase after M10A.9 closure QA passed in Foundry VTT 13.351.

@@ -1,7 +1,7 @@
-1.11.0
-# M10A Realm Guard Strict stable promotion
-# Promoted from verified v1.11.0-qa.11 with no functional gameplay/runtime changes
-# Strict profile v10 remains SUPPORTED
-# Legacy Mixed remains default; Strict is explicit and reversible
-# M10A VERIFIED / CLOSED
-# Next: M10B MG1E explicit profile
+1.12.0-qa.1
+# M10B.1 Generic Profile Presentation & Rule Router
+# Read-only capability/presentation normalization
+# Legacy Mixed + Strict live behavior unchanged
+# MG1E remains FOUNDATION_ONLY / non-selectable / non-live
+# No Actor/Item/Journal/world-setting writes
+# No profile data cleanup or destructive conversion
