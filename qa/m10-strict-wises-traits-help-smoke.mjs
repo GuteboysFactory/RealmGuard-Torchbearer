@@ -83,7 +83,8 @@ assert.equal(consequence.applicationAuthority, "M10A.3_CONDITIONS_RECOVERY");
 assert.equal(consequence.autoApply, false);
 
 const status = getStrictWisesTraitsHelpStatus();
-assert.equal(status.phase, "M10A.2");
+assert.equal(status.phase, "M10A.2_COMPAT_WRAPPER");
+assert.equal(status.delegatedRulesAuthority, "M10B.3_MG1E_FAMILY");
 assert.equal(status.liveAuthority, false);
 assert.equal(status.wiseAutoConversion, false);
 assert.equal(status.help.synergy, false);
