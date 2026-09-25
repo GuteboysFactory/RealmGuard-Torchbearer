@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.1 — 🟡 M10B.1 Generic Profile Presentation & Rule Router  
+**Current QA build:** v1.12.0-qa.2 — 🟡 M10B.2 MG1E Source Manifest + Conversion Preview  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.1 — generic capability/presentation shadow parity  
+**Current CORE gate:** M10B.2 — MG1E source ownership + read-only conversion preview  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,24 +186,29 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — v1.12.0-qa.1 starts M10B.1 with a read-only Generic Profile Presentation & Rule Router. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — v1.12.0-qa.2 advances to MG1E source ownership and read-only conversion preview. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
-**M10B.1 scope:**
-- normalize resolved Rules Profile domains into generic rule and presentation capabilities
-- expose active/resolved capability snapshots through the existing CORE Rules Profile API
-- preserve current Legacy Mixed and Realm Guard Strict live routing unchanged
-- shadow-verify Legacy Mixed capability parity with current published behavior
-- shadow-verify Realm Guard Strict capability parity with v1.11.0 GOLD behavior
-- verify MG1E foundation resolves its inherited rule model without Realm Guard overrides
-- explicitly model UI visibility separately from stored data
-- preserve dormant Conditions, Levels/Talents, Tokens of Power, Scale and inventory placement metadata
+**M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
+
+**M10B.2 scope:**
+- advance MG1E foundation to profile v3
+- make Mouse Nature descriptors explicit: Escaping / Climbing / Hiding / Foraging
+- add MG1E `naturalOrder` as a separate source domain instead of reusing Realm Guard Scale of Might
+- mark Strict Realm Guard Natural Order as replaced by Realm Guard v1.6 Scale of Might
+- document MG1E LOOSE inventory plus character-sheet Gear-space capacity while preserving Foundry placement metadata as presentation
+- generalize the conversion-preview engine from Strict-only to arbitrary source/target profiles
+- add reviewed MG1E conversion deltas for Wises, Traits, Help, Nature, Conditions, Inventory, Conflict, Progression, Tokens of Power, Natural Order, Scale of Might and Character Creation
+- expand world-impact scanning for rated/unrated Wises, Fresh/Afraid/Strained/Sick, Tokens of Power and profile CreationProvenance
+- add **Preview MG1E Conversion** to Rules Profile Management
+- remove stale M10A.9 presentation copy from Profile Management
+- preserve Strict Realm Guard supported activation unchanged
+- no MG1E activation
 - no Actor/Item/Journal/world-setting writes
-- no profile conversion
-- MG1E remains non-selectable and cannot become active in qa.1
+- no automatic Wise ratings, condition cleanup, progression cleanup or inventory migration
 
 **Locked profile-switch principle:** profiles change rule authority and presentation, not campaign-data ownership. Profile-specific data may be hidden/inactive but is not deleted merely because another profile is active.
 
-**M10B.1 PASS gate:** automated shadow parity must show zero Legacy/Strict capability mismatch and MG1E must remain non-selectable/read-only before any live consumer is moved from `isStrictRealmGuard()` branching to generic capability routing.
+**M10B.2 PASS gate:** MG1E source manifest and preview must be source-correct, read-only and visibly non-selectable; Legacy Mixed and Strict Realm Guard live behavior must remain unchanged before M10B.3 begins live routing migration.
 
 
 ### M9 — Creation / Recruitment Migration
