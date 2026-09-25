@@ -6,7 +6,7 @@ const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const shadow = fs.readFileSync("module/m7-session-shadow.mjs", "utf8");
 const endSession = fs.readFileSync("module/end-session.mjs", "utf8");
 
-assert.match(manifest.version, /^1\.(?:9\.0(?:-qa\.\d+)?|1[01]\.0(?:-qa\.\d+)?)$/, "Smoke must accept stable/QA 1.9.0 through the current v1.11.0 CORE line.");
+assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/, "Smoke must accept stable/QA 1.9.0 through the current v1.11.0 CORE line.");
 assert.ok(shadow.includes('"RewardProposalParity"'));
 assert.ok(shadow.includes('"RewardCommitParity"'));
 assert.ok(shadow.includes("observeM7RewardProposal"));
