@@ -33,4 +33,4 @@ for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs
   assertNoProfileManagementCopyPins(source, file);
 }
 
-console.log("PASS release-channel contract · canonical qa/stable manifests · no historical version pins · no Profile Management copy pins");
+console.log("PASS release-channel contract · gated qa/stable manifests · no exact QA version pins · canonical version authority · no historical minor-version pins · no Profile Management copy pins");
