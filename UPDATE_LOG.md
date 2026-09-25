@@ -1,5 +1,24 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.3 - 🟡 M10B.3 Wises / Traits / Help / Nature Routing
+
+- Marks **M10B.2 = FULL PASS** after Foundry VTT 13.351 live verification.
+- Advances the MG1E foundation to profile v4 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Adds generic MG1E-family Wises / Traits / Help / Nature rule policy and pure rule planners.
+- Routes live Trait semantics through profile capabilities instead of binary Strict checks.
+- Routes rated Wise / I Am Wise behavior through profile capabilities; old unrated Legacy Wises remain preserved and are never auto-rated.
+- Routes Teamwork through profile capabilities.
+- Source-corrects MG1E-family Teamwork legality: Ability tests accept Ability Help; Skill/Wise tests accept Skill or rated-Wise Help.
+- Legacy Mixed keeps current open helper behavior, Synergy and Afraid compatibility behavior.
+- Strict/MG1E-family Synergy remains OFF and helper lesser-Condition consequences remain guided/GM-owned.
+- Shared Nature UI now reads label/descriptors from the active profile instead of hardcoding Dúnadan descriptors.
+- Strict resolves Tradition / Family / Grief; MG1E resolves Nature (Mouse): Escaping / Climbing / Hiding / Foraging.
+- Tap Nature and Double-Tap Nature remain source-backed profile capabilities.
+- Historical M10A Strict Wises/Traits/Help APIs remain as compatibility wrappers over the generic family rules.
+- No MG1E activation and no Actor/Item/Journal/world-setting conversion is introduced.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.2 - 🟡 M10B.2 MG1E Source Manifest + Conversion Preview
 
 ### Release/QA hardening
