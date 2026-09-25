@@ -17,7 +17,7 @@ const legacy = buildProfileCapabilities(resolver.resolve("realm-guard-legacy-mix
 const strict = buildProfileCapabilities(resolver.resolve("realm-guard-strict"));
 const mg1e = buildProfileCapabilities(resolver.resolve("mg1e"));
 
-assert.equal(legacy.phase, "M10B.1");
+assert.match(legacy.phase, /^M10B\.[12]$/);
 assert.equal(legacy.profile.id, "realm-guard-legacy-mixed");
 assert.equal(legacy.rules.wises.rated, false);
 assert.equal(legacy.rules.wises.selfUse, "LEGACY_WISE_REROLL");
@@ -47,6 +47,7 @@ assert.equal(strict.rules.conflict.unarmedDefaultDice, 0);
 assert.equal(strict.rules.progression.levelsEnabled, false);
 assert.equal(strict.rules.progression.talentsEnabled, false);
 assert.equal(strict.rules.tokensOfPower.enabled, true);
+assert.equal(strict.rules.naturalOrder.enabled, false);
 assert.equal(strict.rules.scaleOfMight.enabled, true);
 assert.equal(strict.rules.conditions.names.includes("Strained"), true);
 assert.equal(strict.rules.conditions.names.includes("Sick"), false);
@@ -67,7 +68,10 @@ assert.equal(mg1e.rules.conflict.unarmedDefaultDice, 0);
 assert.equal(mg1e.rules.progression.levelsEnabled, false);
 assert.equal(mg1e.rules.progression.talentsEnabled, false);
 assert.equal(mg1e.rules.tokensOfPower.enabled, false);
+assert.equal(mg1e.rules.naturalOrder.enabled, true);
+assert.equal(mg1e.rules.naturalOrder.mode, "MG1E");
 assert.equal(mg1e.rules.scaleOfMight.enabled, false);
+assert.equal(mg1e.rules.inventory.capacityMode, "CHARACTER_SHEET_GEAR_SPACE");
 assert.equal(mg1e.rules.conditions.names.includes("Sick"), true);
 assert.equal(mg1e.rules.conditions.names.includes("Strained"), false);
 
@@ -102,4 +106,4 @@ const consumers = [
 ];
 assert.ok(consumers.some(path => fs.readFileSync(new URL(path, import.meta.url), "utf8").includes("isStrictRealmGuard")), "M10B.1 is shadow parity only; existing live routing must remain in place.");
 
-console.log("PASS M10B.1 Generic Profile Presentation & Rule Router · Legacy/Strict parity preserved · MG1E foundation read-only/not selectable");
+console.log("PASS M10B.1/M10B.2 Generic Profile Presentation & Rule Router · Legacy/Strict parity preserved · MG1E foundation read-only/not selectable");
