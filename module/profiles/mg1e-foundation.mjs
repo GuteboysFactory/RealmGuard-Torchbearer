@@ -4,14 +4,14 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 3,
+  version: 4,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
     profile: { activationState: "FOUNDATION_ONLY" },
     tests: { mode: "MG1E", ordinary: true, versus: true, beginnersLuck: true },
     abilities: { advancement: "PASS_FAIL" },
-    nature: { mode: "MG1E", descriptors: ["Escaping", "Climbing", "Hiding", "Foraging"], tax: true, tapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
+    nature: { mode: "MG1E", label: "Nature (Mouse)", descriptors: ["Escaping", "Climbing", "Hiding", "Foraging"], tax: true, tapNature: true, doubleTapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
     traits: {
       mode: "MG1E",
       positiveTraitsPerTest: 1,
@@ -20,7 +20,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       chargeRecharge: { chargeChecks: 3, rechargeLevel1Checks: 2, rechargeLevel3Checks: 4 }
     },
     wises: { ratingMode: "RATED", advancement: "SKILL_LIKE", selfHelp: "I_AM_WISE" },
-    help: { teamwork: true, iAmWise: true, synergy: false, helperConsequences: true },
+    help: { teamwork: true, iAmWise: true, synergy: false, helperConsequences: true, afraidBlocksHelp: false, sourcePolicy: "MG1E_TYPED" },
     resources: { fatePersona: "MG1E", fateTiming: "AFTER_ROLL_OPEN_SIXES", personaTiming: "BEFORE_ROLL", personaDiceMax: 3, tapNature: true },
     conditions: { set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"] },
     recovery: { order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"], oneRecoveryTestPerConditionPerTurn: true, gmTurnCheckCost: 2, hungrySkills: ["Harvester", "Cook", "Brewer", "Baker", "Resources"] },
@@ -68,7 +68,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.2",
-    nextStep: "M10B.2 Source Manifest + Conversion Preview QA"
+    implementationPhase: "M10B.3",
+    nextStep: "M10B.3 Wises / Traits / Help / Nature routing QA"
   }
 });
