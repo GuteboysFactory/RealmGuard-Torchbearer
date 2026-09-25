@@ -7,3 +7,4 @@
 # No profile data cleanup or destructive conversion
 # Retrigger after future-proof Canvas Quick NPC version guard hotfix
 # Retrigger after sweeping historical QA version guards for 1.12+
+# Retrigger after complete remaining historical minor-version guard sweep
