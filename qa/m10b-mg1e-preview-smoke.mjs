@@ -14,7 +14,7 @@ const legacy=resolver.resolve("realm-guard-legacy-mixed");
 const strict=resolver.resolve("realm-guard-strict");
 const mg1e=resolver.resolve("mg1e");
 
-assert.equal(mg1e.version,3);
+assert.equal(mg1e.version,4);
 assert.equal(mg1e.metadata.foundationOnly,true);
 assert.equal(mg1e.metadata.selectable,false);
 assert.equal(mg1e.metadata.liveRuleAuthority,false);
