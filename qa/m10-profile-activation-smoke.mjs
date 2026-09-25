@@ -84,10 +84,10 @@ const profileMenu = fs.readFileSync("module/profile-management-menu.mjs","utf8")
 const profileTemplate = fs.readFileSync("templates/apps/profile-management.hbs","utf8");
 assert.ok(profileMenu.includes("switchToStrictRealmGuard"));
 assert.ok(profileMenu.includes("switchToLegacyMixed"));
-assert.ok(profileMenu.includes("Switch this world to Strict Realm Guard?"));
-assert.ok(profileTemplate.includes('data-action="switchStrict"'));
-assert.ok(profileTemplate.includes('data-action="switchLegacy"'));
-assert.ok(profileTemplate.includes("Reload the world after every profile switch"));
+assert.ok(profileMenu.includes("switchToStrictRealmGuard"));
+assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-strict"'));
+assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-legacy"'));
+assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-reload-guidance"'));
 
 const m9 = fs.readFileSync("module/m9-creation-shadow.mjs","utf8");
 assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"));
