@@ -10,3 +10,4 @@
 # no automatic Actor/Item/Journal/world-setting conversion
 # canonical release-contract preflight remains mandatory
 # Retrigger after semantic M10B regression hardening
+# Retrigger after final M10A compatibility assertion updates
