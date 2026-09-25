@@ -11,3 +11,4 @@
 # Retrigger after preserving M10A world-impact compatibility aliases under generic preview scan
 # Retrigger after hardening Profile Management source-contract assertions
 # Retrigger after scoping Profile Management copy guard to rendered UI contracts
+# Retrigger after preserving historical release-contract PASS markers
