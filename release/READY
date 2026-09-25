@@ -7,3 +7,4 @@
 # Strict Realm Guard supported activation unchanged
 # No Actor/Item/Journal/world-setting writes
 # No automatic data cleanup or migration
+# Permanent release hardening: canonical version authority + semantic UI contracts + read-only preview preflight
