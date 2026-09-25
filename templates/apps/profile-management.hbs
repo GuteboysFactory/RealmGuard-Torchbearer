@@ -1,4 +1,4 @@
-<section class="rg-profile-management-body">
+<section class="rg-profile-management-body" data-rg-contract="profile-management-root">
   <header style="margin-bottom:14px;">
     <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · {{phase}}</div>
     <h2 style="margin:3px 0 4px;">Rules Profile Management</h2>
@@ -23,7 +23,7 @@
         <div style="text-align:right;"><b>{{strictProfile.activationState}}</b><br><small>v{{strictProfile.version}}</small></div>
       </div>
       <p><small>Rules snapshot: {{strictProfile.rulesSnapshotHash}}</small></p>
-      <button type="button" data-action="previewStrict" {{#unless previewAvailable}}disabled{{/unless}}>
+      <button type="button" data-action="previewStrict" data-rg-contract="profile-preview-strict" {{#unless previewAvailable}}disabled{{/unless}}>
         <i class="fa-solid fa-magnifying-glass-chart"></i> Preview Strict Conversion
       </button>
     </div>
@@ -34,7 +34,7 @@
         <div style="text-align:right;"><b>{{mg1eProfile.activationState}}</b><br><small>v{{mg1eProfile.version}}</small></div>
       </div>
       <p><small>{{mg1eProfile.classification}} · Rules snapshot: {{mg1eProfile.rulesSnapshotHash}}</small></p>
-      <button type="button" data-action="previewMg1e" {{#unless previewAvailable}}disabled{{/unless}}>
+      <button type="button" data-action="previewMg1e" data-rg-contract="profile-preview-mg1e" {{#unless previewAvailable}}disabled{{/unless}}>
         <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG1E Conversion
       </button>
       <p style="margin-bottom:0;"><small>Mouse Guard 1E is preview-only in M10B.2 and cannot be activated yet.</small></p>
@@ -55,17 +55,17 @@
     <h3 style="margin:0 0 8px;">Rules Profile Activation</h3>
     {{#if canSwitchStrict}}
       <p><b>Strict Realm Guard is supported.</b> Switching changes only the active Rules Profile world settings. Existing Actor/Item data is preserved.</p>
-      <button type="button" data-action="switchStrict">
+      <button type="button" data-action="switchStrict" data-rg-contract="profile-switch-strict">
         <i class="fa-solid fa-scale-balanced"></i> Switch to Strict Realm Guard
       </button>
     {{else if canSwitchLegacy}}
       <p><b>Strict Realm Guard is currently active.</b> You can roll back to Legacy Mixed without deleting profile-specific data.</p>
-      <button type="button" data-action="switchLegacy">
+      <button type="button" data-action="switchLegacy" data-rg-contract="profile-switch-legacy">
         <i class="fa-solid fa-rotate-left"></i> Switch back to Legacy Mixed
       </button>
     {{else}}
       <p><b>Switch unavailable.</b> {{switchLockReason}}</p>
     {{/if}}
-    <p style="margin-bottom:0;"><small>{{nextStep}}. Reload the world after every supported profile switch.</small></p>
+    <p style="margin-bottom:0;" data-rg-contract="profile-switch-reload-guidance"><small>{{nextStep}}. Reload the world after every supported profile switch.</small></p>
   </section>
 </section>
