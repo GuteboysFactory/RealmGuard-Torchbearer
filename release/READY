@@ -6,3 +6,4 @@
 # No Actor/Item/Journal/world-setting writes
 # No profile data cleanup or destructive conversion
 # Retrigger after future-proof Canvas Quick NPC version guard hotfix
+# Retrigger after sweeping historical QA version guards for 1.12+
