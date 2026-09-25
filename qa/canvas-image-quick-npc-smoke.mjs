@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json","utf8"));
-assert.match(manifest.version, /^1\.(?:[789]\.0(?:-qa\.\d+)?|1[01]\.0(?:-qa\.\d+)?)$/, "QA smoke must accept supported legacy 1.7-1.9 lines and the v1.10-v1.11 CORE QA/stable lines.");
+assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/, "Canvas Quick NPC smoke must accept current and future 1.x Realm Guard release versions.");
 
 const builder = fs.readFileSync("module/npc-builder.mjs","utf8");
 for (const needle of [
