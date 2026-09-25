@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.2 - 🟡 M10B.2 MG1E Source Manifest + Conversion Preview
+
+- Marks **M10B.1 = FULL PASS** after Foundry VTT 13.351 live verification.
+- Advances the internal Mouse Guard 1E foundation to profile v3 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Makes Mouse Nature descriptors explicit: Escaping, Climbing, Hiding and Foraging.
+- Adds a distinct MG1E `naturalOrder` rules domain instead of reusing Realm Guard Scale of Might.
+- Marks Strict Realm Guard Natural Order as replaced by Realm Guard v1.6 Scale of Might.
+- Documents MG1E LOOSE inventory plus character-sheet Gear-space capacity; Foundry slot/container placement metadata remains preserved as presentation.
+- Generalizes the conversion-preview engine from Strict-only to generic source/target profiles.
+- Adds **Preview MG1E Conversion** to Rules Profile Management.
+- Expands World Impact scanning for rated/unrated Wises, Fresh/Afraid/Strained/Sick, Tokens of Power and profile CreationProvenance.
+- Removes stale M10A.9 profile-management presentation copy.
+- Strict Realm Guard supported activation remains unchanged.
+- No MG1E activation, no Actor/Item/Journal/world-setting mutation, and no automatic cleanup or migration are introduced.
+- Adds `qa/m10b-mg1e-preview-smoke.mjs`.
+- **v1.11.0 remains STABLE / GOLD.**
+
 ## v1.12.0-qa.1 - 🟡 M10B.1 Generic Profile Presentation & Rule Router
 
 - Starts **M10B — Mouse Guard 1E explicit profile** from the v1.11.0 STABLE / GOLD baseline.
