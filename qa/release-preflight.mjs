@@ -3,6 +3,7 @@ import {
   assertManifestReleaseContract,
   assertNoHistoricalVersionPins,
   assertNoProfileManagementCopyPins,
+  assertNoRetiredM10BBranchPins,
   readReleaseReady
 } from "./lib/release-contract.mjs";
 import { ProfileResolver } from "../module/core/rules-profile.mjs";
@@ -19,6 +20,7 @@ for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs
   const source = fs.readFileSync(`qa/${file}`, "utf8");
   assertNoHistoricalVersionPins(source, file);
   assertNoProfileManagementCopyPins(source, file);
+  assertNoRetiredM10BBranchPins(source, file);
 }
 
 const template = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
