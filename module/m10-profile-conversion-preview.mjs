@@ -117,7 +117,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
       preserveExistingActors:true,preserveWiseItems:true,preserveTalentItems:true,preserveInventoryMetadata:true,
       preserveConditionItems:true,preserveTokenOfPowerItems:true,preserveProgressionData:true
     },
-    nextStep: targetId===MG1E_TARGET_ID ? "M10B.2 MG1E preview only · activation remains OFF" : "Strict profile remains supported and reversible"
+    nextStep: targetId===MG1E_TARGET_ID ? "M10B.3 MG1E preview only · activation remains OFF" : "Strict profile remains supported and reversible"
   });
 }
 
@@ -155,7 +155,7 @@ export function profileConversionPreviewHtml(preview){
       <div><small>Current</small><br><b>${esc(preview.source.name)}</b><br><small>${esc(preview.source.rulesSnapshotHash)}</small></div>
       <div><small>Preview target</small><br><b>${esc(preview.target.name)}</b><br><small>${esc(preview.target.rulesSnapshotHash)}</small></div>
     </div>
-    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation is not available in M10B.2.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
+    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation is not available in M10B.3.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
     <section><h3>World impact scan</h3>${impact}</section>
     <section><h3>Profile deltas</h3><small>${preview.domainDiff.length} technical domain differences · ${preview.deltas.length} reviewed deltas.</small>${deltas}</section>
   </div>`;
