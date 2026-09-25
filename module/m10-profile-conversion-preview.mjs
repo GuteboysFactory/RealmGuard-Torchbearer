@@ -72,7 +72,13 @@ export function scanProfileWorldImpact(actors=[],worldItems=[]){
     rangersWithWises:refs.wises.filter(a=>a.type==="character").length,
     actorsWithWises:refs.wises.length,
     actorsWithTalents:refs.talents.length,
+    actorsWithProgressionData:rows.filter(actor => actor?.system?.progression && typeof actor.system.progression === "object").length,
+    actorsAboveLevelOne:counts.aboveLevelOne,
     actorsWithStructuredGear:refs.structuredGear.length,
+    actorsWithFreshOrAfraid:rows.filter(actor => {
+      const items=listItems(actor);
+      return conditionNamed(items,"fresh").length > 0 || conditionNamed(items,"afraid").length > 0;
+    }).length,
     actorsWithProfileSpecificConditions:refs.profileConditions.length,
     actorsWithLegacyCreationProvenance:refs.legacyCreation.length,
     actorsWithStrictCreationProvenance:refs.strictCreation.length,
