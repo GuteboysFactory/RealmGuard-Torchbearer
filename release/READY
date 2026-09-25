@@ -1,14 +1,11 @@
-1.12.0-qa.2
-# M10B.2 MG1E Source Manifest + Conversion Preview
-# M10B.1 live QA FULL PASS
-# MG1E profile v3 remains FOUNDATION_ONLY / non-selectable / non-live
-# Mouse Nature + Natural Order source ownership
-# Generic read-only conversion preview + expanded world-impact scan
-# Strict Realm Guard supported activation unchanged
-# No Actor/Item/Journal/world-setting writes
-# No automatic data cleanup or migration
-# Permanent release hardening: canonical version authority + semantic UI contracts + read-only preview preflight
-# Retrigger after preserving M10A world-impact compatibility aliases under generic preview scan
-# Retrigger after hardening Profile Management source-contract assertions
-# Retrigger after scoping Profile Management copy guard to rendered UI contracts
-# Retrigger after preserving historical release-contract PASS markers
+1.12.0-qa.3
+# M10B.3 Wises / Traits / Help / Nature Routing
+# M10B.2 live QA FULL PASS
+# MG1E profile v4 remains FOUNDATION_ONLY / non-selectable / non-live
+# generic MG1E-family Wises / Traits / Help / Nature policy
+# source-correct MG1E typed Teamwork matrix
+# profile-driven Nature labels/descriptors + Tap / Double-Tap Nature
+# Strict supported activation unchanged
+# Legacy Mixed compatibility behavior preserved
+# no automatic Actor/Item/Journal/world-setting conversion
+# canonical release-contract preflight remains mandatory
