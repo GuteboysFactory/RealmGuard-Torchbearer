@@ -4,14 +4,14 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 2,
+  version: 3,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
     profile: { activationState: "FOUNDATION_ONLY" },
     tests: { mode: "MG1E", ordinary: true, versus: true, beginnersLuck: true },
     abilities: { advancement: "PASS_FAIL" },
-    nature: { mode: "MG1E", descriptors: "PROFILE_OWNED", tax: true, tapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
+    nature: { mode: "MG1E", descriptors: ["Escaping", "Climbing", "Hiding", "Foraging"], tax: true, tapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
     traits: {
       mode: "MG1E",
       positiveTraitsPerTest: 1,
@@ -24,14 +24,15 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     resources: { fatePersona: "MG1E", fateTiming: "AFTER_ROLL_OPEN_SIXES", personaTiming: "BEFORE_ROLL", personaDiceMax: 3, tapNature: true },
     conditions: { set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"] },
     recovery: { order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"], oneRecoveryTestPerConditionPerTurn: true, gmTurnCheckCost: 2, hungrySkills: ["Harvester", "Cook", "Brewer", "Baker", "Resources"] },
-    inventory: { policy: "LOOSE", structuredPlacementAuthority: false },
+    inventory: { policy: "LOOSE", structuredPlacementAuthority: false, capacityMode: "CHARACTER_SHEET_GEAR_SPACE", preservePlacementAsPresentation: true },
     conflict: { mode: "MG1E", actionsPerExchange: 3, rotateParticipants: true, helpAllowed: true, toolScope: "EXCHANGE", unarmedDefaultDice: 0 },
     session: { mode: "MG1E", freePlayerTurnTests: 1, additionalTestCheckCost: 1, recoveryDuringGmTurnCheckCost: 2, endSession: "MG1E", embodimentMayAwardEveryone: false },
     circles: { mode: "MG1E", enmityClause: true },
     creation: { mode: "MG1E", liveAuthority: "NONE" },
     progression: { levels: false, talents: false },
     tokensOfPower: { enabled: false },
-    scaleOfMight: { enabled: false, mode: "NONE" }
+    naturalOrder: { enabled: true, mode: "MG1E", fighterHunterOutcomePolicy: true, militaristRule: true, scientistRule: true },
+    scaleOfMight: { enabled: false, mode: "NONE", replacedBy: "naturalOrder" }
   },
   registry: [
     ["PROFILE.IDENTITY","profile","Rules Profile","MOUSE GUARD 1E FOUNDATION","SOURCE FOUNDATION / NOT LIVE","INACTIVE"],
@@ -52,7 +53,8 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     ["CREATION.RECRUITMENT","creation","Character Creation","MG1E SOURCE FOUNDATION","INHERITED SOURCE RULE","INACTIVE"],
     ["PROGRESSION.LEVELS_TALENTS","progression","Levels / Talents","DISABLED / NOT PART OF MG1E","INHERITED SOURCE RULE","INACTIVE"],
     ["TOKENS_OF_POWER.MODE","tokensOfPower","Tokens of Power","NOT A BASE MG1E DOMAIN","NOT APPLICABLE","INACTIVE"],
-    ["SCALE_OF_MIGHT.MODE","scaleOfMight","Scale of Might","NOT A BASE MG1E DOMAIN","NOT APPLICABLE","INACTIVE"]
+    ["NATURAL_ORDER.MODE","naturalOrder","Natural Order","MG1E NATURAL ORDER · FIGHTER/HUNTER + MILITARIST/SCIENTIST","INHERITED SOURCE RULE","GUIDED"],
+    ["SCALE_OF_MIGHT.MODE","scaleOfMight","Scale of Might","NOT A BASE MG1E DOMAIN · NATURAL ORDER APPLIES","NOT APPLICABLE","INACTIVE"]
   ].map(([id, domain, title, activeValue, classification, automation]) => ({
     id, domain, title, activeValue, classification, automation,
     source: MG1E_SOURCE, sourceVersion: "2008 / 1E"
@@ -64,6 +66,9 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     activationState: "FOUNDATION_ONLY",
     sourceLineage: ["Mouse Guard RPG 2008 / 1E"],
     gameplayChangeIntended: false,
-    liveRuleAuthority: false
+    liveRuleAuthority: false,
+    conversionPreviewAvailable: true,
+    implementationPhase: "M10B.2",
+    nextStep: "M10B.2 Source Manifest + Conversion Preview QA"
   }
 });
