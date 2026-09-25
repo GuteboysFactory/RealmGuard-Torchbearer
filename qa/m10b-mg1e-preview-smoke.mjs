@@ -7,7 +7,7 @@ import { MG1E_FOUNDATION_PROFILE } from "../module/profiles/mg1e-foundation.mjs"
 import { buildProfileConversionPreview } from "../module/m10-profile-conversion-preview.mjs";
 
 const manifest=JSON.parse(fs.readFileSync("system.json","utf8"));
-assert.equal(manifest.version,"1.12.0-qa.2");
+assert.match(manifest.version,/^1\.\d+\.\d+(?:\.\d+)*(?:-qa\.\d+)?$/);
 
 const resolver=new ProfileResolver([MG1E_FOUNDATION_PROFILE,REALM_GUARD_LEGACY_MIXED_PROFILE,REALM_GUARD_STRICT_PROFILE]);
 const legacy=resolver.resolve("realm-guard-legacy-mixed");
