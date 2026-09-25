@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.1",
+    phase: "M10B.2",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -102,7 +102,8 @@ export function buildProfileCapabilities(profile) {
       inventory: {
         policy: inventoryPolicy,
         placementAuthority,
-        placementPresentationOnly: !placementAuthority
+        placementPresentationOnly: !placementAuthority,
+        capacityMode: text(d.inventory?.capacityMode, inventoryPolicy === "LOOSE" ? "PROFILE_DEFINED" : "STRUCTURED_PLACEMENT")
       },
       conflict: {
         mode: text(d.conflict?.mode, "PROFILE_DEFINED"),
@@ -115,6 +116,10 @@ export function buildProfileCapabilities(profile) {
       },
       tokensOfPower: {
         enabled: tokensOfPowerEnabled
+      },
+      naturalOrder: {
+        enabled: d.naturalOrder?.enabled === true,
+        mode: text(d.naturalOrder?.mode, "NONE")
       },
       scaleOfMight: {
         enabled: scaleOfMightEnabled,
@@ -132,6 +137,7 @@ export function buildProfileCapabilities(profile) {
       showLevels: levelsEnabled,
       showTalents: talentsEnabled,
       showTokensOfPower: tokensOfPowerEnabled,
+      showNaturalOrder: d.naturalOrder?.enabled === true,
       showScaleOfMight: scaleOfMightEnabled,
       conditionSetExplicit,
       visibleConditionNames: conditionNames,
