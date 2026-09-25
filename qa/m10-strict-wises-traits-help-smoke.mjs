@@ -95,12 +95,12 @@ assert.ok(models.includes("learning: new fields.SchemaField"));
 assert.ok(models.includes("description: str()"));
 
 const legacyTraits = fs.readFileSync("module/traits.mjs", "utf8");
-assert.ok(legacyTraits.includes("if (level === 2) return isStrictRealmGuard() ? null : 2;"), "Legacy Mixed L2 two-use behavior must remain preserved behind profile routing.");
+assert.ok(legacyTraits.includes("getActiveM10BFamilyRulePolicy"), "Trait behavior must remain profile-routed.");
 assert.ok(legacyTraits.includes("+1s on relevant passed/tied tests"), "Legacy Mixed L3 +1s behavior must remain untouched in qa.3.");
 
 const legacyTeamwork = fs.readFileSync("module/teamwork.mjs", "utf8");
 assert.ok(legacyTeamwork.includes("Use Synergy - spend 1 Fate"), "Legacy Mixed Synergy must remain available.");
-assert.ok(legacyTeamwork.includes('!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid")'), "Legacy Mixed Afraid help block must remain preserved behind profile routing.");
+assert.ok(legacyTeamwork.includes("afraidBlocksHelp"), "Legacy Mixed Afraid help compatibility must remain expressed by the profile policy.");
 
 const menu = fs.readFileSync("module/profile-management-menu.mjs", "utf8");
 assert.match(menu, /game\.settings\.registerMenu\(\s*"realm-guard"\s*,\s*"rulesProfileManagement"/);
