@@ -27,7 +27,7 @@ import {
   strictRewardProposal,
   strictSessionPolicy
 } from "./m10-strict-session-circles-progression.mjs";
-import { buildStrictConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
+import { buildMg1eConversionPreview, buildStrictConversionPreview, openMg1eConversionPreview, openStrictConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import {
   getStrictScaleStatus,
   strictFighterHunterOutcomePlan,
@@ -103,8 +103,8 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10A.9",
-    mode: "SUPPORTED_PROFILE_ACTIVATION_ROUTER",
+    phase: "M10B.2",
+    mode: "GENERIC_PROFILE_PREVIEW_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
     targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
@@ -126,7 +126,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: isStrictRealmGuard(),
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10A.9 Stable Activation Candidate · CLOSURE QA"
+    nextStep: "M10B.2 MG1E Source Manifest + Conversion Preview QA"
   });
 }
 
@@ -152,6 +152,29 @@ export function showStrictConversionPreview() {
   });
 }
 
+
+export function previewMg1eConversion() {
+  const active = getRulesProfileRuntime();
+  const mg1e = resolveRulesProfile("mg1e");
+  return buildMg1eConversionPreview({
+    fromProfile: active.profile,
+    toProfile: mg1e.profile,
+    actors: currentActors(),
+    worldItems: currentWorldItems()
+  });
+}
+
+export function showMg1eConversionPreview() {
+  const active = getRulesProfileRuntime();
+  const mg1e = resolveRulesProfile("mg1e");
+  return openMg1eConversionPreview({
+    fromState: active,
+    toState: mg1e,
+    actors: currentActors(),
+    worldItems: currentWorldItems()
+  });
+}
+
 export function installM10ProfileConversionPreview() {
   globalThis.Hooks?.once?.("ready", () => {
     globalThis.game.realmGuard ??= {};
@@ -164,6 +187,8 @@ export function installM10ProfileConversionPreview() {
       switchToLegacy: switchToLegacyMixed,
       previewStrictConversion,
       openStrictConversionPreview: showStrictConversionPreview,
+      previewMg1eConversion,
+      openMg1eConversionPreview: showMg1eConversionPreview,
       strict: Object.freeze({
         getStatus: getStrictWisesTraitsHelpStatus,
         wiseView: strictWiseView,
@@ -236,6 +261,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10A.9 supported Profile Activation router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.2 generic Profile Preview router ready", getM10ProfilePreviewStatus());
   });
 }
