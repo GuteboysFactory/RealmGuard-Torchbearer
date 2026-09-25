@@ -9,3 +9,4 @@
 # Legacy Mixed compatibility behavior preserved
 # no automatic Actor/Item/Journal/world-setting conversion
 # canonical release-contract preflight remains mandatory
+# Retrigger after semantic M10B regression hardening
