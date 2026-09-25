@@ -85,6 +85,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       automaticNpcCreation: false
     },
     tokensOfPower: { enabled: true, source: "REALM_GUARD_V1_6", levelSemantics: "MG1E_TRAIT_LEVELS" },
+    naturalOrder: { enabled: false, mode: "REPLACED_BY_REALM_GUARD_SCALE_OF_MIGHT", replacedBy: "scaleOfMight" },
     scaleOfMight: {
       enabled: true,
       mode: "REALM_GUARD_V1_6",
@@ -110,6 +111,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     { id: "PROGRESSION.LEVELS_TALENTS", domain: "progression", title: "Progression", activeValue: "MG1E PASS/FAIL ADVANCEMENT · LEVELS/TALENTS DISABLED", classification: "MG1E INHERITANCE", automation: "GUIDED", source: "Mouse Guard Roleplaying Game (2008 / 1E)", sourceVersion: "2008", overrideReason: "Strict Realm Guard preserves Legacy Mixed level/talent data but does not use it mechanically." },
     { id: "CREATION.RECRUITMENT", domain: "creation", title: "Character Creation", activeValue: "CORE M9 · STRICT REALM GUARD PROFILE · LIVE WHEN STRICT ACTIVE", classification: "REALM GUARD OVERRIDE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.9 routes CORE M9 to the Strict creation profile only while realm-guard-strict is the active world profile." },
     { id: "TOKENS_OF_POWER.MODE", domain: "tokensOfPower", title: "Tokens of Power", activeValue: "ENABLED · MG1E TRAIT-LEVEL SEMANTICS", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6" },
+    { id: "NATURAL_ORDER.MODE", domain: "naturalOrder", title: "Natural Order", activeValue: "REPLACED BY REALM GUARD SCALE OF MIGHT", classification: "REALM GUARD OVERRIDE", automation: "INACTIVE", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "Realm Guard replaces Mouse Guard Natural Order with its Scale of Might domain." },
     { id: "SCALE_OF_MIGHT.MODE", domain: "scaleOfMight", title: "Scale of Might", activeValue: "REALM GUARD v1.6 · RANKS 1-6 · MANUAL / GUIDED OUTCOME PLANNING", classification: "REALM GUARD RULE", automation: "GUIDED", source: RG_SOURCE, sourceVersion: "1.6", overrideReason: "M10A.7 adds source-backed read-only rank/outcome, Militarist and Lore Master planning. Token applicability remains a table call; live conflict application is still off." }
   ],
   metadata: {
