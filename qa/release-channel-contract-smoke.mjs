@@ -25,8 +25,10 @@ for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs
   const source = fs.readFileSync(`qa/${file}`, "utf8");
   const exactLiteral = /manifest\.version[\s\S]{0,120}["'`]\d+\.\d+\.\d+-qa\.\d+["'`]/;
   const exactRegex = /manifest\.version[^\n]*-qa\\\.\d+(?!\+|\\d)/;
+  const pinnedMinorLine = source.split(/\\r?\\n/).some(line => line.includes("manifest.version") && /\\^1\\\\\.(?!\\\\d\\+)/.test(line));
   assert.equal(exactLiteral.test(source), false, `${file} pins manifest.version to one exact QA build.`);
   assert.equal(exactRegex.test(source), false, `${file} contains an exact QA-number manifest regex.`);
+  assert.equal(pinnedMinorLine, false, `${file} pins manifest.version to a closed 1.x minor-version list.`);
 }
 
 console.log("PASS release-channel contract · gated qa/stable manifests · no exact QA version pins");
