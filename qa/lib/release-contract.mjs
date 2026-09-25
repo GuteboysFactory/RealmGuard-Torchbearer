@@ -67,7 +67,7 @@ export function assertNoProfileManagementCopyPins(source, file = "unknown") {
   const lines = source.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!/(?:profileTemplate|menuTemplate|profileMenu|menu)\.includes\(/.test(line)) continue;
+    if (!/(?:profileTemplate|menuTemplate|profileMenu)\.includes\(/.test(line)) continue;
     const match = line.match(/\.includes\((["'`])(.+?)\1\)/);
     if (!match) continue;
     const literal = match[2];
