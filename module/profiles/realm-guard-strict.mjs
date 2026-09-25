@@ -11,7 +11,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
   classification: "STRICT PROFILE / SUPPORTED",
   domains: {
     profile: { activationState: "SUPPORTED" },
-    nature: { mode: "MG1E_WITH_REALM_GUARD_OVERRIDES", descriptors: ["Tradition", "Family", "Grief"] },
+    nature: { mode: "MG1E_WITH_REALM_GUARD_OVERRIDES", label: "Nature", descriptors: ["Tradition", "Family", "Grief"] },
     conditions: {
       mode: "REALM_GUARD_STRICT",
       set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"],
