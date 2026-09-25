@@ -2,6 +2,18 @@
 
 ## v1.12.0-qa.2 - 🟡 M10B.2 MG1E Source Manifest + Conversion Preview
 
+### Release/QA hardening
+
+- Adds one canonical release-version contract in `qa/lib/release-contract.mjs`.
+- Adds `qa/release-preflight.mjs`, executed before the historical regression suite.
+- Release preflight rejects exact QA pins and closed minor-version lists in historical smoke tests.
+- Profile Management regression tests now use semantic `data-rg-contract` markers instead of human-facing copy.
+- Release preflight verifies required Profile Management contract markers.
+- All Conversion Preview objects are permanently READ ONLY with `activationAllowed: false`; activation remains a separate explicit router action.
+- `release/READY`, `system.json`, channel URL and download URL are validated as one release contract before packaging.
+- These guards are intended to prevent future 1.x version bumps or harmless UI wording changes from blocking channel promotion for the same reasons seen during qa.1/qa.2.
+
+
 - Marks **M10B.1 = FULL PASS** after Foundry VTT 13.351 live verification.
 - Advances the internal Mouse Guard 1E foundation to profile v3 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
 - Makes Mouse Nature descriptors explicit: Escaping, Climbing, Hiding and Foraging.
