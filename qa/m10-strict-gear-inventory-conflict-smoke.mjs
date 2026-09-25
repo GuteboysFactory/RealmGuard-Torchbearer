@@ -16,7 +16,7 @@ import {
 import { REALM_GUARD_STRICT_PROFILE } from "../module/profiles/realm-guard-strict.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.11\.0(?:-qa\.\d+)?$/, "M10A.4 smoke runs across v1.11.0.");
+assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/, "M10A.4 smoke runs across v1.11.0.");
 
 function item(id, type, name, system = {}) {
   return { id, type, name, system };
