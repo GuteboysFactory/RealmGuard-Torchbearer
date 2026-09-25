@@ -99,7 +99,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
     phase:"M10B.2",
     mode:"READ_ONLY",
     readOnly:true,
-    activationAllowed:targetId===STRICT_TARGET_ID,
+    activationAllowed:false,
     writesPlanned:0,
     source:{id:fromProfile.id,version:fromProfile.version,name:fromProfile.name,rulesSnapshotHash:fromProfile.rulesSnapshotHash},
     target:{id:toProfile.id,version:toProfile.version,name:toProfile.name,rulesSnapshotHash:toProfile.rulesSnapshotHash,lineage:clone(toProfile.metadata?.sourceLineage??toProfile.lineage??[])},
