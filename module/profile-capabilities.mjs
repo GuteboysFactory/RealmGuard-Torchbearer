@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.2",
+    phase: "M10B.3",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -92,7 +92,17 @@ export function buildProfileCapabilities(profile) {
         iAmWise: bool(d.help?.iAmWise, !legacyHelp),
         synergyEnabled: bool(d.help?.synergy, legacyHelp),
         helperConsequences: bool(d.help?.helperConsequences, !legacyHelp),
-        afraidBlocksHelp: bool(d.help?.afraidBlocksHelp, legacyHelp)
+        afraidBlocksHelp: bool(d.help?.afraidBlocksHelp, legacyHelp),
+        sourcePolicy: text(d.help?.sourcePolicy, legacyHelp ? "LEGACY_OPEN" : "PROFILE_DEFINED").toUpperCase()
+      },
+      nature: {
+        mode: text(d.nature?.mode, "PROFILE_DEFINED"),
+        descriptors: Array.isArray(d.nature?.descriptors) ? [...d.nature.descriptors] : [],
+        label: text(d.nature?.label, profile.id === "mg1e" ? "Nature (Mouse)" : "Nature"),
+        tax: d.nature?.tax === true,
+        tapNature: d.nature?.tapNature === true,
+        doubleTapNature: d.nature?.doubleTapNature === true,
+        tapExcludedAbilities: Array.isArray(d.nature?.tapExcludedAbilities) ? [...d.nature.tapExcludedAbilities] : []
       },
       conditions: {
         mode: text(d.conditions?.mode, conditionSetExplicit ? "PROFILE_SET" : "LEGACY_CURRENT"),
