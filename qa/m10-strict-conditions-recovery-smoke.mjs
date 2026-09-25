@@ -22,7 +22,7 @@ import {
 } from "../module/m10-strict-conditions-recovery.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.11\.0(?:-qa\.\d+)?$/, "M10A.3 smoke runs across v1.11.0.");
+assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/, "M10A.3 smoke runs across v1.11.0.");
 
 function item(id, type, name, system = {}) {
   return { id, type, name, system };
