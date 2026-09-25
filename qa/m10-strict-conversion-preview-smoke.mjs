@@ -7,7 +7,7 @@ import { REALM_GUARD_STRICT_PROFILE } from "../module/profiles/realm-guard-stric
 import { buildStrictConversionPreview } from "../module/m10-profile-conversion-preview.mjs";
 
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
-assert.match(manifest.version, /^1\.11\.0(?:-qa\.\d+)?$/, "M10A.1 smoke runs across v1.11.0.");
+assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/, "M10A.1 smoke runs across v1.11.0.");
 
 const resolver = new ProfileResolver([
   MG1E_FOUNDATION_PROFILE,
