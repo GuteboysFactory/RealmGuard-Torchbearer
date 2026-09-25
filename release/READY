@@ -9,3 +9,4 @@
 # No automatic data cleanup or migration
 # Permanent release hardening: canonical version authority + semantic UI contracts + read-only preview preflight
 # Retrigger after preserving M10A world-impact compatibility aliases under generic preview scan
+# Retrigger after hardening Profile Management source-contract assertions
