@@ -27,6 +27,8 @@ globalThis.Hooks = { callAll:()=>{} };
 const activation = await import("../module/m10-profile-activation.mjs");
 const { REALM_GUARD_STRICT_PROFILE } = await import("../module/profiles/realm-guard-strict.mjs");
 const { resolveRulesProfile } = await import("../module/rules-profile-service.mjs");
+const { buildProfileCapabilities } = await import("../module/profile-capabilities.mjs");
+const { buildM10BFamilyRulePolicy } = await import("../module/m10b-family-rules.mjs");
 
 assert.equal(REALM_GUARD_STRICT_PROFILE.version, 10);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, "M10A.9");
@@ -111,9 +113,15 @@ assert.ok(progression.includes("!isStrictRealmGuard()"), "Level/Talent progressi
 assert.ok(progression.includes("strictProgressionSuppressed"));
 
 const teamwork = fs.readFileSync("module/teamwork.mjs","utf8");
-assert.ok(teamwork.includes("Teamwork - Wises"));
-assert.ok(teamwork.includes("!isStrictRealmGuard() && synergy"));
-assert.ok(teamwork.includes("rating: isStrictRealmGuard() ? Number(item.system?.rating"));
+const strictFamily = buildM10BFamilyRulePolicy(buildProfileCapabilities(resolveRulesProfile("realm-guard-strict").profile));
+const legacyFamily = buildM10BFamilyRulePolicy(buildProfileCapabilities(resolveRulesProfile("realm-guard-legacy-mixed").profile));
+assert.equal(strictFamily.ratedWises, true);
+assert.equal(strictFamily.helperSourcePolicy, "MG1E_TYPED");
+assert.equal(strictFamily.synergyEnabled, false);
+assert.equal(legacyFamily.ratedWises, false);
+assert.equal(legacyFamily.helperSourcePolicy, "LEGACY_OPEN");
+assert.equal(legacyFamily.synergyEnabled, true);
+assert.ok(teamwork.includes("getActiveM10BFamilyRulePolicy"), "Teamwork must route through the generic profile policy.");
 
 const conditions = fs.readFileSync("module/conditions.mjs","utf8");
 assert.ok(conditions.includes("strictConditionRollEffects"));
@@ -122,7 +130,7 @@ assert.ok(conditions.includes('["fresh","afraid"]'));
 assert.ok(conditions.includes('role("Harvester"') === false, "Harvester ownership belongs to Strict recovery policy, not duplicated Legacy constants.");
 
 const documents = fs.readFileSync("module/documents.mjs","utf8");
-assert.ok(documents.includes("ratedStrictWise"));
+assert.ok(documents.includes("getActiveM10BFamilyRulePolicy"), "Wises/Traits roll logic must route through generic profile policy.");
 assert.ok(documents.includes("wiseDice"));
 assert.ok(documents.includes("traitPoolDice"), "Strict roll presentation must keep Trait dice separate from I Am Wise dice.");
 assert.ok(documents.includes('["I Am Wise", signedDice(assist.wiseDice)]') || documents.includes('["I Am Wise",signedDice(assist.wiseDice)]'), "Strict roll breakdown must label own Wise bonus as I Am Wise.");
@@ -130,8 +138,9 @@ assert.ok(documents.includes("traitRerollFaces"));
 assert.ok(documents.includes("consumeTraitPositiveUse(this, trait)"));
 
 const traits = fs.readFileSync("module/traits.mjs","utf8");
-assert.ok(traits.includes("isStrictRealmGuard() && level === 2"));
-assert.ok(traits.includes("isStrictRealmGuard() && level === 3"));
+assert.ok(traits.includes("getActiveM10BFamilyRulePolicy"), "Trait semantics must route through generic profile policy.");
+assert.equal(strictFamily.mg1eTraits, true);
+assert.equal(legacyFamily.mg1eTraits, false);
 
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs","utf8");
 const itemSheet = fs.readFileSync("sheets/item-sheet.mjs","utf8");
