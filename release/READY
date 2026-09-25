@@ -5,3 +5,4 @@
 # MG1E remains FOUNDATION_ONLY / non-selectable / non-live
 # No Actor/Item/Journal/world-setting writes
 # No profile data cleanup or destructive conversion
+# Retrigger after future-proof Canvas Quick NPC version guard hotfix
