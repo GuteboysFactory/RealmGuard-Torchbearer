@@ -32,27 +32,17 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
-          node <<'NODE'
-          const fs = require('fs');
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { assertManifestReleaseContract, readReleaseReady } from './qa/lib/release-contract.mjs';
+
           const manifest = JSON.parse(fs.readFileSync('system.json', 'utf8'));
           const required = ['id', 'title', 'version', 'compatibility', 'esmodules', 'styles', 'languages', 'manifest', 'download'];
           for (const key of required) {
             if (manifest[key] == null) throw new Error(`Manifest missing required field: ${key}`);
           }
           if (manifest.id !== 'realm-guard') throw new Error(`Unexpected system id: ${manifest.id}`);
-          if (!/^\d+\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/.test(manifest.version)) {
-            throw new Error(`Unexpected release version: ${manifest.version}`);
-          }
-
-          const channel = manifest.version.includes('-') ? 'qa' : 'stable';
-          const expectedManifest = `https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/${channel}/system.json`;
-          const expectedDownload = `https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/download/${manifest.version}/realm-guard.zip`;
-          if (manifest.manifest !== expectedManifest) {
-            throw new Error(`Candidate manifest must use gated ${channel} channel: ${expectedManifest}`);
-          }
-          if (manifest.download !== expectedDownload) {
-            throw new Error(`Download URL does not match candidate ${manifest.version}: ${manifest.download}`);
-          }
+          assertManifestReleaseContract(manifest, { readyVersion: readReleaseReady() });
 
           const runtimeFiles = [
             ...(manifest.esmodules || []),
@@ -68,6 +58,9 @@ jobs:
             JSON.parse(fs.readFileSync(language.path, 'utf8'));
           }
           NODE
+
+          # Permanent contract preflight runs before historical regression smokes.
+          node qa/release-preflight.mjs
 
           node --check realm-guard.mjs
           find module sheets -type f -name '*.mjs' -print0 | while IFS= read -r -d '' file; do
