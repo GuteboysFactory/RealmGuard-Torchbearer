@@ -4,6 +4,7 @@ import {
   assertManifestReleaseContract,
   assertNoHistoricalVersionPins,
   assertNoProfileManagementCopyPins,
+  assertNoRetiredM10BBranchPins,
   expectedDownloadUrl,
   expectedManifestUrl,
   QA_VERSION_PATTERN,
@@ -31,6 +32,7 @@ for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs
   const source = fs.readFileSync(`qa/${file}`, "utf8");
   assertNoHistoricalVersionPins(source, file);
   assertNoProfileManagementCopyPins(source, file);
+  assertNoRetiredM10BBranchPins(source, file);
 }
 
 console.log("PASS release-channel contract · gated qa/stable manifests · no exact QA version pins · canonical version authority · no historical minor-version pins · no Profile Management copy pins");
