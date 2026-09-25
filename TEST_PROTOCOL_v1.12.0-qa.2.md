@@ -1,6 +1,6 @@
 # v1.12.0-qa.2 — M10B.2 MG1E Source Manifest + Conversion Preview
 
-**QA RESULT:** ⏳ PENDING LIVE QA  
+**QA RESULT:** 🟢✅ FULL PASS — Foundry VTT 13.351  
 **Foundry target:** 13.351  
 **GOLD fallback:** v1.11.0  
 **MG1E activation:** OFF / FOUNDATION_ONLY  
