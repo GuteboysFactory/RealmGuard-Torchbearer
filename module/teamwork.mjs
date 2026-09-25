@@ -1,5 +1,5 @@
 import { hasActiveCondition } from "./conditions.mjs";
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { getActiveM10BFamilyRulePolicy, allowedHelperKindsForTest, helperSourceAllowedForTest } from "./m10b-family-rules.mjs";
 
 const NS = "realm-guard";
 const CHANNEL = `system.${NS}`;
@@ -34,8 +34,10 @@ function userOwnsActor(actor, user) {
   return Number(ownership[user.id] ?? ownership.default ?? 0) >= ownerLevel();
 }
 
-function helperSources(actor) {
+function helperSources(actor, testKind = "") {
   if (!actor || actor.type !== "character") return [];
+  const policy = getActiveM10BFamilyRulePolicy();
+  const allowedKinds = new Set(allowedHelperKindsForTest(testKind, policy));
   const attributes = actor.system?.attributes ?? {};
   return [
     ...actor.items
@@ -51,17 +53,18 @@ function helperSources(actor) {
       .filter(source => source.rating > 0),
     ...actor.items
       .filter(item => item.type === "wise")
-      .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: isStrictRealmGuard() ? Number(item.system?.rating ?? 0) : 0 }))
-      .filter(source => !isStrictRealmGuard() || source.rating > 0)
-  ];
+      .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: policy.ratedWises ? Number(item.system?.rating ?? 0) : 0 }))
+      .filter(source => !policy.ratedWises || source.rating > 0)
+  ].filter(source => allowedKinds.has(source.kind));
 }
 
-export function helperEligibility(actor, { excludedActorIds = [], allowedActorIds = [] } = {}) {
+export function helperEligibility(actor, { excludedActorIds = [], allowedActorIds = [], testKind = "" } = {}) {
   if (!actor || actor.type !== "character") return { ok:false, reason:"Not an eligible Ranger." };
   if ((excludedActorIds ?? []).includes(actor.id)) return { ok:false, reason:"This Ranger is already taking the action." };
   if (Array.isArray(allowedActorIds) && allowedActorIds.length && !allowedActorIds.includes(actor.id)) return { ok:false, reason:"Not participating in this Conflict." };
-  if (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid")) return { ok:false, reason:"Afraid — this Condition prevents the Ranger from helping." };
-  if (!helperSources(actor).length) return { ok:false, reason:"No legal Help source is currently available." };
+  const policy = getActiveM10BFamilyRulePolicy();
+  if (policy.afraidBlocksHelp && hasActiveCondition(actor, "Afraid")) return { ok:false, reason:"Afraid — this Condition prevents the Ranger from helping." };
+  if (!helperSources(actor, testKind).length) return { ok:false, reason:"No legal Help source is currently available for this test type." };
   return { ok:true, reason:"Available" };
 }
 
@@ -70,8 +73,8 @@ function ownedCandidateActors(user, excludedActorIds = [], allowedActorIds = [])
   return game.actors.contents.filter(actor => actor.type === "character" && userOwnsActor(actor,user) && (!allowed.size || allowed.has(actor.id)) && !(excludedActorIds ?? []).includes(actor.id));
 }
 
-function validHelperActorsForUser(user, excludedActorIds = [], allowedActorIds = []) {
-  return ownedCandidateActors(user, excludedActorIds, allowedActorIds).filter(actor => helperEligibility(actor,{excludedActorIds,allowedActorIds}).ok);
+function validHelperActorsForUser(user, excludedActorIds = [], allowedActorIds = [], testKind = "") {
+  return ownedCandidateActors(user, excludedActorIds, allowedActorIds).filter(actor => helperEligibility(actor,{excludedActorIds,allowedActorIds,testKind}).ok);
 }
 
 export function teamworkAvailability(sessionId) {
@@ -79,7 +82,7 @@ export function teamworkAvailability(sessionId) {
   return game.users.contents.flatMap(user => {
     if(!user.active || user.id===game.user.id || user.isGM) return [];
     return ownedCandidateActors(user,session.excludedActorIds,session.allowedActorIds).map(actor => {
-      const eligibility=helperEligibility(actor,{excludedActorIds:session.excludedActorIds,allowedActorIds:session.allowedActorIds});
+      const eligibility=helperEligibility(actor,{excludedActorIds:session.excludedActorIds,allowedActorIds:session.allowedActorIds,testKind:session.testKind});
       return { userId:user.id, userName:user.name, actorId:actor.id, actorName:actor.name, ...eligibility };
     });
   });
@@ -89,7 +92,7 @@ function activeHelperTargets(session) {
   return game.users.contents.flatMap(user => {
     if (!user.active || user.id === game.user.id || user.isGM) return [];
     if (session.acceptedByUser.has(user.id)) return [];
-    const actors = validHelperActorsForUser(user, session.excludedActorIds, session.allowedActorIds);
+    const actors = validHelperActorsForUser(user, session.excludedActorIds, session.allowedActorIds, session.testKind);
     if (!actors.length) return [];
     return [{ user, actorIds: actors.map(actor => actor.id) }];
   });
@@ -97,7 +100,9 @@ function activeHelperTargets(session) {
 
 function sourceStillValid(entry) {
   const actor = game.actors.get(entry.actorId);
-  if (!actor || (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid"))) return false;
+  const policy = getActiveM10BFamilyRulePolicy();
+  if (!actor || (policy.afraidBlocksHelp && hasActiveCondition(actor, "Afraid"))) return false;
+  if (!helperSourceAllowedForTest(entry.sourceKind, entry.testKind ?? "", policy)) return false;
   if (entry.sourceKind === "Skill") {
     const item = actor.items.get(entry.sourceId);
     return Boolean(item?.type === "role" && Number(item.system?.rating ?? 0) > 0);
@@ -108,7 +113,7 @@ function sourceStillValid(entry) {
     const rating = Number(key === "nature" ? attributes.nature?.value : attributes[key]?.value ?? 0);
     return ABILITIES.includes(key) && rating > 0;
   }
-  if (entry.sourceKind === "Wise") return actor.items.get(entry.sourceId)?.type === "wise";
+  if (entry.sourceKind === "Wise") { const wise=actor.items.get(entry.sourceId); return Boolean(wise?.type === "wise" && (!policy.ratedWises || Number(wise.system?.rating ?? 0) > 0)); }
   return false;
 }
 
@@ -120,11 +125,11 @@ function renderRequesterSession(sessionId) {
   const session = sessions.get(sessionId);
   const root = requesterRoot(sessionId);
   if (!session || !root) return;
-  const accepted = [...session.accepted.values()].filter(sourceStillValid);
+  const accepted = [...session.accepted.values()].map(entry => ({...entry,testKind:session.testKind})).filter(sourceStillValid);
   const summary = root.querySelector("[data-rg-help-summary]");
   if (summary) {
     summary.innerHTML = accepted.length
-      ? accepted.map(entry => `<div class="rg-teamwork-accepted"><i class="fa-solid fa-handshake"></i><span><b>${esc(entry.actorName)}</b> - ${entry.sourceKind === "Wise" ? (isStrictRealmGuard() ? "Teamwork Wise: " : "I Am Wise: ") : ""}${esc(entry.sourceName)}</span><strong>+1D</strong>${entry.synergy ? `<span class="rg-teamwork-synergy-tag">Synergy</span>` : ""}</div>`).join("")
+      ? accepted.map(entry => `<div class="rg-teamwork-accepted"><i class="fa-solid fa-handshake"></i><span><b>${esc(entry.actorName)}</b> - ${entry.sourceKind === "Wise" ? (getActiveM10BFamilyRulePolicy().ratedWises ? "Teamwork Wise: " : "I Am Wise: ") : ""}${esc(entry.sourceName)}</span><strong>+1D</strong>${entry.synergy ? `<span class="rg-teamwork-synergy-tag">Synergy</span>` : ""}</div>`).join("")
       : `<span class="rg-muted">No Help accepted yet.</span>`;
   }
   const status = root.querySelector("[data-rg-help-request-status]");
@@ -137,13 +142,14 @@ function renderRequesterSession(sessionId) {
   if (button) button.innerHTML = accepted.length ? `<i class="fa-solid fa-handshake-angle"></i> Ask for more Help` : `<i class="fa-solid fa-handshake-angle"></i> Ask for Help`;
 }
 
-export function createTeamworkSession({ requesterActorId, testName = "Test", excludedActorIds = [], allowedActorIds = [] } = {}) {
+export function createTeamworkSession({ requesterActorId, testName = "Test", testKind = "", excludedActorIds = [], allowedActorIds = [] } = {}) {
   const sessionId = foundry.utils.randomID();
   sessions.set(sessionId, {
     sessionId,
     requesterUserId: game.user.id,
     requesterActorId,
     testName,
+    testKind: String(testKind ?? ""),
     excludedActorIds: [...new Set([requesterActorId, ...excludedActorIds].filter(Boolean))],
     allowedActorIds: [...new Set((allowedActorIds ?? []).filter(Boolean))],
     accepted: new Map(),
@@ -158,7 +164,7 @@ export function createTeamworkSession({ requesterActorId, testName = "Test", exc
 export function teamworkEntries(sessionId) {
   const session = sessions.get(sessionId);
   if (!session) return [];
-  return [...session.accepted.values()].filter(sourceStillValid).map(entry => ({
+  return [...session.accepted.values()].map(entry => ({...entry,testKind:session.testKind})).filter(sourceStillValid).map(entry => ({
     actorId: entry.actorId,
     actorName: entry.actorName,
     sourceId: entry.sourceId,
@@ -197,6 +203,7 @@ export function askForTeamwork(sessionId) {
       requesterActorId: session.requesterActorId,
       requesterActorName: requesterActor?.name ?? "Ranger",
       testName: session.testName,
+      testKind: session.testKind,
       targetUserId: target.user.id,
       helperActorIds: target.actorIds,
       excludedActorIds: session.excludedActorIds,
@@ -246,10 +253,10 @@ function openHelperRequest(message) {
   if (document.querySelector(`[data-rg-teamwork-helper="${CSS.escape(message.requestId)}"]`)) return;
   helperDialogs.delete(message.requestId);
   const allowed = new Set(message.helperActorIds ?? []);
-  const actors = validHelperActorsForUser(game.user, message.excludedActorIds ?? [], message.allowedActorIds ?? []).filter(actor => allowed.has(actor.id));
+  const actors = validHelperActorsForUser(game.user, message.excludedActorIds ?? [], message.allowedActorIds ?? [], message.testKind ?? "").filter(actor => allowed.has(actor.id));
   if (!actors.length) return;
 
-  const sourceMap = new Map(actors.map(actor => [actor.id, helperSources(actor)]));
+  const sourceMap = new Map(actors.map(actor => [actor.id, helperSources(actor, message.testKind ?? "")]));
   const actorOptions = actors.map(actor => `<option value="${actor.id}">${esc(actor.name)}</option>`).join("");
   const initialActor = actors[0];
   const sourceOptions = actor => {
@@ -257,7 +264,7 @@ function openHelperRequest(message) {
     return ["Skill", "Ability", "Wise"].map(kind => {
       const rows = sources.filter(source => source.kind === kind);
       if (!rows.length) return "";
-      const label = kind === "Wise" ? (isStrictRealmGuard() ? "Teamwork - Wises" : "I Am Wise - Wises") : `Normal Help - ${kind}s`;
+      const label = kind === "Wise" ? (getActiveM10BFamilyRulePolicy().ratedWises ? "Teamwork - Wises" : "I Am Wise - Wises") : `Normal Help - ${kind}s`;
       return `<optgroup label="${label}">${rows.map(source => `<option value="${source.kind}|${source.id}">${esc(source.name)}${source.rating ? ` ${source.rating}` : ""}</option>`).join("")}</optgroup>`;
     }).join("");
   };
@@ -266,9 +273,9 @@ function openHelperRequest(message) {
     <div class="rg-teamwork-request-head"><div class="rg-custom-chat-tag">HELP REQUEST</div><h2>${esc(message.requesterActorName)} asks for Help</h2><p><b>Test:</b> ${esc(message.testName)}</p></div>
     ${actors.length > 1 ? `<label>Help as <select data-helper-actor>${actorOptions}</select></label>` : `<p class="rg-teamwork-helper-name"><b>${esc(initialActor.name)}</b></p>`}
     <label>How will you help?<select data-helper-source>${sourceOptions(initialActor)}</select></label>
-    <div class="rg-teamwork-source-help" data-helper-source-help>${isStrictRealmGuard() ? "Choose an appropriate trained Skill, Ability or rated Wise for Teamwork. I Am Wise is reserved for the acting Ranger\'s own Wise." : "Choose an appropriate trained Skill or Ability for normal Help, or a relevant Wise for I Am Wise."}</div>
+    <div class="rg-teamwork-source-help" data-helper-source-help>${getActiveM10BFamilyRulePolicy().helperSourcePolicy === "MG1E_TYPED" ? (String(message.testKind)==="Ability" ? "Ability tests are helped by an appropriate Ability. I Am Wise remains the acting character\'s own Wise." : "Skill/Wise tests are helped by an appropriate Skill or rated Wise. I Am Wise remains the acting character\'s own Wise.") : "Choose an appropriate trained Skill or Ability for normal Help, or a relevant Wise for I Am Wise."}</div>
     <label>How do you help? <textarea rows="3" data-helper-note placeholder="Optional — describe what your Ranger does, especially useful without voice chat."></textarea></label>
-    ${isStrictRealmGuard() ? "" : `<label class="rg-teamwork-request-synergy"><input type="checkbox" data-helper-synergy> <span><b>Use Synergy - spend 1 Fate</b><small data-helper-synergy-note></small></span></label>`}
+    ${getActiveM10BFamilyRulePolicy().synergyEnabled ? `<label class="rg-teamwork-request-synergy"><input type="checkbox" data-helper-synergy> <span><b>Use Synergy - spend 1 Fate</b><small data-helper-synergy-note></small></span></label>` : ""}
     <div class="rg-teamwork-request-actions"><button type="button" data-helper-accept><i class="fa-solid fa-handshake"></i> Help +1D</button><button type="button" data-helper-decline><i class="fa-solid fa-xmark"></i> Decline</button></div>
     <small>You can answer while ${esc(message.requesterActorName)} continues preparing the roll. Helper Traits are not used for Teamwork.</small>
   </div>`;
@@ -323,9 +330,9 @@ function openHelperRequest(message) {
       const actor = currentActor();
       const source = currentSource();
       if (!source) return ui.notifications.warn("Realm Guard: Choose how this Ranger is helping first.");
-      const legality = helperEligibility(actor,{excludedActorIds:message.excludedActorIds ?? [],allowedActorIds:message.allowedActorIds ?? []});
+      const legality = helperEligibility(actor,{excludedActorIds:message.excludedActorIds ?? [],allowedActorIds:message.allowedActorIds ?? [],testKind:message.testKind ?? ""});
       if(!legality.ok) return ui.notifications.warn(`Realm Guard: ${actor.name} cannot Help: ${legality.reason}`);
-      const useSynergy = Boolean(!isStrictRealmGuard() && synergy?.checked && !synergy?.disabled && ["Skill", "Ability"].includes(source.kind));
+      const useSynergy = Boolean(getActiveM10BFamilyRulePolicy().synergyEnabled && synergy?.checked && !synergy?.disabled && ["Skill", "Ability"].includes(source.kind));
       const note=String(root.querySelector("[data-helper-note]")?.value ?? "").trim();
       sendHelperResponse(message, {
         actorId: actor.id,
@@ -333,6 +340,7 @@ function openHelperRequest(message) {
         sourceId: source.id,
         sourceKind: source.kind,
         sourceName: source.name,
+        testKind: String(message.testKind ?? ""),
         dice: 1,
         synergy: useSynergy,
         note,
@@ -383,13 +391,14 @@ function receiveResponse(message) {
   const session = sessions.get(message.requestId);
   if (!session) return;
   const actor = game.actors.get(message.actorId);
-  if (!actor || (!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid"))) return;
+  if (!actor || (getActiveM10BFamilyRulePolicy().afraidBlocksHelp && hasActiveCondition(actor, "Afraid"))) return;
   const entry = {
     actorId: message.actorId,
     actorName: message.actorName ?? actor.name,
     sourceId: message.sourceId,
     sourceKind: message.sourceKind,
     sourceName: message.sourceName,
+    testKind: String(message.testKind ?? session.testKind ?? ""),
     dice: 1,
     synergy: Boolean(message.synergy),
     note: String(message.note ?? ""),
