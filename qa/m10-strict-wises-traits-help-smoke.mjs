@@ -109,10 +109,10 @@ assert.ok(menu.includes("switchToStrictRealmGuard"));
 assert.ok(menu.includes("switchToLegacyMixed"));
 assert.ok(menu.includes('phase: "M10A.9"'));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
-assert.ok(menuTemplate.includes("Preview Strict Conversion"));
-assert.ok(menuTemplate.includes("Switch to Strict Realm Guard"));
-assert.ok(menuTemplate.includes('data-action="switchStrict"'));
-assert.ok(menuTemplate.includes('data-action="switchLegacy"'));
+assert.ok(menuTemplate.includes('data-rg-contract="profile-preview-strict"'));
+assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-strict"'));
+assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-strict"'));
+assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-legacy"'));
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileId"'), false);
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileVersion"'), false);
 
