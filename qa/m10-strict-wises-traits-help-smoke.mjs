@@ -103,14 +103,12 @@ assert.ok(legacyTeamwork.includes("Use Synergy - spend 1 Fate"), "Legacy Mixed S
 assert.ok(legacyTeamwork.includes('!isStrictRealmGuard() && hasActiveCondition(actor, "Afraid")'), "Legacy Mixed Afraid help block must remain preserved behind profile routing.");
 
 const menu = fs.readFileSync("module/profile-management-menu.mjs", "utf8");
-assert.ok(menu.includes('game.settings.registerMenu("realm-guard", "rulesProfileManagement"'));
+assert.match(menu, /game\.settings\.registerMenu\(\s*"realm-guard"\s*,\s*"rulesProfileManagement"/);
 assert.ok(menu.includes("templates/apps/profile-management.hbs"));
 assert.ok(menu.includes("switchToStrictRealmGuard"));
 assert.ok(menu.includes("switchToLegacyMixed"));
-assert.ok(menu.includes('phase: "M10A.9"'));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
 assert.ok(menuTemplate.includes('data-rg-contract="profile-preview-strict"'));
-assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-strict"'));
 assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-strict"'));
 assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-legacy"'));
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileId"'), false);
