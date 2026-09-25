@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.2 — 🟡 M10B.2 MG1E Source Manifest + Conversion Preview  
+**Current QA build:** v1.12.0-qa.3 — 🟡 M10B.3 Wises / Traits / Help / Nature Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.2 — MG1E source ownership + read-only conversion preview  
+**Current CORE gate:** M10B.3 — generic MG1E-family Wises / Traits / Help / Nature routing  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,9 +186,11 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — v1.12.0-qa.2 advances to MG1E source ownership and read-only conversion preview. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — v1.12.0-qa.3 migrates Wises, Traits, Help and Nature away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
+
+**M10B.2 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. MG1E profile v3 source ownership, Mouse Nature, Natural Order, LOOSE inventory metadata and generic READ ONLY conversion preview were verified; writes remained 0, MG1E remained non-selectable, and Legacy Mixed live regression passed.
 
 **M10B.2 scope:**
 - advance MG1E foundation to profile v3
@@ -208,7 +210,25 @@ qa.1 foundation scope:
 
 **Locked profile-switch principle:** profiles change rule authority and presentation, not campaign-data ownership. Profile-specific data may be hidden/inactive but is not deleted merely because another profile is active.
 
-**M10B.2 PASS gate:** MG1E source manifest and preview must be source-correct, read-only and visibly non-selectable; Legacy Mixed and Strict Realm Guard live behavior must remain unchanged before M10B.3 begins live routing migration.
+**M10B.2 PASS gate:** ✅ PASSED.
+
+**M10B.3 scope:**
+- advance MG1E foundation to profile v4 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- extend generic capabilities with Nature mode/label/descriptors, Tap Nature, Double-Tap Nature and Help source policy
+- add generic MG1E-family Wises / Traits / Help / Nature rule planners
+- keep historical Strict M10A planners as compatibility wrappers delegating to the generic MG1E-family rules
+- route live Trait semantics through the active profile capability policy instead of `isStrictRealmGuard()`
+- route live rated-Wise / I Am Wise behavior through profile capabilities
+- route Teamwork through profile capabilities; Legacy keeps its existing open helper behavior and Synergy
+- source-correct MG1E-family Teamwork matrix: Ability test ← Ability; Skill/Wise test ← Skill/Wise
+- retain GM relevance review and lesser-Condition helper consequence contract
+- remove hardcoded Dúnadan Nature descriptors from shared Actor Sheet UI
+- Strict Nature presentation remains Tradition / Family / Grief; MG1E preview resolves Nature (Mouse): Escaping / Climbing / Hiding / Foraging
+- retain source-backed Tap Nature and Double-Tap Nature
+- preserve all dormant Wises, Traits, Conditions and profile-specific campaign data
+- no MG1E activation and no automatic rating/data conversion
+
+**M10B.3 PASS gate:** Legacy Mixed behavior remains compatible, Strict inherits source-correct MG1E-family Wises/Traits/Help/Nature behavior, MG1E resolves the same family rules in shadow/foundation mode, and no profile/data mutation is introduced.
 
 
 ### M9 — Creation / Recruitment Migration
