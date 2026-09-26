@@ -17,7 +17,7 @@ const legacy = buildProfileCapabilities(resolver.resolve("realm-guard-legacy-mix
 const strict = buildProfileCapabilities(resolver.resolve("realm-guard-strict"));
 const mg1e = buildProfileCapabilities(resolver.resolve("mg1e"));
 
-assert.match(legacy.phase, /^M10B\.[1-5]$/);
+assert.match(legacy.phase, /^M10B\.[1-6]$/);
 assert.equal(legacy.profile.id, "realm-guard-legacy-mixed");
 assert.equal(legacy.rules.wises.rated, false);
 assert.equal(legacy.rules.wises.selfUse, "LEGACY_WISE_REROLL");
