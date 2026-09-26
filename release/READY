@@ -8,4 +8,5 @@
 # Will/Health recovery Help blocked by profile rule
 # Legacy Mixed compatibility behavior preserved
 # release notes version match enforced by preflight
+# historical activation smoke updated for generic M10B.4 routing
 # Foundry v13.351 QA required
