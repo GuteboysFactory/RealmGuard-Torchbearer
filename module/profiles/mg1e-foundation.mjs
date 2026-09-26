@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 5,
+  version: 6,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -35,7 +35,43 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       sick: { recoveryAbility: "Will", obstacle: 4, helpAllowed: false, failedRecovery: "HEALER_REQUIRED", healerObstacle: 3, permanentReductionExcludes: ["Resources", "Circles"], playersTurnWaiver: true }
     },
     inventory: { policy: "LOOSE", structuredPlacementAuthority: false, capacityMode: "CHARACTER_SHEET_GEAR_SPACE", preservePlacementAsPresentation: true },
-    conflict: { mode: "MG1E", actionsPerExchange: 3, rotateParticipants: true, helpAllowed: true, toolScope: "EXCHANGE", unarmedDefaultDice: 0 },
+    conflict: {
+      mode: "MG1E",
+      actionsPerExchange: 3,
+      rotateParticipants: true,
+      helpAllowed: true,
+      toolScope: "EXCHANGE",
+      weaponScope: "ACTION_SET",
+      unarmedDefaultDice: 0,
+      toolContent: "MG1E_2008",
+      armorContent: "MG1E_LIGHT_HEAVY",
+      weaponAlias: {},
+      weaponsOfWit: true,
+      disarmTargetKinds: ["weapon", "gear", "trait", "natural"],
+      scaleOfMightAware: false,
+      disposition: {
+        argument: { skills: ["Persuader"], bases: ["Will"] },
+        chase: { skills: ["Scout"], bases: ["Nature"], basePolicy: "MOUSE_NATURE_ONLY_WHEN_DESCRIPTORS_APPLY" },
+        fight: { skills: ["Fighter"], bases: ["Health", "Nature"], basePolicy: "NATURE_ONLY_WHEN_DESCRIPTORS_APPLY" },
+        fightCreature: { skills: ["Fighter", "Hunter"], bases: ["Health", "Nature"], basePolicy: "NATURE_ONLY_WHEN_DESCRIPTORS_APPLY" },
+        journey: { skills: ["Pathfinder"], bases: ["Health"] },
+        negotiation: { skills: ["Haggler"], bases: ["Will"] },
+        speech: { skills: ["Orator"], bases: ["Will"] },
+        war: { skills: ["Militarist"], bases: ["Will"] },
+        other: { skills: [], bases: [], basePolicy: "GM_CALL" }
+      },
+      actionSkills: {
+        argument: { attack: ["Persuader"], defend: ["Persuader"], feint: ["Persuader", "Deceiver"], maneuver: ["Persuader", "Deceiver"] },
+        chase: { attack: ["Scout"], defend: ["Pathfinder"], feint: ["Pathfinder"], maneuver: ["Scout"] },
+        fight: { attack: ["Fighter"], defend: ["Nature"], feint: ["Fighter"], maneuver: ["Nature"] },
+        fightCreature: { attack: ["Fighter", "Hunter"], defend: ["Lore Master", "Nature"], feint: ["Fighter", "Hunter"], maneuver: ["Lore Master", "Nature"] },
+        negotiation: { attack: ["Haggler"], defend: ["Haggler"], feint: ["Deceiver"], maneuver: ["Deceiver"] },
+        journey: { attack: ["Pathfinder"], defend: ["Survivalist", "Weather Watcher"], feint: ["Pathfinder"], maneuver: ["Survivalist", "Weather Watcher"] },
+        speech: { attack: ["Orator"], defend: ["Orator"], feint: ["Orator", "Deceiver"], maneuver: ["Orator", "Deceiver"] },
+        war: { attack: ["Militarist"], defend: ["Militarist", "Orator", "Administrator"], feint: ["Militarist", "Administrator"], maneuver: ["Militarist"] },
+        other: { attack: ["*"], defend: ["*"], feint: ["*"], maneuver: ["*"] }
+      }
+    },
     session: { mode: "MG1E", freePlayerTurnTests: 1, additionalTestCheckCost: 1, recoveryDuringGmTurnCheckCost: 2, endSession: "MG1E", embodimentMayAwardEveryone: false },
     circles: { mode: "MG1E", enmityClause: true },
     creation: { mode: "MG1E", liveAuthority: "NONE" },
@@ -78,7 +114,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.4",
-    nextStep: "M10B.4 Conditions / Recovery routing QA"
+    implementationPhase: "M10B.5",
+    nextStep: "M10B.5 Gear / Inventory / Conflict routing QA"
   }
 });
