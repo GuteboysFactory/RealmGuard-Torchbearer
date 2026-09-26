@@ -54,7 +54,7 @@ const actor = {
 };
 
 const status = getStrictGearInventoryConflictStatus();
-assert.equal(status.phase, "M10A.4");
+assert.equal(status.phase, "M10A.4_COMPAT_WRAPPER");\nassert.equal(status.compatibilityProvider, "M10B.5_GENERIC_FAMILY");
 assert.equal(status.liveAuthority, false);
 assert.equal(status.inventory.policy, "LOOSE");
 assert.equal(status.inventory.slotPlacementAuthority, false);
@@ -166,7 +166,7 @@ assert.equal(strictWeaponOfWitPlan("Repeating Yourself", "attack", { repeating: 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 5, "M10A.4 conflict policy must remain present in later Strict profile versions.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.unarmedDefaultDice, 0);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.weaponAlias["Hook and Line"], "Whip");
-assert.ok(["M10A.4","M10A.5","M10A.6","M10A.7","M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.4 smoke must survive later M10 phases.");
+assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\\.\\d+$/, "M10A.4 compatibility smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.gearInventoryConflictPolicyReady, true);
 assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
 
@@ -187,4 +187,4 @@ assert.ok(legacyConflict.includes('String(i.system.inventory?.mode ?? "") === "h
 const profileService = fs.readFileSync("module/rules-profile-service.mjs", "utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "No live profile switch API may exist in M10A.4.");
 
-console.log("PASS M10A.4 Gear / Inventory / Conflict ownership foundation · Strict source policy ready · Legacy Mixed untouched · no live activation");
+console.log("PASS M10A.4 compatibility wrapper · M10B.5 generic Gear / Inventory / Conflict provider · Legacy Mixed preserved");
