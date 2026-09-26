@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import {
   assertManifestReleaseContract,
+  assertReleaseNotesVersion,
   assertNoHistoricalVersionPins,
   assertNoProfileManagementCopyPins,
   assertNoRetiredM10BBranchPins,
@@ -15,6 +16,9 @@ import { buildProfileConversionPreview } from "../module/m10-profile-conversion-
 const manifest = JSON.parse(fs.readFileSync("system.json", "utf8"));
 const readyVersion = readReleaseReady();
 const release = assertManifestReleaseContract(manifest, { readyVersion });
+if (fs.existsSync("release/NOTES.md")) {
+  assertReleaseNotesVersion(fs.readFileSync("release/NOTES.md", "utf8"), release.version);
+}
 
 for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs"))) {
   const source = fs.readFileSync(`qa/${file}`, "utf8");
@@ -58,4 +62,4 @@ for (const target of [strict, mg1e]) {
   if (preview.safety?.destructiveConversion !== false) throw new Error(`${target.id} conversion preview must be non-destructive.`);
 }
 
-console.log(`PASS release preflight · ${release.version} · ${release.channel} · canonical version contract · semantic UI contracts · read-only previews`);
+console.log(`PASS release preflight · ${release.version} · ${release.channel} · canonical version contract · release-notes version match · semantic UI contracts · read-only previews`);
