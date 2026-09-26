@@ -14,3 +14,4 @@
 # Foundry v13.351 QA required
 # historical activation/session smokes updated for generic M10B.6 routing
 # stale Strict progression copy pin removed from historical activation smoke
+# M10B.5 historical MG1E version assertion made forward-compatible
