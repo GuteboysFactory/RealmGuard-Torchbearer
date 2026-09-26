@@ -102,8 +102,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       switchLockReason:activation.switchAvailable ? "" : "Strict Realm Guard is not selectable or supported in this build.",
       reloadRecommended:true,
-      phase:"M10B.3",
-      nextStep:"MG1E is preview-only in qa.2; no activation or campaign-data conversion is available"
+      phase:"M10B.4",
+      nextStep:"MG1E remains preview-only during M10B; no activation or campaign-data conversion is available"
     }, { inplace:false });
   }
 }
