@@ -41,7 +41,7 @@ const a1 = actor("A1", 2);
 const a2 = actor("A2", 0);
 
 const status = getStrictSessionCirclesProgressionStatus();
-assert.equal(status.phase, "M10A.5");
+assert.equal(status.phase, "M10A.5_COMPAT_WRAPPER");\nassert.equal(status.compatibilityProvider, "M10B.6_GENERIC_FAMILY");
 assert.equal(status.liveAuthority, false);
 assert.equal(status.session.freePlayerTurnTests, 1);
 assert.equal(status.session.additionalTestCheckCost, 1);
