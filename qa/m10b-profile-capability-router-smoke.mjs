@@ -109,15 +109,17 @@ for (const forbidden of ["game.settings.set", "createEmbeddedDocuments", "delete
 const activationSource = fs.readFileSync(new URL("../module/m10-profile-activation.mjs", import.meta.url), "utf8");
 assert.equal(activationSource.includes('"mg1e"'), false, "M10B.1 must not make MG1E selectable/live.");
 
-const consumers = [
+const routedConsumers = [
   "../module/conditions.mjs",
   "../module/teamwork.mjs",
   "../module/traits.mjs",
   "../module/progression.mjs",
   "../module/conflicts.mjs",
-  "../module/documents.mjs",
   "../sheets/actor-sheet.mjs"
 ];
-assert.ok(consumers.some(path => fs.readFileSync(new URL(path, import.meta.url), "utf8").includes("isStrictRealmGuard")), "M10B.1 is shadow parity only; existing live routing must remain in place.");
+for (const path of routedConsumers) {
+  const source = fs.readFileSync(new URL(path, import.meta.url), "utf8");
+  assert.equal(source.includes("isStrictRealmGuard"), false, `${path} must remain on generic profile routing after its M10B migration.`);
+}
 
-console.log("PASS M10B.1/M10B.2 Generic Profile Presentation & Rule Router · Legacy/Strict parity preserved · MG1E foundation read-only/not selectable");
+console.log("PASS M10B capability router · generic live consumers migrated through M10B.6 · MG1E foundation read-only/not selectable");
