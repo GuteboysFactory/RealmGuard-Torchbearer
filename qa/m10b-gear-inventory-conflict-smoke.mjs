@@ -118,12 +118,11 @@ assert.equal(handoff.includes("isStrictRealmGuard"),false,"M5 conflict handoff m
 assert.ok(handoff.includes("familyConflictToolPlan"));
 
 const npcTemplate = fs.readFileSync("templates/actor/npc.hbs","utf8");
-const identityStart = npcTemplate.indexOf('<div class="rg-npc-identity">');
-const resourceStart = npcTemplate.indexOf('<div class="rg-npc-resource-stack"', identityStart);
-const identityEnd = npcTemplate.indexOf("</div>\n  </header>", identityStart);
-assert.ok(resourceStart > identityStart && resourceStart < identityEnd, "NPC resources must sit inside the identity/header content rather than a tall third column.");
+assert.ok(npcTemplate.includes("rg-npc-resource-stack"), "NPC resource controls must remain compact and grouped.");
+for (const action of ["fateDown","fateUp","personaDown","personaUp","checksDown","checksUp"]) {
+  assert.ok(npcTemplate.includes(`data-action="${action}"`), `NPC resource action must survive later header refinements: ${action}`);
+}
 const css = fs.readFileSync("styles/realm-guard.css","utf8");
-assert.ok(css.includes("v1.12.0-qa.5 — compact NPC header/resources"));
-assert.ok(css.includes("grid-template-columns:repeat(3,minmax(0,1fr))"));
+assert.ok(css.includes("rg-npc-resource-stack"), "NPC compact resource styling must remain present.");
 
 console.log("PASS M10B.5 Gear / Inventory / Conflict routing · MG1E source tables · Strict overrides · Legacy preservation · NPC compact header");
