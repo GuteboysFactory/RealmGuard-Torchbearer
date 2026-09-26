@@ -124,10 +124,13 @@ assert.equal(legacyFamily.synergyEnabled, true);
 assert.ok(teamwork.includes("getActiveM10BFamilyRulePolicy"), "Teamwork must route through the generic profile policy.");
 
 const conditions = fs.readFileSync("module/conditions.mjs","utf8");
-assert.ok(conditions.includes("strictConditionRollEffects"));
-assert.ok(conditions.includes("strictRecoveryMethods"));
-assert.ok(conditions.includes('["fresh","afraid"]'));
-assert.ok(conditions.includes('role("Harvester"') === false, "Harvester ownership belongs to Strict recovery policy, not duplicated Legacy constants.");
+assert.ok(conditions.includes("getActiveM10BConditionRecoveryPolicy"), "Conditions must route through the generic profile policy.");
+assert.ok(conditions.includes("familyConditionRollEffects"));
+assert.ok(conditions.includes("familyRecoveryMethods"));
+assert.equal(conditions.includes("isStrictRealmGuard"), false, "M10B.4 retires binary Strict identity checks from Conditions/Recovery.");
+assert.equal(conditions.includes("migrateSickToStrained"), false, "Profile routing must not destructively rename Sick to Strained.");
+assert.ok(conditions.includes("RG_LEGACY_DEFAULT_CONDITION_NAMES"), "Legacy Mixed condition defaults must stay explicit.");
+assert.ok(conditions.includes('role("Harvester"') === false, "Harvester ownership belongs to profile recovery policy, not duplicated Legacy constants.");
 
 const documents = fs.readFileSync("module/documents.mjs","utf8");
 assert.ok(documents.includes("getActiveM10BFamilyRulePolicy"), "Wises/Traits roll logic must route through generic profile policy.");
