@@ -43,7 +43,7 @@ assert.equal(strict.conflict.weaponAlias["Hook and Line"], "Whip");
 assert.equal(strict.conflict.scaleOfMightAware, true);
 
 assert.equal(mg1e.familySemantics, true);
-assert.equal(mg1e.profileVersion, 6);
+assert.ok(mg1e.profileVersion >= 6, "M10B.5 gear/conflict contract must survive later MG1E foundation revisions.");
 assert.equal(mg1e.inventory.policy, "LOOSE");
 assert.equal(mg1e.inventory.placementAuthority, false);
 assert.equal(mg1e.conflict.unarmedDefaultDice, 0);
