@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.3 — 🟡 M10B.3 Wises / Traits / Help / Nature Routing  
+**Current QA build:** v1.12.0-qa.4 — 🟡 M10B.4 Conditions / Recovery Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.3 — generic MG1E-family Wises / Traits / Help / Nature routing  
+**Current CORE gate:** M10B.4 — generic MG1E-family Conditions / Recovery routing  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,7 +186,7 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — v1.12.0-qa.3 migrates Wises, Traits, Help and Nature away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — v1.12.0-qa.4 migrates Conditions and Recovery away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
 
@@ -229,6 +229,25 @@ qa.1 foundation scope:
 - no MG1E activation and no automatic rating/data conversion
 
 **M10B.3 PASS gate:** Legacy Mixed behavior remains compatible, Strict inherits source-correct MG1E-family Wises/Traits/Help/Nature behavior, MG1E resolves the same family rules in shadow/foundation mode, and no profile/data mutation is introduced.
+
+**M10B.3 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Legacy Mixed remained compatible; Strict Wises/Traits/Help/Nature inherited the source-correct generic MG1E-family policy; MG1E resolved the same policy in foundation mode; Tap/Double-Tap Nature and profile-driven descriptors passed live QA.
+
+**M10B.4 scope:**
+- advance MG1E foundation to profile v5 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- extend generic capabilities with explicit Conditions / Recovery policy
+- generic MG1E-family Condition effects, disposition effects, zero-rating policy, recovery order, recovery methods, recovery Help policy, GM Turn Check economy and post-failure state planners
+- MG1E active Condition set = Healthy / Hungry & Thirsty / Angry / Tired / Injured / Sick
+- Strict Realm Guard active Condition set = Healthy / Hungry & Thirsty / Angry / Tired / Injured / Strained
+- Strict Strained remains the Realm Guard v1.6 override replacing MG1E Sick only as active rule authority
+- historical Strict M10A.3 Conditions/Recovery APIs remain compatibility wrappers over the generic M10B.4 engine
+- remove binary Strict branches from live `module/conditions.mjs`
+- remove automatic destructive Sick → Strained boot migration
+- preserve dormant Sick / Strained / Fresh / Afraid Items across profile changes and reload
+- source-correct Recovery Help: no player-to-player Help on Will/Health recovery tests
+- preserve Legacy Mixed default Condition/recovery behavior
+- release preflight verifies `release/NOTES.md` identifies the active manifest version
+
+**M10B.4 PASS gate:** Legacy Mixed remains behaviorally compatible; Strict Conditions/Recovery preserve M10A.3 behavior through generic family routing; MG1E Sick/recovery resolves source-correctly in foundation mode; dormant Condition data survives round-trip/reload without rename/delete; and release notes cannot publish with a stale version identity.
 
 
 ### M9 — Creation / Recruitment Migration
