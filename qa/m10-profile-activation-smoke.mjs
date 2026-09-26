@@ -109,7 +109,8 @@ const adapter = fs.readFileSync("module/m9-creation-commit-adapter.mjs","utf8");
 assert.ok(adapter.includes("CORE M9 profile mismatch"), "Live creation must reject cross-profile commit plans.");
 
 const progression = fs.readFileSync("module/progression.mjs","utf8");
-assert.equal(progression.includes("isStrictRealmGuard"), false, "M10B.6 routes Level/Talent progression through profile capabilities.");\nassert.ok(progression.includes("lifetimeSpendLevelTrackingEnabled"), "Level/Talent progression must use resolved profile policy.");
+assert.equal(progression.includes("isStrictRealmGuard"), false, "M10B.6 routes Level/Talent progression through profile capabilities.");
+assert.ok(progression.includes("lifetimeSpendLevelTrackingEnabled"), "Level/Talent progression must use resolved profile policy.");
 assert.ok(progression.includes("strictProgressionSuppressed"));
 
 const teamwork = fs.readFileSync("module/teamwork.mjs","utf8");
@@ -185,9 +186,9 @@ assert.ok(m5.includes("PROFILE_AUTHORITY"));
 assert.ok(m5.includes("CORE_M5_PROFILE"));
 
 const endSession = fs.readFileSync("module/end-session.mjs","utf8");
-assert.ok(endSession.includes("strictEndSessionValidation"));
-assert.ok(endSession.includes("if (isStrictRealmGuard())"));
-assert.ok(endSession.includes("!isStrictRealmGuard()) talentsReset"));
+assert.equal(endSession.includes("isStrictRealmGuard"), false, "M10B.6 retires Strict identity routing from End Session.");
+assert.ok(endSession.includes("familyEndSessionValidation"));
+assert.ok(endSession.includes("profilePolicy.progression.talentsEnabled"));
 
 const rulesProfileService = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.ok(rulesProfileService.includes("realmGuardRulesProfileChanged"));
