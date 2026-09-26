@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.5 - 🟡 M10B.5 Gear / Inventory / Conflict Routing + NPC Header Polish
+
+- Marks **M10B.4 = FULL PASS / VERIFIED / CLOSED** after Gates A-H passed in Foundry VTT 13.351.
+- Advances the MG1E foundation to profile v6 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Adds generic MG1E-family Gear / Inventory / Conflict policy and pure planners.
+- Makes MG1E and Strict conflict action-skill / starting-Disposition tables explicitly profile-owned instead of treating Strict Realm Guard as the family identity.
+- Source-correct MG1E Fight routing uses Fighter / Nature / Fighter / Nature; Strict Realm Guard keeps its v1.6 Fighter / Fighter / Fighter / Fighter override.
+- MG1E keeps Hook and Line plus Light / Heavy Armor. Strict aliases Hook and Line to Whip, presents Leather / Chainmail and retains Realm Guard Plated Armor.
+- Routes live Conflict physical-weapon availability, unarmed default, rated Wise/Trait/Talent/Token presentation and action/disposition selection through profile capabilities instead of direct `isStrictRealmGuard()` checks.
+- Routes M5 conflict-tool live handoff through generic family policy while preserving Legacy Mixed parity/fallback behavior.
+- Historical Strict M10A.4 Gear / Inventory / Conflict APIs remain compatibility wrappers over the generic M10B.5 provider.
+- LOOSE profiles ignore stored placement as rules authority but preserve hand/worn/container/unassigned metadata unchanged; Legacy Mixed retains STRUCTURED placement authority.
+- Implements FireVisor feedback: NPC Fate / Persona / Checks now form a compact responsive bar beneath identity instead of a tall dedicated header column; long NPC names use responsive sizing.
+- Adds dedicated M10B.5 smoke coverage and `TEST_PROTOCOL_v1.12.0-qa.5.md`.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.4 - 🟡 M10B.4 Conditions / Recovery Routing
 
 - Marks **M10B.3 = FULL PASS** after Foundry VTT 13.351 live verification.
