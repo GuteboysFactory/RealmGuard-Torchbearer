@@ -11,11 +11,11 @@
         <label><span>Type / Rank</span><input name="system.rank" value="{{system.rank}}" placeholder="Orc scout, brigand captain..." /></label>
         <label><span>Concept</span><input name="system.concept" value="{{system.concept}}" placeholder="Ambusher, guide, rival..." /></label>
       </div>
-      <div class="rg-npc-resource-stack" aria-label="NPC resources">
-        <div class="rg-resource"><span>FATE</span><button type="button" data-action="fateDown">-</button><strong>{{system.resources.fate.value}}</strong><button type="button" data-action="fateUp">+</button></div>
-        <div class="rg-resource"><span>PERSONA</span><button type="button" data-action="personaDown">-</button><strong>{{system.resources.persona.value}}</strong><button type="button" data-action="personaUp">+</button></div>
-        <div class="rg-resource"><span>CHECKS</span><button type="button" data-action="checksDown">-</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button></div>
-      </div>
+    </div>
+    <div class="rg-npc-resource-stack rg-meta" aria-label="NPC resources">
+      <div class="rg-resource"><span>FATE</span><button type="button" data-action="fateDown">-</button><strong>{{system.resources.fate.value}}</strong><button type="button" data-action="fateUp">+</button></div>
+      <div class="rg-resource"><span>PERSONA</span><button type="button" data-action="personaDown">-</button><strong>{{system.resources.persona.value}}</strong><button type="button" data-action="personaUp">+</button></div>
+      <div class="rg-resource"><span>CHECKS</span><button type="button" data-action="checksDown">-</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button></div>
     </div>
   </header>
 
