@@ -29,14 +29,40 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     },
     conflict: {
       mode: "MG1E_WITH_REALM_GUARD_CONTENT",
+      actionsPerExchange: 3,
+      rotateParticipants: true,
+      helpAllowed: true,
       toolContent: "MG1E_2008_PLUS_REALM_GUARD_V1_6",
       weaponAlias: { "Hook and Line": "Whip" },
       toolScope: "EXCHANGE",
+      weaponScope: "ACTION_SET",
       unarmedDefaultDice: 0,
       scaleOfMightAware: true,
       armorContent: "MG1E_LIGHT_HEAVY_PLUS_REALM_GUARD_PLATED",
       weaponsOfWit: true,
-      disarmTargetKinds: ["weapon", "gear", "trait", "natural"]
+      disarmTargetKinds: ["weapon", "gear", "trait", "natural"],
+      disposition: {
+        argument: { skills: ["Persuader"], bases: ["Will"] },
+        chase: { skills: ["Scout"], bases: ["Health"] },
+        fight: { skills: ["Fighter"], bases: ["Health"] },
+        fightCreature: { skills: ["Hunter"], bases: ["Health"] },
+        journey: { skills: ["Pathfinder"], bases: ["Health"] },
+        negotiation: { skills: ["Haggler"], bases: ["Will"] },
+        speech: { skills: ["Orator"], bases: ["Will"] },
+        war: { skills: ["Militarist", "Lore Master"], bases: ["Will"] },
+        other: { skills: [], bases: [], basePolicy: "GM_CALL" }
+      },
+      actionSkills: {
+        argument: { attack: ["Persuader"], defend: ["Persuader"], feint: ["Persuader", "Deceiver"], maneuver: ["Persuader", "Deceiver"] },
+        chase: { attack: ["Scout"], defend: ["Pathfinder"], feint: ["Pathfinder"], maneuver: ["Scout"] },
+        fight: { attack: ["Fighter"], defend: ["Fighter"], feint: ["Fighter"], maneuver: ["Fighter"] },
+        fightCreature: { attack: ["Hunter", "Fighter"], defend: ["Hunter", "Animal Handler"], feint: ["Hunter"], maneuver: ["Animal Handler", "Lore Master"] },
+        negotiation: { attack: ["Haggler"], defend: ["Haggler"], feint: ["Deceiver"], maneuver: ["Deceiver"] },
+        journey: { attack: ["Pathfinder"], defend: ["Survivalist", "Weather Watcher"], feint: ["Pathfinder"], maneuver: ["Survivalist", "Weather Watcher"] },
+        speech: { attack: ["Orator"], defend: ["Orator"], feint: ["Orator", "Deceiver"], maneuver: ["Orator", "Deceiver"] },
+        war: { attack: ["Militarist", "Lore Master"], defend: ["Militarist", "Orator", "Administrator"], feint: ["Militarist", "Administrator"], maneuver: ["Militarist", "Lore Master"] },
+        other: { attack: ["*"], defend: ["*"], feint: ["*"], maneuver: ["*"] }
+      }
     },
     session: {
       mode: "MG1E",
@@ -126,7 +152,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10A.9",
+    implementationPhase: "M10B.5",
     strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -144,6 +170,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10A.9 Stable Activation Candidate · CLOSURE QA"
+    nextStep: "M10B.5 generic Gear / Inventory / Conflict routing QA"
   }
 });
