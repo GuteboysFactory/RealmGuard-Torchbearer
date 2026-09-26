@@ -4190,3 +4190,61 @@ body:has(#join-game) {
   letter-spacing:.07em;
 }
 .realm-guard .rg-wise-editor-unrated{opacity:.72}
+
+
+/* v1.12.0-qa.5 — compact NPC header/resources (FireVisor feedback) */
+.realm-guard .rg-npc-header {
+  grid-template-columns:96px minmax(0,1fr);
+  align-items:center;
+}
+.realm-guard .rg-npc-identity {
+  min-width:0;
+}
+.realm-guard .rg-npc-name {
+  width:100%;
+  min-width:0;
+  font-size:clamp(20px, 2.5vw, 28px);
+  line-height:1.05;
+}
+.realm-guard .rg-npc-resource-stack {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  margin-top:8px;
+}
+.realm-guard .rg-npc-resource-stack .rg-resource {
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(42px,1fr) 26px 22px 26px;
+  gap:3px;
+  align-items:center;
+  padding:4px 5px;
+}
+.realm-guard .rg-npc-resource-stack .rg-resource > span {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.realm-guard .rg-npc-resource-stack .rg-resource > button {
+  min-width:26px;
+  width:26px;
+  height:26px;
+  padding:0;
+}
+.realm-guard .rg-npc-resource-stack .rg-resource > strong {
+  min-width:22px;
+  text-align:center;
+}
+@container rg-npc-sheet (max-width:700px){
+  .realm-guard .rg-npc-header { grid-template-columns:82px minmax(0,1fr); }
+  .realm-guard .rg-npc-resource-stack { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .realm-guard .rg-npc-resource-stack .rg-resource:last-child { grid-column:1 / -1; }
+}
+@container rg-npc-sheet (max-width:500px){
+  .realm-guard .rg-npc-header { grid-template-columns:1fr; }
+  .realm-guard .rg-npc-portrait-wrap { justify-self:center; }
+  .realm-guard .rg-npc-resource-stack { grid-template-columns:1fr; }
+  .realm-guard .rg-npc-resource-stack .rg-resource:last-child { grid-column:auto; }
+}
