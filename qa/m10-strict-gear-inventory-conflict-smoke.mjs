@@ -54,7 +54,8 @@ const actor = {
 };
 
 const status = getStrictGearInventoryConflictStatus();
-assert.equal(status.phase, "M10A.4_COMPAT_WRAPPER");\nassert.equal(status.compatibilityProvider, "M10B.5_GENERIC_FAMILY");
+assert.equal(status.phase, "M10A.4_COMPAT_WRAPPER");
+assert.equal(status.compatibilityProvider, "M10B.5_GENERIC_FAMILY");
 assert.equal(status.liveAuthority, false);
 assert.equal(status.inventory.policy, "LOOSE");
 assert.equal(status.inventory.slotPlacementAuthority, false);
