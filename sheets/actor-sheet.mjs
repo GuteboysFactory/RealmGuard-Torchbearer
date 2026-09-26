@@ -16,7 +16,7 @@ import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from ".
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
 import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
 import { getActiveM10BFamilyRulePolicy, natureDescriptorText, natureProfileLabel } from "../module/m10b-family-rules.mjs";
-import { strictRecoveryState } from "../module/m10-strict-conditions-recovery.mjs";
+import { getActiveM10BConditionRecoveryPolicy, familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, requestM8EnmityDecision, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1030,7 +1030,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
   }
 
-  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null } = {}) {
+  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null, allowHelp = true } = {}) {
     const personaValue = Number(this.actor.system.resources.persona.value ?? 0);
     const target = game.user.targets.size === 1 ? [...game.user.targets][0] : null;
     const opponent = target?.actor ?? null;
@@ -1059,13 +1059,17 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     ].filter(Boolean);
 
     const teamworkTestKind = role?.type === "wise" ? "Wise" : (isSkill ? "Skill" : "Ability");
-    const teamworkSessionId = createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [opponent?.id].filter(Boolean) });
+    const teamworkSessionId = allowHelp
+      ? createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [opponent?.id].filter(Boolean) })
+      : null;
     const teamworkHelp = family.helperSourcePolicy === "MG1E_TYPED"
       ? (teamworkTestKind === "Ability"
         ? "<b>Teamwork:</b> an Ability test is helped by another Ranger with an appropriate Ability for +1D. <b>I Am Wise</b> is the acting Ranger's own relevant rated Wise. Synergy is disabled."
         : "<b>Teamwork:</b> a Skill or Wise test is helped by another Ranger with an appropriate Skill or rated Wise for +1D. <b>I Am Wise</b> is the acting Ranger's own relevant rated Wise. Synergy is disabled.")
       : "<b>Normal Help:</b> a Ranger answers with an appropriate trained Skill or Ability for +1D. <b>I Am Wise:</b> a relevant Wise can instead give +1D. <b>Synergy:</b> the helper chooses it in their own Help request and spends their own Fate if the roll resolves.";
-    const teamworkBlock = `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small>${teamworkHelp} You can keep preparing the roll while Help replies arrive.</small></fieldset>`;
+    const teamworkBlock = allowHelp
+      ? `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small>${teamworkHelp} You can keep preparing the roll while Help replies arrive.</small></fieldset>`
+      : `<fieldset class="rg-teamwork"><legend>Help / Teamwork</legend><div class="rg-teamwork-accepted-list"><span class="rg-muted">Help is unavailable for this test under the active rules profile.</span></div><small>Mouse Guard family recovery: another character cannot Help a Will or Health recovery test.</small></fieldset>`;
 
     const n = this.actor.system.attributes?.nature ?? {}, natureCurrent = Math.max(0, Number(n.value ?? 0)), natureMaximum = Math.max(natureCurrent, Number(n.maximum ?? natureCurrent));
     const isNatureRoll = String(abilityKey) === "nature";
@@ -1156,7 +1160,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         const form = button.form; if (!form) return null;
         if (review) await review.promise;
         const elements = form.elements;
-        const help = teamworkEntries(teamworkSessionId);
+        const help = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
         return {
           obstacle: review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
           modifier: Number(elements.modifier?.value ?? 0), extraDice: Math.max(0, Number(elements.extraDice?.value ?? 0)), help,
@@ -1168,7 +1172,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         };
       }}, { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark", callback: () => ({ cancelled: true }) }]
     });
-    finishTeamworkSession(teamworkSessionId);
+    if (teamworkSessionId) finishTeamworkSession(teamworkSessionId);
     if (review) finishObstacleReview(review.requestId);
     if (!result || result.cancelled === true || result === "cancel") return null;
     return result;
@@ -1348,7 +1352,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (Number(method.dice ?? 0) <= 0) return ui.notifications.warn(`Realm Guard: ${method.name} has a 0D recovery pool.`);
 
     const subject = method.kind === "role" ? method.item : { name: `Recovery · ${item.name} · ${method.name}`, system: { rating: method.dice } };
-    const options = await RealmGuardActorSheet._openRollDialog.call(this, subject, { versus: false, obstacle: method.obstacle, modifier: 0, isSkill: method.kind === "role", tokenSourceIsSkill: method.kind === "role", abilityKey: method.kind === "ability" ? method.key : "", fixedObstacle: true });
+    const options = await RealmGuardActorSheet._openRollDialog.call(this, subject, { versus: false, obstacle: method.obstacle, modifier: 0, isSkill: method.kind === "role", tokenSourceIsSkill: method.kind === "role", abilityKey: method.kind === "ability" ? method.key : "", fixedObstacle: true, allowHelp: method.helpAllowed !== false });
     if (!options) return;
     const { modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, subject.name, { isSkill: method.kind === "role" });
@@ -1380,21 +1384,24 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       if (method.kind === "ability") await recordAbilityTest(this.actor, method.key, Boolean(result.passed));
       if (method.kind === "role") await RealmGuardActorSheet._recordLearning.call(this, method.item, Boolean(result.passed));
     }
-    let strictRecovery = null;
-    if (isStrictRealmGuard()) {
-      strictRecovery = strictRecoveryState(item.name, {
+    const recoveryPolicy = getActiveM10BConditionRecoveryPolicy();
+    let profileRecovery = null;
+    if (recoveryPolicy.familySemantics) {
+      profileRecovery = familyRecoveryState(item.name, {
         passed: Boolean(result.passed),
         phase: spent.phase,
         turnManagerEnabled: turnManagerEnabled(),
         checks: Number(this.actor.system?.resources?.checks?.value ?? 0)
-      });
+      }, recoveryPolicy);
       if (result.passed) {
+        await item.unsetFlag("realm-guard", "profileRecoveryState");
         await item.unsetFlag("realm-guard", "strictRecoveryState");
         await setConditionActive(this.actor, item, false);
       } else {
-        await item.setFlag("realm-guard", "strictRecoveryState", {
-          state: strictRecovery.state,
-          nextAction: strictRecovery.nextAction,
+        await item.setFlag("realm-guard", "profileRecoveryState", {
+          profileId: recoveryPolicy.profileId,
+          state: profileRecovery.state,
+          nextAction: profileRecovery.nextAction,
           updatedAt: Date.now()
         });
       }
@@ -1404,7 +1411,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const esc = foundry.utils.escapeHTML;
     const economy = spent.phase === "free" ? "Free Play · no Turn/Check cost" : spent.phase === "gm" ? `2 Checks · ${spent.before} → ${spent.after}` : "Players' Turn Free Test/Check economy (see roll card)";
-    await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-recovery-roll"><div class="rg-custom-chat-tag">RECOVERY · ${turnLabel()}</div><h3>${esc(item.name)}</h3><p><b>Method:</b> ${esc(method.name)} · Ob ${method.obstacle}</p><p><b>Recovery economy:</b> ${economy}</p><p><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "RECOVERED" : "NOT RECOVERED"}</strong></p>${result.passed ? "" : `<p><small>${isStrictRealmGuard() && strictRecovery?.nextAction && strictRecovery.nextAction !== "RETRY_WHEN_ALLOWED" ? `Strict recovery route: ${esc(strictRecovery.nextAction.replaceAll("_"," "))}.` : "The Condition remains active. Recovery failure does not create an additional twist or Condition."}</small></p>`}</div>` });
+    await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-recovery-roll"><div class="rg-custom-chat-tag">RECOVERY · ${turnLabel()}</div><h3>${esc(item.name)}</h3><p><b>Method:</b> ${esc(method.name)} · Ob ${method.obstacle}</p><p><b>Recovery economy:</b> ${economy}</p><p><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "RECOVERED" : "NOT RECOVERED"}</strong></p>${result.passed ? "" : `<p><small>${profileRecovery?.nextAction && profileRecovery.nextAction !== "RETRY_WHEN_ALLOWED" ? `Profile recovery route: ${esc(profileRecovery.nextAction.replaceAll("_"," "))}.` : "The Condition remains active. Recovery failure does not create an additional twist or Condition."}</small></p>`}</div>` });
     ui.notifications.info(`Realm Guard: ${item.name} ${result.passed ? "recovered" : "remains active"}.`);
   }
 
