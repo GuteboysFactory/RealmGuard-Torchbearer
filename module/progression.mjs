@@ -1,4 +1,4 @@
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { getActiveM10BSessionCirclesProgressionPolicy } from "./m10b-session-circles-progression.mjs";
 const NS = "realm-guard";
 
 // Torchbearer 2E cumulative Fate/Persona thresholds, deliberately adapted as
@@ -82,7 +82,9 @@ export async function spendTrackedResource(actor, kind, amount = 1, { reason = "
   const update = { [`system.resources.${kind}.value`]: current - spend };
   let oldLevel = Math.max(1, Number(actor.system?.progression?.level ?? 1));
   let newLevel = oldLevel;
-  if (actor.type === "character" && !isStrictRealmGuard()) {
+  const profilePolicy = getActiveM10BSessionCirclesProgressionPolicy();
+  const tracksLifetimeProgression = actor.type === "character" && profilePolicy.progression.lifetimeSpendLevelTrackingEnabled;
+  if (tracksLifetimeProgression) {
     const spentFate = Math.max(0, Number(actor.system?.progression?.spentFate ?? 0)) + (kind === "fate" ? spend : 0);
     const spentPersona = Math.max(0, Number(actor.system?.progression?.spentPersona ?? 0)) + (kind === "persona" ? spend : 0);
     newLevel = Math.max(oldLevel, progressionLevelFor(spentFate, spentPersona));
@@ -91,12 +93,24 @@ export async function spendTrackedResource(actor, kind, amount = 1, { reason = "
     update["system.progression.level"] = newLevel;
   }
   await actor.update(update, { realmGuardProgressionSpend: true, realmGuardProgressionReason: reason });
-  if (actor.type === "character" && !isStrictRealmGuard() && newLevel > oldLevel) await announceLevelUp(actor, oldLevel, newLevel);
-  return { ok: true, spent: spend, levelUp: !isStrictRealmGuard() && newLevel > oldLevel, oldLevel, level: newLevel, strictProgressionSuppressed: isStrictRealmGuard() };
+  if (tracksLifetimeProgression && newLevel > oldLevel) await announceLevelUp(actor, oldLevel, newLevel);
+  return {
+    ok: true,
+    spent: spend,
+    levelUp: tracksLifetimeProgression && newLevel > oldLevel,
+    oldLevel,
+    level: newLevel,
+    progressionSuppressed: !tracksLifetimeProgression,
+    strictProgressionSuppressed: !tracksLifetimeProgression
+  };
 }
 
 export async function setProgressionTotals(actor, spentFate = 0, spentPersona = 0) {
   if (!actor || actor.type !== "character") return { ok: false, reason: "Progression belongs to Ranger characters." };
+  const profilePolicy = getActiveM10BSessionCirclesProgressionPolicy();
+  if (!profilePolicy.progression.lifetimeSpendLevelTrackingEnabled) {
+    return { ok: false, reason: "Lifetime Fate/Persona Level progression is disabled by the active Rules Profile." };
+  }
   const fate = Math.max(0, Math.trunc(Number(spentFate ?? 0)));
   const persona = Math.max(0, Math.trunc(Number(spentPersona ?? 0)));
   const level = progressionLevelFor(fate, persona);
@@ -110,6 +124,7 @@ export async function setProgressionTotals(actor, spentFate = 0, spentPersona = 
 
 export async function reconcileProgression(actor) {
   if (!actor || actor.type !== "character") return false;
+  if (!getActiveM10BSessionCirclesProgressionPolicy().progression.lifetimeSpendLevelTrackingEnabled) return false;
   const spentFate = Math.max(0, Number(actor.system?.progression?.spentFate ?? 0));
   const spentPersona = Math.max(0, Number(actor.system?.progression?.spentPersona ?? 0));
   const computed = progressionLevelFor(spentFate, spentPersona);
@@ -121,7 +136,7 @@ export async function reconcileProgression(actor) {
 
 export function installProgression() {
   Hooks.once("ready", async () => {
-    if (!game.user?.isGM || isStrictRealmGuard()) return;
+    if (!game.user?.isGM || !getActiveM10BSessionCirclesProgressionPolicy().progression.lifetimeSpendLevelTrackingEnabled) return;
     for (const actor of game.actors.filter(a => a.type === "character")) {
       try { await reconcileProgression(actor); }
       catch (error) { console.warn(`${NS} | progression migration failed for ${actor.name}`, error); }
