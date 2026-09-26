@@ -74,14 +74,16 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       gmTurnRecoveryCheckCost: 2,
       tableRewardAuthority: "GROUP_CONSENSUS",
       foundryCommitAuthority: "GM",
-      embodimentMayAwardEveryone: false
+      embodimentMayAwardEveryone: false,
+      checksTransferable: true
     },
     circles: {
       mode: "MG1E",
       socialStorage: "CORE_M8_FOUNDRY_TOOLING",
       knownContactFutureDice: 1,
       enmityClause: true,
-      enmityArgumentSpeechDispositionSuccess: 3
+      enmityArgumentSpeechDispositionSuccess: 3,
+      automaticNpcCreation: false
     },
     progression: {
       mode: "MG1E",
@@ -93,7 +95,9 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       ratingZeroOnePassNeeded: 1,
       clearSlateOnAdvance: true,
       oneTestPerAbilityOrSkillPerConflictScene: true,
-      beginnerLearningOpensAt: 2
+      beginnerLearningOpensAt: 2,
+      beginnerLearningAttemptsUseMaximumNature: true,
+      beginnerLuckAdvancesWillHealth: false
     },
     creation: {
       mode: "REALM_GUARD_STRICT_PROFILE",
@@ -152,7 +156,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.5",
+    implementationPhase: "M10B.6",
     strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -170,6 +174,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10B.5 generic Gear / Inventory / Conflict routing QA"
+    nextStep: "M10B.6 generic Session / Circles / Progression routing QA"
   }
 });
