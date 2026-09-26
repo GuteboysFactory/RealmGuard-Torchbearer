@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 4,
+  version: 5,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -22,8 +22,18 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     wises: { ratingMode: "RATED", advancement: "SKILL_LIKE", selfHelp: "I_AM_WISE" },
     help: { teamwork: true, iAmWise: true, synergy: false, helperConsequences: true, afraidBlocksHelp: false, sourcePolicy: "MG1E_TYPED" },
     resources: { fatePersona: "MG1E", fateTiming: "AFTER_ROLL_OPEN_SIXES", personaTiming: "BEFORE_ROLL", personaDiceMax: 3, tapNature: true },
-    conditions: { set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"] },
-    recovery: { order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"], oneRecoveryTestPerConditionPerTurn: true, gmTurnCheckCost: 2, hungrySkills: ["Harvester", "Cook", "Brewer", "Baker", "Resources"] },
+    conditions: { mode: "MG1E", set: ["Healthy", "Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"] },
+    recovery: {
+      mode: "MG1E",
+      order: ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"],
+      oneRecoveryTestPerConditionPerTurn: true,
+      gmTurnCheckCost: 2,
+      hungry: { obstacle: 1, methods: ["Harvester", "Cook", "Brewer", "Baker", "Resources", "Narrative Feeding"] },
+      angry: { recoveryAbility: "Will", obstacle: 2, helpAllowed: false },
+      tired: { recoveryAbility: "Health", obstacle: 3, helpAllowed: false, goodRest: true, resourcesObstacle: 2 },
+      injured: { recoveryAbility: "Health", obstacle: 4, helpAllowed: false, failedRecovery: "HEALER_REQUIRED", healerObstacle: 3, permanentReductionExcludes: ["Resources", "Circles"], playersTurnWaiver: true },
+      sick: { recoveryAbility: "Will", obstacle: 4, helpAllowed: false, failedRecovery: "HEALER_REQUIRED", healerObstacle: 3, permanentReductionExcludes: ["Resources", "Circles"], playersTurnWaiver: true }
+    },
     inventory: { policy: "LOOSE", structuredPlacementAuthority: false, capacityMode: "CHARACTER_SHEET_GEAR_SPACE", preservePlacementAsPresentation: true },
     conflict: { mode: "MG1E", actionsPerExchange: 3, rotateParticipants: true, helpAllowed: true, toolScope: "EXCHANGE", unarmedDefaultDice: 0 },
     session: { mode: "MG1E", freePlayerTurnTests: 1, additionalTestCheckCost: 1, recoveryDuringGmTurnCheckCost: 2, endSession: "MG1E", embodimentMayAwardEveryone: false },
@@ -68,7 +78,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.3",
-    nextStep: "M10B.3 Wises / Traits / Help / Nature routing QA"
+    implementationPhase: "M10B.4",
+    nextStep: "M10B.4 Conditions / Recovery routing QA"
   }
 });
