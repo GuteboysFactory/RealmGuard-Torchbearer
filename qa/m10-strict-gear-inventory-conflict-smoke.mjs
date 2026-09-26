@@ -167,7 +167,7 @@ assert.equal(strictWeaponOfWitPlan("Repeating Yourself", "attack", { repeating: 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 5, "M10A.4 conflict policy must remain present in later Strict profile versions.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.unarmedDefaultDice, 0);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.conflict.weaponAlias["Hook and Line"], "Whip");
-assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\\.\\d+$/, "M10A.4 compatibility smoke must survive later M10 phases.");
+assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\.\d+$/, "M10A.4 compatibility smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.gearInventoryConflictPolicyReady, true);
 assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
 
