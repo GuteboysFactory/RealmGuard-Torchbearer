@@ -232,7 +232,7 @@ assert.equal(REALM_GUARD_STRICT_PROFILE.domains.session.playerTurnFreeTests, 1);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.circles.knownContactFutureDice, 1);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.progression.levels, false);
 assert.equal(REALM_GUARD_STRICT_PROFILE.domains.progression.talents, false);
-assert.ok(["M10A.5","M10A.6","M10A.7","M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase), "M10A.5 smoke must survive later M10 phases.");
+assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\.\d+$/, "M10A.5 smoke must survive later M10 phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.sessionPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.circlesPolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.progressionPolicyReady, true);
