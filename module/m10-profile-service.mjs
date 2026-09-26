@@ -33,6 +33,10 @@ import {
   resolveM10BGearInventoryConflictPolicy
 } from "./m10b-gear-inventory-conflict.mjs";
 import {
+  getM10B6SessionCirclesProgressionStatus,
+  resolveM10BSessionCirclesProgressionPolicy
+} from "./m10b-session-circles-progression.mjs";
+import {
   getStrictScaleStatus,
   strictFighterHunterOutcomePlan,
   strictLoreMasterScalePlan,
@@ -107,7 +111,7 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10B.5",
+    phase: "M10B.6",
     mode: "GENERIC_PROFILE_PREVIEW_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
@@ -130,7 +134,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: isStrictRealmGuard(),
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10B.5 Gear / Inventory / Conflict routing QA"
+    nextStep: "M10B.6 Session / Circles / Progression routing QA"
   });
 }
 
@@ -195,6 +199,8 @@ export function installM10ProfileConversionPreview() {
       openMg1eConversionPreview: showMg1eConversionPreview,
       gearInventoryConflictStatus: getM10B5GearInventoryConflictStatus,
       resolveGearInventoryConflictPolicy: resolveM10BGearInventoryConflictPolicy,
+      sessionCirclesProgressionStatus: getM10B6SessionCirclesProgressionStatus,
+      resolveSessionCirclesProgressionPolicy: resolveM10BSessionCirclesProgressionPolicy,
       strict: Object.freeze({
         getStatus: getStrictWisesTraitsHelpStatus,
         wiseView: strictWiseView,
@@ -267,6 +273,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10B.5 generic Profile router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.6 generic Profile router ready", getM10ProfilePreviewStatus());
   });
 }
