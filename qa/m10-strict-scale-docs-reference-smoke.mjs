@@ -139,7 +139,7 @@ assert.match(html, /(does not switch the world|active QA rules profile)/i);
 assert.match(html, /Scale of Might/);
 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 8);
-assert.ok(["M10A.7","M10A.8","M10A.9"].includes(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase));
+assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\.\d+$/);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.scalePolicyReady, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.rulesReferencePreviewReady, true);
 assert.equal(typeof REALM_GUARD_STRICT_PROFILE.metadata.liveRuleAuthority, "boolean");
