@@ -1,5 +1,5 @@
 import { createM5Services } from "./core/m5-services.mjs";
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { getActiveM10BGearInventoryConflictPolicy, familyConflictToolPlan } from "./m10b-gear-inventory-conflict.mjs";
 
 const LEGACY_PROFILE_FALLBACK = Object.freeze({
   id: "realm-guard-legacy-mixed",
@@ -34,6 +34,11 @@ function activeProfile() {
 
 function services() {
   return createM5Services(activeProfile());
+}
+
+function activeConflictPolicy() {
+  try { return getActiveM10BGearInventoryConflictPolicy(); }
+  catch (_error) { return Object.freeze({ profileId: "realm-guard-legacy-mixed", familySemantics: false, conflict: Object.freeze({}) }); }
 }
 
 function num(value) {
@@ -162,21 +167,32 @@ export function evaluateM5ConflictToolLiveHandoff({
 
   let evaluated;
   try {
-    evaluated = services().conflictTools.evaluate(actor, {
-      toolId: String(toolId ?? ""),
-      action,
-      requirementMet: Boolean(requirementMet),
-      swordUsefulAction: String(swordUsefulAction ?? ""),
-      disabled,
-      conflictType,
-      conflictId
-    });
+    const policy = activeConflictPolicy();
+    evaluated = policy.familySemantics
+      ? familyConflictToolPlan(actor, {
+          toolId: String(toolId ?? ""),
+          action,
+          requirementMet: Boolean(requirementMet),
+          swordUsefulAction: String(swordUsefulAction ?? ""),
+          disabled,
+          conflictType,
+          conflictId
+        }, policy)
+      : services().conflictTools.evaluate(actor, {
+          toolId: String(toolId ?? ""),
+          action,
+          requirementMet: Boolean(requirementMet),
+          swordUsefulAction: String(swordUsefulAction ?? ""),
+          disabled,
+          conflictType,
+          conflictId
+        });
   } catch (error) {
     telemetry.errorFallbacks += 1;
-    if (isStrictRealmGuard()) {
+    if (activeConflictPolicy().familySemantics) {
       record({
         operation,
-        outcome: "STRICT_CORE_EVALUATION_ERROR",
+        outcome: "PROFILE_CORE_EVALUATION_ERROR",
         actorId: String(actor?.id ?? ""),
         actorName: String(actor?.name ?? ""),
         side: String(side ?? ""),
@@ -184,7 +200,7 @@ export function evaluateM5ConflictToolLiveHandoff({
         conflictType,
         action: String(action ?? ""),
         toolId: String(toolId ?? ""),
-        evaluationAuthority: "CORE_M5_STRICT_ERROR",
+        evaluationAuthority: "CORE_M5_PROFILE_ERROR",
         conflictStateAuthority: "CORE_M6_COMPATIBILITY_STATE",
         reason: String(error?.message ?? error)
       });
@@ -212,11 +228,11 @@ export function evaluateM5ConflictToolLiveHandoff({
   const kind = classifyTool(evaluated, toolId);
   incrementClass(kind);
 
-  if (isStrictRealmGuard()) {
+  if (activeConflictPolicy().familySemantics) {
     telemetry.matches += 1;
     const event = record({
       operation,
-      outcome: "STRICT_CORE_EVALUATION_APPLIED",
+      outcome: "PROFILE_CORE_EVALUATION_APPLIED",
       actorId: String(actor?.id ?? ""),
       actorName: String(actor?.name ?? ""),
       side: String(side ?? ""),
@@ -226,9 +242,9 @@ export function evaluateM5ConflictToolLiveHandoff({
       toolId: String(toolId ?? ""),
       toolName: String(evaluated?.tool?.name ?? (toolId ? "" : "Unarmed")),
       toolKind: kind,
-      evaluationAuthority: "CORE_M5_STRICT",
+      evaluationAuthority: "CORE_M5_PROFILE",
       conflictStateAuthority: "CORE_M6_COMPATIBILITY_STATE",
-      parityGuard: "STRICT_PROFILE_AUTHORITY",
+      parityGuard: "PROFILE_AUTHORITY",
       dice: num(evaluated?.dice),
       conditionalSuccess: Math.max(0, num(evaluated?.conditionalSuccess)),
       successPenalty: Math.max(0, num(evaluated?.successPenalty)),
@@ -238,17 +254,17 @@ export function evaluateM5ConflictToolLiveHandoff({
     return {
       ...coreResult(legacy, evaluated, {
         rollback: false,
-        parityGuard: "STRICT_PROFILE_AUTHORITY",
+        parityGuard: "PROFILE_AUTHORITY",
         toolKind: kind,
         eventAt: event.at
       }),
       m5: Object.freeze({
-        evaluationAuthority: "CORE_M5_STRICT",
+        evaluationAuthority: "CORE_M5_PROFILE",
         conflictStateAuthority: "CORE_M6_COMPATIBILITY_STATE",
         providerId: String(evaluated?.tool?.id ?? ""),
         providerName: String(evaluated?.tool?.name ?? (evaluated?.tool ? "" : "Unarmed")),
         rollback: false,
-        parityGuard: "STRICT_PROFILE_AUTHORITY",
+        parityGuard: "PROFILE_AUTHORITY",
         toolKind: kind,
         eventAt: event.at
       })
