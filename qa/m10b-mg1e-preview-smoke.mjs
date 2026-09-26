@@ -14,7 +14,7 @@ const legacy=resolver.resolve("realm-guard-legacy-mixed");
 const strict=resolver.resolve("realm-guard-strict");
 const mg1e=resolver.resolve("mg1e");
 
-assert.equal(mg1e.version,4);
+assert.ok(mg1e.version>=4,"MG1E source-manifest preview remains valid after later M10B profile revisions.");
 assert.equal(mg1e.metadata.foundationOnly,true);
 assert.equal(mg1e.metadata.selectable,false);
 assert.equal(mg1e.metadata.liveRuleAuthority,false);
@@ -65,7 +65,7 @@ assert.ok(preview.deltas.some(d=>d.domain==="scaleOfMight"));
 assert.ok(preview.deltas.some(d=>d.domain==="creation"));
 
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('"mg1e"'),false,"MG1E must remain non-selectable in M10B.2.");
+assert.equal(activation.includes('"mg1e"'),false,"MG1E must remain non-selectable throughout M10B.");
 
 const previewSource=fs.readFileSync("module/m10-profile-conversion-preview.mjs","utf8");
 for(const forbidden of ["game.settings.set","createEmbeddedDocuments","deleteEmbeddedDocuments","Actor.create"]) {
