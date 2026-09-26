@@ -12,6 +12,8 @@ import { m6ApplyPostResolutionState, m6AdvanceAfterActionState, m6ApplyManeuverS
 import { evaluateM6ConflictStateLiveHandoff } from "./m6-conflict-state-handoff.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "./teamwork.mjs";
 import { getActiveM10BGearInventoryConflictPolicy, familyConflictActionSkills, familyConflictDispositionPlan } from "./m10b-gear-inventory-conflict.mjs";
+import { getActiveM10BSessionCirclesProgressionPolicy, familyEnmityDispositionPlan } from "./m10b-session-circles-progression.mjs";
+import { buildM8RelationshipSheetView } from "./m8-social-network-service.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -213,6 +215,35 @@ function activeDispositionPenaltyNames(actors = [], baseKey = "health") {
   }
   return [...penalties];
 }
+function enmityDispositionBonus(state, side) {
+  if (side !== "gm" || !["argument","speech"].includes(String(state?.type ?? ""))) return { successes: 0, rangerIds: [] };
+  const opponent = actorById(state?.gm?.actorId);
+  if (!opponent) return { successes: 0, rangerIds: [] };
+  const opponentUuid = String(opponent.uuid ?? (opponent.id ? `Actor.${opponent.id}` : ""));
+  const policy = getActiveM10BSessionCirclesProgressionPolicy();
+  if (!policy.circles.enmityClause) return { successes: 0, rangerIds: [] };
+
+  const matched = [];
+  for (const rangerId of state?.ranger?.participantIds ?? []) {
+    const ranger = actorById(rangerId);
+    if (!ranger) continue;
+    const view = buildM8RelationshipSheetView(ranger);
+    const hostileEnemy = (view.relationships ?? []).some(relationship => {
+      const linkedUuid = String(relationship?.person?.actorLink?.uuid ?? "");
+      if (!linkedUuid || linkedUuid !== opponentUuid) return false;
+      const plan = familyEnmityDispositionPlan({
+        relationshipRole: relationship?.role,
+        relationshipStatus: relationship?.status,
+        conflictType: state.type,
+        againstRelationshipOwner: true
+      }, policy);
+      return plan.active && Number(plan.dispositionSuccess ?? 0) > 0;
+    });
+    if (hostileEnemy) matched.push(String(ranger.id));
+  }
+  return { successes: matched.length ? Number(policy.circles.enmityArgumentSpeechDispositionSuccess ?? 3) : 0, rangerIds: matched };
+}
+
 function dispositionPenaltyForSide(state, side, baseKey) {
   const actors = side === "ranger"
     ? (state.ranger?.participantIds ?? []).map(actorById)
@@ -1154,7 +1185,7 @@ async function postStartingDispositionChat(state, payload) {
     const rolled = Number(roll.successes ?? 0);
     const traitS = roll.traitSuccessLevel3 ? ` · ${esc(roll.traitName || "Trait")} +1s` : "";
     const effective = Number(payload.dispositionRollSuccesses ?? rolled + (roll.traitSuccessLevel3 ? 1 : 0));
-    math = `<div class="rg-disposition-breakdown"><div><b>Roll Pool</b><strong>${Number(roll.pool ?? 0)}D</strong></div><div><b>Rolled Successes</b><strong>${rolled}</strong></div><div><b>Effective Successes</b><strong>${effective}</strong></div><div><b>Base ${esc(String(payload.baseKey || "ability").toUpperCase())}</b><strong>+${Number(payload.baseValue ?? 0)}</strong></div></div><div class="rg-disposition-dice">${diceFacesHtml(roll.faces ?? [])}</div>${tap ? `<p class="rg-disposition-note">${tap.replace(/^ · /, "")}</p>` : ""}${traitS ? `<p class="rg-disposition-note">${traitS.replace(/^ · /, "")}</p>` : ""}${penaltyText ? `<p class="rg-disposition-note">${penaltyText.replace(/^ · /, "")}</p>` : ""}${bl ? `<p class="rg-disposition-note">${bl.replace(/^<br>/, "")}</p>` : ""}`;
+    math = `<div class="rg-disposition-breakdown"><div><b>Roll Pool</b><strong>${Number(roll.pool ?? 0)}D</strong></div><div><b>Rolled Successes</b><strong>${rolled}</strong></div><div><b>Effective Successes</b><strong>${effective}</strong></div><div><b>Base ${esc(String(payload.baseKey || "ability").toUpperCase())}</b><strong>+${Number(payload.baseValue ?? 0)}</strong></div></div><div class="rg-disposition-dice">${diceFacesHtml(roll.faces ?? [])}</div>${tap ? `<p class="rg-disposition-note">${tap.replace(/^ · /, "")}</p>` : ""}${traitS ? `<p class="rg-disposition-note">${traitS.replace(/^ · /, "")}</p>` : ""}${Number(payload.enmityDispositionSuccess ?? 0) ? `<p class="rg-disposition-note"><b>Enmity Clause:</b> +${Number(payload.enmityDispositionSuccess)}s to opposition disposition.</p>` : ""}${penaltyText ? `<p class="rg-disposition-note">${penaltyText.replace(/^ · /, "")}</p>` : ""}${bl ? `<p class="rg-disposition-note">${bl.replace(/^<br>/, "")}</p>` : ""}`;
   } else {
     math = `<div class="rg-disposition-breakdown"><div><b>${method === "manual" ? "Manual final" : "Fixed base"}</b><strong>${Number(payload.fixedBase ?? payload.disposition ?? 0)}</strong></div>${method === "fixed" ? `<div><b>Supporting NPCs</b><strong>+${Number(payload.helperBonus ?? 0)}</strong></div>` : ""}${payload.penalty ? `<div><b>Condition penalty</b><strong>−${Number(payload.penalty)}</strong></div>` : ""}</div>${payload.penaltyNames?.length ? `<p class="rg-disposition-note">Conditions: ${payload.penaltyNames.map(esc).join(", ")}</p>` : ""}`;
   }
@@ -1181,8 +1212,9 @@ async function rollDisposition(side, state) {
     const penaltyData = method === "manual" ? { value: 0, names: [] } : dispositionPenaltyForSide(state, side, baseKey);
     const fixedBase = Math.max(1, Number(methodOptions.fixed ?? 1));
     const helperBonus = method === "fixed" ? Math.max(0, Number(methodOptions.helpers ?? 0)) : 0;
-    const disposition = method === "manual" ? fixedBase : Math.max(1, fixedBase + helperBonus - penaltyData.value);
-    const payload = { side, disposition, baseKey, baseValue: 0, penalty: penaltyData.value, penaltyNames: penaltyData.names, roll: null, method, fixedBase, helperBonus };
+    const enmity = method === "fixed" ? enmityDispositionBonus(state, side) : { successes: 0, rangerIds: [] };
+    const disposition = method === "manual" ? fixedBase : Math.max(1, fixedBase + helperBonus + Number(enmity.successes ?? 0) - penaltyData.value);
+    const payload = { side, disposition, baseKey, baseValue: 0, penalty: penaltyData.value, penaltyNames: penaltyData.names, roll: null, method, fixedBase, helperBonus, enmityDispositionSuccess: Number(enmity.successes ?? 0), enmityRangerIds: enmity.rangerIds ?? [] };
     return gmApplyDisposition(payload, state);
   }
 
@@ -1217,9 +1249,10 @@ async function rollDisposition(side, state) {
   const penaltyData = dispositionPenaltyForSide(state, side, baseKey);
   // Starting Disposition is an Ob 0-style successful test: Level 3 Trait +1s therefore
   // applies to the rolled successes before the full disposition base is added.
-  const dispositionRollSuccesses = Number(roll.successes ?? 0) + (roll.traitSuccessLevel3 ? 1 : 0);
+  const enmity = enmityDispositionBonus(state, side);
+  const dispositionRollSuccesses = Number(roll.successes ?? 0) + (roll.traitSuccessLevel3 ? 1 : 0) + Number(enmity.successes ?? 0);
   const disposition = Math.max(1, baseValue + dispositionRollSuccesses - penaltyData.value);
-  const payload = { side, disposition, baseKey, baseValue, penalty: penaltyData.value, penaltyNames: penaltyData.names, roll, method, natureHalf, dispositionRollSuccesses };
+  const payload = { side, disposition, baseKey, baseValue, penalty: penaltyData.value, penaltyNames: penaltyData.names, roll, method, natureHalf, dispositionRollSuccesses, enmityDispositionSuccess: Number(enmity.successes ?? 0), enmityRangerIds: enmity.rangerIds ?? [] };
   if (game.user?.isGM) await gmApplyDisposition(payload, state);
   else game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: "submitDisposition", conflictId: state.id, senderId: game.user.id, payload });
 }
