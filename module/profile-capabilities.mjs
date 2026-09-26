@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.3",
+    phase: "M10B.4",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -107,7 +107,25 @@ export function buildProfileCapabilities(profile) {
       conditions: {
         mode: text(d.conditions?.mode, conditionSetExplicit ? "PROFILE_SET" : "LEGACY_CURRENT"),
         explicitSet: conditionSetExplicit,
-        names: conditionNames
+        names: conditionNames,
+        replaces: d.conditions?.replaces ? { ...d.conditions.replaces } : {},
+        excludedDefaults: Array.isArray(d.conditions?.excludesLegacyDefaults) ? [...d.conditions.excludesLegacyDefaults] : []
+      },
+      recovery: {
+        mode: text(d.recovery?.mode, legacyCurrent(d.recovery) ? "LEGACY_CURRENT" : conditionSetExplicit ? "MG1E_FAMILY" : "PROFILE_DEFINED"),
+        familySemantics: conditionSetExplicit && !legacyCurrent(d.recovery),
+        order: Array.isArray(d.recovery?.order) ? [...d.recovery.order] : [],
+        oneRecoveryTestPerConditionPerTurn: bool(d.recovery?.oneRecoveryTestPerConditionPerTurn, conditionSetExplicit),
+        gmTurnCheckCost: numeric(d.recovery?.gmTurnCheckCost ?? d.session?.recoveryDuringGmTurnCheckCost ?? d.session?.gmTurnRecoveryCheckCost, 2),
+        hungryMethods: Array.isArray(d.recovery?.hungry?.methods)
+          ? [...d.recovery.hungry.methods]
+          : Array.isArray(d.recovery?.hungrySkills) ? [...d.recovery.hungrySkills] : [],
+        hungry: d.recovery?.hungry ? { ...d.recovery.hungry } : null,
+        angry: d.recovery?.angry ? { ...d.recovery.angry } : null,
+        tired: d.recovery?.tired ? { ...d.recovery.tired } : null,
+        injured: d.recovery?.injured ? { ...d.recovery.injured } : null,
+        sick: d.recovery?.sick ? { ...d.recovery.sick } : null,
+        strained: d.recovery?.strained ? { ...d.recovery.strained } : null
       },
       inventory: {
         policy: inventoryPolicy,
