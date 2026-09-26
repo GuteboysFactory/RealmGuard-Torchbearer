@@ -9,4 +9,5 @@
 # Legacy Mixed compatibility behavior preserved
 # release notes version match enforced by preflight
 # historical activation smoke updated for generic M10B.4 routing
+# MG1E preview smoke accepts later M10B profile revisions
 # Foundry v13.351 QA required
