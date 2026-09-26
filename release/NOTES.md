@@ -1,20 +1,19 @@
-# Realm Guard / Torchbearer v1.12.0-qa.5 — M10B.5 Gear / Inventory / Conflict Routing
+# Realm Guard / Torchbearer v1.12.0-qa.6 — M10B.6 Session / Circles / Progression Routing
 
-Built after v1.12.0-qa.4 M10B.4 passed full live Foundry VTT 13.351 QA.
+Built after v1.12.0-qa.5 M10B.5 passed full live Foundry VTT 13.351 QA.
 
-This QA build moves MG1E-family Gear, Inventory and Conflict ownership away from binary Strict-vs-Legacy checks and into the resolved Rules Profile capability layer. Mouse Guard 1E remains FOUNDATION_ONLY, non-selectable and non-live.
+This QA build moves MG1E-family Session, Circles and Progression ownership into the generic Rules Profile capability layer while keeping Mouse Guard 1E FOUNDATION_ONLY, non-selectable and non-live.
 
 Highlights:
-- MG1E foundation advances to profile v6.
-- Generic MG1E-family Inventory, weapon, armor, Conflict Tool, Weapons of Wit, Disarm, action-skill and starting-Disposition policy.
-- MG1E source Fight table resolves Fighter / Nature / Fighter / Nature; Realm Guard Strict retains the v1.6 Fighter / Fighter / Fighter / Fighter override.
-- MG1E Chase starting Disposition uses Scout + Nature; Realm Guard Strict uses its v1.6 Scout + Health rule.
-- MG1E retains Hook and Line plus Light / Heavy Armor.
-- Strict Realm Guard aliases Hook and Line to Whip, presents Leather / Chainmail and retains Plated Armor.
-- Live Conflict UI and M5 conflict-tool handoff route through active profile capabilities instead of direct Strict identity checks.
-- Legacy Mixed keeps STRUCTURED placement authority, its existing Conflict compatibility tables and Unarmed -1D.
-- LOOSE profiles preserve hand/worn/container/unassigned metadata as presentation without making placement rules-authoritative.
-- Historical Strict M10A.4 Gear / Inventory / Conflict APIs remain compatibility wrappers over M10B.5.
-- NPC Fate / Persona / Checks are compacted into a responsive resource bar beneath identity; long-name typography is responsive.
-- No MG1E activation, no automatic inventory migration and no destructive Actor/Item conversion.
+- MG1E foundation advances to profile v7.
+- Generic MG1E-family Players' Turn / Checks, End Session, Circles and advancement/progression policy.
+- CORE M7 remains the Players' Turn engine: one free test, 1 Check for additional tests, alternation with solo exception, transferable Checks and 2-Check GM Turn recovery.
+- End Session validation routes through the active profile rather than direct Strict identity checks.
+- Strict/MG1E-family Level/Talent mechanics remain disabled while preserved Legacy Level, lifetime spend and Talent data remains untouched.
+- Fate/Persona may still be spent under Strict without incrementing Legacy lifetime Level counters or unlocking Talents.
+- Known Contact Circles gains the source-backed +1D under MG1E-family profiles; Legacy Mixed remains unchanged.
+- Linked Hostile Enmity-Clause enemies gain +3s opposition starting Disposition in Argument/Speech conflicts.
+- Historical Strict M10A.5 Session / Circles / Progression APIs remain compatibility wrappers over M10B.6.
+- No MG1E activation, automatic NPC creation or destructive Actor/Item/relationship conversion.
+- NPC header hotfix aligns Fate / Persona / Checks with the Character sheet's compact vertical right-side resource stack.
 - Foundry target remains 13.351; v1.11.0 remains STABLE / GOLD.
