@@ -1,16 +1,17 @@
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
 import {
-  strictConditionRollEffects,
-  strictRecoveryBlocker,
-  strictRecoveryEconomy,
-  strictRecoveryMethods
-} from "./m10-strict-conditions-recovery.mjs";
+  getActiveM10BConditionRecoveryPolicy,
+  familyConditionRollEffects,
+  familyRecoveryBlocker,
+  familyRecoveryEconomy,
+  familyRecoveryMethods
+} from "./m10b-conditions-recovery.mjs";
 import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
   { name: "Angry", icon: "systems/realm-guard/assets/conditions/angry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 2, recoveryNote: "Recover with an Ob 2 Will test. While Angry, beneficial Trait and Wise effects are unavailable; precision/social Ob increases remain GM-adjudicated.", description: "Angry subtracts 1 from disposition for conflicts that use Will as their base. Supplementary Torchbearer alignment also blocks beneficial Trait/Wise effects while Angry." },
   { name: "Tired", icon: "systems/realm-guard/assets/conditions/tired.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 3, recoveryNote: "Recover from fatigue with an Ob 3 Health test.", description: "Tired subtracts 1 from disposition for all conflicts. It does not penalize ordinary Skill tests." },
   { name: "Strained", icon: "systems/realm-guard/assets/conditions/strained.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Realm Guard: recover with an Ob 4 Will test. Failure leaves Strained active; counsel may be required. Seeking counsel during the GM Turn costs two Checks.", description: "Mental fatigue and stress impose -1D to Nature, Will, Health and skill tests. This penalty does not apply to Resources or Circles tests, nor to Will or Health recovery tests." },
+  { name: "Sick", icon: "systems/realm-guard/assets/conditions/sick.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Mouse Guard 1E: recover with an Ob 4 Will test. On failure, seek a Healer at Ob 3 or use the Players' Turn waiver and take a permanent reduction.", description: "Mouse Guard 1E: Sick imposes -1D to Nature, Will, Health and skill tests. The penalty does not apply to Resources or Circles, nor to Will and Health recovery tests." },
   { name: "Hungry & Thirsty", icon: "systems/realm-guard/assets/conditions/hungry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "resources", recoveryObstacle: 1, recoveryNote: "Eat and drink. Use Resources Ob 1, or an available Cook/Brewer/Baker Skill at Ob 1 when appropriate.", description: "Hungry & Thirsty subtracts 1 from disposition for any conflict. It must be dealt with before later canonical recovery conditions." },
   { name: "Afraid", icon: "systems/realm-guard/assets/conditions/afraid.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 3, recoveryNote: "Supplementary Torchbearer rule: recover with an Ob 3 Will test. Afraid Rangers cannot Help and cannot use Beginner's Luck.", description: "Supplementary condition rule: while Afraid, the Ranger cannot Help another Ranger and cannot use Beginner's Luck. Nature remains available for untrained actions when appropriate." },
   { name: "Injured", icon: "systems/realm-guard/assets/conditions/injured.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 4, recoveryNote: "Recover with an Ob 4 Health test. Recovery tests ignore the Injury penalty.", description: "Injured imposes -1D to Nature, Will, Health and skill tests. The penalty does not apply to Resources or Circles, nor to Will or Health recovery tests." },
@@ -18,6 +19,7 @@ export const RG_DEFAULT_CONDITIONS = [
 ];
 
 export const RG_RECOVERY_ORDER = ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"];
+const RG_LEGACY_DEFAULT_CONDITION_NAMES = Object.freeze(["Angry", "Tired", "Strained", "Hungry & Thirsty", "Afraid", "Injured", "Fresh"]);
 
 const FALLBACK_ICON = "systems/realm-guard/assets/conditions/condition.svg";
 const normalize = value => String(value ?? "").trim().toLowerCase();
@@ -38,12 +40,13 @@ export function conditionAppliesToRoll(condition, rollName, { isSkill = true } =
 }
 
 export function conditionRollData(actor, rollName, { isSkill = true } = {}) {
-  if (isStrictRealmGuard()) {
-    const strict = strictConditionRollEffects(actor, rollName, { isSkill });
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  if (policy.familySemantics) {
+    const family = familyConditionRollEffects(actor, rollName, { isSkill }, policy);
     const active = (actor?.conditions ?? []).filter(c =>
-      strict.applied.some(entry => normalize(entry.name) === normalize(c.name))
+      family.applied.some(entry => normalize(entry.name) === normalize(c.name))
     );
-    return { active, dice: Number(strict.diceModifier ?? 0), strict };
+    return { active, dice: Number(family.diceModifier ?? 0), family };
   }
   const active = (actor?.conditions ?? []).filter(c => conditionAppliesToRoll(c, rollName, { isSkill }));
   const dice = active.reduce((sum, c) => sum + Number(c.system.rollModifier ?? 0), 0);
@@ -60,11 +63,12 @@ function recoveryOrderIndex(name) {
 }
 
 export function recoveryBlocker(actor, condition) {
-  if (isStrictRealmGuard()) {
-    const blocker = strictRecoveryBlocker(actor, condition?.name);
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  if (policy.familySemantics) {
+    const blocker = familyRecoveryBlocker(actor, condition?.name, policy);
     if (!blocker) return null;
     return (actor?.conditions ?? []).find(c => Boolean(c.system?.active) && normalize(c.name) === normalize(blocker.name))
-      ?? { name: blocker.name, strict: true };
+      ?? { name: blocker.name, profileRouted: true };
   }
   const idx = recoveryOrderIndex(condition?.name);
   if (idx < 0) return null; // Supplemental/custom Conditions do not change Realm Guard's canonical recovery order.
@@ -83,8 +87,9 @@ export function validateRecoveryAttempt(actor, condition) {
   if (turnManagerEnabled() && recoveryAttempted(actor, condition.name)) return { ok: false, reason: `${condition.name} already had a recovery attempt this ${turnLabel()}.` };
   if (turnManagerEnabled() && currentTurnPhase() === "gm") {
     const checks = Math.max(0, Number(actor.system?.resources?.checks?.value ?? 0));
-    const economy = isStrictRealmGuard()
-      ? strictRecoveryEconomy({ phase:"gm", turnManagerEnabled:true, checks, kind:"TEST" })
+    const policy = getActiveM10BConditionRecoveryPolicy();
+    const economy = policy.familySemantics
+      ? familyRecoveryEconomy({ phase:"gm", turnManagerEnabled:true, checks, kind:"TEST" }, policy)
       : { costChecks:2, affordable:checks >= 2 };
     if (!economy.affordable) return { ok: false, reason: `GM Turn recovery costs ${economy.costChecks} Checks; ${actor.name} has ${checks}.` };
   }
@@ -93,19 +98,20 @@ export function validateRecoveryAttempt(actor, condition) {
 
 export function recoveryMethods(actor, condition) {
   const key = normalize(condition?.name);
-  if (isStrictRealmGuard()) {
-    return strictRecoveryMethods(actor, condition?.name).map(entry => {
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  if (policy.familySemantics) {
+    return familyRecoveryMethods(actor, condition?.name, policy).map(entry => {
       if (entry.kind === "skill") {
         const item = (actor?.roles ?? []).find(role => normalize(role.name) === normalize(entry.name) && Number(role.system?.rating ?? 0) > 0);
-        return item ? { kind:"role", item, name:item.name, obstacle:Number(entry.obstacle ?? 0), dice:Number(item.system?.rating ?? 0), strict:true, helpAllowed:entry.helpAllowed !== false } : null;
+        return item ? { kind:"role", item, name:item.name, obstacle:Number(entry.obstacle ?? 0), dice:Number(item.system?.rating ?? 0), profileRouted:true, helpAllowed:entry.helpAllowed !== false } : null;
       }
       if (entry.kind === "ability") {
         const key = normalize(entry.name);
         const stat = actor?.system?.attributes?.[key];
-        return stat ? { kind:"ability", key, name:entry.name, obstacle:Number(entry.obstacle ?? 0), dice:Math.max(0,Number(stat.value ?? 0)), strict:true, helpAllowed:entry.helpAllowed !== false, purpose:entry.purpose ?? "" } : null;
+        return stat ? { kind:"ability", key, name:entry.name, obstacle:Number(entry.obstacle ?? 0), dice:Math.max(0,Number(stat.value ?? 0)), profileRouted:true, helpAllowed:entry.helpAllowed !== false, purpose:entry.purpose ?? "" } : null;
       }
       if (entry.kind === "narrative") {
-        return { kind:"narrative", name:entry.name, obstacle:0, dice:0, strict:true, testRequired:false, helpAllowed:false, purpose:entry.purpose ?? "" };
+        return { kind:"narrative", name:entry.name, obstacle:0, dice:0, profileRouted:true, testRequired:false, helpAllowed:false, purpose:entry.purpose ?? "" };
       }
       return null;
     }).filter(Boolean);
@@ -158,9 +164,9 @@ export async function ensureDefaultConditions(actor) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
   const existing = new Map(actor.conditions.map(c => [normalize(c.name), c]));
   const create = [];
-  const defaults = isStrictRealmGuard()
-    ? RG_DEFAULT_CONDITIONS.filter(c => !["fresh","afraid"].includes(normalize(c.name)))
-    : RG_DEFAULT_CONDITIONS;
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
+  const defaults = RG_DEFAULT_CONDITIONS.filter(c => wanted.some(name => normalize(name) === normalize(c.name)));
   for (const c of defaults) {
     const found = existing.get(normalize(c.name));
     if (found) {
@@ -184,57 +190,18 @@ export async function ensureDefaultConditions(actor) {
 
 let rgConditionMigrationRunning = false;
 
-async function migrateSickToStrained(actor) {
-  if (!actor || !["character", "npc"].includes(actor.type)) return false;
-  const sick = actor.conditions.find(c => normalize(c.name) === "sick" && isDefaultCondition(c));
-  if (!sick) return false;
-  const strained = actor.conditions.find(c => normalize(c.name) === "strained");
-  const strainedDefault = RG_DEFAULT_CONDITIONS.find(c => c.name === "Strained");
-
-  if (strained) {
-    if (Boolean(sick.system.active) && !Boolean(strained.system.active)) {
-      await strained.update({ "system.active": true }, { realmGuardSkipConditionSync: true });
-      await syncConditionEffect(actor, strained);
-    }
-    const oldEffect = actor.effects.find(e => e.getFlag("realm-guard", "conditionItemId") === sick.id);
-    if (oldEffect) await oldEffect.delete({ realmGuardConditionSync: true });
-    await sick.delete();
-    return true;
-  }
-
-  await sick.update({
-    name: "Strained",
-    "system.icon": strainedDefault.icon,
-    "system.rollModifier": strainedDefault.rollModifier,
-    "system.appliesTo": strainedDefault.appliesTo,
-    "system.recoveryType": strainedDefault.recoveryType,
-    "system.recoveryAbility": strainedDefault.recoveryAbility,
-    "system.recoveryObstacle": strainedDefault.recoveryObstacle,
-    "system.recoveryNote": strainedDefault.recoveryNote,
-    "system.description": `<p>${strainedDefault.description}</p>`
-  }, { realmGuardSkipConditionSync: true });
-  if (Boolean(sick.system.active)) await syncConditionEffect(actor, sick);
-  return true;
-}
-
 async function migrateAndProvisionConditions() {
   if (!game.user?.isGM || rgConditionMigrationRunning) return;
   const activeGMs = game.users.filter(u => u.active && u.isGM).sort((a,b) => String(a.id).localeCompare(String(b.id)));
   if (activeGMs.length && activeGMs[0].id !== game.user.id) return;
   rgConditionMigrationRunning = true;
   try {
-    let migrated = 0;
     for (const actor of game.actors?.contents ?? []) {
       if (!["character", "npc"].includes(actor.type)) continue;
-      if (await migrateSickToStrained(actor)) migrated += 1;
       const quickNpc = actor.getFlag?.("realm-guard", "quickNpc");
       const skipNpcDefaults = actor.type === "npc" && quickNpc?.addDefaultConditions === false;
       if (!skipNpcDefaults) await ensureDefaultConditions(actor);
       await enrichCanonicalConditionData(actor);
-    }
-    if (migrated) {
-      console.log(`Realm Guard | Migrated Sick to Strained on ${migrated} Actor(s).`);
-      ui.notifications?.info?.(`Realm Guard: Migrated Sick to Strained on ${migrated} Actor(s).`);
     }
   } catch (err) {
     console.error("Realm Guard | Condition rule-alignment migration failed", err);
@@ -245,9 +212,11 @@ async function migrateAndProvisionConditions() {
 
 
 async function enrichCanonicalConditionData(actor) {
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
   for (const condition of actor.conditions ?? []) {
     if (!isDefaultCondition(condition)) continue;
-    if (isStrictRealmGuard() && ["fresh","afraid"].includes(normalize(condition.name))) continue;
+    if (!wanted.some(name => normalize(name) === normalize(condition.name))) continue;
     const def = RG_DEFAULT_CONDITIONS.find(c => normalize(c.name) === normalize(condition.name));
     if (!def) continue;
     const update = {};
@@ -323,14 +292,15 @@ export async function setConditionActive(actor, item, active) {
   if (!actor || item?.type !== "condition") return false;
   const next = Boolean(active);
   const isFresh = normalize(item.name) === "fresh";
-  if (!isStrictRealmGuard() && next && isFresh) {
+  const legacyFreshRules = !getActiveM10BConditionRecoveryPolicy().familySemantics;
+  if (legacyFreshRules && next && isFresh) {
     const adverse = (actor.conditions ?? []).find(c => c.id !== item.id && Boolean(c.system?.active));
     if (adverse) {
       ui.notifications.warn(`Realm Guard: Fresh cannot be activated while ${adverse.name} is active.`);
       return false;
     }
   }
-  if (!isStrictRealmGuard() && next && !isFresh) {
+  if (legacyFreshRules && next && !isFresh) {
     const fresh = (actor.conditions ?? []).find(c => normalize(c.name) === "fresh" && Boolean(c.system?.active));
     if (fresh) {
       await fresh.update({ "system.active": false }, { realmGuardSkipConditionSync: true });
