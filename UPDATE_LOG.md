@@ -1,5 +1,21 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.4 - 🟡 M10B.4 Conditions / Recovery Routing
+
+- Marks **M10B.3 = FULL PASS** after Foundry VTT 13.351 live verification.
+- Advances the MG1E foundation to profile v5 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Adds generic MG1E-family Conditions / Recovery policy and pure rule planners.
+- Routes live Condition roll effects, recovery order, recovery methods and GM Turn recovery economy through active profile capabilities instead of binary Strict checks.
+- Keeps Strict Realm Guard behavior through compatibility wrappers over the generic M10B.4 engine.
+- Makes MG1E Sick explicit: -1D family effect, Will Ob4 recovery, Healer Ob3 follow-up and permanent-reduction / Players' Turn waiver state.
+- Keeps Strict Strained as the Realm Guard v1.6 override with counsel failure routing.
+- Removes automatic destructive Sick → Strained boot migration. Dormant Sick / Strained / Fresh / Afraid data is preserved rather than renamed or deleted.
+- Enforces the source rule that another character cannot Help Will/Health recovery tests by suppressing Help/Teamwork in those recovery Roll Dialogs.
+- Legacy Mixed default Conditions and recovery list remain compatibility behavior.
+- Adds release-notes version preflight so stale `release/NOTES.md` content cannot silently publish under a newer tag.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.3 - 🟡 M10B.3 Wises / Traits / Help / Nature Routing
 
 - Marks **M10B.2 = FULL PASS** after Foundry VTT 13.351 live verification.
