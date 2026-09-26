@@ -14,7 +14,6 @@ import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleRe
 import { diceFacesHtml } from "../module/dice-ui.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
-import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
 import { getActiveM10BFamilyRulePolicy, natureDescriptorText, natureProfileLabel } from "../module/m10b-family-rules.mjs";
 import { getActiveM10BConditionRecoveryPolicy, familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
 import { getActiveM10BSessionCirclesProgressionPolicy, familyCirclesContactPlan } from "../module/m10b-session-circles-progression.mjs";
