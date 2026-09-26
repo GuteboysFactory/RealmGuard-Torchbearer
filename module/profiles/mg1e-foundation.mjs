@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 6,
+  version: 7,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -72,10 +72,43 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
         other: { attack: ["*"], defend: ["*"], feint: ["*"], maneuver: ["*"] }
       }
     },
-    session: { mode: "MG1E", freePlayerTurnTests: 1, additionalTestCheckCost: 1, recoveryDuringGmTurnCheckCost: 2, endSession: "MG1E", embodimentMayAwardEveryone: false },
-    circles: { mode: "MG1E", enmityClause: true },
+    session: {
+      mode: "MG1E",
+      coreEngine: "M7",
+      playerTurnFreeTests: 1,
+      additionalTestCheckCost: 1,
+      alternation: true,
+      soloAlternationException: true,
+      gmTurnRecoveryCheckCost: 2,
+      checksTransferable: true,
+      endSession: "MG1E",
+      tableRewardAuthority: "GROUP_CONSENSUS",
+      foundryCommitAuthority: "GM",
+      embodimentMayAwardEveryone: false
+    },
+    circles: {
+      mode: "MG1E",
+      socialStorage: "CORE_M8_FOUNDRY_TOOLING",
+      knownContactFutureDice: 1,
+      enmityClause: true,
+      enmityArgumentSpeechDispositionSuccess: 3,
+      automaticNpcCreation: false
+    },
     creation: { mode: "MG1E", liveAuthority: "NONE" },
-    progression: { levels: false, talents: false },
+    progression: {
+      mode: "MG1E",
+      levels: false,
+      talents: false,
+      preserveExistingData: true,
+      lifetimeSpendLevelTracking: false,
+      advancement: "PASS_EQUALS_RATING_FAIL_EQUALS_RATING_MINUS_1",
+      ratingZeroOnePassNeeded: 1,
+      clearSlateOnAdvance: true,
+      oneTestPerAbilityOrSkillPerConflictScene: true,
+      beginnerLearningOpensAt: 2,
+      beginnerLearningAttemptsUseMaximumNature: true,
+      beginnerLuckAdvancesWillHealth: false
+    },
     tokensOfPower: { enabled: false },
     naturalOrder: { enabled: true, mode: "MG1E", fighterHunterOutcomePolicy: true, militaristRule: true, scientistRule: true },
     scaleOfMight: { enabled: false, mode: "NONE", replacedBy: "naturalOrder" }
@@ -114,7 +147,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.5",
-    nextStep: "M10B.5 Gear / Inventory / Conflict routing QA"
+    implementationPhase: "M10B.6",
+    nextStep: "M10B.6 Session / Circles / Progression routing QA"
   }
 });
