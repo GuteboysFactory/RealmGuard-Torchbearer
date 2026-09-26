@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.5",
+    phase: "M10B.6",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -160,9 +160,43 @@ export function buildProfileCapabilities(profile) {
           }
         ]))
       },
+      session: {
+        mode: text(d.session?.mode, legacyCurrent(d.session) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
+        familySemantics: !legacyCurrent(d.session) && text(d.session?.mode).toUpperCase().startsWith("MG1E"),
+        coreEngine: text(d.session?.coreEngine),
+        playerTurnFreeTests: numeric(d.session?.playerTurnFreeTests ?? d.session?.freePlayerTurnTests, 1),
+        additionalTestCheckCost: numeric(d.session?.additionalTestCheckCost, 1),
+        alternationRequired: bool(d.session?.alternation, !legacyCurrent(d.session)),
+        soloAlternationException: bool(d.session?.soloAlternationException, !legacyCurrent(d.session)),
+        gmTurnRecoveryCheckCost: numeric(d.session?.gmTurnRecoveryCheckCost ?? d.session?.recoveryDuringGmTurnCheckCost, 2),
+        checksTransferable: bool(d.session?.checksTransferable, !legacyCurrent(d.session)),
+        endSessionMode: text(d.session?.endSession, legacyCurrent(d.session) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
+        embodimentMayAwardEveryone: bool(d.session?.embodimentMayAwardEveryone, legacyCurrent(d.session)),
+        tableRewardAuthority: text(d.session?.tableRewardAuthority, legacyCurrent(d.session) ? "LEGACY_CURRENT" : "GROUP_CONSENSUS"),
+        foundryCommitAuthority: text(d.session?.foundryCommitAuthority, "GM")
+      },
+      circles: {
+        mode: text(d.circles?.mode, legacyCurrent(d.circles) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
+        familySemantics: !legacyCurrent(d.circles) && text(d.circles?.mode).toUpperCase().startsWith("MG1E"),
+        socialStorage: text(d.circles?.socialStorage, legacyCurrent(d.circles) ? "LEGACY_CURRENT" : "CORE_M8_FOUNDRY_TOOLING"),
+        knownContactFutureDice: numeric(d.circles?.knownContactFutureDice, legacyCurrent(d.circles) ? 0 : 1),
+        enmityClause: bool(d.circles?.enmityClause, !legacyCurrent(d.circles)),
+        enmityArgumentSpeechDispositionSuccess: numeric(d.circles?.enmityArgumentSpeechDispositionSuccess, !legacyCurrent(d.circles) ? 3 : 0),
+        automaticNpcCreation: bool(d.circles?.automaticNpcCreation, false)
+      },
       progression: {
+        mode: text(d.progression?.mode, legacyCurrent(d.progression) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
         levelsEnabled,
-        talentsEnabled
+        talentsEnabled,
+        preserveExistingData: bool(d.progression?.preserveExistingData, true),
+        lifetimeSpendLevelTrackingEnabled: bool(d.progression?.lifetimeSpendLevelTracking, levelsEnabled && talentsEnabled),
+        advancement: text(d.progression?.advancement, !legacyCurrent(d.progression) && !levelsEnabled ? "PASS_EQUALS_RATING_FAIL_EQUALS_RATING_MINUS_1" : "PROFILE_DEFINED"),
+        ratingZeroOnePassNeeded: numeric(d.progression?.ratingZeroOnePassNeeded, 1),
+        clearSlateOnAdvance: bool(d.progression?.clearSlateOnAdvance, !legacyCurrent(d.progression)),
+        oneTestPerAbilityOrSkillPerConflictScene: bool(d.progression?.oneTestPerAbilityOrSkillPerConflictScene, !legacyCurrent(d.progression)),
+        beginnerLearningOpensAt: numeric(d.progression?.beginnerLearningOpensAt, 2),
+        beginnerLearningAttemptsUseMaximumNature: bool(d.progression?.beginnerLearningAttemptsUseMaximumNature, !legacyCurrent(d.progression)),
+        beginnerLuckAdvancesWillHealth: bool(d.progression?.beginnerLuckAdvancesWillHealth, legacyCurrent(d.progression))
       },
       tokensOfPower: {
         enabled: tokensOfPowerEnabled
