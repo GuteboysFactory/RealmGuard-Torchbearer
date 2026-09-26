@@ -164,6 +164,12 @@ const css=fs.readFileSync("styles/realm-guard.css","utf8");
 assert.ok(css.includes("v1.12.0-qa.6 — NPC/Character header resource alignment"));
 assert.ok(css.includes("grid-template-columns:96px minmax(0,1fr) 170px"));
 
+const conflicts=fs.readFileSync("module/conflicts.mjs","utf8");
+assert.ok(conflicts.includes("familyEnmityDispositionPlan"));
+assert.ok(conflicts.includes("enmityDispositionBonus"));
+assert.ok(conflicts.includes("Enmity Clause:"));
+assert.ok(conflicts.includes("buildM8RelationshipSheetView"));
+
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
 assert.equal(activation.includes('"mg1e"'),false,"MG1E remains non-selectable in M10B.6.");
 
