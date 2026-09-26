@@ -170,18 +170,19 @@ assert.ok(character.includes("PRESERVED · INACTIVE"));
 assert.ok(character.includes('{{#unless isStrictProfile}}<div class="rg-resource rg-level-resource"><span>LEVEL</span><strong>{{progression.level}}</strong></div>{{/unless}}'), "Strict sheet header must hide Level while Legacy Mixed keeps the existing header.");
 
 const conflicts = fs.readFileSync("module/conflicts.mjs","utf8");
-assert.ok(conflicts.includes("i.type === \"gear\"\n    && (isStrictRealmGuard() || String(i.system.inventory?.mode ?? \"\") === \"hand\")"));
-assert.ok(conflicts.includes("const talentUse = isStrictRealmGuard() ? null"));
-assert.ok(conflicts.includes("!isStrictRealmGuard() && Number(assist?.traitStatus?.level"));
+assert.equal(conflicts.includes("isStrictRealmGuard"), false, "M10B.5 retires Strict identity routing from live Conflict UI.");
+assert.ok(conflicts.includes("activeConflictPolicy().inventory.placementAuthority"), "Conflict weapon availability must use profile inventory authority.");
+assert.ok(conflicts.includes("activeConflictPolicy().presentation.showTalents"), "Conflict Talent visibility must use profile presentation capabilities.");
+assert.ok(conflicts.includes("familyConflictActionSkills"), "Conflict action skills must route through profile capabilities.");
+assert.ok(conflicts.includes("familyConflictDispositionPlan"), "Conflict disposition must route through profile capabilities.");
 assert.ok(conflicts.includes("function conflictUnarmedLabel()"));
-assert.ok(conflicts.includes('isStrictRealmGuard() ? "Unarmed / no tool" : "Unarmed · −1D"'));
-assert.ok(conflicts.includes('dice: strict ? 0 : -1'), "Strict unarmed/no-tool must be 0D while Legacy Mixed retains -1D.");
-assert.ok(conflicts.includes("Strict Realm Guard: no universal unarmed / no-tool penalty."));
+assert.ok(conflicts.includes("profileUnarmedDice()"), "Unarmed/no-tool must use the profile policy.");
 
 const m5 = fs.readFileSync("module/m5-conflict-live-handoff.mjs","utf8");
-assert.ok(m5.includes("STRICT_CORE_EVALUATION_APPLIED"));
-assert.ok(m5.includes("STRICT_PROFILE_AUTHORITY"));
-assert.ok(m5.includes("CORE_M5_STRICT"));
+assert.equal(m5.includes("isStrictRealmGuard"), false, "M10B.5 retires Strict identity routing from M5 conflict handoff.");
+assert.ok(m5.includes("PROFILE_CORE_EVALUATION_APPLIED"));
+assert.ok(m5.includes("PROFILE_AUTHORITY"));
+assert.ok(m5.includes("CORE_M5_PROFILE"));
 
 const endSession = fs.readFileSync("module/end-session.mjs","utf8");
 assert.ok(endSession.includes("strictEndSessionValidation"));
