@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.6 - 🟡 M10B.6 Session / Circles / Progression Routing + NPC Header Alignment
+
+- Marks **M10B.5 = FULL PASS / VERIFIED / CLOSED** after Gates A-K passed in Foundry VTT 13.351.
+- Advances the MG1E foundation to profile v7 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Adds generic MG1E-family Session / Circles / Progression policy and pure planners.
+- Expands resolved Rules Profile capabilities for Players' Turn / Checks, End Session ownership, Circles Contact/Enmity rules and advancement/Beginner's Luck policy.
+- Routes End Session validation and Talent session reset through active profile capabilities instead of direct Strict identity checks.
+- Routes lifetime Fate/Persona Level/Talent progression through active profile capabilities; Strict/MG1E continue allowing Fate/Persona spend without mutating preserved Legacy Level/Talent counters.
+- Adds MG1E-family known Contact +1D to later Circles tests for the same recorded Contact while Legacy Mixed remains unchanged.
+- Applies the source-backed Enmity Clause +3s to opposition starting Disposition in Argument/Speech conflicts when the Hostile Enemy relationship is linked to the opposition Actor.
+- Historical Strict M10A.5 Session / Circles / Progression APIs remain compatibility wrappers over M10B.6.
+- Preserves CORE M7 Players' Turn/check economy and CORE M8 social-network storage; no automatic NPC creation or destructive relationship conversion.
+- Rebuilds the NPC header resource presentation to match the Character sheet: compact vertical Fate / Persona / Checks stack on the right instead of qa.5's horizontal wrapping bar.
+- Adds dedicated M10B.6 smoke coverage and a focused qa.6 live protocol.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.5 - 🟡 M10B.5 Gear / Inventory / Conflict Routing + NPC Header Polish
 
 - Marks **M10B.4 = FULL PASS / VERIFIED / CLOSED** after Gates A-H passed in Foundry VTT 13.351.
