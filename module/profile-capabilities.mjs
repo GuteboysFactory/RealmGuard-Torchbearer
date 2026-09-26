@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.4",
+    phase: "M10B.5",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -135,8 +135,30 @@ export function buildProfileCapabilities(profile) {
       },
       conflict: {
         mode: text(d.conflict?.mode, "PROFILE_DEFINED"),
+        actionsPerExchange: numeric(d.conflict?.actionsPerExchange, 3),
+        rotateParticipants: bool(d.conflict?.rotateParticipants, true),
+        helpAllowed: bool(d.conflict?.helpAllowed, true),
         unarmedDefaultDice: numeric(d.conflict?.unarmedDefaultDice, legacyConflict ? -1 : 0),
-        toolScope: text(d.conflict?.toolScope, "PROFILE_DEFINED")
+        toolScope: text(d.conflict?.toolScope, "PROFILE_DEFINED"),
+        toolContent: text(d.conflict?.toolContent, legacyConflict ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
+        armorContent: text(d.conflict?.armorContent, legacyConflict ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
+        weaponAlias: d.conflict?.weaponAlias ? { ...d.conflict.weaponAlias } : {},
+        weaponScope: text(d.conflict?.weaponScope, d.conflict?.toolScope ?? "PROFILE_DEFINED"),
+        weaponsOfWit: bool(d.conflict?.weaponsOfWit, !legacyConflict),
+        disarmTargetKinds: Array.isArray(d.conflict?.disarmTargetKinds) ? [...d.conflict.disarmTargetKinds] : ["weapon", "gear", "trait", "natural"],
+        scaleOfMightAware: d.conflict?.scaleOfMightAware === true,
+        actionSkills: Object.fromEntries(Object.entries(d.conflict?.actionSkills ?? {}).map(([type, row]) => [
+          type,
+          Object.fromEntries(Object.entries(row ?? {}).map(([action, skills]) => [action, Array.isArray(skills) ? [...skills] : []]))
+        ])),
+        disposition: Object.fromEntries(Object.entries(d.conflict?.disposition ?? {}).map(([type, row]) => [
+          type,
+          {
+            skills: Array.isArray(row?.skills) ? [...row.skills] : [],
+            bases: Array.isArray(row?.bases) ? [...row.bases] : [],
+            basePolicy: text(row?.basePolicy)
+          }
+        ]))
       },
       progression: {
         levelsEnabled,
