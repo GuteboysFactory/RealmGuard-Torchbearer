@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.5 — 🟡 M10B.5 Gear / Inventory / Conflict Routing  
+**Current QA build:** v1.12.0-qa.6 — 🟡 M10B.6 Session / Circles / Progression Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.5 — generic MG1E-family Gear / Inventory / Conflict routing  
+**Current CORE gate:** M10B.6 — generic MG1E-family Session / Circles / Progression routing  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -266,6 +266,26 @@ qa.1 foundation scope:
 - NPC header polish: Fate / Persona / Checks move into a compact responsive resource bar beneath NPC identity; long names receive responsive typography without schema changes
 
 **M10B.5 PASS gate:** Legacy Mixed inventory/conflict behavior remains compatible; Strict preserves source-correct Realm Guard conflict behavior through generic routing; MG1E resolves source-correct conflict/gear policy in foundation mode; action-set weapon scope and family Trait/Wise/Help/Nature behavior remain intact; placement/container metadata survives profile round-trips without mutation; NPC compact header remains usable across narrow/wide sheets; and the release channel points to the verified qa.5 asset before Foundry update.
+
+**M10B.5 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-K passed: Legacy/Strict inventory and Conflict routing, MG1E v6 shadow tables, action-set weapon scope, family conflict regression, reversible Gear metadata, NPC compact-header usability and release/channel verification were all confirmed.
+
+**M10B.6 scope:**
+- advance MG1E foundation to profile v7 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- normalize Session, Circles and Progression domains in the generic Rules Profile capability router
+- preserve CORE M7 Players' Turn economy: one free test, 1 Check per additional test, alternation with solo exception, transferable Checks and 2-Check GM Turn recovery
+- route End Session validation through the active profile rather than direct Strict identity checks
+- preserve group-consensus reward ownership with GM Foundry commit under MG1E-family profiles
+- keep Legacy End Session compatibility behavior and Legacy Talent session reset
+- source-own Circles known-Contact +1D under MG1E-family profiles while Legacy remains unchanged
+- route Enmity Clause +3s to opposition starting Disposition for linked Hostile Enemy relationships in Argument/Speech conflicts
+- keep Enmity relationship storage in CORE M8; no automatic NPC creation
+- route lifetime Fate/Persona Level/Talent progression through profile capabilities; Strict/MG1E suppress Level/Talent mechanics while preserving stored Legacy counters and Talent Items
+- expose generic MG1E-family advancement / clear-slate / conflict-scene mark / Beginner's Luck learning planners
+- historical Strict M10A.5 APIs remain compatibility wrappers over M10B.6
+- no MG1E activation and no destructive Actor/Item/relationship conversion
+- NPC hotfix: replace qa.5 horizontal resource bar with the same compact vertical Fate / Persona / Checks stack used by the Character header, aligned at the right side of the NPC header
+
+**M10B.6 PASS gate:** Legacy Session/Circles/Level behavior remains compatible; Strict Players' Turn, End Session, Circles and no-Level/Talent behavior preserve M10A.5 semantics through generic routing; MG1E v7 resolves the same source policies in foundation mode; known Contact +1D and linked Enmity +3s work only where source-qualified; advancement/Beginner's Luck contracts remain source-correct; dormant Legacy progression data survives profile round-trips; NPC resources visually align with the Character header without losing narrow-sheet usability; and qa.6 release/channel verification is green.
 
 
 ### M9 — Creation / Recruitment Migration
