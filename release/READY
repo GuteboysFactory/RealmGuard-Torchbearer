@@ -12,3 +12,4 @@
 # NPC compact header/resources included
 # Foundry v13.351 QA required
 # historical M10A activation smoke updated for generic conflict capability routing
+# historical Strict M10 smokes made phase-tolerant for M10B.5
