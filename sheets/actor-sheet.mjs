@@ -17,6 +17,7 @@ import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOpt
 import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
 import { getActiveM10BFamilyRulePolicy, natureDescriptorText, natureProfileLabel } from "../module/m10b-family-rules.mjs";
 import { getActiveM10BConditionRecoveryPolicy, familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
+import { getActiveM10BSessionCirclesProgressionPolicy, familyCirclesContactPlan } from "../module/m10b-session-circles-progression.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor, updateM8RelationshipStatus, createM8DynamicContact, createM8CirclesContact, requestM8EnmityDecision, updateM8Person, M8_RELATIONSHIP_STATUS_OPTIONS } from "../module/m8-social-network-service.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -383,6 +384,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const actor = this.actor;
+    const sessionPolicy = getActiveM10BSessionCirclesProgressionPolicy();
     const storedNatureCurrent = Number(actor.system.attributes?.nature?.value ?? 0);
     const storedNatureMaximum = Number(actor.system.attributes?.nature?.maximum ?? 0);
     if (storedNatureMaximum < storedNatureCurrent) await actor.update({ "system.attributes.nature.maximum": storedNatureCurrent });
@@ -509,7 +511,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       isGM: Boolean(game.user?.isGM),
       canChooseTalent: Boolean(game.user?.isGM || actor.testUserPermission?.(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)),
       turn: actor.type === "character" ? playerTurnStatus(actor) : null,
-      isStrictProfile: isStrictRealmGuard()
+      isStrictProfile: sessionPolicy.familySemantics,
+      showLevels: sessionPolicy.progression.levelsEnabled,
+      showTalents: sessionPolicy.progression.talentsEnabled,
+      progressionTrackingEnabled: sessionPolicy.progression.lifetimeSpendLevelTrackingEnabled
     }, { inplace: false });
   }
 
@@ -525,17 +530,17 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     return RealmGuardActorSheet._createItem.call(this,e,t,"tokenOfPower","New Token of Power");
   }
   static _createTalent(e,t){
-    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Levels and Talents are disabled under Strict Realm Guard. Existing Talent data is preserved.");
+    if (!getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled) return ui.notifications.warn("Realm Guard: Talents are disabled by the active Rules Profile. Existing Talent data is preserved.");
     if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Custom Talent definitions are GM-managed.");
     return RealmGuardActorSheet._createItem.call(this,e,t,"talent","New Talent");
   }
   static async _chooseTalent(){
-    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Talent choices are disabled under Strict Realm Guard.");
+    if (!getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled) return ui.notifications.warn("Realm Guard: Talent choices are disabled by the active Rules Profile.");
     const created = await chooseTalentForActor(this.actor);
     if (created) await this.render({ force: true });
   }
   static async _manageProgression(){
-    if (isStrictRealmGuard()) return ui.notifications.warn("Realm Guard: Level progression is disabled under Strict Realm Guard. Preserved counters are read-only rule data.");
+    if (!getActiveM10BSessionCirclesProgressionPolicy().progression.lifetimeSpendLevelTrackingEnabled) return ui.notifications.warn("Realm Guard: Lifetime Fate/Persona Level progression is disabled by the active Rules Profile. Preserved counters are read-only rule data.");
     if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Lifetime progression counters are GM-managed.");
     const view = progressionView(this.actor);
     const result = await foundry.applications.api.DialogV2.wait({
@@ -552,7 +557,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (updated?.ok) { ui.notifications.info(`Realm Guard: Progression updated · Level ${updated.level}.`); await this.render({ force: true }); }
   }
   static _talentUse(talentId, sourceName, { isSkill = true } = {}) {
-    if (isStrictRealmGuard()) return null;
+    if (!getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled) return null;
     return resolveTalentUse(this.actor, talentId, sourceName, { isSkill });
   }
   static async _commitTalentAfterRoll(use, label) {
@@ -718,7 +723,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       }
       await role.update({ "system.beginnerAbility": abilityKey });
     }
-    if (!isStrictRealmGuard() && hasActiveCondition(this.actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
+    if (!getActiveM10BConditionRecoveryPolicy().familySemantics && hasActiveCondition(this.actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid Rangers cannot use Beginner's Luck. Use Nature when appropriate or recover first.");
     const ability = this.actor.system.attributes?.[abilityKey];
     const abilityValue = Number(ability?.value ?? 0);
     if (abilityValue <= 0) return ui.notifications.warn(`Realm Guard: ${abilityKey === "health" ? "Health" : "Will"} is 0. Beginner's Luck cannot be used; recover first or use Nature.`);
@@ -857,7 +862,16 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const natureTarget = key === "nature" && targets.length === 1 ? targets[0].actor : null;
     const circlesContext = key === "circles" ? await RealmGuardActorSheet._prepareCirclesSocialContext.call(this) : null;
     if (key === "circles" && !circlesContext) return;
-    const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, isSkill: false, abilityKey: key, natureTarget, circlesContext });
+    const circlesPolicy = getActiveM10BSessionCirclesProgressionPolicy();
+    const contactPlan = key === "circles" && circlesContext?.mode === "known"
+      ? familyCirclesContactPlan({
+          knownContact: true,
+          successful: false,
+          relationshipRole: circlesContext.role || "CONTACT"
+        }, circlesPolicy)
+      : null;
+    const profileModifier = Number(defaults.modifier ?? 0) + Number(contactPlan?.futureCirclesDice ?? 0);
+    const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, modifier: profileModifier, isSkill: false, abilityKey: key, natureTarget, circlesContext });
     if (!options) return;
     const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope, natureUse, doubleTapNature, natureVersus } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, ability.name, { isSkill: false });
@@ -894,6 +908,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         profession: relationship.person.profession || "",
         people: relationship.person.people || "",
         location: relationship.person.location || "",
+        role: relationship.role || "CONTACT",
+        status: relationship.status || "UNKNOWN",
         roleLabel: relationship.roleLabel || "Contact",
         statusLabel: relationship.statusLabel || "Unknown"
       }))
@@ -905,7 +921,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       content: `<div class="realm-guard rg-m8-circles-dialog">
         <div class="rg-brand">REALM GUARD / TORCHBEARER · CIRCLES</div>
         <h2>Who are you trying to find?</h2>
-        <p>This M8 integration does not change Circles dice, Obstacle or advancement rules. Choose how this test relates to the Social Network.</p>
+        <p>Choose how this test relates to the Social Network. Under MG1E-family profiles, a recorded Contact grants the source-backed +1D on later Circles tests for that same Contact.</p>
         <div class="rg-m8-circles-mode-help">
           <p><b>Standard Test</b> — roll Circles exactly as before; no Social Network change.</p>
           <p><b>Known Person</b> — reference someone already recorded for this Ranger.</p>
@@ -1084,7 +1100,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const tokenRollIsSkill = tokenSourceIsSkill === null || tokenSourceIsSkill === undefined ? isSkill : Boolean(tokenSourceIsSkill);
     const tokenOptions = tokenPowerOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
     const tokenPowerBlock = tokenOptions.length ? `<fieldset class="rg-token-roll-choice"><legend><i class="fa-solid fa-gem"></i> Token of Power</legend><label>Invoke Token <select name="tokenPowerId"><option value="">None</option>${tokenOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Skill-linked Tokens are filtered to this roll. Specific-use Tokens are marked TABLE CHECK.</small></fieldset>` : "";
-    const talentOptions = isStrictRealmGuard() ? [] : talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
+    const talentOptions = getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled ? talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill }) : [];
     const talentBlock = talentOptions.length ? `<fieldset class="rg-talent-roll-choice"><legend><i class="fa-solid fa-sparkles"></i> Talent</legend><label>Use Talent <select name="talentId"><option value="">None</option>${talentOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Once/session Talents are consumed only after a committed roll.</small></fieldset>` : "";
 
     const circlesBlock = String(abilityKey) === "circles" && circlesContext
