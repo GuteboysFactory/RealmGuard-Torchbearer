@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.4 — 🟡 M10B.4 Conditions / Recovery Routing  
+**Current QA build:** v1.12.0-qa.5 — 🟡 M10B.5 Gear / Inventory / Conflict Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.4 — generic MG1E-family Conditions / Recovery routing  
+**Current CORE gate:** M10B.5 — generic MG1E-family Gear / Inventory / Conflict routing  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,7 +186,7 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — v1.12.0-qa.4 migrates Conditions and Recovery away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — M10B.4 is live-QA VERIFIED / CLOSED. v1.12.0-qa.5 now migrates Gear / Inventory / Conflict away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
 
@@ -248,6 +248,24 @@ qa.1 foundation scope:
 - release preflight verifies `release/NOTES.md` identifies the active manifest version
 
 **M10B.4 PASS gate:** Legacy Mixed remains behaviorally compatible; Strict Conditions/Recovery preserve M10A.3 behavior through generic family routing; MG1E Sick/recovery resolves source-correctly in foundation mode; dormant Condition data survives round-trip/reload without rename/delete; and release notes cannot publish with a stale version identity.
+
+**M10B.4 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-H passed: Legacy compatibility, Strict live Condition effects and Recovery, MG1E Sick foundation policy, dormant Sick/Strained/Fresh/Afraid round-trip safety and release hardening were all verified.
+
+**M10B.5 scope:**
+- advance MG1E foundation to profile v6 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- extend generic capabilities with source-owned Inventory and Conflict policy: placement authority, capacity mode, action-set tool scope, unarmed default, action skill matrix and starting-Disposition matrix
+- add generic MG1E-family weapon / armor / Weapons of Wit / Gear relevance / Disarm planners
+- MG1E base conflict tables remain source-correct, including Fight = Fighter / Nature / Fighter / Nature and Chase Disposition using Nature
+- Strict Realm Guard supplies explicit Realm Guard v1.6 conflict overrides, including Fight = Fighter for all four actions and Realm Guard starting-Disposition tables
+- MG1E keeps Hook and Line plus Light / Heavy Armor; Strict aliases Hook and Line → Whip, presents Leather / Chainmail and adds Plated Armor
+- historical Strict M10A.4 Gear / Inventory / Conflict APIs remain compatibility wrappers over the generic M10B.5 engine
+- live Conflict UI and M5 conflict-tool handoff route through active profile capabilities instead of `isStrictRealmGuard()`
+- Legacy Mixed retains STRUCTURED placement authority, Unarmed -1D and existing compatibility behavior
+- LOOSE profiles treat stored equipment placement/container metadata as presentation only while preserving it unchanged
+- no MG1E activation and no automatic Gear placement/container conversion
+- NPC header polish: Fate / Persona / Checks move into a compact responsive resource bar beneath NPC identity; long names receive responsive typography without schema changes
+
+**M10B.5 PASS gate:** Legacy Mixed inventory/conflict behavior remains compatible; Strict preserves source-correct Realm Guard conflict behavior through generic routing; MG1E resolves source-correct conflict/gear policy in foundation mode; action-set weapon scope and family Trait/Wise/Help/Nature behavior remain intact; placement/container metadata survives profile round-trips without mutation; NPC compact header remains usable across narrow/wide sheets; and the release channel points to the verified qa.5 asset before Foundry update.
 
 
 ### M9 — Creation / Recruitment Migration
