@@ -152,7 +152,7 @@ const character = fs.readFileSync("templates/actor/character.hbs","utf8");
 const itemTemplate = fs.readFileSync("templates/item/item.hbs","utf8");
 assert.ok(sheet.includes("static async _rollWise"));
 assert.ok(sheet.includes("needs an explicit rating before it can be tested under this profile."));
-assert.ok(sheet.includes("Levels and Talents are disabled under Strict Realm Guard"));
+assert.ok(sheet.includes("disabled by the active Rules Profile"), "Progression controls must explain profile-owned suppression.");
 assert.ok(character.includes('data-action="rollWise"'));
 assert.ok(character.includes("rg-wise-roll-icon"));
 assert.ok(character.includes("UNRATED"), "Preserved rating-0 Wises must be visibly marked rather than displayed as a valid 0 rating.");
