@@ -109,7 +109,7 @@ const adapter = fs.readFileSync("module/m9-creation-commit-adapter.mjs","utf8");
 assert.ok(adapter.includes("CORE M9 profile mismatch"), "Live creation must reject cross-profile commit plans.");
 
 const progression = fs.readFileSync("module/progression.mjs","utf8");
-assert.ok(progression.includes("!isStrictRealmGuard()"), "Level/Talent progression must be gated out under Strict.");
+assert.equal(progression.includes("isStrictRealmGuard"), false, "M10B.6 routes Level/Talent progression through profile capabilities.");\nassert.ok(progression.includes("lifetimeSpendLevelTrackingEnabled"), "Level/Talent progression must use resolved profile policy.");
 assert.ok(progression.includes("strictProgressionSuppressed"));
 
 const teamwork = fs.readFileSync("module/teamwork.mjs","utf8");
@@ -158,7 +158,7 @@ assert.ok(character.includes("UNRATED"), "Preserved rating-0 Wises must be visib
 assert.ok(itemTemplate.includes("Rated Wise"));
 assert.ok(itemTemplate.includes('name="system.rating"'));
 assert.ok(itemTemplate.includes('name="system.learning.passNeeded"'));
-assert.ok(itemSheet.includes("isStrictProfile: isStrictRealmGuard()"));
+assert.ok(itemSheet.includes("isStrictProfile:"), "Item sheet keeps a presentation flag while profile migration continues.");
 assert.ok(itemSheet.includes("this._processFormData(event, form, formData)"), "Item submit must normalize FormDataExtended before Strict Wise nested updates.");
 assert.ok(itemSheet.includes("wiseRerender = nextRating !== previousRating"));
 assert.ok(itemSheet.includes("if (wiseRerender || gearRerender || tokenRerender || talentRerender)"));
