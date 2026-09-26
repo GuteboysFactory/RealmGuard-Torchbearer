@@ -1,6 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
-import { strictEndSessionValidation } from "./m10-strict-session-circles-progression.mjs";
+import { getActiveM10BSessionCirclesProgressionPolicy, familyEndSessionValidation } from "./m10b-session-circles-progression.mjs";
 import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
 import { resetTalentSessionState } from "./talents.mjs";
 import { resetTraitSessionUses } from "./traits.mjs";
@@ -145,20 +144,21 @@ async function collectCriteria(actors, cycle) {
           });
 
           const embodimentCount = rows.filter(row => row.criteria.personaEmbodiment).length;
-          if (isStrictRealmGuard()) {
-            const strictValidation = strictEndSessionValidation({
+          const sessionPolicy = getActiveM10BSessionCirclesProgressionPolicy();
+          if (sessionPolicy.familySemantics) {
+            const profileValidation = familyEndSessionValidation({
               participantIds: rows.map(row => row.actor.id),
               mvpId,
               workhorseId,
               embodimentIds: rows.filter(row => row.criteria.personaEmbodiment).map(row => row.actor.id)
-            });
-            if (!strictValidation.ok) {
-              const code = strictValidation.errors[0] ?? "STRICT_END_SESSION_INVALID";
+            }, sessionPolicy);
+            if (!profileValidation.ok) {
+              const code = profileValidation.errors[0] ?? "PROFILE_END_SESSION_INVALID";
               const message = code === "EMBODIMENT_CANNOT_BE_EVERYONE"
-                ? "Strict Realm Guard: Embodiment may be awarded to more than one Ranger, but never to every participating Ranger."
+                ? "MG1E-family: Embodiment may be awarded to more than one Ranger, but never to every participating Ranger."
                 : code === "MVP_WORKHORSE_MUST_DIFFER"
                   ? "A Ranger cannot be both MVP and Workhorse in the same session."
-                  : "Strict Realm Guard: End Session selections are not valid.";
+                  : "Realm Guard: End Session selections are not valid for the active Rules Profile.";
               return { error: message };
             }
           } else if (rows.length > 1 && embodimentCount === rows.length) {
@@ -364,7 +364,8 @@ async function confirmNextCycle(cycle) {
   let talentsReset = 0;
   for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
     recharged += await resetTokenPowerSessionState(actor);
-    if (actor.type === "character" && !isStrictRealmGuard()) talentsReset += await resetTalentSessionState(actor);
+    const profilePolicy = getActiveM10BSessionCirclesProgressionPolicy();
+    if (actor.type === "character" && profilePolicy.progression.talentsEnabled) talentsReset += await resetTalentSessionState(actor);
   }
   observeM7Lifecycle("SESSION_STARTED", {
     source: "LEGACY_END_SESSION",
