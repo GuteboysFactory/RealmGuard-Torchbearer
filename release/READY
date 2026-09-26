@@ -1,13 +1,13 @@
-1.12.0-qa.4
-# M10B.4 Conditions / Recovery Routing
-# M10B.3 live QA FULL PASS
-# MG1E profile v5 remains FOUNDATION_ONLY / non-selectable / non-live
-# generic MG1E-family Conditions / Recovery policy
-# source-correct MG1E Sick + Strict Strained override
-# no destructive Sick / Strained conversion
-# Will/Health recovery Help blocked by profile rule
-# Legacy Mixed compatibility behavior preserved
-# release notes version match enforced by preflight
-# historical activation smoke updated for generic M10B.4 routing
-# MG1E preview smoke accepts later M10B profile revisions
+1.12.0-qa.5
+# M10B.5 Gear / Inventory / Conflict Routing
+# M10B.4 live QA FULL PASS / VERIFIED / CLOSED
+# MG1E profile v6 remains FOUNDATION_ONLY / non-selectable / non-live
+# generic MG1E-family Gear / Inventory / Conflict policy
+# source-correct MG1E conflict tables + Realm Guard v1.6 overrides
+# Hook and Line base + Strict Whip alias
+# MG1E Light/Heavy + Strict Leather/Chainmail/Plated armor routing
+# Legacy Mixed STRUCTURED placement and unarmed -1D preserved
+# placement/container metadata preserved without profile conversion
+# M5 conflict handoff and live Conflict UI capability-routed
+# NPC compact header/resources included
 # Foundry v13.351 QA required
