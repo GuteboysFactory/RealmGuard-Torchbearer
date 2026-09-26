@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import {
   assertManifestReleaseContract,
+  assertReleaseNotesVersion,
   assertNoHistoricalVersionPins,
   assertNoProfileManagementCopyPins,
   assertNoRetiredM10BBranchPins,
@@ -17,6 +18,9 @@ const stable = JSON.parse(fs.readFileSync("channels/stable/system.json", "utf8")
 
 const readyVersion = readReleaseReady();
 assertManifestReleaseContract(root, { readyVersion });
+if (fs.existsSync("release/NOTES.md")) {
+  assertReleaseNotesVersion(fs.readFileSync("release/NOTES.md", "utf8"), root.version);
+}
 
 assert.match(qa.version, QA_VERSION_PATTERN, "QA channel must expose a published QA version.");
 assert.equal(qa.manifest, expectedManifestUrl(qa.version));
@@ -35,4 +39,4 @@ for (const file of fs.readdirSync("qa").filter(name => name.endsWith("-smoke.mjs
   assertNoRetiredM10BBranchPins(source, file);
 }
 
-console.log("PASS release-channel contract · gated qa/stable manifests · no exact QA version pins · canonical version authority · no historical minor-version pins · no Profile Management copy pins");
+console.log("PASS release-channel contract · gated qa/stable manifests · no exact QA version pins · canonical version authority · no historical minor-version pins · no Profile Management copy pins · release notes match manifest");
