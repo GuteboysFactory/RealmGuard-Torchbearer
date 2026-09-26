@@ -31,7 +31,7 @@ const { buildProfileCapabilities } = await import("../module/profile-capabilitie
 const { buildM10BFamilyRulePolicy } = await import("../module/m10b-family-rules.mjs");
 
 assert.equal(REALM_GUARD_STRICT_PROFILE.version, 10);
-assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\\.\\d+$/, "Strict activation smoke must survive later M10 profile-routing phases.");
+assert.match(REALM_GUARD_STRICT_PROFILE.metadata.implementationPhase, /^M10(?:A|B)\.\d+$/, "Strict activation smoke must survive later M10 profile-routing phases.");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.activationState, "SUPPORTED");
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.selectable, true);
 assert.equal(REALM_GUARD_STRICT_PROFILE.metadata.supported, true);
