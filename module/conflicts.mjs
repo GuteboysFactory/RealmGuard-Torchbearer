@@ -11,7 +11,7 @@ import { applyExchangeToolScope } from "./core/m6-conflict-tool-scope.mjs";
 import { m6ApplyPostResolutionState, m6AdvanceAfterActionState, m6ApplyManeuverState, m6FinishConflictState } from "./core/m6-conflict-runtime.mjs";
 import { evaluateM6ConflictStateLiveHandoff } from "./m6-conflict-state-handoff.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "./teamwork.mjs";
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { getActiveM10BGearInventoryConflictPolicy, familyConflictActionSkills, familyConflictDispositionPlan } from "./m10b-gear-inventory-conflict.mjs";
 
 const SYSTEM_ID = "realm-guard";
 const PUBLIC_SETTING = "conflictState";
@@ -114,6 +114,21 @@ function esc(value) { return foundry.utils.escapeHTML(String(value ?? "")); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function actionLabel(action) { return ACTION_LABELS[action] ?? action; }
 function actorById(id) { return resolveConflictActor(id); }
+function activeConflictPolicy() {
+  try { return getActiveM10BGearInventoryConflictPolicy(); }
+  catch (_error) {
+    return Object.freeze({
+      profileId: "realm-guard-legacy-mixed",
+      familySemantics: false,
+      inventory: Object.freeze({ placementAuthority: true }),
+      conflict: Object.freeze({ unarmedDefaultDice: -1 }),
+      presentation: Object.freeze({ ratedWises: false, mg1eTraitSemantics: false, showTalents: true, showTokensOfPower: true })
+    });
+  }
+}
+function isFamilyConflictProfile() { return activeConflictPolicy().familySemantics === true; }
+function profileUnarmedDice() { return Number(activeConflictPolicy().conflict?.unarmedDefaultDice ?? -1); }
+
 function currentState() {
   try {
     const raw = game.settings.get(SYSTEM_ID, PUBLIC_SETTING);
@@ -213,7 +228,7 @@ function heldConflictWeapons(actor, state, side) {
   const disabled = new Set(state?.effects?.[side]?.disabledGearIds ?? []);
   return actor?.items?.filter(i =>
     i.type === "gear"
-    && (isStrictRealmGuard() || String(i.system.inventory?.mode ?? "") === "hand")
+    && (!activeConflictPolicy().inventory.placementAuthority || String(i.system.inventory?.mode ?? "") === "hand")
     && !disabled.has(i.id)
     && CONFLICT_WEAPON_NAMES.has(normalizedGearName(i))
   ) ?? [];
@@ -442,17 +457,17 @@ function setDraft(side, state, plan) {
   draftPlans.set(state.id, d);
 }
 function conflictUnarmedLabel() {
-  return isStrictRealmGuard() ? "Unarmed / no tool" : "Unarmed · −1D";
+  return profileUnarmedDice() === 0 ? "Unarmed / no tool" : `Unarmed · ${profileUnarmedDice()}D`;
 }
 function conflictUnarmedRuleText() {
-  return isStrictRealmGuard()
-    ? "Strict Realm Guard: no universal unarmed / no-tool penalty."
-    : "No valid tool = Unarmed −1D.";
+  return profileUnarmedDice() === 0
+    ? "MG1E-family: no universal unarmed / no-tool penalty."
+    : `No valid tool = Unarmed ${profileUnarmedDice()}D.`;
 }
 function conflictUnarmedWarningText() {
-  return isStrictRealmGuard()
+  return profileUnarmedDice() === 0
     ? "No Conflict Weapon / Tool selected · No universal penalty"
-    : "No valid Conflict Weapon / Tool selected · Unarmed −1D";
+    : `No valid Conflict Weapon / Tool selected · Unarmed ${profileUnarmedDice()}D`;
 }
 function planWeaponName(actor, state, side, weaponId) {
   if (!actor) return conflictUnarmedLabel();
@@ -867,13 +882,13 @@ function gearActionModifiers(actor, action, state, side, weaponId = null) {
   const selected = selectedConflictWeapon(actor, state, side, weaponId);
   let dice = 0, conditionalSuccess = 0, successPenalty = 0; const notes = [];
   if (!selected) {
-    const strict = isStrictRealmGuard();
+    const unarmedDice = profileUnarmedDice();
     return {
-      dice: strict ? 0 : -1,
+      dice: unarmedDice,
       conditionalSuccess: 0,
       successPenalty: 0,
-      notes: [strict
-        ? "Strict Realm Guard: no universal unarmed / no-tool penalty."
+      notes: [unarmedDice === 0
+        ? "MG1E-family: no universal unarmed / no-tool penalty."
         : "Unarmed / no valid Conflict Weapon or Tool −1D"],
       hasSword: false,
       swordAction: "",
@@ -929,7 +944,8 @@ function eligibleActionRoles(actor, state, side, action) {
   if (side === "gm" && state.type === "fightCreature" && actor?.type === "npc") {
     choices = allTrainedRoles(actor).filter(roleAllowed).map(r => ({ id: r.id, name: r.name, rating: Number(r.system.rating ?? 0), kind: "role" }));
   } else {
-    const names = CONFLICT_ACTION_SKILLS[state.type]?.[action] ?? ["*"];
+    const routed = isFamilyConflictProfile() ? familyConflictActionSkills(state.type, action, activeConflictPolicy()).skills : [];
+    const names = routed.length ? routed : (CONFLICT_ACTION_SKILLS[state.type]?.[action] ?? ["*"]);
     if (names.includes("*")) choices = allTrainedRoles(actor).filter(roleAllowed).map(r => ({ id: r.id, name: r.name, rating: Number(r.system.rating ?? 0), kind: "role" }));
     else {
       const lower = new Set(names.map(n => n.toLowerCase()));
@@ -940,7 +956,9 @@ function eligibleActionRoles(actor, state, side, action) {
   // genuinely fits the fiction. The table/GM must validate the descriptor; this is not an
   // Acting Against Nature shortcut.
   const nature = Number(actor?.system?.attributes?.nature?.value ?? 0);
-  if (nature > 0) choices.push({ id: "@nature", name: "Nature", label: "Nature (descriptor applies)", rating: nature, kind: "ability", key: "nature", allowDoubleTap: true });
+  const routedNature = isFamilyConflictProfile() ? familyConflictActionSkills(state.type, action, activeConflictPolicy()).skills.some(name => String(name).toLowerCase() === "nature") : false;
+  const profileAllowsDescriptorNature = activeConflictPolicy().profileId === "realm-guard-strict";
+  if (nature > 0 && (profileAllowsDescriptorNature || routedNature)) choices.push({ id: "@nature", name: "Nature", label: "Nature (descriptor applies)", rating: nature, kind: "ability", key: "nature", allowDoubleTap: true });
   const roles = dedupeRoleChoices(choices.filter(choice => choice.id !== "@nature"));
   const natureChoice = choices.find(choice => choice.id === "@nature");
   return natureChoice ? [...roles, natureChoice] : roles;
@@ -974,21 +992,22 @@ async function openPoolDialog({ actor, title, choices, temporaryDice = 0, gear =
   const traitOptions = actor.traits?.map(t => {
     const status = traitPositiveStatus(actor, t);
     const level = Number(t.system.rating ?? 0);
-    const stateLabel = isStrictRealmGuard()
+    const stateLabel = isFamilyConflictProfile()
       ? (level === 3 ? (status.available ? "reroll failures · 1/session" : "reroll · USED") : level === 2 ? "+1D · every applicable test" : status.available ? "+1D · 1/session" : "+1D · USED")
       : (level === 3 ? "+1s · always" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED");
     return `<option value="${t.id}">${esc(t.name)} · L${level} · ${stateLabel}</option>`;
   }).join("") ?? "";
-  const wiseOptions = actor.wises?.filter(w => !isStrictRealmGuard() || Number(w.system?.rating ?? 0) > 0).map(w => `<option value="${w.id}">${esc(w.name)}${isStrictRealmGuard() ? ` · ${Number(w.system?.rating ?? 0)} · I Am Wise +1D` : ""}</option>`).join("") ?? "";
+  const ratedWiseMode = activeConflictPolicy().presentation.ratedWises === true;
+  const wiseOptions = actor.wises?.filter(w => !ratedWiseMode || Number(w.system?.rating ?? 0) > 0).map(w => `<option value="${w.id}">${esc(w.name)}${ratedWiseMode ? ` · ${Number(w.system?.rating ?? 0)} · I Am Wise +1D` : ""}</option>`).join("") ?? "";
   const tokenById = new Map();
-  for (const choice of choices) {
+  if (activeConflictPolicy().presentation.showTokensOfPower) for (const choice of choices) {
     const choiceIsSkill = choice.id !== "@nature" && choice.kind !== "ability";
     for (const token of tokenPowerOptionViews(actor, choice.name, { isSkill: choiceIsSkill })) if (!tokenById.has(token.id)) tokenById.set(token.id, token);
   }
   const tokenOptions = [...tokenById.values()].sort((a, b) => a.name.localeCompare(b.name));
   const tokenBlock = tokenOptions.length ? `<label>Token of Power <select name="tokenPowerId"><option value="">None</option>${tokenOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${esc(t.label)}</option>`).join("")}</select></label><small class="rg-token-conflict-note"><i class="fa-solid fa-gem"></i> Skill-linked Tokens must match the selected Skill/Ability. Manual effects remain table-adjudicated.</small>` : "";
   const talentById = new Map();
-  if (!isStrictRealmGuard()) for (const choice of choices) {
+  if (activeConflictPolicy().presentation.showTalents) for (const choice of choices) {
     const choiceIsSkill = choice.id !== "@nature" && choice.kind !== "ability";
     for (const talent of talentOptionViews(actor, choice.name, { isSkill: choiceIsSkill, contextKey: state?.id ?? "" })) if (!talentById.has(talent.id)) talentById.set(talent.id, talent);
   }
@@ -1019,7 +1038,7 @@ async function openPoolDialog({ actor, title, choices, temporaryDice = 0, gear =
     ${sword}
     ${teamworkBlock}
     ${tapNature}
-    <fieldset><legend>Resources / Character</legend><label>Persona dice <select name="persona" ${personaAvailable < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= personaAvailable).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select></label><label>Trait <select name="traitId"><option value="">None</option>${traitOptions}</select></label><small>${isStrictRealmGuard() ? "Strict Traits: L1 +1D once/session, L2 +1D every applicable test, L3 reroll all failed dice once/session." : "Trait benefits use normal session limits: L1 +1D once, L2 +1D twice, L3 +1s when relevant."}</small><label>${isStrictRealmGuard() ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${wiseOptions}</select></label>${tokenBlock}${talentBlock}</fieldset>
+    <fieldset><legend>Resources / Character</legend><label>Persona dice <select name="persona" ${personaAvailable < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= personaAvailable).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select></label><label>Trait <select name="traitId"><option value="">None</option>${traitOptions}</select></label><small>${isFamilyConflictProfile() ? "MG1E-family Traits: L1 +1D once/session, L2 +1D every applicable test, L3 reroll all failed dice once/session." : "Trait benefits use normal session limits: L1 +1D once, L2 +1D twice, L3 +1s when relevant."}</small><label>${ratedWiseMode ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${wiseOptions}</select></label>${tokenBlock}${talentBlock}</fieldset>
     <small>Fate is offered after the roll when a 6 is present. Conflict rolls do not spend Players' Turn Free Tests/Checks.</small>
   </div>`;
   let result=null;
@@ -1045,13 +1064,13 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   const role = !isNature ? actor.items.get(source.id) : null;
   const trainedBase = source.id === "@nature" ? Number(source.overrideRating ?? source.rating ?? actor.system.attributes?.nature?.value ?? 0) : (source.kind === "ability" ? Number(source.rating ?? actor.system.attributes?.[source.key]?.value ?? 0) : Number(role?.system.rating ?? source.rating ?? 0));
   const beginnerLuck = !isNature && trainedBase <= 0;
-  if (beginnerLuck && !isStrictRealmGuard() && conditionActive(actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid characters cannot use Beginner's Luck in a Conflict.");
+  if (beginnerLuck && !isFamilyConflictProfile() && conditionActive(actor, "Afraid")) return ui.notifications.warn("Realm Guard: Afraid characters cannot use Beginner's Luck in a Conflict.");
   const blAbilityKey = beginnerLuck ? beginnerAbilityKey(actor, source, baseAbilityHint) : "";
   const blAbilityBase = beginnerLuck ? Math.max(0, Number(actor.system.attributes?.[blAbilityKey]?.value ?? 0)) : 0;
   if (beginnerLuck && blAbilityBase <= 0) return ui.notifications.warn(`Realm Guard: ${blAbilityKey === "health" ? "Health" : "Will"} is 0; Beginner's Luck cannot be used.`);
   const power = actor._tokenPowerUse?.(tokenPowerId, source.name, { isSkill: !isNature }) ?? null;
   if (tokenPowerId && !power) return ui.notifications.warn("Realm Guard: That Token of Power is spent, unavailable, or does not match the selected conflict Skill/use.");
-  const talentUse = isStrictRealmGuard() ? null : resolveTalentUse(actor, talentId, source.name, { isSkill: !isNature, contextKey });
+  const talentUse = activeConflictPolicy().presentation.showTalents ? resolveTalentUse(actor, talentId, source.name, { isSkill: !isNature, contextKey }) : null;
   if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match the selected conflict Skill/Ability.");
   const conditionData = actor._activeConditionRollData?.(source.name, { isSkill: !isNature }) ?? { dice: 0, active: [] };
   const assist = actor._rollAssist?.({ traitId, wiseId, traitMode: "help", versus: false }) ?? { traitDice: 0, trait: null, wise: null };
@@ -1106,7 +1125,7 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
     base: beginnerLuck ? blAbilityBase : trainedBase, pool, faces, beginnerLuck, beginnerAbilityKey: blAbilityKey, preHalf, beginnerDice,
     rerollFaces: wiseResult.rerollFaces ?? [], tokenPowerRerollFaces: tokenResult.rerollFaces ?? [], fateFaces, fateSpent, personaSpent: totalPersonaCost,
     successes: faces.filter(v => v >= 4).length, conditionalSuccess: Math.max(0, Number(gear.conditionalSuccess ?? 0)), successPenalty: Math.max(0, Number(gear.successPenalty ?? 0)),
-    traitSuccessLevel3: !isStrictRealmGuard() && Number(assist?.traitStatus?.level ?? 0) === 3 && assist?.traitMode === "help", traitName: assist?.trait?.name ?? "",
+    traitSuccessLevel3: !isFamilyConflictProfile() && Number(assist?.traitStatus?.level ?? 0) === 3 && assist?.traitMode === "help", traitName: assist?.trait?.name ?? "",
     tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0, tokenPowerManual: Boolean(power?.manual), tokenPowerLink: power?.linkSummary ?? "",
     talentId: talentUse?.talent?.id ?? null, talentName: talentUse?.talent?.name ?? "", talentDice: Number(talentUse?.diceBonus ?? 0), talentManual: Boolean(talentUse?.manual), talentEffect: talentUse?.talent ? talentEffectSummary(talentUse.talent) : "",
     helperIds, helpers: committedHelpers, helpDice, modifier: Number(modifier), extra: Number(extra), temporaryDice: Number(temporaryDice), gearDice: Number(gear.dice ?? 0), gearNotes: gear.notes ?? [], conditionDice: Number(conditionData.dice ?? 0), traitDice: Number(assist.traitDice ?? 0),
@@ -1148,7 +1167,10 @@ async function rollDisposition(side, state) {
   if (side === "ranger" && !canCaptainControl(state)) return;
   const actor = side === "gm" ? actorById(state.gm.actorId) : actorById(state.ranger.captainId);
   if (!actor) return;
-  let baseKey = state.type === "other" ? (state.otherBaseKey || "health") : (CONFLICT_TYPES[state.type]?.disposition?.base ?? "health");
+  const dispositionPolicy = isFamilyConflictProfile() ? familyConflictDispositionPlan(state.type, activeConflictPolicy()) : null;
+  let baseKey = state.type === "other"
+    ? (state.otherBaseKey || "health")
+    : String(dispositionPolicy?.bases?.[0] ?? CONFLICT_TYPES[state.type]?.disposition?.base ?? "health").toLowerCase();
   let method = "calculated", methodOptions = null;
   if (side === "gm") {
     methodOptions = await chooseGmDispositionMethod(actor, state, baseKey);
@@ -1174,7 +1196,7 @@ async function rollDisposition(side, state) {
     choices = [{ id: "@nature", name: natureHalf ? "Nature (half — descriptors do not apply)" : "Nature", rating: natureValue, kind: "ability", key: "nature", overrideRating: natureValue, allowDoubleTap: !natureHalf }];
     baseKey = "nature";
   } else {
-    const names = CONFLICT_TYPES[state.type]?.disposition?.skills ?? [];
+    const names = dispositionPolicy?.skills?.length ? dispositionPolicy.skills : (CONFLICT_TYPES[state.type]?.disposition?.skills ?? []);
     if (state.type === "other") choices = actor.items.filter(i => i.type === "role").map(r => ({ id: r.id, name: r.name, rating: Number(r.system.rating ?? 0), beginnerAbility: r.system.beginnerAbility, kind: "role" }));
     else {
       const wanted = new Set(names.map(n => n.toLowerCase()));
