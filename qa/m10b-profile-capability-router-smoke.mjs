@@ -17,7 +17,7 @@ const legacy = buildProfileCapabilities(resolver.resolve("realm-guard-legacy-mix
 const strict = buildProfileCapabilities(resolver.resolve("realm-guard-strict"));
 const mg1e = buildProfileCapabilities(resolver.resolve("mg1e"));
 
-assert.match(legacy.phase, /^M10B\.[123]$/);
+assert.match(legacy.phase, /^M10B\.[1-4]$/);
 assert.equal(legacy.profile.id, "realm-guard-legacy-mixed");
 assert.equal(legacy.rules.wises.rated, false);
 assert.equal(legacy.rules.wises.selfUse, "LEGACY_WISE_REROLL");
@@ -55,6 +55,9 @@ assert.equal(strict.rules.naturalOrder.enabled, false);
 assert.equal(strict.rules.scaleOfMight.enabled, true);
 assert.equal(strict.rules.conditions.names.includes("Strained"), true);
 assert.equal(strict.rules.conditions.names.includes("Sick"), false);
+assert.equal(strict.rules.recovery.familySemantics, true);
+assert.deepEqual(strict.rules.recovery.order, ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"]);
+assert.equal(strict.rules.recovery.gmTurnCheckCost, 2);
 assert.equal(strict.presentation.showLevels, false);
 assert.equal(strict.dataPolicy.preserveInactiveData, true);
 
@@ -82,6 +85,9 @@ assert.equal(mg1e.rules.scaleOfMight.enabled, false);
 assert.equal(mg1e.rules.inventory.capacityMode, "CHARACTER_SHEET_GEAR_SPACE");
 assert.equal(mg1e.rules.conditions.names.includes("Sick"), true);
 assert.equal(mg1e.rules.conditions.names.includes("Strained"), false);
+assert.equal(mg1e.rules.recovery.familySemantics, true);
+assert.deepEqual(mg1e.rules.recovery.order, ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"]);
+assert.equal(mg1e.rules.recovery.gmTurnCheckCost, 2);
 
 for (const key of ["rated","helperUse","synergyEnabled","mg1eLevelSemantics","policy","unarmedDefaultDice"]) {
   const pair = {
