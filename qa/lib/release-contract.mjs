@@ -47,6 +47,15 @@ export function assertManifestReleaseContract(manifest, { readyVersion = null } 
   return Object.freeze({ version, channel: releaseChannelForVersion(version) });
 }
 
+export function assertReleaseNotesVersion(source, version, file = "release/NOTES.md") {
+  const expected = assertSupportedSystemVersion(version, "release notes version");
+  const firstLine = String(source ?? "").split(/\r?\n/).map(line => line.trim()).find(Boolean) ?? "";
+  if (!firstLine.includes(expected)) {
+    throw new Error(`${file} first non-empty line must identify ${expected}; found: ${firstLine || "<empty>"}`);
+  }
+  return true;
+}
+
 export function assertNoHistoricalVersionPins(source, file = "unknown") {
   const exactLiteral = /manifest\.version[\s\S]{0,160}(?:===|==|equal\s*\()[\s\S]{0,80}["'`]\d+\.\d+\.\d+(?:-qa\.\d+)?["'`]/;
   const exactQaRegex = /manifest\.version[^\n]{0,180}-qa\\\.\d+(?!\+|\\d)/;
