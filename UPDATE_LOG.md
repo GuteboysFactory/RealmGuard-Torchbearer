@@ -1,5 +1,20 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.7 - 🟡 M10B.7 Character Creation Profile Routing
+
+- Marks **M10B.6 = FULL PASS / VERIFIED / CLOSED** after Gates A-L passed in Foundry VTT 13.351.
+- Advances the MG1E foundation to profile v8 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
+- Adds a source-owned Mouse Guard 1E CharacterCreationProfile for CORE M9 shadow/draft/review/commit-plan QA.
+- Encodes MG1E Guard Rank, age/Will/Health, Nature questions, hometown grants, check-built Skills/rated Wises, Resources/Circles, Traits, relationships, cloak, B/G/I, loose Gear and starting Fate/Persona.
+- Routes CORE M9 active Creation profile/engine selection through generic Rules Profile policy instead of `isStrictRealmGuard()`.
+- Routes live Realm Guard Recruitment Mentor, Enemy and rated-Wise presentation through Creation capabilities instead of direct Strict identity checks.
+- Keeps Legacy Mixed and Strict Realm Guard live Recruitment behavior intact.
+- Historical Strict Character Creation APIs now delegate to the generic M10B.7 provider.
+- MG1E Creation remains shadow-only with zero Actor/Item/relationship/settings writes and no automatic NPC creation.
+- Adds dedicated M10B.7 smoke coverage and `TEST_PROTOCOL_v1.12.0-qa.7.md`.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.6 - 🟢✅ M10B.6 VERIFIED / CLOSED — Session / Circles / Progression Routing + NPC Header Alignment
 
 - **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.6 is FULL PASS / VERIFIED / CLOSED.
