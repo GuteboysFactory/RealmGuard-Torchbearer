@@ -101,7 +101,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     },
     creation: {
       mode: "REALM_GUARD_STRICT_PROFILE",
-      coreEngine: "M9",
+      coreEngine: "CORE_M9",
       liveAuthority: "CORE_M9_WHEN_ACTIVE",
       profileId: "realm-guard-strict",
       profileVersion: 1,
