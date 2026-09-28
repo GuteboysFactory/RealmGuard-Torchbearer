@@ -12,3 +12,4 @@
 # no MG1E activation or automatic profile/Actor conversion
 # no automatic NPC creation
 # Foundry v13.351 QA required
+# historical activation smoke migrated to generic M10B.7 creation routing
