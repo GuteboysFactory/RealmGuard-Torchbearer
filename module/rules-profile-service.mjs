@@ -194,7 +194,7 @@ export function installRulesProfileInfrastructure() {
       exposeCoreApi();
       try {
         globalThis.Hooks?.callAll?.("realmGuardRulesProfileChanged", Object.freeze({
-          phase:"M10B.6",
+          phase:"M10B.7",
           source:"SETTING_UPDATE",
           fromProfileId:before,
           toProfileId:state.profile.id,
