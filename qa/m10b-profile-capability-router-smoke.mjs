@@ -17,7 +17,7 @@ const legacy = buildProfileCapabilities(resolver.resolve("realm-guard-legacy-mix
 const strict = buildProfileCapabilities(resolver.resolve("realm-guard-strict"));
 const mg1e = buildProfileCapabilities(resolver.resolve("mg1e"));
 
-assert.match(legacy.phase, /^M10B\.[1-6]$/);
+assert.match(legacy.phase, /^M10B\.[1-7]$/);
 assert.equal(legacy.profile.id, "realm-guard-legacy-mixed");
 assert.equal(legacy.rules.wises.rated, false);
 assert.equal(legacy.rules.wises.selfUse, "LEGACY_WISE_REROLL");
@@ -88,6 +88,20 @@ assert.equal(mg1e.rules.conditions.names.includes("Strained"), false);
 assert.equal(mg1e.rules.recovery.familySemantics, true);
 assert.deepEqual(mg1e.rules.recovery.order, ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Sick"]);
 assert.equal(mg1e.rules.recovery.gmTurnCheckCost, 2);
+assert.equal(legacy.rules.creation.familySemantics, false);
+assert.equal(legacy.rules.creation.ratedWises, false);
+assert.equal(legacy.rules.creation.enemyHouseRuleAllowed, true);
+assert.equal(strict.rules.creation.familySemantics, true);
+assert.equal(strict.rules.creation.ratedWises, true);
+assert.equal(strict.rules.creation.mentorValidation, "STRICT_SOURCE_RULES");
+assert.equal(strict.rules.creation.enemyHouseRuleAllowed, false);
+assert.equal(mg1e.rules.creation.familySemantics, true);
+assert.equal(mg1e.rules.creation.profileId, "mg1e");
+assert.equal(mg1e.rules.creation.profileVersion, 1);
+assert.equal(mg1e.rules.creation.liveAuthority, "NONE");
+assert.equal(mg1e.rules.creation.ratedWises, true);
+assert.equal(mg1e.rules.creation.mentorValidation, "MG1E_SOURCE_RULES");
+assert.equal(mg1e.rules.creation.enemyValidation, "MG1E_MOUSE_PREFERRED");
 
 for (const key of ["rated","helperUse","synergyEnabled","mg1eLevelSemantics","policy","unarmedDefaultDice"]) {
   const pair = {
@@ -115,11 +129,13 @@ const routedConsumers = [
   "../module/traits.mjs",
   "../module/progression.mjs",
   "../module/conflicts.mjs",
-  "../sheets/actor-sheet.mjs"
+  "../sheets/actor-sheet.mjs",
+  "../module/recruitment.mjs",
+  "../module/m9-creation-shadow.mjs"
 ];
 for (const path of routedConsumers) {
   const source = fs.readFileSync(new URL(path, import.meta.url), "utf8");
   assert.equal(source.includes("isStrictRealmGuard"), false, `${path} must remain on generic profile routing after its M10B migration.`);
 }
 
-console.log("PASS M10B capability router · generic live consumers migrated through M10B.6 · MG1E foundation read-only/not selectable");
+console.log("PASS M10B capability router · generic live consumers migrated through M10B.7 · MG1E foundation read-only/not selectable");
