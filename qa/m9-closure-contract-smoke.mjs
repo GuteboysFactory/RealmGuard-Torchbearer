@@ -24,7 +24,7 @@ assert.deepEqual(
   ["recruit", "scout", "veteran", "captain", "lord"]
 );
 
-assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.coreEngine, "live");
+assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.coreEngine, "M9");
 assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.liveAuthority, "CORE_M9");
 assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.profileVersion, 4);
 
@@ -35,17 +35,17 @@ for (const marker of [
   'draftAuthority: "CORE_M9"',
   'validationAuthority: "CORE_M9"',
   'commitAuthority: "CORE_M9"',
-  '"STRICT_SOURCE_PROFILE" : "LEGACY_RECRUITMENT"',
+  '"PROFILE_SOURCE_RULES" : "LEGACY_RECRUITMENT"',
   '"TransactionalLiveCommit"',
   '"CreationProvenanceWrite"',
   '"M8RecruitmentNormalization"',
-  'legacyCommitAvailability: isStrictRealmGuard()',
-  '"DISABLED_UNDER_STRICT"',
+  'getActiveM10BCharacterCreationPolicy()',
+  '"DISABLED_BY_PROFILE"',
   'if (qaRuntime()) Object.assign(api, {'
 ]) assert.ok(m9.includes(marker), `Missing M9 closure authority marker: ${marker}`);
 
 assert.ok(m9.includes("setCommitMode: setM9CommitMode"));
-assert.ok(m9.includes('return qaCommitMode === "LEGACY" && !isStrictRealmGuard();'), "Strict activation must override any stale Legacy QA commit mode.");
+assert.ok(m9.includes('return qaCommitMode === "LEGACY" && getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed;'), "The active Creation profile must control any Legacy QA commit override.");
 assert.ok(m9.includes("testCommitFailure: setM9CommitFailureTestPhase"));
 assert.ok(m9.indexOf("if (qaRuntime()) Object.assign(api, {") < m9.indexOf("setCommitMode: setM9CommitMode"));
 assert.equal(m9.includes("commitShadowAuthority:"), false);
