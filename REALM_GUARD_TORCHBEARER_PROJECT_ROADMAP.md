@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.6 — 🟢✅ M10B.6 VERIFIED / CLOSED  
+**Current QA build:** v1.12.0-qa.7 — 🟡 M10B.7 Character Creation Profile Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.7 — 🔵 PLANNED · Character Creation Profile Routing · read-only audit complete  
+**Current CORE gate:** M10B.7 — 🟡 IMPLEMENTED · Character Creation Profile Routing · awaiting live QA  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -301,7 +301,7 @@ qa.1 foundation scope:
 - preserve CreationProvenance, transaction rollback and CORE M8 relationship semantics
 - no MG1E activation, no automatic conversion and no Recruitment UX redesign
 
-**M10B.7 audit result:** 🔵 **READY FOR IMPLEMENTATION as v1.12.0-qa.7**. See `M10B_7_CHARACTER_CREATION_ROUTING_AUDIT_2026-09-28.md`. No runtime code changed during the audit.
+**M10B.7 implementation:** 🟡 **IMPLEMENTED as v1.12.0-qa.7 candidate**. Generic CORE M9 Creation routing, MG1E v8 source Creation foundation, capability-driven Recruitment presentation and compatibility wrappers are in place. Awaiting Foundry VTT 13.351 live QA. See `M10B_7_CHARACTER_CREATION_ROUTING_AUDIT_2026-09-28.md`.
 
 **M10B.7 PASS gate:** Legacy and Strict Recruitment remain behaviorally compatible; MG1E v8 resolves source-correct Guard Rank, Nature, hometown, Skill/Wise, Resources/Circles, Trait, relationship, cloak, drive, Gear and starting-reward contracts through CORE M9 in foundation mode; generic Creation routing contains no required binary Strict identity branch; MG1E planning performs zero live writes; provenance remains profile/version-correct; and release/channel verification is green.
 
