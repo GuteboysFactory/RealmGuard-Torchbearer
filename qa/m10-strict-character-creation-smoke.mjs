@@ -80,7 +80,7 @@ function scoutSeed(overrides = {}) {
 }
 
 const status = getStrictCreationStatus();
-assert.ok(["M10A.6","M10A.7","M10A.8","M10A.9"].includes(status.phase));
+assert.match(status.phase, /^M10(?:A\.[6-9]|B\.7_COMPAT_WRAPPER)$/);
 assert.equal(status.profileId, STRICT_CREATION_PROFILE_ID);
 assert.equal(status.profileVersion, STRICT_CREATION_PROFILE_VERSION);
 assert.equal(status.coreEngine, "CORE_M9");
@@ -314,15 +314,12 @@ assert.ok(legacyProfile.includes('inventoryPolicy: "STRUCTURED"'), "Legacy Mixed
 assert.ok(legacyProfile.includes("ENEMY_SERVANTS_HOUSE_RULE"), "Legacy Mixed enemy house-rule compatibility must remain available.");
 
 const m9 = fs.readFileSync("module/m9-creation-shadow.mjs","utf8");
-assert.ok(m9.includes("REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE"), "CORE M9 must preserve the Legacy Mixed creation profile.");
-if (REALM_GUARD_STRICT_PROFILE.metadata.strictCreationLiveReady === true) {
-  assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), "M10A.8+ must route CORE M9 to the Strict creation profile when active.");
-  assert.ok(m9.includes("activeCreationEngine"), "M10A.8+ must select the creation engine from the active Rules Profile.");
-} else {
-  assert.equal(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"), false, "Pre-activation phases must not route Strict creation into live M9.");
-}
+assert.ok(m9.includes("activeCharacterCreationProfile"), "CORE M9 must resolve its Creation profile through the generic M10B router.");
+assert.ok(m9.includes("activeCharacterCreationEngine"), "CORE M9 must resolve its Creation engine through the generic M10B router.");
+assert.ok(m9.includes("getActiveM10BCharacterCreationPolicy"), "CORE M9 must consume active Creation capabilities.");
+assert.equal(m9.includes("isStrictRealmGuard"), false, "M10B.7 retires binary Strict identity routing from CORE M9.");
 
 const profileService = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "No live profile switch API may exist in M10A.6.");
 
-console.log("PASS M10A.6 Strict Character Creation regression · rated Wises · Enemy/Mentor validation · condition plan · Legacy compatibility preserved through activation");
+console.log("PASS Strict Character Creation compatibility wrapper · rated Wises · Enemy/Mentor validation · condition plan · Legacy compatibility preserved through activation");
