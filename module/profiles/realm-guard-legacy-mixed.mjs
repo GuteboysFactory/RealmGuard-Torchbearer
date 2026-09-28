@@ -23,7 +23,7 @@ export const REALM_GUARD_LEGACY_MIXED_PROFILE = new RulesProfile({
     circles: { mode: "legacy-current" },
     creation: {
       mode: "legacy-mixed-profile",
-      coreEngine: "M9",
+      coreEngine: "CORE_M9",
       liveAuthority: "CORE_M9",
       profileId: "realm-guard-legacy-mixed",
       profileVersion: 4,
