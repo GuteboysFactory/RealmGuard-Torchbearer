@@ -125,14 +125,22 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     scaleOfMight: {
       enabled: true,
       mode: "REALM_GUARD_V1_6",
+      scaleId: "realm-guard-scale-of-might",
+      name: "Scale of Might",
       automation: "MANUAL_GUIDED",
       rankMin: 1,
       rankMax: 6,
+      baseActorKind: "Dúnadan",
+      baseRank: 3,
       dunadanRank: 3,
       fighterHunterOutcomePolicy: true,
       loreMasterRule: true,
       militaristRule: true,
-      tokenScaleGuidance: "MANUAL_GUIDED"
+      groupWarMode: "REALM_GUARD_MILITARIST",
+      specialSkillMode: "REALM_GUARD_LORE_MASTER",
+      effectiveRankMode: "SUCCESS_MARGIN",
+      tokenScaleGuidance: "MANUAL_GUIDED",
+      liveApplication: false
     }
   },
   registry: [
@@ -162,7 +170,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.7",
+    implementationPhase: "M10B.8",
     strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -180,6 +188,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10B.7 Character Creation Profile Routing QA"
+    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
   }
 });
