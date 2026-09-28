@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.7",
+    phase: "M10B.8",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -203,12 +203,53 @@ export function buildProfileCapabilities(profile) {
       },
       naturalOrder: {
         enabled: d.naturalOrder?.enabled === true,
-        mode: text(d.naturalOrder?.mode, "NONE")
+        mode: text(d.naturalOrder?.mode, "NONE"),
+        scaleId: text(d.naturalOrder?.scaleId),
+        name: text(d.naturalOrder?.name, d.naturalOrder?.enabled === true ? "Natural Order" : ""),
+        rankMin: numeric(d.naturalOrder?.rankMin, d.naturalOrder?.enabled === true ? 1 : 0),
+        rankMax: numeric(d.naturalOrder?.rankMax, 0),
+        baseActorKind: text(d.naturalOrder?.baseActorKind),
+        baseRank: numeric(d.naturalOrder?.baseRank, 0),
+        groupWarMode: text(d.naturalOrder?.groupWarMode, "NONE"),
+        specialSkillMode: text(d.naturalOrder?.specialSkillMode, "NONE"),
+        liveApplication: bool(d.naturalOrder?.liveApplication, false)
       },
       scaleOfMight: {
         enabled: scaleOfMightEnabled,
-        mode: text(d.scaleOfMight?.mode, scaleOfMightEnabled ? "PROFILE_DEFINED" : "NONE")
+        mode: text(d.scaleOfMight?.mode, scaleOfMightEnabled ? "PROFILE_DEFINED" : "NONE"),
+        scaleId: text(d.scaleOfMight?.scaleId),
+        name: text(d.scaleOfMight?.name, scaleOfMightEnabled ? "Scale of Might" : ""),
+        rankMin: numeric(d.scaleOfMight?.rankMin, scaleOfMightEnabled ? 1 : 0),
+        rankMax: numeric(d.scaleOfMight?.rankMax, 0),
+        baseActorKind: text(d.scaleOfMight?.baseActorKind, scaleOfMightEnabled ? "Dúnadan" : ""),
+        baseRank: numeric(d.scaleOfMight?.baseRank ?? d.scaleOfMight?.dunadanRank, 0),
+        groupWarMode: text(d.scaleOfMight?.groupWarMode, "NONE"),
+        specialSkillMode: text(d.scaleOfMight?.specialSkillMode, "NONE"),
+        effectiveRankMode: text(d.scaleOfMight?.effectiveRankMode, "NONE"),
+        itemScaleGuidance: text(d.scaleOfMight?.tokenScaleGuidance, "NONE"),
+        liveApplication: bool(d.scaleOfMight?.liveApplication, false)
       },
+      comparativeScale: (() => {
+        const domain = d.naturalOrder?.enabled === true ? d.naturalOrder : scaleOfMightEnabled ? d.scaleOfMight : null;
+        const profileDomain = d.naturalOrder?.enabled === true ? "naturalOrder" : scaleOfMightEnabled ? "scaleOfMight" : "";
+        return {
+          enabled: Boolean(domain),
+          id: text(domain?.scaleId),
+          name: text(domain?.name),
+          mode: text(domain?.mode, domain ? "PROFILE_DEFINED" : "NONE"),
+          profileDomain,
+          rankMin: numeric(domain?.rankMin, domain ? 1 : 0),
+          rankMax: numeric(domain?.rankMax, 0),
+          baseActorKind: text(domain?.baseActorKind),
+          baseRank: numeric(domain?.baseRank ?? domain?.dunadanRank, 0),
+          outcomePolicy: domain ? "RANK_DIFFERENCE" : "NONE",
+          groupWarMode: text(domain?.groupWarMode, "NONE"),
+          specialSkillMode: text(domain?.specialSkillMode, "NONE"),
+          effectiveRankMode: text(domain?.effectiveRankMode, "NONE"),
+          itemScaleGuidance: text(domain?.tokenScaleGuidance, "NONE"),
+          liveApplication: bool(domain?.liveApplication, false)
+        };
+      })(),
       creation: {
         mode: text(d.creation?.mode, "PROFILE_DEFINED"),
         coreEngine: text(d.creation?.coreEngine, "CORE_M9"),
