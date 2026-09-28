@@ -1,23 +1,22 @@
 import {
-  CharacterCreationEngine,
   CreationPartyContext,
   comparableCreationSnapshot
 } from "./core/m9-creation.mjs";
-import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "./profiles/realm-guard-legacy-mixed-creation.mjs";
-import { REALM_GUARD_STRICT_CREATION_PROFILE } from "./profiles/realm-guard-strict-creation.mjs";
-import { isStrictRealmGuard } from "./m10-profile-activation.mjs";
+import {
+  activeCharacterCreationEngine,
+  activeCharacterCreationProfile,
+  getActiveM10BCharacterCreationPolicy
+} from "./m10b-character-creation.mjs";
 import { FoundryCreationCommitAdapter, compareCommitProjections } from "./m9-creation-commit-adapter.mjs";
 
-const legacyEngine = new CharacterCreationEngine(REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE);
-const strictEngine = new CharacterCreationEngine(REALM_GUARD_STRICT_CREATION_PROFILE);
 const commitAdapter = new FoundryCreationCommitAdapter({ shadowOnly: false });
 
 function activeCreationProfile() {
-  return isStrictRealmGuard() ? REALM_GUARD_STRICT_CREATION_PROFILE : REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE;
+  return activeCharacterCreationProfile();
 }
 
 function activeCreationEngine() {
-  return isStrictRealmGuard() ? strictEngine : legacyEngine;
+  return activeCharacterCreationEngine();
 }
 const history = [];
 const draftEvents = [];
@@ -205,31 +204,32 @@ export function validateM9RecruitmentStep(state, stepId) {
 export function observeM9RecruitmentDraft(state, legacyProjection = {}, legacyCommitProjection = null) {
   const draft = syncM9RecruitmentDraft(state, { stepId: "review", reason: "final-parity" });
   const core = coreSnapshot(draft);
-  const strict = isStrictRealmGuard();
-  const legacy = strict ? null : comparableCreationSnapshot(legacyProjection);
+  const policy = getActiveM10BCharacterCreationPolicy();
+  const legacyParity = policy.familySemantics !== true;
+  const legacy = legacyParity ? comparableCreationSnapshot(legacyProjection) : null;
   const fields = Object.keys(core);
-  const mismatchedFields = strict ? [] : fields.filter(key => JSON.stringify(core[key]) !== JSON.stringify(legacy[key]));
+  const mismatchedFields = legacyParity ? fields.filter(key => JSON.stringify(core[key]) !== JSON.stringify(legacy[key])) : [];
   const commitPlan = activeCreationEngine().buildCommitPlan(draft, partyContext());
   const commitPreview = commitAdapter.preview(commitPlan, {
     isGM: Boolean(globalThis.game?.user?.isGM),
     userId: String(globalThis.game?.user?.id ?? "")
   });
-  const commitComparison = strict
-    ? freeze({ parity: true, mismatchedFields: [], core: commitPreview.projection, legacy: null })
-    : legacyCommitProjection
+  const commitComparison = legacyParity
+    ? legacyCommitProjection
       ? compareCommitProjections(commitPreview.projection, legacyCommitProjection)
-      : freeze({ parity: null, mismatchedFields: [], core: commitPreview.projection, legacy: null });
+      : freeze({ parity: null, mismatchedFields: [], core: commitPreview.projection, legacy: null })
+    : freeze({ parity: true, mismatchedFields: [], core: commitPreview.projection, legacy: null });
   const event = freeze({
     at: new Date().toISOString(),
     scope: "M9_CREATION_PARITY",
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
-    parityGuard: strict ? "STRICT_SOURCE_PROFILE" : "LEGACY_RECRUITMENT",
+    parityGuard: legacyParity ? "LEGACY_RECRUITMENT" : "PROFILE_SOURCE_RULES",
     liveDraft: true,
-    liveCommit: true,
+    liveCommit: policy.liveCommit,
     commitPlanLiveMutation: Boolean(commitPlan.liveMutation),
-    parity: strict || mismatchedFields.length === 0,
+    parity: !legacyParity || mismatchedFields.length === 0,
     mismatchedFields,
     commitParity: commitComparison.parity,
     commitMismatchedFields: commitComparison.mismatchedFields,
@@ -257,14 +257,14 @@ function qaRuntime() {
 export function setM9CommitMode(mode = "CORE") {
   const next = String(mode || "CORE").trim().toUpperCase();
   if (!["CORE", "LEGACY"].includes(next)) throw new Error("M9 commit mode must be CORE or LEGACY.");
-  if (next === "LEGACY" && isStrictRealmGuard()) throw new Error("Legacy M9 commit override is disabled while Strict Realm Guard is active.");
+  if (next === "LEGACY" && !getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed) throw new Error("Legacy M9 commit override is disabled by the active Character Creation profile.");
   if (next === "LEGACY" && !qaRuntime()) throw new Error("Legacy M9 commit override is available only in QA builds.");
   qaCommitMode = next;
   return getM9CreationShadowStatus();
 }
 
 export function shouldUseLegacyM9Commit() {
-  return qaCommitMode === "LEGACY" && !isStrictRealmGuard();
+  return qaCommitMode === "LEGACY" && getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed;
 }
 
 export function setM9CommitFailureTestPhase(phase = "") {
@@ -368,13 +368,20 @@ export function getM9CreationShadowStatus() {
     draftAuthority: "CORE_M9",
     validationAuthority: "CORE_M9",
     commitAuthority: "CORE_M9",
-    parityGuard: isStrictRealmGuard() ? "STRICT_SOURCE_PROFILE" : "LEGACY_RECRUITMENT",
-    legacyCommitAvailability: isStrictRealmGuard()
-      ? "DISABLED_UNDER_STRICT"
+    parityGuard: getActiveM10BCharacterCreationPolicy().familySemantics ? "PROFILE_SOURCE_RULES" : "LEGACY_RECRUITMENT",
+    legacyCommitAvailability: !getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed
+      ? "DISABLED_BY_PROFILE"
       : qaRuntime()
         ? (qaCommitMode === "LEGACY" ? "QA_OVERRIDE_ACTIVE" : "QA_EXPLICIT_ONLY")
         : "DISABLED_IN_STABLE",
-    liveApplication: { draft: true, validation: true, commitPlan: true, commit: true, provenance: true, relationships: true },
+    liveApplication: {
+      draft: true,
+      validation: true,
+      commitPlan: true,
+      commit: getActiveM10BCharacterCreationPolicy().liveCommit,
+      provenance: getActiveM10BCharacterCreationPolicy().liveCommit,
+      relationships: getActiveM10BCharacterCreationPolicy().liveCommit
+    },
     profileId: activeCreationProfile().id,
     profileVersion: activeCreationProfile().version,
     observations: rows.length,
