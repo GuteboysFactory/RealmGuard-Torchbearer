@@ -4,7 +4,7 @@
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
 **Current QA build:** v1.12.0-qa.6 — 🟢✅ M10B.6 VERIFIED / CLOSED  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.6 — ✅ VERIFIED / CLOSED · next M10B increment pending audit  
+**Current CORE gate:** M10B.7 — 🔵 PLANNED · Character Creation Profile Routing · read-only audit complete  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,7 +186,7 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — M10B.4 is live-QA VERIFIED / CLOSED. v1.12.0-qa.5 now migrates Gear / Inventory / Conflict away from binary Legacy-vs-Strict checks toward generic profile capability routing. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — M10B.6 is live-QA VERIFIED / CLOSED. The read-only M10B.7 audit selects Character Creation Profile Routing as the next bounded increment. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
 
@@ -288,6 +288,22 @@ qa.1 foundation scope:
 **M10B.6 PASS gate:** Legacy Session/Circles/Level behavior remains compatible; Strict Players' Turn, End Session, Circles and no-Level/Talent behavior preserve M10A.5 semantics through generic routing; MG1E v7 resolves the same source policies in foundation mode; known Contact +1D and linked Enmity +3s work only where source-qualified; advancement/Beginner's Luck contracts remain source-correct; dormant Legacy progression data survives profile round-trips; NPC resources visually align with the Character header without losing narrow-sheet usability; and qa.6 release/channel verification is green.
 
 **M10B.6 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-L passed: boot/reload, capability snapshots, Legacy regression, Strict Players' Turn/Checks, End Session, source-backed Circles Contact +1D, Enmity +3s in Argument/Speech, Strict progression suppression/data preservation, MG1E v7 shadow policy, reversible profile round-trip safety, NPC narrow-width header alignment and release/channel verification.
+
+**M10B.7 planned scope — Character Creation Profile Routing:**
+- advance MG1E foundation to profile v8 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- reuse CORE M9; do not create a second Character Creation engine
+- add a source-owned MG1E CharacterCreationProfile from Mouse Guard RPG 2008 / 1E Recruitment
+- route CORE M9 profile/engine selection through generic Rules Profile Creation policy instead of `isStrictRealmGuard()`
+- route Recruitment Mentor / Enemy / rated-Wise presentation and validation through Creation capabilities instead of direct Strict identity checks
+- preserve Legacy Mixed and Strict Realm Guard live Recruitment behavior exactly
+- retain historical Strict Character Creation APIs as compatibility wrappers where needed
+- keep MG1E draft / validation / review / commit-plan shadow-only with zero live Actor/Item/relationship/settings writes
+- preserve CreationProvenance, transaction rollback and CORE M8 relationship semantics
+- no MG1E activation, no automatic conversion and no Recruitment UX redesign
+
+**M10B.7 audit result:** 🔵 **READY FOR IMPLEMENTATION as v1.12.0-qa.7**. See `M10B_7_CHARACTER_CREATION_ROUTING_AUDIT_2026-09-28.md`. No runtime code changed during the audit.
+
+**M10B.7 PASS gate:** Legacy and Strict Recruitment remain behaviorally compatible; MG1E v8 resolves source-correct Guard Rank, Nature, hometown, Skill/Wise, Resources/Circles, Trait, relationship, cloak, drive, Gear and starting-reward contracts through CORE M9 in foundation mode; generic Creation routing contains no required binary Strict identity branch; MG1E planning performs zero live writes; provenance remains profile/version-correct; and release/channel verification is green.
 
 
 ### M9 — Creation / Recruitment Migration
