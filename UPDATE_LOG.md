@@ -1,7 +1,8 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.7 - 🟡 M10B.7 Character Creation Profile Routing
+## v1.12.0-qa.7 - 🟢✅ M10B.7 VERIFIED / CLOSED — Character Creation Profile Routing
 
+- **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.7 is FULL PASS / VERIFIED / CLOSED.
 - Marks **M10B.6 = FULL PASS / VERIFIED / CLOSED** after Gates A-L passed in Foundry VTT 13.351.
 - Advances the MG1E foundation to profile v8 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
 - Adds a source-owned Mouse Guard 1E CharacterCreationProfile for CORE M9 shadow/draft/review/commit-plan QA.
