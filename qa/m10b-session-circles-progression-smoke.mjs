@@ -36,7 +36,7 @@ assert.equal(mg1e.phase,"M10B.6");
 assert.equal(legacy.familySemantics,false);
 assert.equal(strict.familySemantics,true);
 assert.equal(mg1e.familySemantics,true);
-assert.equal(mg1e.profileVersion,7);
+assert.ok(mg1e.profileVersion >= 7, "M10B.6 session/progression contract must survive later MG1E foundation revisions.");
 
 for (const policy of [strict,mg1e]) {
   assert.equal(policy.session.playerTurnFreeTests,1);
@@ -173,4 +173,4 @@ assert.ok(conflicts.includes("buildM8RelationshipSheetView"));
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
 assert.equal(activation.includes('"mg1e"'),false,"MG1E remains non-selectable in M10B.6.");
 
-console.log("PASS M10B.6 Session / Circles / Progression routing · MG1E foundation v7 · Strict wrappers · Legacy preservation · NPC resource-stack alignment");
+console.log("PASS M10B.6 Session / Circles / Progression routing · MG1E foundation v7+ · Strict wrappers · Legacy preservation · NPC resource-stack alignment");
