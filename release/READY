@@ -1,20 +1,14 @@
-1.12.0-qa.6
-# M10B.6 Session / Circles / Progression Routing
-# M10B.5 live QA FULL PASS / VERIFIED / CLOSED
-# MG1E profile v7 remains FOUNDATION_ONLY / non-selectable / non-live
-# generic MG1E-family Session / Circles / Progression policy
-# CORE M7 Players' Turn / Checks ownership preserved
-# End Session profile-routed; Legacy compatibility behavior preserved
-# known Contact Circles +1D under MG1E-family profiles
-# linked Enmity Argument/Speech opposition +3s
-# Strict/MG1E lifetime Level/Talent progression suppressed with data preservation
-# historical Strict M10A.5 API delegates to M10B.6
-# NPC resource stack aligned with Character header
-# no destructive Actor/Item/relationship conversion
+1.12.0-qa.7
+# M10B.7 Character Creation Profile Routing
+# M10B.6 live QA FULL PASS / VERIFIED / CLOSED
+# MG1E foundation advanced to profile v8; remains FOUNDATION_ONLY / non-selectable / non-live
+# source-owned MG1E CharacterCreationProfile added for CORE M9 shadow planning
+# CORE M9 Creation profile/engine selection routed through generic profile policy
+# Recruitment Mentor / Enemy / rated-Wise presentation routed through Creation capabilities
+# Legacy Mixed live Recruitment behavior preserved
+# Strict Realm Guard live Recruitment behavior preserved
+# Strict Character Creation historical API delegates to M10B.7 generic provider
+# MG1E draft / validation / review / commit-plan remains zero-write shadow only
+# no MG1E activation or automatic profile/Actor conversion
+# no automatic NPC creation
 # Foundry v13.351 QA required
-# historical activation/session smokes updated for generic M10B.6 routing
-# stale Strict progression copy pin removed from historical activation smoke
-# M10B.5 historical MG1E version assertion made forward-compatible
-# M10B.5 NPC smoke relaxed to semantic resource-control contract
-# capability-router historical phase window advanced through M10B.6
-# retired M10B.1 shadow-routing smoke pin removed
