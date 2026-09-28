@@ -17,7 +17,7 @@ const legacy = buildProfileCapabilities(resolver.resolve("realm-guard-legacy-mix
 const strict = buildProfileCapabilities(resolver.resolve("realm-guard-strict"));
 const mg1e = buildProfileCapabilities(resolver.resolve("mg1e"));
 
-assert.match(legacy.phase, /^M10B\.[1-7]$/);
+assert.match(legacy.phase, /^M10B\.[1-8]$/);
 assert.equal(legacy.profile.id, "realm-guard-legacy-mixed");
 assert.equal(legacy.rules.wises.rated, false);
 assert.equal(legacy.rules.wises.selfUse, "LEGACY_WISE_REROLL");
@@ -82,6 +82,17 @@ assert.equal(mg1e.rules.tokensOfPower.enabled, false);
 assert.equal(mg1e.rules.naturalOrder.enabled, true);
 assert.equal(mg1e.rules.naturalOrder.mode, "MG1E");
 assert.equal(mg1e.rules.scaleOfMight.enabled, false);
+assert.equal(legacy.rules.comparativeScale.enabled, false);
+assert.equal(strict.rules.comparativeScale.enabled, true);
+assert.equal(strict.rules.comparativeScale.name, "Scale of Might");
+assert.equal(strict.rules.comparativeScale.rankMin, 1);
+assert.equal(strict.rules.comparativeScale.rankMax, 6);
+assert.equal(strict.rules.comparativeScale.baseRank, 3);
+assert.equal(mg1e.rules.comparativeScale.enabled, true);
+assert.equal(mg1e.rules.comparativeScale.name, "Natural Order");
+assert.equal(mg1e.rules.comparativeScale.rankMin, 1);
+assert.equal(mg1e.rules.comparativeScale.rankMax, 9);
+assert.equal(mg1e.rules.comparativeScale.baseRank, 3);
 assert.equal(mg1e.rules.inventory.capacityMode, "CHARACTER_SHEET_GEAR_SPACE");
 assert.equal(mg1e.rules.conditions.names.includes("Sick"), true);
 assert.equal(mg1e.rules.conditions.names.includes("Strained"), false);
@@ -138,4 +149,4 @@ for (const path of routedConsumers) {
   assert.equal(source.includes("isStrictRealmGuard"), false, `${path} must remain on generic profile routing after its M10B migration.`);
 }
 
-console.log("PASS M10B capability router · generic live consumers migrated through M10B.7 · MG1E foundation read-only/not selectable");
+console.log("PASS M10B capability router · generic live consumers migrated through M10B.8 · MG1E foundation read-only/not selectable");
