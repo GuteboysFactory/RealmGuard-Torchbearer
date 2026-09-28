@@ -1,7 +1,8 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.6 - 🟡 M10B.6 Session / Circles / Progression Routing + NPC Header Alignment
+## v1.12.0-qa.6 - 🟢✅ M10B.6 VERIFIED / CLOSED — Session / Circles / Progression Routing + NPC Header Alignment
 
+- **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.6 is FULL PASS / VERIFIED / CLOSED.
 - Marks **M10B.5 = FULL PASS / VERIFIED / CLOSED** after Gates A-K passed in Foundry VTT 13.351.
 - Advances the MG1E foundation to profile v7 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live.
 - Adds generic MG1E-family Session / Circles / Progression policy and pure planners.
