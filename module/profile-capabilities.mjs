@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.6",
+    phase: "M10B.7",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
@@ -211,9 +211,24 @@ export function buildProfileCapabilities(profile) {
       },
       creation: {
         mode: text(d.creation?.mode, "PROFILE_DEFINED"),
-        profileId: text(d.creation?.profileId),
+        coreEngine: text(d.creation?.coreEngine, "M9"),
+        profileId: text(d.creation?.profileId, profile.id),
         profileVersion: numeric(d.creation?.profileVersion, 0),
-        liveAuthority: text(d.creation?.liveAuthority, "NONE")
+        liveAuthority: text(d.creation?.liveAuthority, "NONE"),
+        familySemantics: bool(d.creation?.familySemantics, false),
+        wiseMode: text(d.creation?.wiseMode, ratedWises ? "RATED" : "UNRATED").toUpperCase(),
+        ratedWises: bool(d.creation?.ratedWises, ratedWises),
+        startingSkillWiseCap: numeric(d.creation?.startingSkillWiseCap, 6),
+        inventoryPolicy: text(d.creation?.inventoryPolicy, inventoryPolicy).toUpperCase(),
+        mentorValidation: typeof d.creation?.mentorValidation === "string"
+          ? text(d.creation?.mentorValidation, "PROFILE_DEFINED")
+          : d.creation?.mentorValidation === true ? "STRICT_SOURCE_RULES" : "PROFILE_DEFINED",
+        enemyValidation: text(d.creation?.enemyValidation, d.creation?.strictEnemyValidation === true ? "STRICT_SOURCE_RULES" : "PROFILE_DEFINED"),
+        enemyHouseRuleAllowed: bool(d.creation?.enemyHouseRuleAllowed, legacyCurrent(d.creation)),
+        allowedEnemyPeoples: Array.isArray(d.creation?.allowedEnemyPeoples) ? [...d.creation.allowedEnemyPeoples] : [],
+        conditionProvisioning: text(d.creation?.conditionProvisioning, "PROFILE_DEFINED"),
+        automaticNpcCreation: bool(d.creation?.automaticNpcCreation, false),
+        legacyCommitOverrideAllowed: bool(d.creation?.legacyCommitOverrideAllowed, legacyCurrent(d.creation))
       }
     },
     presentation: {
