@@ -96,7 +96,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     },
     creation: {
       mode: "MG1E",
-      coreEngine: "M9",
+      coreEngine: "CORE_M9",
       liveAuthority: "NONE",
       profileId: "mg1e",
       profileVersion: 1,
