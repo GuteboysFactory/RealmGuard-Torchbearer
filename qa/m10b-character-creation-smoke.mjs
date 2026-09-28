@@ -62,8 +62,8 @@ assert.equal(strict.enemyValidation, "REALM_GUARD_STRICT_PEOPLES");
 assert.equal(strict.enemyHouseRuleAllowed, false);
 assert.equal(strict.liveCommit, false);
 
-assert.equal(MG1E_FOUNDATION_PROFILE.version, 8);
-assert.equal(mg1e.rulesProfileVersion, 8);
+assert.ok(MG1E_FOUNDATION_PROFILE.version >= 8, "M10B.7 creation contract must survive later MG1E foundation revisions.");
+assert.ok(mg1e.rulesProfileVersion >= 8);
 assert.equal(mg1e.creationProfileId, "mg1e");
 assert.equal(mg1e.creationProfileVersion, MG1E_CREATION_PROFILE_VERSION);
 assert.equal(mg1e.foundationOnly, true);
@@ -84,7 +84,7 @@ assert.deepEqual(mg1e.writes, { actorsOnResolve:0, itemsOnResolve:0, relationshi
 const status = getM10B7CharacterCreationStatus();
 assert.equal(status.phase, "M10B.7");
 assert.equal(status.coreEngine, "CORE_M9");
-assert.equal(status.mg1eFoundation.profileVersion, 8);
+assert.ok(status.mg1eFoundation.profileVersion >= 8);
 assert.equal(status.mg1eFoundation.foundationOnly, true);
 assert.equal(status.mg1eFoundation.selectable, false);
 assert.equal(status.mg1eFoundation.liveCommit, false);
@@ -277,4 +277,4 @@ assert.equal(fs.readFileSync("module/m10-profile-activation.mjs","utf8").include
 const partyContext = familyCreationPartyContext({actors:[]});
 assert.equal(partyContext.existingCharacters.length, 0);
 
-console.log("PASS M10B.7 Character Creation Profile Routing · MG1E v8 foundation · CORE M9 generic routing · zero MG1E live writes");
+console.log("PASS M10B.7 Character Creation Profile Routing · MG1E v8+ foundation · CORE M9 generic routing · zero MG1E live writes");
