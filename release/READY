@@ -14,3 +14,4 @@
 # no Actor/Item/Journal/settings scale writes
 # no MG1E activation, auto-rank inference or live Conflict blocking
 # Foundry v13.351 QA required
+# activation manual smoke migrated to generic Rules Reference routing
