@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 8,
+  version: 9,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -128,7 +128,22 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       beginnerLuckAdvancesWillHealth: false
     },
     tokensOfPower: { enabled: false },
-    naturalOrder: { enabled: true, mode: "MG1E", fighterHunterOutcomePolicy: true, militaristRule: true, scientistRule: true },
+    naturalOrder: {
+      enabled: true,
+      mode: "MG1E",
+      scaleId: "mg1e-natural-order",
+      name: "Natural Order",
+      rankMin: 1,
+      rankMax: 9,
+      baseActorKind: "Mouse",
+      baseRank: 3,
+      fighterHunterOutcomePolicy: true,
+      militaristRule: true,
+      scientistRule: true,
+      groupWarMode: "MG1E_MILITARIST",
+      specialSkillMode: "MG1E_SCIENTIST",
+      liveApplication: false
+    },
     scaleOfMight: { enabled: false, mode: "NONE", replacedBy: "naturalOrder" }
   },
   registry: [
@@ -165,7 +180,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.7",
-    nextStep: "M10B.7 Character Creation Profile Routing QA"
+    implementationPhase: "M10B.8",
+    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
   }
 });
