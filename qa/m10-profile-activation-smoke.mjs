@@ -92,11 +92,13 @@ assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-legacy"'));
 assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-reload-guidance"'));
 
 const m9 = fs.readFileSync("module/m9-creation-shadow.mjs","utf8");
-assert.ok(m9.includes("REALM_GUARD_STRICT_CREATION_PROFILE"));
-assert.ok(m9.includes("activeCreationEngine"));
-assert.ok(m9.includes("STRICT_SOURCE_PROFILE"));
-assert.ok(m9.includes("DISABLED_UNDER_STRICT"));
-assert.ok(m9.includes('return qaCommitMode === "LEGACY" && !isStrictRealmGuard();'), "Strict must not inherit a stale Legacy QA commit override.");
+assert.ok(m9.includes("activeCharacterCreationProfile"));
+assert.ok(m9.includes("activeCharacterCreationEngine"));
+assert.ok(m9.includes("getActiveM10BCharacterCreationPolicy"));
+assert.ok(m9.includes("PROFILE_SOURCE_RULES"));
+assert.ok(m9.includes("DISABLED_BY_PROFILE"));
+assert.equal(m9.includes("isStrictRealmGuard"), false, "M10B.7 routes CORE M9 through generic Creation capabilities.");
+assert.ok(m9.includes('getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed'), "Strict must not inherit a stale Legacy QA commit override.");
 assert.ok(m9.includes("isStrictRealmGuard() ? REALM_GUARD_STRICT_CREATION_PROFILE"));
 
 const strictCreation = fs.readFileSync("module/profiles/realm-guard-strict-creation.mjs","utf8");
