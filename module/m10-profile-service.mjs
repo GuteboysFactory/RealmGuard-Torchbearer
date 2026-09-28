@@ -37,6 +37,20 @@ import {
   resolveM10BSessionCirclesProgressionPolicy
 } from "./m10b-session-circles-progression.mjs";
 import {
+  getActiveM10BCharacterCreationPolicy,
+  getM10B7CharacterCreationStatus,
+  resolveCharacterCreationProfile,
+  resolveM10BCharacterCreationPolicy,
+  createProfileCreationDraft,
+  updateProfileCreationDraft,
+  validateProfileCreation,
+  validateProfileCreationStep,
+  profileCreationReview,
+  profileCreationCommitPlan,
+  profileCreationCommitPreview,
+  familyCreationPartyContext
+} from "./m10b-character-creation.mjs";
+import {
   getStrictScaleStatus,
   strictFighterHunterOutcomePlan,
   strictLoreMasterScalePlan,
@@ -111,7 +125,7 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10B.6",
+    phase: "M10B.7",
     mode: "GENERIC_PROFILE_PREVIEW_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
@@ -130,11 +144,11 @@ export function getM10ProfilePreviewStatus() {
     sessionWrites: isStrictRealmGuard(),
     circlesWrites: isStrictRealmGuard(),
     progressionWrites: isStrictRealmGuard(),
-    creationWrites: isStrictRealmGuard(),
-    strictCreationLiveCommit: isStrictRealmGuard(),
+    creationWrites: getActiveM10BCharacterCreationPolicy().liveCommit,
+    strictCreationLiveCommit: resolveM10BCharacterCreationPolicy("realm-guard-strict").liveCommit,
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10B.6 Session / Circles / Progression routing QA"
+    nextStep: "M10B.7 Character Creation Profile Routing QA"
   });
 }
 
@@ -201,6 +215,18 @@ export function installM10ProfileConversionPreview() {
       resolveGearInventoryConflictPolicy: resolveM10BGearInventoryConflictPolicy,
       sessionCirclesProgressionStatus: getM10B6SessionCirclesProgressionStatus,
       resolveSessionCirclesProgressionPolicy: resolveM10BSessionCirclesProgressionPolicy,
+      characterCreationStatus: getM10B7CharacterCreationStatus,
+      resolveCharacterCreationPolicy: resolveM10BCharacterCreationPolicy,
+      resolveCharacterCreationProfile,
+      activeCharacterCreationPolicy: getActiveM10BCharacterCreationPolicy,
+      creationPartyContext: familyCreationPartyContext,
+      createCreationDraft: createProfileCreationDraft,
+      updateCreationDraft: updateProfileCreationDraft,
+      validateProfileCreation,
+      validateProfileCreationStep,
+      creationReview: profileCreationReview,
+      creationCommitPlan: profileCreationCommitPlan,
+      creationCommitPreview: profileCreationCommitPreview,
       strict: Object.freeze({
         getStatus: getStrictWisesTraitsHelpStatus,
         wiseView: strictWiseView,
@@ -273,6 +299,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10B.6 generic Profile router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.7 generic Profile router ready", getM10ProfilePreviewStatus());
   });
 }
