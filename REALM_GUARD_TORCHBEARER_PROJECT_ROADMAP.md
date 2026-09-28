@@ -4,7 +4,7 @@
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
 **Current QA build:** v1.12.0-qa.7 — 🟢✅ M10B.7 VERIFIED / CLOSED  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.7 — ✅ VERIFIED / CLOSED · next M10B increment pending audit  
+**Current CORE gate:** M10B.8 — 🔵 PLANNED · Comparative Scale / Natural Order + Generic Rules Reference Routing · read-only audit complete  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,7 +186,7 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — M10B.7 is live-QA VERIFIED / CLOSED. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live. Next bounded increment pending audit.
+**Status:** 🟡 IN PROGRESS — M10B.7 is live-QA VERIFIED / CLOSED. The M10B.8 read-only audit selects Comparative Scale / Natural Order + Generic Rules Reference Routing as the next bounded increment. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
 
@@ -302,6 +302,27 @@ qa.1 foundation scope:
 - no MG1E activation, no automatic conversion and no Recruitment UX redesign
 
 **M10B.7 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-L passed: boot/reload, Creation capability snapshots, Legacy Mixed and Strict Recruitment regression, generic CORE M9 profile routing, MG1E v8 Guard Rank/hometown/Nature/Skill/Wise foundation contracts, MG1E group/relationship validation, Trait/cloak/drives/Gear/start-reward contracts, zero-write shadow safety, reversible profile round-trip/data preservation, Recruitment presentation routing and release/channel verification.
+
+**M10B.8 planned scope — Comparative Scale / Natural Order + Generic Rules Reference Routing:**
+- advance MG1E foundation to profile v9 while keeping it `FOUNDATION_ONLY`, non-selectable and non-live
+- implement CORE-A10 as a generic read-only Comparative Scale provider rather than adding another Strict-only rules engine
+- add the source-owned MG1E 1E Natural Order nine-rank catalog with Mouse at rank 3
+- add generic Fighter/Hunter outcome planning: kill through +1 rank, capture/injure through +2, run off beyond +2
+- add MG1E Militarist army thresholds 20 / 100 / 200 / 2,000 / 20,000 for +2 through +6
+- add MG1E Scientist high-scale guided planning with Resources Ob = target Nature and special Conflict skill mapping
+- preserve Strict Realm Guard v1.6 Scale of Might ranks 1-6, Dúnadan rank 3, army thresholds 10 / 100 / 1,000 / 10,000, Lore Master Effective Rank and Token of Power manual guidance
+- keep the illustrated Realm Guard army table as alternate/reference only; do not merge it into Strict
+- extend generic profile capabilities with Comparative Scale ownership while preserving existing Natural Order / Scale of Might compatibility fields
+- retain `m10-strict-scale-of-might.mjs` as a compatibility wrapper over the generic provider
+- add generic profile-routed Rules Reference snapshots/HTML for Strict and MG1E
+- retain `m10-strict-rules-reference.mjs` as a compatibility wrapper
+- route Manual/reference presentation away from binary Strict ownership without modifying the permanent Legacy Mixed Rules Journal
+- expose generic Comparative Scale and Rules Reference APIs above the historical `m10.strict` namespace
+- no MG1E activation, no Actor scale migration, no automatic NPC rank inference and no live Conflict blocking/enforcement
+
+**M10B.8 audit result:** 🔵 **READY FOR IMPLEMENTATION as v1.12.0-qa.8**. See `M10B_8_COMPARATIVE_SCALE_RULES_REFERENCE_ROUTING_AUDIT_2026-09-28.md`. No runtime code changed during the audit.
+
+**M10B.8 PASS gate:** Legacy Mixed remains behaviorally and document-safe; Strict Scale of Might reproduces verified M10A.7 behavior through generic routing; MG1E v9 resolves source-correct Natural Order ranks, Fighter/Hunter outcome limits, Militarist army thresholds and Scientist guidance in foundation mode; Realm Guard v1.6 and MG1E army tables remain isolated; generic Rules Reference resolves correct source lineage and scale terminology for Strict/MG1E; planners/references remain zero-write; the permanent Legacy Mixed Rules Journal is untouched; and release/channel verification is green.
 
 **M10B.7 PASS gate:** Legacy and Strict Recruitment remain behaviorally compatible; MG1E v8 resolves source-correct Guard Rank, Nature, hometown, Skill/Wise, Resources/Circles, Trait, relationship, cloak, drive, Gear and starting-reward contracts through CORE M9 in foundation mode; generic Creation routing contains no required binary Strict identity branch; MG1E planning performs zero live writes; provenance remains profile/version-correct; and release/channel verification is green.
 
