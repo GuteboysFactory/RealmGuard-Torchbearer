@@ -1,5 +1,19 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.8 - 🟡 M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing
+
+- Marks **M10B.7 = FULL PASS / VERIFIED / CLOSED** after Gates A-L passed in Foundry VTT 13.351.
+- Advances MG1E foundation to profile v9 while keeping it FOUNDATION_ONLY, non-selectable and non-live.
+- Adds generic Comparative Scale routing and source-owned MG1E Natural Order.
+- Adds MG1E Fighter/Hunter, Militarist and Scientist guided scale planners.
+- Preserves Strict Realm Guard v1.6 Scale of Might through compatibility wrappers.
+- Keeps the Realm Guard v1.6 army table authoritative for Strict and the illustrated table alternate/reference only.
+- Adds generic Strict/MG1E Rules Reference routing; MG1E reference remains read-only.
+- Manual uses generic profile reference previews while preserving the permanent Legacy Mixed Rules Journal.
+- No Actor/Item/Journal/settings scale writes, MG1E activation, auto-rank inference or live Conflict enforcement.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## v1.12.0-qa.7 - 🟢✅ M10B.7 VERIFIED / CLOSED — Character Creation Profile Routing
 
 - **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.7 is FULL PASS / VERIFIED / CLOSED.
