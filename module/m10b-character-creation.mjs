@@ -168,8 +168,19 @@ export function validateProfileCreation(profileId, draft, { partyContext = null 
 
   const unique = new Map();
   for (const entry of errors) {
-    const key = `${entry?.code ?? ""}|${entry?.field ?? ""}|${entry?.message ?? ""}`;
-    if (!unique.has(key)) unique.set(key, { ...entry });
+    const key = `${entry?.code ?? ""}|${entry?.field ?? ""}`;
+    const prior = unique.get(key);
+    if (!prior) {
+      unique.set(key, { ...entry });
+      continue;
+    }
+    unique.set(key, {
+      ...prior,
+      ...entry,
+      message: String(entry?.message ?? prior?.message ?? ""),
+      value: entry?.value ?? prior?.value,
+      actorName: entry?.actorName ?? prior?.actorName
+    });
   }
 
   return freeze({
