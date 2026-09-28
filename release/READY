@@ -14,3 +14,4 @@
 # Foundry v13.351 QA required
 # historical activation smoke migrated to generic M10B.7 creation routing
 # Creation engine authority normalized as CORE_M9 across profiles
+# creation preflight de-duplication preserved under generic router
