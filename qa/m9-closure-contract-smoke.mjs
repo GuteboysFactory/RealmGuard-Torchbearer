@@ -24,7 +24,7 @@ assert.deepEqual(
   ["recruit", "scout", "veteran", "captain", "lord"]
 );
 
-assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.coreEngine, "M9");
+assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.coreEngine, "CORE_M9");
 assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.liveAuthority, "CORE_M9");
 assert.equal(REALM_GUARD_LEGACY_MIXED_PROFILE.domains.creation.profileVersion, 4);
 
