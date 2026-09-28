@@ -197,9 +197,11 @@ assert.ok(rulesProfileService.includes('source:"SETTING_UPDATE"'));
 
 const manual = fs.readFileSync("module/manual.mjs","utf8");
 const strictReference = fs.readFileSync("module/m10-strict-rules-reference.mjs","utf8");
-assert.ok(manual.includes("Strict Realm Guard is active. Use the Strict Rules Reference"));
+const genericReference = fs.readFileSync("module/m10b-rules-reference.mjs","utf8");
+assert.ok(manual.includes("Use the profile Rules Reference for current source-owned mechanics."));
 assert.ok(manual.includes('"Open Strict Rules" : "Preview Strict Rules"'));
 assert.ok(strictReference.includes("STRICT_ACTIVE_REFERENCE"));
-assert.ok(strictReference.includes("ACTIVE RULES PROFILE"));
+assert.ok(genericReference.includes("ACTIVE RULES PROFILE"));
+assert.ok(manual.includes("openProfileRulesReference"));
 
 console.log("PASS M10A.9 Stable Activation Candidate · stable-runtime selectable · reversible settings-only switch · Legacy rollback retained");
