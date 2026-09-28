@@ -65,6 +65,24 @@ import {
   strictRulesReferenceSnapshot
 } from "./m10-strict-rules-reference.mjs";
 import {
+  familyScaleEffectiveRankPlan,
+  familyScaleEntry,
+  familyScaleGroupWarPlan,
+  familyScaleItemGuidance,
+  familyScaleOutcomePlan,
+  familyScaleRankFor,
+  familyScaleSpecialPlan,
+  getM10B8ComparativeScaleStatus,
+  resolveComparativeScaleDefinition,
+  resolveM10BComparativeScalePolicy
+} from "./m10b-comparative-scale.mjs";
+import {
+  getM10B8RulesReferenceStatus,
+  openProfileRulesReference,
+  profileRulesReferenceHtml,
+  profileRulesReferenceSnapshot
+} from "./m10b-rules-reference.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -125,7 +143,7 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const strict = resolveRulesProfile("realm-guard-strict");
   return Object.freeze({
-    phase: "M10B.7",
+    phase: "M10B.8",
     mode: "GENERIC_PROFILE_PREVIEW_ROUTER",
     activeProfileId: active.profile.id,
     targetProfileId: strict.profile.id,
@@ -148,7 +166,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: resolveM10BCharacterCreationPolicy("realm-guard-strict").liveCommit,
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10B.7 Character Creation Profile Routing QA"
+    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
   });
 }
 
@@ -227,6 +245,20 @@ export function installM10ProfileConversionPreview() {
       creationReview: profileCreationReview,
       creationCommitPlan: profileCreationCommitPlan,
       creationCommitPreview: profileCreationCommitPreview,
+      comparativeScaleStatus: getM10B8ComparativeScaleStatus,
+      resolveComparativeScalePolicy: resolveM10BComparativeScalePolicy,
+      resolveComparativeScaleDefinition,
+      scaleRankFor: familyScaleRankFor,
+      scaleEntry: familyScaleEntry,
+      scaleOutcomePlan: familyScaleOutcomePlan,
+      scaleGroupWarPlan: familyScaleGroupWarPlan,
+      scaleSpecialPlan: familyScaleSpecialPlan,
+      scaleEffectiveRankPlan: familyScaleEffectiveRankPlan,
+      scaleItemGuidance: familyScaleItemGuidance,
+      rulesReferenceStatus: getM10B8RulesReferenceStatus,
+      rulesReferenceSnapshot: profileRulesReferenceSnapshot,
+      rulesReferenceHtml: profileRulesReferenceHtml,
+      openRulesReference: openProfileRulesReference,
       strict: Object.freeze({
         getStatus: getStrictWisesTraitsHelpStatus,
         wiseView: strictWiseView,
@@ -299,6 +331,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10B.7 generic Profile router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.8 generic Profile router ready", getM10ProfilePreviewStatus());
   });
 }
