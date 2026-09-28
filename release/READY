@@ -1,17 +1,16 @@
-1.12.0-qa.7
-# M10B.7 Character Creation Profile Routing
-# M10B.6 live QA FULL PASS / VERIFIED / CLOSED
-# MG1E foundation advanced to profile v8; remains FOUNDATION_ONLY / non-selectable / non-live
-# source-owned MG1E CharacterCreationProfile added for CORE M9 shadow planning
-# CORE M9 Creation profile/engine selection routed through generic profile policy
-# Recruitment Mentor / Enemy / rated-Wise presentation routed through Creation capabilities
-# Legacy Mixed live Recruitment behavior preserved
-# Strict Realm Guard live Recruitment behavior preserved
-# Strict Character Creation historical API delegates to M10B.7 generic provider
-# MG1E draft / validation / review / commit-plan remains zero-write shadow only
-# no MG1E activation or automatic profile/Actor conversion
-# no automatic NPC creation
+1.12.0-qa.8
+# M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing
+# M10B.7 live QA FULL PASS / VERIFIED / CLOSED
+# MG1E foundation advanced to profile v9; remains FOUNDATION_ONLY / non-selectable / non-live
+# generic Comparative Scale provider added
+# source-owned MG1E Natural Order ranks 1-9; Mouse rank 3
+# MG1E Fighter/Hunter, Militarist and Scientist guided planners
+# Strict Realm Guard v1.6 Scale of Might delegated to generic provider
+# Strict v1.6 army table remains authoritative; illustrated table alternate/reference only
+# generic profile Rules Reference for Strict and MG1E
+# Strict reference API retained as compatibility wrapper
+# Manual routes rules previews through generic provider
+# permanent Legacy Mixed Rules Journal untouched
+# no Actor/Item/Journal/settings scale writes
+# no MG1E activation, auto-rank inference or live Conflict blocking
 # Foundry v13.351 QA required
-# historical activation smoke migrated to generic M10B.7 creation routing
-# Creation engine authority normalized as CORE_M9 across profiles
-# creation preflight de-duplication preserved under generic router
