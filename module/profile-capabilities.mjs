@@ -211,7 +211,7 @@ export function buildProfileCapabilities(profile) {
       },
       creation: {
         mode: text(d.creation?.mode, "PROFILE_DEFINED"),
-        coreEngine: text(d.creation?.coreEngine, "M9"),
+        coreEngine: text(d.creation?.coreEngine, "CORE_M9"),
         profileId: text(d.creation?.profileId, profile.id),
         profileVersion: numeric(d.creation?.profileVersion, 0),
         liveAuthority: text(d.creation?.liveAuthority, "NONE"),
