@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 7,
+  version: 8,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -94,7 +94,25 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       enmityArgumentSpeechDispositionSuccess: 3,
       automaticNpcCreation: false
     },
-    creation: { mode: "MG1E", liveAuthority: "NONE" },
+    creation: {
+      mode: "MG1E",
+      coreEngine: "M9",
+      liveAuthority: "NONE",
+      profileId: "mg1e",
+      profileVersion: 1,
+      familySemantics: true,
+      wiseMode: "RATED",
+      ratedWises: true,
+      startingSkillWiseCap: 6,
+      inventoryPolicy: "LOOSE",
+      mentorValidation: "MG1E_SOURCE_RULES",
+      enemyValidation: "MG1E_MOUSE_PREFERRED",
+      enemyHouseRuleAllowed: false,
+      allowedEnemyPeoples: [],
+      conditionProvisioning: "MG1E_SET",
+      automaticNpcCreation: false,
+      legacyCommitOverrideAllowed: false
+    },
     progression: {
       mode: "MG1E",
       levels: false,
@@ -147,7 +165,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.6",
-    nextStep: "M10B.6 Session / Circles / Progression routing QA"
+    implementationPhase: "M10B.7",
+    nextStep: "M10B.7 Character Creation Profile Routing QA"
   }
 });
