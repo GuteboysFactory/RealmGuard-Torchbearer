@@ -180,6 +180,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10B.6 generic Session / Circles / Progression routing QA"
+    nextStep: "M10B.7 Character Creation Profile Routing QA"
   }
 });
