@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.7 — 🟢✅ M10B.7 VERIFIED / CLOSED  
+**Current QA build:** v1.12.0-qa.8 — 🟡 M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.8 — 🔵 PLANNED · Comparative Scale / Natural Order + Generic Rules Reference Routing · read-only audit complete  
+**Current CORE gate:** M10B.8 — 🟡 IMPLEMENTED · Comparative Scale / Natural Order + Generic Rules Reference Routing · awaiting live QA  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -320,7 +320,7 @@ qa.1 foundation scope:
 - expose generic Comparative Scale and Rules Reference APIs above the historical `m10.strict` namespace
 - no MG1E activation, no Actor scale migration, no automatic NPC rank inference and no live Conflict blocking/enforcement
 
-**M10B.8 audit result:** 🔵 **READY FOR IMPLEMENTATION as v1.12.0-qa.8**. See `M10B_8_COMPARATIVE_SCALE_RULES_REFERENCE_ROUTING_AUDIT_2026-09-28.md`. No runtime code changed during the audit.
+**M10B.8 implementation:** 🟡 **IMPLEMENTED as v1.12.0-qa.8 candidate**. Generic Comparative Scale, MG1E Natural Order v9, Strict compatibility wrappers and generic profile Rules Reference routing are in place. Awaiting Foundry VTT 13.351 live QA.
 
 **M10B.8 PASS gate:** Legacy Mixed remains behaviorally and document-safe; Strict Scale of Might reproduces verified M10A.7 behavior through generic routing; MG1E v9 resolves source-correct Natural Order ranks, Fighter/Hunter outcome limits, Militarist army thresholds and Scientist guidance in foundation mode; Realm Guard v1.6 and MG1E army tables remain isolated; generic Rules Reference resolves correct source lineage and scale terminology for Strict/MG1E; planners/references remain zero-write; the permanent Legacy Mixed Rules Journal is untouched; and release/channel verification is green.
 
