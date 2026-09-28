@@ -99,7 +99,6 @@ assert.ok(m9.includes("PROFILE_SOURCE_RULES"));
 assert.ok(m9.includes("DISABLED_BY_PROFILE"));
 assert.equal(m9.includes("isStrictRealmGuard"), false, "M10B.7 routes CORE M9 through generic Creation capabilities.");
 assert.ok(m9.includes('getActiveM10BCharacterCreationPolicy().legacyCommitOverrideAllowed'), "Strict must not inherit a stale Legacy QA commit override.");
-assert.ok(m9.includes("isStrictRealmGuard() ? REALM_GUARD_STRICT_CREATION_PROFILE"));
 
 const strictCreation = fs.readFileSync("module/profiles/realm-guard-strict-creation.mjs","utf8");
 assert.ok(strictCreation.includes("strictProfileLive"));
