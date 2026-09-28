@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.6 — 🟡 M10B.6 Session / Circles / Progression Routing  
+**Current QA build:** v1.12.0-qa.6 — 🟢✅ M10B.6 VERIFIED / CLOSED  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.6 — generic MG1E-family Session / Circles / Progression routing  
+**Current CORE gate:** M10B.6 — ✅ VERIFIED / CLOSED · next M10B increment pending audit  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -286,6 +286,8 @@ qa.1 foundation scope:
 - NPC hotfix: replace qa.5 horizontal resource bar with the same compact vertical Fate / Persona / Checks stack used by the Character header, aligned at the right side of the NPC header
 
 **M10B.6 PASS gate:** Legacy Session/Circles/Level behavior remains compatible; Strict Players' Turn, End Session, Circles and no-Level/Talent behavior preserve M10A.5 semantics through generic routing; MG1E v7 resolves the same source policies in foundation mode; known Contact +1D and linked Enmity +3s work only where source-qualified; advancement/Beginner's Luck contracts remain source-correct; dormant Legacy progression data survives profile round-trips; NPC resources visually align with the Character header without losing narrow-sheet usability; and qa.6 release/channel verification is green.
+
+**M10B.6 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-L passed: boot/reload, capability snapshots, Legacy regression, Strict Players' Turn/Checks, End Session, source-backed Circles Contact +1D, Enmity +3s in Argument/Speech, Strict progression suppression/data preservation, MG1E v7 shadow policy, reversible profile round-trip safety, NPC narrow-width header alignment and release/channel verification.
 
 
 ### M9 — Creation / Recruitment Migration
