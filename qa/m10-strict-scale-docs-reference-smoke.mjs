@@ -19,7 +19,8 @@ const manifest = JSON.parse(fs.readFileSync("system.json","utf8"));
 assert.match(manifest.version, /^1\.\d+\.\d+(?:\.\d+)*(?:-(?:alpha|beta|rc|qa)\.\d+)?$/);
 
 const status = getStrictScaleStatus();
-assert.equal(status.phase, "M10A.7");
+assert.equal(status.phase, "M10B.8_COMPAT_WRAPPER");
+assert.equal(status.compatibilityProvider, "M10B.8_GENERIC_COMPARATIVE_SCALE");
 assert.equal(status.source, "Realm Guard v1.6");
 assert.equal(status.mode, "MANUAL_GUIDED");
 assert.equal(status.liveAuthority, false);
@@ -30,7 +31,7 @@ assert.equal(status.dunadanRank, 3);
 assert.equal(status.writesActors, false);
 assert.equal(status.writesItems, false);
 assert.equal(status.writesWorldSettings, false);
-assert.equal(status.nextStep, "M10A.9 Stable Activation Candidate · CLOSURE QA");
+assert.equal(status.nextStep, "M10B.8 Comparative Scale / Rules Reference Routing QA");
 
 assert.equal(strictScaleRankFor("Hobbit"), 1);
 assert.equal(strictScaleRankFor("Goblin"), 1);
@@ -110,7 +111,8 @@ assert.equal(tokenYes.level3PublishedExample.conflictOnly, true);
 assert.equal(tokenYes.liveApplication, false);
 
 const ref = strictRulesReferenceSnapshot();
-assert.ok(["M10A.7","M10A.8","M10A.9"].includes(ref.phase));
+assert.equal(ref.phase, "M10B.8_COMPAT_WRAPPER");
+assert.equal(ref.compatibilityProvider, "M10B.8_GENERIC_PROFILE_RULES_REFERENCE");
 assert.equal(ref.mode, "STRICT_READ_ONLY_REFERENCE");
 assert.equal(ref.profileId, "realm-guard-strict");
 assert.ok(ref.profileVersion >= 8);
@@ -135,7 +137,7 @@ const html = strictRulesReferenceHtml();
 assert.match(html, /Strict Realm Guard · Rules Reference/);
 assert.match(html, /Mouse Guard RPG 2008 \/ 1E.*Realm Guard v1\.6 overrides/);
 assert.match(html, /(READ ONLY PREVIEW|ACTIVE RULES PROFILE)/);
-assert.match(html, /(does not switch the world|active QA rules profile)/i);
+assert.match(html, /(does not switch the world|active source-owned profile)/i);
 assert.match(html, /Scale of Might/);
 
 assert.ok(REALM_GUARD_STRICT_PROFILE.version >= 8);
@@ -166,15 +168,16 @@ const legacyReference = fs.readFileSync("module/rules-reference.mjs","utf8");
 assert.ok(legacyReference.includes("Mouse Guard Roleplaying Game 2nd Edition"), "Legacy Mixed reference must remain intact during qa.8.");
 assert.ok(legacyReference.includes("Wises are intentionally unrated"), "Legacy Mixed Wise documentation must remain intact during qa.8.");
 const manual = fs.readFileSync("module/manual.mjs","utf8");
-assert.ok(manual.includes("Preview Strict Rules"), "Integrated manual must expose Strict read-only preview.");
+assert.ok(manual.includes("Preview Strict Rules"), "Integrated manual must expose Strict profile preview.");
+assert.ok(manual.includes("Preview MG1E Rules"), "Integrated manual must expose MG1E foundation preview.");
 assert.ok(manual.includes("Open Legacy Mixed Rules Journal"), "Existing permanent journal must remain explicitly Legacy Mixed.");
 assert.ok(manual.includes("game?.system?.version"), "Manual runtime version metadata must not be hard-coded to an obsolete release.");
 
-const strictReferenceSource = fs.readFileSync("module/m10-strict-rules-reference.mjs","utf8");
-assert.ok(strictReferenceSource.includes("data-rg-reference-root"), "Strict reference must use the shared searchable reference shell.");
-assert.ok(strictReferenceSource.includes("data-rg-reference-search"), "Strict reference must expose a search field.");
-assert.ok(strictReferenceSource.includes("data-rg-reference-expand"), "Strict reference must expose Expand All.");
-assert.ok(strictReferenceSource.includes("data-rg-reference-collapse"), "Strict reference must expose Collapse All.");
+const genericReferenceSource = fs.readFileSync("module/m10b-rules-reference.mjs","utf8");
+assert.ok(genericReferenceSource.includes("data-rg-reference-root"), "Generic profile reference must use the shared searchable reference shell.");
+assert.ok(genericReferenceSource.includes("data-rg-reference-search"), "Generic profile reference must expose a search field.");
+assert.ok(genericReferenceSource.includes("data-rg-reference-expand"), "Generic profile reference must expose Expand All.");
+assert.ok(genericReferenceSource.includes("data-rg-reference-collapse"), "Generic profile reference must expose Collapse All.");
 
 const manualSource = fs.readFileSync("module/manual.mjs","utf8");
 assert.ok(manualSource.includes("data-rg-reference-root"), "System Manual must use the shared searchable reference shell.");
@@ -190,4 +193,4 @@ assert.ok(cssSource.includes(".rg-reference-toolbar"), "Reference search control
 const profileService = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.equal(profileService.includes("setActiveRulesProfile"), false, "M10A.7 must not expose profile activation.");
 
-console.log("PASS M10A.7 Scale / Docs / Rules Reference · RG v1.6 Scale planners · profile-aware manual · Strict read-only reference · Legacy journal untouched · no live activation");
+console.log("PASS Strict Scale / Rules Reference compatibility · delegated to M10B.8 generic providers · Legacy journal untouched");
