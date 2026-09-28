@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.7 — 🟡 M10B.7 Character Creation Profile Routing  
+**Current QA build:** v1.12.0-qa.7 — 🟢✅ M10B.7 VERIFIED / CLOSED  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.7 — 🟡 IMPLEMENTED · Character Creation Profile Routing · awaiting live QA  
+**Current CORE gate:** M10B.7 — ✅ VERIFIED / CLOSED · next M10B increment pending audit  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -186,7 +186,7 @@ qa.1 foundation scope:
 
 ### M10B — Mouse Guard 1E explicit profile
 
-**Status:** 🟡 IN PROGRESS — M10B.6 is live-QA VERIFIED / CLOSED. The read-only M10B.7 audit selects Character Creation Profile Routing as the next bounded increment. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live.
+**Status:** 🟡 IN PROGRESS — M10B.7 is live-QA VERIFIED / CLOSED. MG1E remains `FOUNDATION_ONLY`, non-selectable and non-live. Next bounded increment pending audit.
 
 **M10B.1 result:** 🟢✅ **FULL PASS** in Foundry VTT 13.351. Generic rule/presentation capabilities resolved correctly for Legacy Mixed, Strict Realm Guard and MG1E; Legacy gameplay regression passed; preservation flags were verified; MG1E remained non-selectable.
 
@@ -301,7 +301,7 @@ qa.1 foundation scope:
 - preserve CreationProvenance, transaction rollback and CORE M8 relationship semantics
 - no MG1E activation, no automatic conversion and no Recruitment UX redesign
 
-**M10B.7 implementation:** 🟡 **IMPLEMENTED as v1.12.0-qa.7 candidate**. Generic CORE M9 Creation routing, MG1E v8 source Creation foundation, capability-driven Recruitment presentation and compatibility wrappers are in place. Awaiting Foundry VTT 13.351 live QA. See `M10B_7_CHARACTER_CREATION_ROUTING_AUDIT_2026-09-28.md`.
+**M10B.7 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351. Gates A-L passed: boot/reload, Creation capability snapshots, Legacy Mixed and Strict Recruitment regression, generic CORE M9 profile routing, MG1E v8 Guard Rank/hometown/Nature/Skill/Wise foundation contracts, MG1E group/relationship validation, Trait/cloak/drives/Gear/start-reward contracts, zero-write shadow safety, reversible profile round-trip/data preservation, Recruitment presentation routing and release/channel verification.
 
 **M10B.7 PASS gate:** Legacy and Strict Recruitment remain behaviorally compatible; MG1E v8 resolves source-correct Guard Rank, Nature, hometown, Skill/Wise, Resources/Circles, Trait, relationship, cloak, drive, Gear and starting-reward contracts through CORE M9 in foundation mode; generic Creation routing contains no required binary Strict identity branch; MG1E planning performs zero live writes; provenance remains profile/version-correct; and release/channel verification is green.
 
