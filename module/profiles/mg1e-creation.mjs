@@ -558,7 +558,7 @@ function buildCommitSpec({ draft }) {
 export const MG1E_CREATION_PROFILE = new CharacterCreationProfile({
   id: MG1E_CREATION_PROFILE_ID,
   version: MG1E_CREATION_PROFILE_VERSION,
-  name: "Mouse Guard 1E — Recruitment Foundation",
+  name: "Mouse Guard 1E — Recruitment",
   dimensions: [
     { id: "guard-rank", label: "Guard Rank", options: MG1E_GUARD_RANKS },
     { id: "hometown", label: "Hometown", options: MG1E_HOMETOWNS }
@@ -600,7 +600,7 @@ export const MG1E_CREATION_PROFILE = new CharacterCreationProfile({
     liveAuthority: "CORE_M9_WHEN_ACTIVE",
     commitAuthority: "CORE_M9_WHEN_ACTIVE",
     mode: "READY_WHEN_ACTIVE",
-    foundationOnly: true,
+    foundationOnly: false,
     readyWhenActive: true,
     activationRequired: "mg1e",
     automaticNpcCreation: false,
