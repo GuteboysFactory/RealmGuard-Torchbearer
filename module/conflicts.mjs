@@ -988,7 +988,7 @@ function eligibleActionRoles(actor, state, side, action) {
   // Acting Against Nature shortcut.
   const nature = Number(actor?.system?.attributes?.nature?.value ?? 0);
   const routedNature = isFamilyConflictProfile() ? familyConflictActionSkills(state.type, action, activeConflictPolicy()).skills.some(name => String(name).toLowerCase() === "nature") : false;
-  const profileAllowsDescriptorNature = activeConflictPolicy().profileId === "realm-guard-strict";
+  const profileAllowsDescriptorNature = activeConflictPolicy().conflict?.descriptorNatureAllowed === true;
   if (nature > 0 && (profileAllowsDescriptorNature || routedNature)) choices.push({ id: "@nature", name: "Nature", label: "Nature (descriptor applies)", rating: nature, kind: "ability", key: "nature", allowDoubleTap: true });
   const roles = dedupeRoleChoices(choices.filter(choice => choice.id !== "@nature"));
   const natureChoice = choices.find(choice => choice.id === "@nature");
