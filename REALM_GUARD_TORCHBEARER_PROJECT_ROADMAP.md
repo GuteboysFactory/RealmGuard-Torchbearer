@@ -327,6 +327,37 @@ qa.1 foundation scope:
 **M10B.7 PASS gate:** Legacy and Strict Recruitment remain behaviorally compatible; MG1E v8 resolves source-correct Guard Rank, Nature, hometown, Skill/Wise, Resources/Circles, Trait, relationship, cloak, drive, Gear and starting-reward contracts through CORE M9 in foundation mode; generic Creation routing contains no required binary Strict identity branch; MG1E planning performs zero live writes; provenance remains profile/version-correct; and release/channel verification is green.
 
 
+### M10B.9 — MG1E Foundation Closure / Activation Readiness Audit
+
+**Status:** 🟢✅ **AUDIT COMPLETE** — MG1E foundation is closed enough for live-readiness work, but activation is **NOT YET READY**.
+
+Audit file:
+
+- `M10B_9_MG1E_FOUNDATION_CLOSURE_ACTIVATION_READINESS_AUDIT_2026-09-29.md`
+
+Key result:
+
+- broad MG1E source-domain ownership is now complete enough to stop adding new foundation domains
+- remaining debt is concentrated in live-routing / activation boundaries
+- MG1E remains `FOUNDATION_ONLY`, non-selectable, unsupported and non-live
+- no Actor/Item migration or profile activation is authorized
+
+Remaining activation blockers identified by the audit:
+
+- activation service hard-whitelists Legacy Mixed + Strict
+- rated Wise Item editor is Strict-only
+- Conflict Nature option retains one direct Strict identity branch
+- Manual active-profile routing is still binary Strict-vs-Legacy
+- MG1E CORE M9 Character Creation commit remains shadow-only
+- Profile Management and M10 status/Registry reporting remain Strict-centric
+- Realm Guard-specific Recruitment fallback/presentation must stay isolated from future MG1E live creation
+
+**Next bounded implementation:**
+
+> **M10B.10 — MG1E Live Readiness Closure**
+
+M10B.10 should genericize the remaining live surfaces, promote MG1E creation to ready-when-active behind an unreachable activation gate, add simulated-MG1E-active QA, and still keep MG1E non-selectable. Actual selectable QA activation is deferred to a later M10B.11 gate.
+
 ### M9 — Creation / Recruitment Migration
 
 **Status:** ✅ VERIFIED / CLOSED — v1.10.0 STABLE / GOLD.
