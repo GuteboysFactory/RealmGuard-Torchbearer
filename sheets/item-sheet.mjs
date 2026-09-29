@@ -1,7 +1,12 @@
 import { normalizeContainerPreset, detachContainedGear } from "../module/inventory.mjs";
-import { isStrictRealmGuard } from "../module/m10-profile-activation.mjs";
+import { getActiveProfileCapabilities } from "../module/rules-profile-service.mjs";
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+function usesRatedWises() {
+  try { return getActiveProfileCapabilities().presentation.showRatedWiseControls === true; }
+  catch (_error) { return false; }
+}
 
 export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -20,7 +25,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
     // and prevents dotted form keys from conflicting with nested Strict Wise data.
     let updateData = this._processFormData(event, form, formData);
     let wiseRerender = false;
-    if (this.item.type === "wise" && isStrictRealmGuard()) {
+    if (this.item.type === "wise" && usesRatedWises()) {
       const previousRating = Number(this.item.system?.rating ?? 0);
       const nextRating = Number(foundry.utils.getProperty(updateData, "system.rating") ?? previousRating);
       wiseRerender = nextRating !== previousRating;
@@ -58,7 +63,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
       isRole: this.item.type === "role",
       isTrait: this.item.type === "trait",
       isWise: this.item.type === "wise",
-      isStrictProfile: isStrictRealmGuard(),
+      showRatedWiseControls: usesRatedWises(),
       isTokenOfPower: this.item.type === "tokenOfPower",
       isTalent: this.item.type === "talent",
       talentFrequencyPassive: this.item.type === "talent" && String(this.item.system.frequency ?? "session") === "passive",
