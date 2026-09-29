@@ -98,7 +98,8 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     creation: {
       mode: "MG1E",
       coreEngine: "CORE_M9",
-      liveAuthority: "NONE",
+      liveAuthority: "CORE_M9_WHEN_ACTIVE",
+      readyWhenActive: true,
       profileId: "mg1e",
       profileVersion: 1,
       familySemantics: true,
@@ -181,7 +182,9 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.8",
-    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
+    implementationPhase: "M10B.10",
+    liveReadinessClosure: true,
+    creationReadyWhenActive: true,
+    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
   }
 });
