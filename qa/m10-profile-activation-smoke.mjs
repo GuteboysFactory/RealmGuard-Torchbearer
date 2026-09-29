@@ -80,14 +80,14 @@ for (const forbidden of ["Actor.create","createEmbeddedDocuments","deleteEmbedde
 assert.ok(activationSource.includes("restoreProfileSettings"), "Profile switch must include setting rollback.");
 assert.equal(activationSource.includes("qaRuntime"), false, "Supported Strict activation must not depend on a -qa. runtime.");
 assert.equal(activationSource.includes("activation is QA-only"), false, "Supported Strict activation must remain available in stable runtime.");
-assert.ok(activationSource.includes("reloadRecommended:true"), "QA activation must recommend reload.");
+assert.ok(activationSource.includes("reloadRecommended:true"), "Supported activation must recommend reload.");
+assert.equal(activation.profileActivationAvailable("mg1e"), false, "MG1E must remain blocked by the generic activation gate.");
+assert.equal(beforeStatus.mg1eActivationAvailable, false);
 
 const profileMenu = fs.readFileSync("module/profile-management-menu.mjs","utf8");
 const profileTemplate = fs.readFileSync("templates/apps/profile-management.hbs","utf8");
-assert.ok(profileMenu.includes("switchToStrictRealmGuard"));
-assert.ok(profileMenu.includes("switchToLegacyMixed"));
-assert.ok(profileMenu.includes("switchToStrictRealmGuard"));
-assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-strict"'));
+assert.ok(profileMenu.includes("switchRulesProfile"));
+assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-supported"'));
 assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-legacy"'));
 assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-reload-guidance"'));
 
@@ -160,8 +160,8 @@ assert.ok(character.includes("UNRATED"), "Preserved rating-0 Wises must be visib
 assert.ok(itemTemplate.includes("Rated Wise"));
 assert.ok(itemTemplate.includes('name="system.rating"'));
 assert.ok(itemTemplate.includes('name="system.learning.passNeeded"'));
-assert.ok(itemSheet.includes("isStrictProfile:"), "Item sheet keeps a presentation flag while profile migration continues.");
-assert.ok(itemSheet.includes("this._processFormData(event, form, formData)"), "Item submit must normalize FormDataExtended before Strict Wise nested updates.");
+assert.ok(itemSheet.includes("showRatedWiseControls:"), "Item sheet must route rated Wise presentation through profile capabilities.");
+assert.ok(itemSheet.includes("this._processFormData(event, form, formData)"), "Item submit must normalize FormDataExtended before rated Wise nested updates.");
 assert.ok(itemSheet.includes("wiseRerender = nextRating !== previousRating"));
 assert.ok(itemSheet.includes("if (wiseRerender || gearRerender || tokenRerender || talentRerender)"));
 assert.ok(itemSheet.includes('"system.learning.passNeeded", nextRating'));
@@ -198,8 +198,8 @@ assert.ok(rulesProfileService.includes('source:"SETTING_UPDATE"'));
 const manual = fs.readFileSync("module/manual.mjs","utf8");
 const strictReference = fs.readFileSync("module/m10-strict-rules-reference.mjs","utf8");
 const genericReference = fs.readFileSync("module/m10b-rules-reference.mjs","utf8");
-assert.ok(manual.includes("Use the profile Rules Reference for current source-owned mechanics."));
-assert.ok(manual.includes('"Open Strict Rules" : "Preview Strict Rules"'));
+assert.ok(manual.includes("A source-owned Rules Profile is active."));
+assert.ok(manual.includes("Open Active Profile Rules"));
 assert.ok(strictReference.includes("STRICT_ACTIVE_REFERENCE"));
 assert.ok(genericReference.includes("ACTIVE RULES PROFILE"));
 assert.ok(manual.includes("openProfileRulesReference"));
