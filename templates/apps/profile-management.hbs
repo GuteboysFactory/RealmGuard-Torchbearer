@@ -53,18 +53,28 @@
 
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;">
     <h3 style="margin:0 0 8px;">Rules Profile Activation</h3>
-    {{#if canSwitchStrict}}
-      <p><b>Strict Realm Guard is supported.</b> Switching changes only the active Rules Profile world settings. Existing Actor/Item data is preserved.</p>
-      <button type="button" data-action="switchStrict" data-rg-contract="profile-switch-strict">
-        <i class="fa-solid fa-scale-balanced"></i> Switch to Strict Realm Guard
-      </button>
-    {{else if canSwitchLegacy}}
-      <p><b>Strict Realm Guard is currently active.</b> You can roll back to Legacy Mixed without deleting profile-specific data.</p>
+    {{#each activationRows}}
+      <div style="padding:8px 0;border-bottom:1px solid rgba(128,128,128,.16);">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+          <div><b>{{name}}</b><br><small>{{id}} · v{{version}}</small></div>
+          <div style="text-align:right;"><b>{{activationState}}</b></div>
+        </div>
+        {{#if active}}
+          <p style="margin-bottom:0;"><small>This profile is currently active.</small></p>
+        {{else if canActivate}}
+          <button type="button" data-action="switchProfile" data-profile-id="{{id}}" data-rg-contract="profile-switch-supported">
+            <i class="fa-solid fa-scale-balanced"></i> Switch to {{name}}
+          </button>
+        {{else}}
+          <p style="margin-bottom:0;"><small><i class="fa-solid fa-lock"></i> {{lockedReason}}</small></p>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if canSwitchLegacy}}
+      <p><b>Rollback remains available.</b> Returning to Legacy Mixed changes only profile settings and preserves profile-specific data.</p>
       <button type="button" data-action="switchLegacy" data-rg-contract="profile-switch-legacy">
         <i class="fa-solid fa-rotate-left"></i> Switch back to Legacy Mixed
       </button>
-    {{else}}
-      <p><b>Switch unavailable.</b> {{switchLockReason}}</p>
     {{/if}}
     <p style="margin-bottom:0;" data-rg-contract="profile-switch-reload-guidance"><small>{{nextStep}}. Reload the world after every supported profile switch.</small></p>
   </section>
