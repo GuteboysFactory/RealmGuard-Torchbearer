@@ -1,4 +1,4 @@
-import { CharacterCreationEngine, CreationPartyContext } from "./core/m9-creation.mjs";
+import { CharacterCreationEngine, CreationCommitPlan, CreationPartyContext } from "./core/m9-creation.mjs";
 import { FoundryCreationCommitAdapter } from "./m9-creation-commit-adapter.mjs";
 import { buildProfileCapabilities } from "./profile-capabilities.mjs";
 import { getActiveRulesProfile, resolveRulesProfile } from "./rules-profile-service.mjs";
@@ -208,7 +208,33 @@ export function profileCreationCommitPlan(profileId, draft, { partyContext = nul
     const first = validation.errors[0];
     throw new Error(`Character Creation preflight failed for ${profileId}: ${first?.message ?? first?.code ?? "unknown validation error"}`);
   }
-  return resolveCharacterCreationEngine(profileId).buildCommitPlan(draft, context);
+  const plan = resolveCharacterCreationEngine(profileId).buildCommitPlan(draft, context);
+  const policy = resolveM10BCharacterCreationPolicy(profileId);
+  if (!policy.liveCommit || plan.transaction?.liveExecution === true) return plan;
+
+  if (plan.transaction?.readyWhenActive !== true) {
+    throw new Error(`Character Creation profile '${policy.creationProfileId}' is active but its commit plan is not READY_WHEN_ACTIVE.`);
+  }
+
+  return new CreationCommitPlan({
+    profileId: plan.profileId,
+    profileVersion: plan.profileVersion,
+    validation: plan.validation,
+    review: plan.review,
+    provenance: plan.provenance,
+    actor: plan.actor,
+    provisioning: plan.provisioning,
+    relationships: { ...plan.relationships, liveWrite: true },
+    postCommit: plan.postCommit,
+    transaction: {
+      ...plan.transaction,
+      liveExecution: true,
+      previewOnly: false,
+      provenanceWrite: true,
+      relationshipWrite: true,
+      activatedByRulesProfile: policy.rulesProfileId
+    }
+  });
 }
 
 export function profileCreationCommitPreview(profileId, draft, { partyContext = null, isGM = true, userId = "" } = {}) {
