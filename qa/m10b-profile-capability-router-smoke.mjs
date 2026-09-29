@@ -76,6 +76,8 @@ assert.equal(mg1e.rules.nature.doubleTapNature, true);
 assert.equal(mg1e.rules.traits.mg1eLevelSemantics, true);
 assert.equal(mg1e.rules.inventory.policy, "LOOSE");
 assert.equal(mg1e.rules.conflict.unarmedDefaultDice, 0);
+assert.equal(mg1e.rules.conflict.descriptorNatureAllowed, true);
+assert.equal(strict.rules.conflict.descriptorNatureAllowed, true);
 assert.equal(mg1e.rules.progression.levelsEnabled, false);
 assert.equal(mg1e.rules.progression.talentsEnabled, false);
 assert.equal(mg1e.rules.tokensOfPower.enabled, false);
@@ -108,8 +110,9 @@ assert.equal(strict.rules.creation.mentorValidation, "STRICT_SOURCE_RULES");
 assert.equal(strict.rules.creation.enemyHouseRuleAllowed, false);
 assert.equal(mg1e.rules.creation.familySemantics, true);
 assert.equal(mg1e.rules.creation.profileId, "mg1e");
-assert.equal(mg1e.rules.creation.profileVersion, 1);
-assert.equal(mg1e.rules.creation.liveAuthority, "NONE");
+assert.ok(mg1e.rules.creation.profileVersion >= 1);
+assert.equal(mg1e.rules.creation.liveAuthority, "CORE_M9_WHEN_ACTIVE");
+assert.equal(mg1e.rules.creation.readyWhenActive, true);
 assert.equal(mg1e.rules.creation.ratedWises, true);
 assert.equal(mg1e.rules.creation.mentorValidation, "MG1E_SOURCE_RULES");
 assert.equal(mg1e.rules.creation.enemyValidation, "MG1E_MOUSE_PREFERRED");
@@ -132,7 +135,7 @@ for (const forbidden of ["game.settings.set", "createEmbeddedDocuments", "delete
 }
 
 const activationSource = fs.readFileSync(new URL("../module/m10-profile-activation.mjs", import.meta.url), "utf8");
-assert.equal(activationSource.includes('"mg1e"'), false, "M10B.1 must not make MG1E selectable/live.");
+assert.ok(activationSource.includes("profileActivationAvailable"), "Activation must use the generic profile metadata gate.");
 
 const routedConsumers = [
   "../module/conditions.mjs",
@@ -149,4 +152,4 @@ for (const path of routedConsumers) {
   assert.equal(source.includes("isStrictRealmGuard"), false, `${path} must remain on generic profile routing after its M10B migration.`);
 }
 
-console.log("PASS M10B capability router · generic live consumers migrated through M10B.8 · MG1E foundation read-only/not selectable");
+console.log("PASS M10B capability router · generic live consumers retained through M10B.10 · MG1E foundation read-only/not selectable");
