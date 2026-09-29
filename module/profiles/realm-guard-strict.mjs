@@ -32,6 +32,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
       actionsPerExchange: 3,
       rotateParticipants: true,
       helpAllowed: true,
+      descriptorNatureAllowed: true,
       toolContent: "MG1E_2008_PLUS_REALM_GUARD_V1_6",
       weaponAlias: { "Hook and Line": "Whip" },
       toolScope: "EXCHANGE",
