@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.8 — 🟢✅ M10B.8 FULL PASS / VERIFIED / CLOSED  
+**Current QA build:** v1.12.0-qa.10 — 🟡 M10B.10 MG1E Live Readiness Closure  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.9 — 🟢✅ AUDIT COMPLETE · MG1E Foundation Closure / Activation Readiness · next M10B.10 Live Readiness Closure  
+**Current CORE gate:** M10B.10 — 🟡 IMPLEMENTED · MG1E Live Readiness Closure · awaiting live QA  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -357,6 +357,33 @@ Remaining activation blockers identified by the audit:
 > **M10B.10 — MG1E Live Readiness Closure**
 
 M10B.10 should genericize the remaining live surfaces, promote MG1E creation to ready-when-active behind an unreachable activation gate, add simulated-MG1E-active QA, and still keep MG1E non-selectable. Actual selectable QA activation is deferred to a later M10B.11 gate.
+
+### M10B.10 — MG1E Live Readiness Closure
+
+**Status:** 🟡 **IMPLEMENTED as v1.12.0-qa.10 candidate** — awaiting Foundry VTT 13.351 live QA.
+
+Scope:
+- advance MG1E Rules Profile v9 → v10
+- advance MG1E Character Creation profile v1 → v2
+- keep MG1E `FOUNDATION_ONLY`, non-selectable, unsupported and non-live
+- genericize profile activation eligibility while preserving the closed MG1E activation gate
+- route rated-Wise Item Sheet presentation/learning through profile capabilities
+- route descriptor Nature in Conflict through profile policy rather than Strict identity
+- route Manual active-profile Rules Reference generically
+- make Profile Management / Rules Registry / M10 readiness reporting profile-generic
+- promote MG1E Character Creation contract to `READY_WHEN_ACTIVE` behind the closed activation gate
+- make M9 skill and Condition provisioning profile-owned
+- include canonical MG1E Skill names in new-character commit plans
+- let CORE M8 ingest profile-owned Character Creation relationships
+- expose generic Character Creation presentation/readiness APIs
+- add simulated MG1E transactional commit + compensating rollback smoke coverage
+- no existing Actor/Item migration
+- no automatic Wise rating
+- no MG1E selectable switch
+
+**M10B.10 PASS gate:** Gates A-L in `TEST_PROTOCOL_v1.12.0-qa.10.md` must pass in Foundry VTT 13.351. In particular, Legacy Mixed and Strict regressions must stay green; MG1E must remain impossible to activate in the real UI/API; simulated MG1E routing must use rated Wises, profile-owned descriptor Nature, correct Manual reference routing and a complete CORE M9 transactional creation path with rollback.
+
+**After PASS:** next bounded slice is **M10B.11 — MG1E Selectable QA Activation**. Activation must remain a separate explicit gate.
 
 ### M9 — Creation / Recruitment Migration
 
