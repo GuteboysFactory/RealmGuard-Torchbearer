@@ -84,7 +84,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.10 closes the remaining live-routing boundaries while MG1E remains foundation-only and non-selectable.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 allows MG1E live activation only in QA builds while stable activation remains closed.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
@@ -205,7 +205,7 @@ export function installRulesProfileInfrastructure() {
       exposeCoreApi();
       try {
         globalThis.Hooks?.callAll?.("realmGuardRulesProfileChanged", Object.freeze({
-          phase:"M10B.10",
+          phase:"M10B.11",
           source:"SETTING_UPDATE",
           fromProfileId:before,
           toProfileId:state.profile.id,
