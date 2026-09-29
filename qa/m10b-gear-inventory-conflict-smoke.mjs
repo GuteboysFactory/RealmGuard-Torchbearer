@@ -106,7 +106,7 @@ for (const forbidden of [".update(","createEmbeddedDocuments","deleteEmbeddedDoc
   assert.equal(genericSource.includes(forbidden), false, `M10B.5 generic provider must remain non-destructive: ${forbidden}`);
 }
 const activation = fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('"mg1e"'),false,"MG1E must remain non-selectable in M10B.5.");
+assert.ok(activation.includes("profileActivationAvailable"),"Profile activation must use the generic metadata gate.");
 
 const conflicts = fs.readFileSync("module/conflicts.mjs","utf8");
 assert.equal(conflicts.includes("isStrictRealmGuard"),false,"Conflict live routing must no longer key off Strict identity.");
