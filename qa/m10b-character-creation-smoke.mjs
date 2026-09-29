@@ -47,7 +47,7 @@ const legacy = resolveM10BCharacterCreationPolicy("realm-guard-legacy-mixed");
 const strict = resolveM10BCharacterCreationPolicy("realm-guard-strict");
 const mg1e = resolveM10BCharacterCreationPolicy("mg1e");
 
-assert.equal(legacy.phase, "M10B.10");
+assert.equal(legacy.phase, "M10B.11");
 assert.equal(legacy.creationProfileId, "realm-guard-legacy-mixed");
 assert.equal(legacy.familySemantics, false);
 assert.equal(legacy.ratedWises, false);
@@ -66,9 +66,9 @@ assert.ok(MG1E_FOUNDATION_PROFILE.version >= 8, "M10B.7 creation contract must s
 assert.ok(mg1e.rulesProfileVersion >= 8);
 assert.equal(mg1e.creationProfileId, "mg1e");
 assert.equal(mg1e.creationProfileVersion, MG1E_CREATION_PROFILE_VERSION);
-assert.equal(mg1e.foundationOnly, true);
-assert.equal(mg1e.selectable, false);
-assert.equal(mg1e.supported, false);
+assert.equal(mg1e.foundationOnly, false);
+assert.equal(mg1e.selectable, true);
+assert.equal(mg1e.supported, true);
 assert.equal(mg1e.familySemantics, true);
 assert.equal(mg1e.ratedWises, true);
 assert.equal(mg1e.startingSkillWiseCap, 6);
@@ -83,11 +83,11 @@ assert.equal(mg1e.automaticNpcCreation, false);
 assert.deepEqual(mg1e.writes, { actorsOnResolve:0, itemsOnResolve:0, relationshipsOnResolve:0, settingsOnResolve:0 });
 
 const status = getM10B7CharacterCreationStatus();
-assert.equal(status.phase, "M10B.10");
+assert.equal(status.phase, "M10B.11");
 assert.equal(status.coreEngine, "CORE_M9");
 assert.ok(status.mg1eFoundation.profileVersion >= 8);
-assert.equal(status.mg1eFoundation.foundationOnly, true);
-assert.equal(status.mg1eFoundation.selectable, false);
+assert.equal(status.mg1eFoundation.foundationOnly, false);
+assert.equal(status.mg1eFoundation.selectable, true);
 assert.equal(status.mg1eFoundation.liveCommit, false);
 assert.equal(status.mg1eFoundation.readyWhenActive, true);
 assert.equal(status.writesOnResolve, 0);
@@ -284,4 +284,4 @@ assert.ok(fs.readFileSync("module/m10-profile-activation.mjs","utf8").includes("
 const partyContext = familyCreationPartyContext({actors:[]});
 assert.equal(partyContext.existingCharacters.length, 0);
 
-console.log("PASS M10B.10 Character Creation live-readiness · MG1E ready-when-active · CORE M9 generic routing · activation gate closed");
+console.log("PASS M10B Character Creation regression · MG1E ready-when-active · CORE M9 generic routing · inactive profile remains non-live");
