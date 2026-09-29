@@ -166,12 +166,13 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     selectable: true,
     supported: true,
     activationState: "SUPPORTED",
+    qaActivationOnly: false,
     sourceLineage: ["Mouse Guard RPG 2008 / 1E", "Realm Guard v1.6 overrides"],
     gameplayChangeIntended: true,
     liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.10",
+    implementationPhase: "M10B.11",
     strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -189,6 +190,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
+    nextStep: "M10B.11 MG1E Selectable QA Activation"
   }
 });
