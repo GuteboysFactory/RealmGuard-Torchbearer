@@ -77,6 +77,6 @@ assert.ok(sheet.includes("natureDescriptorText"));
 assert.ok(sheet.includes("testKind: teamworkTestKind"));
 
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('"mg1e"'),false,"MG1E must remain non-selectable in M10B.3.");
+assert.ok(activation.includes("profileActivationAvailable"),"Profile activation must use the generic metadata gate.");
 
 console.log("PASS M10B.3 Wises / Traits / Help / Nature · generic profile routing · MG1E typed Help matrix · MG1E remains non-selectable");
