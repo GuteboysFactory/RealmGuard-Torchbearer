@@ -1,17 +1,15 @@
-1.12.0-qa.10
-# M10B.10 MG1E Live Readiness Closure
-# M10B.8 live QA FULL PASS / VERIFIED / CLOSED
-# M10B.9 activation-readiness audit COMPLETE
-# MG1E Rules Profile v10 / Character Creation profile v2
-# MG1E remains FOUNDATION_ONLY / non-selectable / unsupported / non-live
-# generic metadata-driven profile activation gate; MG1E stays rejected
-# rated Wise Item editor routed by profile capabilities
-# Conflict descriptor Nature routed by profile policy
-# Manual / Profile Management / M10 readiness routing generalized
-# MG1E CORE M9 creation contract READY_WHEN_ACTIVE behind closed gate
-# profile-owned M9 Skill / Condition provisioning
-# CORE M8 profile creation relationships supported
-# simulated MG1E transactional commit + rollback smoke
-# no existing Actor/Item migration or destructive conversion
-# historical Profile Management + MG1E activation + Conditions smokes migrated to generic switch contract
+1.12.0-qa.11
+# M10B.11 MG1E Selectable QA Activation
+# M10B.10 live QA FULL PASS / VERIFIED / CLOSED
+# MG1E Rules Profile v11 / Character Creation profile v2
+# MG1E QA_ACTIVE and selectable only in -qa. runtime
+# stable runtime activation remains closed
+# read-only conversion preview + explicit GM confirmation
+# reversible settings-only Legacy / Strict / MG1E switching
+# runtime refresh + profile-change hook + reload guidance
+# MG1E CORE M9 live commit only while MG1E is active
+# MG1E provenance + CORE M8 relationship writes for new characters
+# no existing Actor/Item migration
+# no automatic Wise rating or species-to-rank inference
+# no destructive Condition/Gear/Talent/Token conversion
 # Foundry v13.351 QA required
