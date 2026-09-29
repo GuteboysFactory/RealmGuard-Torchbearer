@@ -1,6 +1,15 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.8 - 🟡 M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing
+## M10B.9 - 🟢✅ MG1E Foundation Closure / Activation Readiness Audit
+
+- **Audit complete 2026-09-29.** MG1E foundation is closed enough for live-readiness work, but activation is **NOT YET READY**.
+- Identified remaining blockers: generic activation service, rated-Wise Item editor, one Conflict Nature Strict-id branch, binary Manual routing, shadow-only MG1E creation commit, Strict-centric Profile Management/status surfaces, and Realm Guard-specific Recruitment fallback copy.
+- MG1E remains `FOUNDATION_ONLY`, non-selectable, unsupported and non-live.
+- No runtime rules, Actors, Items, Journals, settings or profile metadata were changed by the audit.
+- Next bounded implementation: **M10B.10 — MG1E Live Readiness Closure**.
+
+
+## v1.12.0-qa.8 - 🟢✅ M10B.8 VERIFIED / CLOSED — Comparative Scale / Natural Order + Generic Rules Reference Routing
 
 - Marks **M10B.7 = FULL PASS / VERIFIED / CLOSED** after Gates A-L passed in Foundry VTT 13.351.
 - Advances MG1E foundation to profile v9 while keeping it FOUNDATION_ONLY, non-selectable and non-live.
@@ -11,6 +20,7 @@
 - Adds generic Strict/MG1E Rules Reference routing; MG1E reference remains read-only.
 - Manual uses generic profile reference previews while preserving the permanent Legacy Mixed Rules Journal.
 - No Actor/Item/Journal/settings scale writes, MG1E activation, auto-rank inference or live Conflict enforcement.
+- **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.8 is FULL PASS / VERIFIED / CLOSED.
 - **v1.11.0 remains STABLE / GOLD.**
 
 
