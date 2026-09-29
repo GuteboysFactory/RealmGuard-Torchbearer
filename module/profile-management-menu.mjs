@@ -1,6 +1,6 @@
 import { previewMg1eConversion, previewStrictConversion, showMg1eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
-import { profileActivationStatus, switchToLegacyMixed, switchToStrictRealmGuard } from "./m10-profile-activation.mjs";
+import { profileActivationStatus, switchRulesProfile } from "./m10-profile-activation.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -21,24 +21,28 @@ function impactRows(impact = {}) {
 async function previewStrictAction() { await showStrictConversionPreview(); }
 async function previewMg1eAction() { await showMg1eConversionPreview(); }
 
-async function switchStrictAction() {
-  const preview = previewStrictConversion();
+async function switchProfileAction(event, target) {
+  const button = target ?? event?.currentTarget ?? event?.target;
+  const profileId = String(button?.dataset?.profileId ?? "").trim();
+  if (!profileId) return;
+  const resolved = resolveRulesProfile(profileId).profile;
+  const preview = profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
   const confirmed = await foundry.applications.api.DialogV2.wait({
-    window:{title:"Realm Guard · Activate Strict Profile",resizable:true},
-    content:`<div class="realm-guard"><h2>Switch this world to Strict Realm Guard?</h2>
+    window:{title:`Realm Guard · Activate ${resolved.name}`,resizable:true},
+    content:`<div class="realm-guard"><h2>Switch this world to ${resolved.name}?</h2>
       <p>This is a <b>supported profile switch</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
       <p><b>World impact:</b> ${preview.worldImpact?.rangers ?? 0} Rangers · ${preview.worldImpact?.wiseItems ?? 0} Wise Items · ${preview.worldImpact?.actorsWithProfileSpecificConditions ?? 0} Actor(s) with profile-specific Conditions.</p>
       <p>No automatic Wise rating, Talent deletion, Condition deletion or inventory migration will occur.</p>
       <p><b>Reload the world after switching.</b></p></div>`,
     modal:true,rejectClose:false,
     buttons:[
-      {action:"activate",label:"Switch to Strict",icon:"fa-solid fa-scale-balanced",callback:()=>true},
+      {action:"activate",label:`Switch to ${resolved.name}`,icon:"fa-solid fa-scale-balanced",callback:()=>true},
       {action:"cancel",label:"Cancel",default:true,callback:()=>false}
     ]
   });
   if (!confirmed) return;
-  const result = await switchToStrictRealmGuard();
-  ui.notifications.info("Realm Guard: Strict profile activated. Reload the world before continuing.");
+  const result = await switchRulesProfile(profileId);
+  ui.notifications.info(`Realm Guard: ${resolved.name} activated. Reload the world before continuing.`);
   return result;
 }
 
@@ -53,7 +57,7 @@ async function switchLegacyAction() {
     ]
   });
   if (!confirmed) return;
-  const result = await switchToLegacyMixed();
+  const result = await switchRulesProfile("realm-guard-legacy-mixed");
   ui.notifications.info("Realm Guard: Legacy Mixed profile restored. Reload the world before testing.");
   return result;
 }
@@ -64,7 +68,7 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
     classes:["realm-guard","rg-profile-management"],
     position:{width:760,height:820},
     window:{title:"Realm Guard / Torchbearer · Rules Profile Management",icon:"fa-solid fa-scale-balanced",resizable:true},
-    actions:{previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,switchStrict:switchStrictAction,switchLegacy:switchLegacyAction}
+    actions:{previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,switchProfile:switchProfileAction,switchLegacy:switchLegacyAction}
   };
 
   static PARTS = { main:{template:"systems/realm-guard/templates/apps/profile-management.hbs",scrollable:[""]} };
@@ -76,6 +80,19 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
     const mg1e = resolveRulesProfile("mg1e");
     const mgPreview = previewMg1eConversion();
     const activation = profileActivationStatus();
+    const activationRows = (activation.profiles ?? [])
+      .filter(row => row.id !== "realm-guard-legacy-mixed")
+      .map(row => ({
+        ...row,
+        canActivate: row.activationAvailable && active.profile.id !== row.id,
+        active: active.profile.id === row.id,
+        lockedReason: row.activationAvailable
+          ? ""
+          : row.foundationOnly ? "Foundation-only: live activation remains locked."
+            : !row.selectable ? "Profile is not selectable."
+              : !row.supported ? "Profile is not marked supported."
+                : "Profile is not in an activatable state."
+      }));
     return foundry.utils.mergeObject(context, {
       activeProfile:{
         id:active.profile.id,name:active.profile.name,version:active.profile.version,
@@ -98,12 +115,11 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       },
       impactRows:impactRows(mgPreview.worldImpact),
       previewAvailable:true,
-      canSwitchStrict:active.profile.id !== "realm-guard-strict" && activation.switchAvailable,
+      activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
-      switchLockReason:activation.switchAvailable ? "" : "Strict Realm Guard is not selectable or supported in this build.",
       reloadRecommended:true,
-      phase:"M10B.4",
-      nextStep:"MG1E remains preview-only during M10B; no activation or campaign-data conversion is available"
+      phase:"M10B.10",
+      nextStep:"MG1E live-readiness is being closed behind its activation gate; it remains non-selectable in this build"
     }, { inplace:false });
   }
 }
