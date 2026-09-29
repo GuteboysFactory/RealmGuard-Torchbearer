@@ -40,6 +40,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       actionsPerExchange: 3,
       rotateParticipants: true,
       helpAllowed: true,
+      descriptorNatureAllowed: true,
       toolScope: "EXCHANGE",
       weaponScope: "ACTION_SET",
       unarmedDefaultDice: 0,
