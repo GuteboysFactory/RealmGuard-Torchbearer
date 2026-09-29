@@ -171,7 +171,7 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     liveRuleAuthority: true,
     conversionRequired: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.8",
+    implementationPhase: "M10B.10",
     strictRulesLive: true,
     ratedWiseSchemaReady: true,
     traitPolicyReady: true,
@@ -189,6 +189,6 @@ export const REALM_GUARD_STRICT_PROFILE = new RulesProfile({
     stableActivationReady: true,
     scalePolicyReady: true,
     rulesReferencePreviewReady: true,
-    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
+    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
   }
 });
