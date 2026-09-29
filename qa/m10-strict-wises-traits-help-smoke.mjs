@@ -106,11 +106,11 @@ assert.ok(legacyTeamwork.includes("afraidBlocksHelp"), "Legacy Mixed Afraid help
 const menu = fs.readFileSync("module/profile-management-menu.mjs", "utf8");
 assert.match(menu, /game\.settings\.registerMenu\(\s*"realm-guard"\s*,\s*"rulesProfileManagement"/);
 assert.ok(menu.includes("templates/apps/profile-management.hbs"));
-assert.ok(menu.includes("switchToStrictRealmGuard"));
-assert.ok(menu.includes("switchToLegacyMixed"));
+assert.ok(menu.includes("switchRulesProfile"));
+assert.ok(menu.includes("switchLegacyAction"));
 const menuTemplate = fs.readFileSync("templates/apps/profile-management.hbs", "utf8");
 assert.ok(menuTemplate.includes('data-rg-contract="profile-preview-strict"'));
-assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-strict"'));
+assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-supported"'));
 assert.ok(menuTemplate.includes('data-rg-contract="profile-switch-legacy"'));
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileId"'), false);
 assert.equal(menu.includes('game.settings.set("realm-guard", "activeRulesProfileVersion"'), false);
