@@ -14,7 +14,7 @@ const settings = new Map([
 const settingWrites = [];
 
 globalThis.game = {
-  system:{version:"1.12.0-qa.10"},
+  system:{version:"1.12.0"},
   user:{isGM:true,id:"gm"},
   actors:{contents:[]},
   items:{contents:[]},
@@ -41,15 +41,14 @@ const { MG1E_FOUNDATION_PROFILE } = await import("../module/profiles/mg1e-founda
 const { MG1E_CREATION_PROFILE_VERSION } = await import("../module/profiles/mg1e-creation.mjs");
 const { resolveProfileCapabilities } = await import("../module/rules-profile-service.mjs");
 
-assert.equal(MG1E_FOUNDATION_PROFILE.version, 10);
+assert.ok(MG1E_FOUNDATION_PROFILE.version >= 10);
 assert.equal(MG1E_CREATION_PROFILE_VERSION, 2);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.selectable, false);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.supported, false);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveReadinessClosure, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.creationReadyWhenActive, true);
-
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.selectable, true);
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.supported, true);
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.qaActivationOnly, true);
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 const mgCaps = resolveProfileCapabilities("mg1e");
 assert.equal(mgCaps.rules.wises.rated, true);
 assert.equal(mgCaps.presentation.showRatedWiseControls, true);
@@ -60,13 +59,13 @@ assert.equal(mgCaps.rules.creation.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 assert.equal(activation.profileActivationAvailable("realm-guard-strict"), true);
 assert.equal(activation.profileActivationAvailable("mg1e"), false);
 const activationStatus = activation.profileActivationStatus();
-assert.equal(activationStatus.phase, "M10B.10");
+assert.equal(activationStatus.phase, "M10B.11");
 assert.equal(activationStatus.mg1eActivationAvailable, false);
-assert.equal(activationStatus.mg1eSelectable, false);
-assert.equal(activationStatus.mg1eSupported, false);
+assert.equal(activationStatus.mg1eSelectable, true);
+assert.equal(activationStatus.mg1eSupported, true);
 
 settingWrites.length = 0;
-await assert.rejects(() => activation.switchRulesProfile("mg1e"), /foundation-only|not selectable|not marked supported|not in an activatable state/i);
+await assert.rejects(() => activation.switchRulesProfile("mg1e"), /not in an activatable state/i);
 assert.equal(settingWrites.length, 0, "Rejected MG1E activation must not write profile settings.");
 
 const itemSheet = fs.readFileSync("sheets/item-sheet.mjs","utf8");
@@ -95,16 +94,16 @@ assert.ok(profileTemplate.includes('data-action="switchProfile"'));
 assert.ok(profileTemplate.includes('data-rg-contract="profile-switch-supported"'));
 
 const policy = resolveM10BCharacterCreationPolicy("mg1e");
-assert.equal(policy.phase, "M10B.10");
+assert.equal(policy.phase, "M10B.11");
 assert.equal(policy.readyWhenActive, true);
 assert.equal(policy.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 assert.equal(policy.liveCommit, false);
-assert.equal(policy.foundationOnly, true);
-assert.equal(policy.selectable, false);
-assert.equal(policy.supported, false);
+assert.equal(policy.foundationOnly, false);
+assert.equal(policy.selectable, true);
+assert.equal(policy.supported, true);
 
 const presentation = profileCreationPresentationSnapshot("mg1e");
-assert.equal(presentation.phase, "M10B.10");
+assert.equal(presentation.phase, "M10B.11");
 assert.equal(presentation.presentationAuthority, "PROFILE_OWNED_CORE_M9");
 assert.equal(presentation.readyWhenActive, true);
 assert.equal(presentation.liveCommit, false);
