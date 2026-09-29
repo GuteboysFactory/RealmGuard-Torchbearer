@@ -138,6 +138,7 @@ export function buildProfileCapabilities(profile) {
         actionsPerExchange: numeric(d.conflict?.actionsPerExchange, 3),
         rotateParticipants: bool(d.conflict?.rotateParticipants, true),
         helpAllowed: bool(d.conflict?.helpAllowed, true),
+        descriptorNatureAllowed: bool(d.conflict?.descriptorNatureAllowed, false),
         unarmedDefaultDice: numeric(d.conflict?.unarmedDefaultDice, legacyConflict ? -1 : 0),
         toolScope: text(d.conflict?.toolScope, "PROFILE_DEFINED"),
         toolContent: text(d.conflict?.toolContent, legacyConflict ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
