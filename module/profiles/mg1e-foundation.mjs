@@ -4,11 +4,11 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 10,
-  name: "Mouse Guard 1E — Foundation",
-  classification: "SOURCE FOUNDATION / NOT SELECTABLE",
+  version: 11,
+  name: "Mouse Guard 1E",
+  classification: "SOURCE PROFILE / QA SELECTABLE",
   domains: {
-    profile: { activationState: "FOUNDATION_ONLY" },
+    profile: { activationState: "QA_ACTIVE" },
     tests: { mode: "MG1E", ordinary: true, versus: true, beginnersLuck: true },
     abilities: { advancement: "PASS_FAIL" },
     nature: { mode: "MG1E", label: "Nature (Mouse)", descriptors: ["Escaping", "Climbing", "Hiding", "Foraging"], tax: true, tapNature: true, doubleTapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
@@ -149,7 +149,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     scaleOfMight: { enabled: false, mode: "NONE", replacedBy: "naturalOrder" }
   },
   registry: [
-    ["PROFILE.IDENTITY","profile","Rules Profile","MOUSE GUARD 1E FOUNDATION","SOURCE FOUNDATION / NOT LIVE","INACTIVE"],
+    ["PROFILE.IDENTITY","profile","Rules Profile","MOUSE GUARD 1E","SOURCE PROFILE / QA LIVE","AUTOMATIC"],
     ["TEST.RESOLUTION","tests","Test Resolution","MG1E ORDINARY / VERSUS / BEGINNER'S LUCK","INHERITED CORE RULE","AUTOMATIC"],
     ["ABILITY.ADVANCEMENT","abilities","Ability / Skill Advancement","PASS / FAIL ADVANCEMENT","INHERITED CORE RULE","AUTOMATIC"],
     ["WISE.MODE","wises","Wise Rating Mode","RATED · TESTED / ADVANCED LIKE SKILLS","INHERITED CORE RULE","AUTOMATIC"],
@@ -164,7 +164,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     ["SESSION.TURN_MANAGER","session","Players' Turn / Checks","ONE FREE TEST · CHECKS FOR ADDITIONAL TESTS","INHERITED CORE RULE","GUIDED"],
     ["SESSION.END_SESSION","session","End Session","MG1E FATE / PERSONA AWARDS","INHERITED CORE RULE","GUIDED"],
     ["CIRCLES.MODE","circles","Circles","MG1E CIRCLES + ENMITY CLAUSE","INHERITED CORE RULE","GUIDED"],
-    ["CREATION.RECRUITMENT","creation","Character Creation","MG1E SOURCE FOUNDATION","INHERITED SOURCE RULE","INACTIVE"],
+    ["CREATION.RECRUITMENT","creation","Character Creation","MG1E CORE M9","INHERITED SOURCE RULE","AUTOMATIC"],
     ["PROGRESSION.LEVELS_TALENTS","progression","Levels / Talents","DISABLED / NOT PART OF MG1E","INHERITED SOURCE RULE","INACTIVE"],
     ["TOKENS_OF_POWER.MODE","tokensOfPower","Tokens of Power","NOT A BASE MG1E DOMAIN","NOT APPLICABLE","INACTIVE"],
     ["NATURAL_ORDER.MODE","naturalOrder","Natural Order","MG1E NATURAL ORDER · FIGHTER/HUNTER + MILITARIST/SCIENTIST","INHERITED SOURCE RULE","GUIDED"],
@@ -174,17 +174,19 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     source: MG1E_SOURCE, sourceVersion: "2008 / 1E"
   })),
   metadata: {
-    foundationOnly: true,
-    selectable: false,
-    supported: false,
-    activationState: "FOUNDATION_ONLY",
+    foundationOnly: false,
+    selectable: true,
+    supported: true,
+    activationState: "QA_ACTIVE",
+    qaActivationOnly: true,
     sourceLineage: ["Mouse Guard RPG 2008 / 1E"],
-    gameplayChangeIntended: false,
-    liveRuleAuthority: false,
+    gameplayChangeIntended: true,
+    liveRuleAuthority: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10B.10",
+    implementationPhase: "M10B.11",
     liveReadinessClosure: true,
+    profileActivationQaReady: true,
     creationReadyWhenActive: true,
-    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
+    nextStep: "M10B.11 MG1E Selectable QA Activation"
   }
 });
