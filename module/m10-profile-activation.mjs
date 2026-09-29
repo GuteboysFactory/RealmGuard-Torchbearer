@@ -7,6 +7,12 @@ const PROFILE_VERSION_KEY = "activeRulesProfileVersion";
 const LIVE_ACTIVATION_STATES = Object.freeze(["SUPPORTED", "STABLE", "ACTIVE", "QA_ACTIVE"]);
 
 export const STRICT_PROFILE_ID = "realm-guard-strict";
+export const MG1E_PROFILE_ID = "mg1e";
+
+export function qaProfileActivationRuntime() {
+  const version = String(globalThis.game?.system?.version ?? "");
+  return /-qa(?:\.|-|$)/i.test(version);
+}
 
 export function activeRulesProfileId() {
   try {
@@ -36,11 +42,13 @@ export function profileActivationAvailable(profileId) {
   const profile = resolveRulesProfile(profileId).profile;
   if (profile.id === LEGACY_PROFILE_ID) return true;
   const activationState = String(profile?.metadata?.activationState ?? "").toUpperCase();
+  const qaOnly = profile?.metadata?.qaActivationOnly === true || activationState === "QA_ACTIVE";
   return Boolean(
     profile?.metadata?.foundationOnly !== true
     && profile?.metadata?.selectable !== false
     && profile?.metadata?.supported !== false
     && LIVE_ACTIVATION_STATES.includes(activationState)
+    && (!qaOnly || qaProfileActivationRuntime())
   );
 }
 
@@ -60,7 +68,9 @@ export function activationProfileSummary(profileId) {
     supported: profile.metadata?.supported !== false,
     active: activeRulesProfileId() === profile.id,
     activationAvailable: profileActivationAvailable(profile.id),
-    conversionPreviewAvailable: profile.metadata?.conversionPreviewAvailable === true
+    conversionPreviewAvailable: profile.metadata?.conversionPreviewAvailable === true,
+    qaActivationOnly: profile.metadata?.qaActivationOnly === true,
+    qaRuntime: qaProfileActivationRuntime()
   });
 }
 
@@ -68,11 +78,11 @@ export function profileActivationStatus() {
   const active = getRulesProfileRuntime().profile;
   const legacy = activationProfileSummary(LEGACY_PROFILE_ID);
   const strict = activationProfileSummary(STRICT_PROFILE_ID);
-  const mg1e = activationProfileSummary("mg1e");
+  const mg1e = activationProfileSummary(MG1E_PROFILE_ID);
   const switchAvailable = strict.activationAvailable;
   return Object.freeze({
-    phase: "M10B.10",
-    mode: "GENERIC_PROFILE_ACTIVATION_GATE",
+    phase: "M10B.11",
+    mode: "GENERIC_PROFILE_QA_ACTIVATION_GATE",
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
@@ -89,6 +99,7 @@ export function profileActivationStatus() {
     mg1eSelectable: mg1e.selectable,
     mg1eSupported: mg1e.supported,
     mg1eActivationAvailable: mg1e.activationAvailable,
+    qaRuntime: qaProfileActivationRuntime(),
     actorWritesOnSwitch: 0,
     itemWritesOnSwitch: 0,
     journalWritesOnSwitch: 0,
@@ -137,7 +148,7 @@ export async function switchRulesProfile(targetProfileId, _options = {}) {
     await writeProfileSettings(target);
     const runtime = refreshRulesProfileRuntime();
     const event = Object.freeze({
-      phase:"M10B.10",
+      phase:"M10B.11",
       fromProfileId:before.id,
       fromProfileVersion:beforeVersion,
       toProfileId:runtime.profile.id,
@@ -167,6 +178,10 @@ export async function switchRulesProfile(targetProfileId, _options = {}) {
 
 export async function switchToStrictRealmGuard() {
   return switchRulesProfile(STRICT_PROFILE_ID);
+}
+
+export async function switchToMg1e() {
+  return switchRulesProfile(MG1E_PROFILE_ID);
 }
 
 export async function switchToLegacyMixed() {
