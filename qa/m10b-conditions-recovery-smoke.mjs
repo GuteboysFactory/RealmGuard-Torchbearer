@@ -109,6 +109,6 @@ assert.ok(sheetSource.includes("allowHelp: method.helpAllowed !== false"));
 assert.equal(sheetSource.includes('import { strictRecoveryState }'), false);
 
 const activationSource=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activationSource.includes('"mg1e"'), false);
+assert.ok(activationSource.includes("profileActivationAvailable"), "Profile activation must use the generic metadata gate.");
 
 console.log("PASS M10B.4 Conditions / Recovery · generic routing · MG1E Sick · Strict wrapper parity · dormant-data preservation");
