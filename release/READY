@@ -13,3 +13,4 @@
 # no automatic Wise rating or species-to-rank inference
 # no destructive Condition/Gear/Talent/Token conversion
 # Foundry v13.351 QA required
+# retrigger after M10B historical smoke migration
