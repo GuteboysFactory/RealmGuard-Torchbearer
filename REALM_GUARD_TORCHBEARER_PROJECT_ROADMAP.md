@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.10 — 🟡 M10B.10 MG1E Live Readiness Closure  
+**Current QA build:** v1.12.0-qa.10 — 🟢✅ M10B.10 FULL PASS / VERIFIED / CLOSED  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.10 — 🟡 IMPLEMENTED · MG1E Live Readiness Closure · awaiting live QA  
+**Current CORE gate:** M10B.11 — 🟡 IN PROGRESS · MG1E Selectable QA Activation  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -360,7 +360,7 @@ M10B.10 should genericize the remaining live surfaces, promote MG1E creation to 
 
 ### M10B.10 — MG1E Live Readiness Closure
 
-**Status:** 🟡 **IMPLEMENTED as v1.12.0-qa.10 candidate** — awaiting Foundry VTT 13.351 live QA.
+**Status:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** on v1.12.0-qa.10 in Foundry VTT 13.351.
 
 Scope:
 - advance MG1E Rules Profile v9 → v10
@@ -381,9 +381,28 @@ Scope:
 - no automatic Wise rating
 - no MG1E selectable switch
 
-**M10B.10 PASS gate:** Gates A-L in `TEST_PROTOCOL_v1.12.0-qa.10.md` must pass in Foundry VTT 13.351. In particular, Legacy Mixed and Strict regressions must stay green; MG1E must remain impossible to activate in the real UI/API; simulated MG1E routing must use rated Wises, profile-owned descriptor Nature, correct Manual reference routing and a complete CORE M9 transactional creation path with rollback.
+**M10B.10 result:** 🟢✅ Gates A-L passed in Foundry VTT 13.351. Legacy Mixed and Strict regressions stayed green; MG1E remained impossible to activate in the real UI/API; rated-Wise editing, Conflict Nature routing, Manual/Rules Reference routing, Profile Management readiness, CORE M9 creation readiness, rollback and existing-data safety were verified.
 
-**After PASS:** next bounded slice is **M10B.11 — MG1E Selectable QA Activation**. Activation must remain a separate explicit gate.
+### M10B.11 — MG1E Selectable QA Activation
+
+**Status:** 🟡 **IN PROGRESS** — separate QA activation gate.
+
+Locked scope:
+- make MG1E selectable only in QA runtime
+- keep stable runtime unable to activate MG1E
+- explicit read-only conversion preview + GM confirmation before switching
+- reversible settings-only switch across Legacy Mixed / Strict / MG1E
+- Legacy → MG1E → Legacy → MG1E round-trip across reload
+- profile runtime refresh + profile-change hook for connected clients
+- MG1E CORE M9 Character Creation may commit only while MG1E is actually active
+- no automatic Actor/Item migration
+- no automatic Wise rating
+- no species → Natural Order rank inference
+- no destructive Condition/Gear/Talent/Token conversion
+- Strict remains supported and reversible
+- stable channel remains v1.11.0 until a later explicit stable-candidate gate
+
+**M10B.11 PASS gate:** full Foundry v13.351 QA must prove the QA-only activation boundary, reversible multi-profile switching, reload persistence, MG1E live rules routing, live MG1E Recruitment/CORE M9 commit, rollback safety and unchanged existing campaign documents.
 
 ### M9 — Creation / Recruitment Migration
 
