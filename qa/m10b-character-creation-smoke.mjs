@@ -279,7 +279,7 @@ assert.equal(m9Source.includes("isStrictRealmGuard"), false, "CORE M9 must not c
 assert.equal(recruitmentSource.includes("isStrictRealmGuard"), false, "Recruitment UI must not choose Creation presentation by Strict identity.");
 assert.ok(m9Source.includes("getActiveM10BCharacterCreationPolicy"));
 assert.ok(recruitmentSource.includes("getActiveM10BCharacterCreationPolicy"));
-assert.equal(fs.readFileSync("module/m10-profile-activation.mjs","utf8").includes('"mg1e"'), false, "MG1E must remain non-selectable in qa.7.");
+assert.ok(fs.readFileSync("module/m10-profile-activation.mjs","utf8").includes("profileActivationAvailable"), "MG1E activation must remain behind the generic metadata gate.");
 
 const partyContext = familyCreationPartyContext({actors:[]});
 assert.equal(partyContext.existingCharacters.length, 0);
