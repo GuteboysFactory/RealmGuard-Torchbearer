@@ -415,7 +415,7 @@ function normalizedRelationships(answers = {}) {
   const rel = answers.relationships ?? {};
   const rows = [];
   (Array.isArray(rel.parents) ? rel.parents : []).forEach((person, index) => {
-    if (String(person?.name ?? "").trim()) rows.push({ slot: `parent-${index + 1}`, person: cleanPerson(person), role: "PARENT", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "SHADOW_ONLY" });
+    if (String(person?.name ?? "").trim()) rows.push({ slot: `parent-${index + 1}`, person: cleanPerson(person), role: "PARENT", status: "UNKNOWN", origin: "RECRUITMENT", writeMode: "CORE_M8_READY_WHEN_ACTIVE" });
   });
   for (const [slot, key, role, status] of [
     ["senior-artisan","seniorArtisan","SENIOR_ARTISAN","UNKNOWN"],
@@ -424,7 +424,7 @@ function normalizedRelationships(answers = {}) {
     ["enemy","enemy","ENEMY","HOSTILE"]
   ]) {
     const person = rel[key] ?? {};
-    if (String(person?.name ?? "").trim()) rows.push({ slot, person: cleanPerson(person), role, status, origin: "RECRUITMENT", writeMode: "SHADOW_ONLY" });
+    if (String(person?.name ?? "").trim()) rows.push({ slot, person: cleanPerson(person), role, status, origin: "RECRUITMENT", writeMode: "CORE_M8_READY_WHEN_ACTIVE" });
   }
   return rows;
 }
