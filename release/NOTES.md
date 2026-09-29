@@ -1,23 +1,18 @@
-# Realm Guard / Torchbearer v1.12.0-qa.10 — M10B.10 MG1E Live Readiness Closure
+# Realm Guard / Torchbearer v1.12.0-qa.11 — M10B.11 MG1E Selectable QA Activation
 
-Built after v1.12.0-qa.8 M10B.8 passed full live Foundry VTT 13.351 QA and the M10B.9 activation-readiness audit.
+Built after v1.12.0-qa.10 passed full Foundry VTT 13.351 live QA and closed M10B.10.
 
 Highlights:
-- advances the MG1E foundation to profile v10 and MG1E Character Creation profile to v2
-- keeps MG1E FOUNDATION_ONLY, non-selectable, unsupported and non-live
-- replaces the two-profile activation whitelist with a generic metadata-driven activation gate
-- explicitly proves that MG1E activation remains rejected with zero setting writes
-- routes rated-Wise Item Sheet editing through profile capabilities instead of Strict identity
-- routes Conflict descriptor-Nature availability through profile policy instead of a Strict id check
-- routes Manual active-profile Rules Reference presentation generically
-- makes Profile Management activation reporting generic while keeping MG1E locked
-- adds generic M10 live-readiness status / APIs
-- promotes MG1E CORE M9 Character Creation to READY_WHEN_ACTIVE while live execution remains disabled
-- makes M9 skill and Condition provisioning profile-owned
-- carries the full MG1E canonical Skill set in new-character commit plans
-- provisions the MG1E Sick condition set from the commit plan
-- lets CORE M8 ingest profile-owned creation relationships
-- adds a profile-owned Character Creation presentation/readiness contract
-- adds simulated MG1E transactional-commit QA, including compensating rollback
-- performs no existing Actor/Item migration and no live MG1E activation
+- advances the MG1E Rules Profile to v11
+- makes MG1E QA_ACTIVE and selectable only in QA runtime
+- keeps stable runtime unable to activate MG1E
+- preserves read-only conversion preview and explicit GM confirmation
+- keeps Legacy Mixed / Strict / MG1E switches reversible and settings-only
+- retains runtime refresh, profile-change hook and reload guidance
+- enables the MG1E READY_WHEN_ACTIVE CORE M9 commit plan only while MG1E is active
+- enables MG1E creation provenance and CORE M8 relationship writes for newly created MG1E characters
+- keeps existing Actors and Items untouched
+- performs no automatic Wise rating, species-to-rank inference, Condition rewrite, Gear placement rewrite, Talent deletion or Token of Power deletion
+- adds qa.11 smoke coverage for QA-only gating, stable rejection, live MG1E creation routing and round-trip profile switching
+- live QA follows TEST_PROTOCOL_v1.12.0-qa.11.md
 - v1.11.0 remains STABLE / GOLD
