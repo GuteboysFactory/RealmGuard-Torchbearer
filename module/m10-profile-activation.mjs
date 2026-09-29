@@ -4,6 +4,7 @@ import { getRulesProfileRuntime, refreshRulesProfileRuntime, resolveRulesProfile
 const NS = "realm-guard";
 const PROFILE_ID_KEY = "activeRulesProfileId";
 const PROFILE_VERSION_KEY = "activeRulesProfileVersion";
+const LIVE_ACTIVATION_STATES = Object.freeze(["SUPPORTED", "STABLE", "ACTIVE", "QA_ACTIVE"]);
 
 export const STRICT_PROFILE_ID = "realm-guard-strict";
 
@@ -31,38 +32,67 @@ export function isLegacyMixed() {
   return activeRulesProfileId() === LEGACY_PROFILE_ID;
 }
 
-export function strictActivationAvailable() {
-  const strict = resolveRulesProfile(STRICT_PROFILE_ID).profile;
-  const activationState = String(strict?.metadata?.activationState ?? "");
+export function profileActivationAvailable(profileId) {
+  const profile = resolveRulesProfile(profileId).profile;
+  if (profile.id === LEGACY_PROFILE_ID) return true;
+  const activationState = String(profile?.metadata?.activationState ?? "").toUpperCase();
   return Boolean(
-    strict?.metadata?.selectable !== false
-    && strict?.metadata?.supported !== false
-    && ["SUPPORTED", "STABLE", "ACTIVE"].includes(activationState)
+    profile?.metadata?.foundationOnly !== true
+    && profile?.metadata?.selectable !== false
+    && profile?.metadata?.supported !== false
+    && LIVE_ACTIVATION_STATES.includes(activationState)
   );
+}
+
+export function strictActivationAvailable() {
+  return profileActivationAvailable(STRICT_PROFILE_ID);
+}
+
+export function activationProfileSummary(profileId) {
+  const profile = resolveRulesProfile(profileId).profile;
+  return Object.freeze({
+    id: profile.id,
+    version: profile.version,
+    name: profile.name,
+    activationState: profile.metadata?.activationState ?? (profile.id === LEGACY_PROFILE_ID ? "COMPATIBILITY" : ""),
+    foundationOnly: profile.metadata?.foundationOnly === true,
+    selectable: profile.metadata?.selectable !== false,
+    supported: profile.metadata?.supported !== false,
+    active: activeRulesProfileId() === profile.id,
+    activationAvailable: profileActivationAvailable(profile.id),
+    conversionPreviewAvailable: profile.metadata?.conversionPreviewAvailable === true
+  });
 }
 
 export function profileActivationStatus() {
   const active = getRulesProfileRuntime().profile;
-  const strict = resolveRulesProfile(STRICT_PROFILE_ID).profile;
-  const switchAvailable = strictActivationAvailable();
+  const legacy = activationProfileSummary(LEGACY_PROFILE_ID);
+  const strict = activationProfileSummary(STRICT_PROFILE_ID);
+  const mg1e = activationProfileSummary("mg1e");
+  const switchAvailable = strict.activationAvailable;
   return Object.freeze({
-    phase: "M10A.9",
+    phase: "M10B.10",
+    mode: "GENERIC_PROFILE_ACTIVATION_GATE",
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
+    profiles: Object.freeze([legacy, strict, mg1e]),
     strictProfileId: strict.id,
     strictProfileVersion: strict.version,
-    strictActivationState: strict.metadata?.activationState ?? "",
-    strictSelectable: strict.metadata?.selectable !== false,
-    strictSupported: strict.metadata?.supported !== false,
-    strictRulesLive: isStrictRealmGuard(),
+    strictActivationState: strict.activationState,
+    strictSelectable: strict.selectable,
+    strictSupported: strict.supported,
+    strictRulesLive: strict.active,
     switchAvailable,
     qaSwitchAvailable: switchAvailable,
     switchBackToLegacyAvailable: active.id !== LEGACY_PROFILE_ID,
+    mg1eSelectable: mg1e.selectable,
+    mg1eSupported: mg1e.supported,
+    mg1eActivationAvailable: mg1e.activationAvailable,
     actorWritesOnSwitch: 0,
     itemWritesOnSwitch: 0,
     journalWritesOnSwitch: 0,
-    worldSettingWritesOnSwitch: active.id === LEGACY_PROFILE_ID ? 2 : 2,
+    worldSettingWritesOnSwitch: 2,
     reloadRecommended: true
   });
 }
@@ -80,11 +110,15 @@ async function restoreProfileSettings(id, version) {
 export async function switchRulesProfile(targetProfileId, _options = {}) {
   if (!globalThis.game?.user?.isGM) throw new Error("Rules Profile switching is GM-only.");
   const targetId = String(targetProfileId ?? "").trim();
-  if (![LEGACY_PROFILE_ID, STRICT_PROFILE_ID].includes(targetId)) throw new Error(`Unsupported Rules Profile '${targetId}'.`);
+  if (!targetId) throw new Error("Rules Profile target is required.");
 
   const target = resolveRulesProfile(targetId).profile;
-  if (target.metadata?.selectable === false) throw new Error(`${target.name} is not selectable.`);
-  if (target.metadata?.supported === false) throw new Error(`${target.name} is not marked supported.`);
+  if (!profileActivationAvailable(target.id)) {
+    if (target.metadata?.foundationOnly === true) throw new Error(`${target.name} is foundation-only and cannot be activated.`);
+    if (target.metadata?.selectable === false) throw new Error(`${target.name} is not selectable.`);
+    if (target.metadata?.supported === false) throw new Error(`${target.name} is not marked supported.`);
+    throw new Error(`${target.name} is not in an activatable state.`);
+  }
 
   const beforeId = activeRulesProfileId();
   const beforeVersion = activeRulesProfileVersion();
@@ -103,7 +137,7 @@ export async function switchRulesProfile(targetProfileId, _options = {}) {
     await writeProfileSettings(target);
     const runtime = refreshRulesProfileRuntime();
     const event = Object.freeze({
-      phase:"M10A.9",
+      phase:"M10B.10",
       fromProfileId:before.id,
       fromProfileVersion:beforeVersion,
       toProfileId:runtime.profile.id,
@@ -136,5 +170,5 @@ export async function switchToStrictRealmGuard() {
 }
 
 export async function switchToLegacyMixed() {
-  return switchRulesProfile(LEGACY_PROFILE_ID, { requireQa:false });
+  return switchRulesProfile(LEGACY_PROFILE_ID);
 }
