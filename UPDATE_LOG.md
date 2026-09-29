@@ -1,5 +1,23 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.10 - 🟡 M10B.10 MG1E Live Readiness Closure
+
+- Advances MG1E foundation to profile v10 and MG1E Character Creation profile to v2.
+- Keeps MG1E FOUNDATION_ONLY, non-selectable, unsupported and non-live.
+- Replaces the Legacy/Strict activation whitelist with a generic profile-metadata activation gate; MG1E remains rejected with zero setting writes.
+- Routes Rated Wise Item Sheet controls through profile capabilities instead of Strict identity.
+- Routes Conflict descriptor Nature availability through profile policy instead of a direct Strict profile-id branch.
+- Routes Manual active-profile Rules Reference presentation generically.
+- Makes Profile Management activation reporting and M10 readiness status profile-generic.
+- Promotes MG1E CORE M9 Character Creation to READY_WHEN_ACTIVE while live execution remains disabled.
+- Makes M9 Skill and Condition provisioning profile-owned and carries the canonical MG1E Skill set in new-character commit plans.
+- Lets CORE M8 ingest profile-owned Character Creation relationships.
+- Adds Character Creation presentation/readiness APIs and a simulated MG1E transactional commit/rollback smoke.
+- No existing Actor/Item migration, automatic Wise rating, destructive Condition/Gear conversion or live MG1E switch is introduced.
+- Live QA follows `TEST_PROTOCOL_v1.12.0-qa.10.md`.
+- **v1.11.0 remains STABLE / GOLD.**
+
+
 ## M10B.9 - 🟢✅ MG1E Foundation Closure / Activation Readiness Audit
 
 - **Audit complete 2026-09-29.** MG1E foundation is closed enough for live-readiness work, but activation is **NOT YET READY**.
