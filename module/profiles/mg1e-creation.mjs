@@ -250,7 +250,7 @@ function derive({ answers = {}, allocations = {} } = {}) {
         startingSkillWiseCap: 6,
         inventoryPolicy: "LOOSE",
         automaticNpcCreation: false,
-        liveAuthority: "NONE"
+        liveAuthority: "CORE_M9_WHEN_ACTIVE"
       }
     },
     warnings: []
@@ -511,6 +511,8 @@ function buildCommitSpec({ draft }) {
       flags: {
         "realm-guard": {
           mg1eFoundationCreationPreview: true,
+          recruitmentVersion: "MG1E_M10B10",
+          creationRelationships: normalizedRelationships(a),
           recruitmentWiseChecks: { ...(d.wiseChecks ?? {}) },
           recruitmentSkillChecks: { ...(d.skillChecks ?? {}) },
           recruitmentNatureAnswers: { ...(a.natureAnswers ?? {}) },
@@ -520,12 +522,12 @@ function buildCommitSpec({ draft }) {
       }
     },
     provisioning: {
-      canonicalSkills: { mode: "PLAN_ONLY", ratings: skills },
+      canonicalSkills: { mode: "PROFILE_SET", names: [...NATURAL_TALENT_SKILLS], ratings: skills },
       traits,
       wises,
       gear,
       canonicalConditions: {
-        mode: "MG1E_FOUNDATION_PLAN_ONLY",
+        mode: "MG1E_PROFILE_SET",
         names: ["Hungry & Thirsty","Angry","Tired","Injured","Sick"]
       },
       inventory: { policy: "LOOSE", slotPlacementAuthority: false, preservePlacementAsPresentation: true }
@@ -533,18 +535,21 @@ function buildCommitSpec({ draft }) {
     relationships: {
       normalized: normalizedRelationships(a),
       liveWrite: false,
-      plannedLiveService: "CORE_M8_ON_FUTURE_MG1E_ACTIVATION"
+      readyWhenActive: true,
+      plannedLiveService: "CORE_M8_ON_ACTIVE_MG1E"
     },
     postCommit: [],
     transaction: {
       mode: "COMPENSATING_ROLLBACK",
       liveExecution: false,
+      readyWhenActive: true,
       atomicBoundary: "ACTOR_AND_EMBEDDED_DOCUMENTS",
       criticalPhases: ["CREATE_ACTOR","PROVISION_SKILLS","CREATE_ITEMS","PROVISION_CONDITIONS","NORMALIZE_RELATIONSHIPS","WRITE_PROVENANCE"],
       compensation: [{ onFailureAfter: "CREATE_ACTOR", action: "DELETE_CREATED_ACTOR" }],
       provenanceWrite: false,
       relationshipWrite: false,
       previewOnly: true,
+      activationReadiness: "READY_WHEN_ACTIVE",
       activationRequired: "mg1e"
     }
   };
@@ -592,10 +597,11 @@ export const MG1E_CREATION_PROFILE = new CharacterCreationProfile({
   metadata: {
     source: SOURCE,
     coreEngine: "CORE_M9",
-    liveAuthority: "NONE",
-    commitAuthority: "NONE",
-    mode: "FOUNDATION_SHADOW_ONLY",
+    liveAuthority: "CORE_M9_WHEN_ACTIVE",
+    commitAuthority: "CORE_M9_WHEN_ACTIVE",
+    mode: "READY_WHEN_ACTIVE",
     foundationOnly: true,
+    readyWhenActive: true,
     activationRequired: "mg1e",
     automaticNpcCreation: false,
     profileRoutingKind: "MG1E_FAMILY"
