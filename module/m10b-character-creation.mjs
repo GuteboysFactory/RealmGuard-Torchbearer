@@ -216,6 +216,73 @@ export function profileCreationCommitPreview(profileId, draft, { partyContext = 
   return previewAdapter.preview(plan, { isGM, userId });
 }
 
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+export function profileCreationPresentationSnapshot(profileId = null) {
+  const policy = resolveM10BCharacterCreationPolicy(profileId);
+  const profile = resolveCharacterCreationProfile(profileId);
+  return freeze({
+    phase: "M10B.10",
+    profileId: policy.rulesProfileId,
+    profileVersion: policy.rulesProfileVersion,
+    creationProfileId: profile.id,
+    creationProfileVersion: profile.version,
+    name: profile.name,
+    source: String(profile.metadata?.source ?? ""),
+    mode: String(profile.metadata?.mode ?? policy.mode),
+    foundationOnly: policy.foundationOnly,
+    selectable: policy.selectable,
+    liveCommit: policy.liveCommit,
+    readyWhenActive: policy.readyWhenActive,
+    steps: profile.steps.map(step => ({ ...step })),
+    dimensions: profile.dimensions.map(dimension => ({ ...dimension })),
+    rules: { ...profile.rules },
+    grants: { ...profile.grants },
+    presentationAuthority: "PROFILE_OWNED_CORE_M9",
+    writes: { actors:0, items:0, relationships:0, settings:0 }
+  });
+}
+
+export function profileCreationPresentationHtml(profileId = null) {
+  const snapshot = profileCreationPresentationSnapshot(profileId);
+  const steps = snapshot.steps.map((step, index) => `<li><b>${index + 1}. ${esc(step.sourceStep ?? step.id)}</b><br><small>${esc(step.type ?? "")}</small></li>`).join("");
+  return `<div class="realm-guard rg-profile-creation-reference" data-rg-creation-profile="${esc(snapshot.profileId)}">
+    <header class="rg-manual-hero"><div><div class="rg-brand">MG-FAMILY CORE · M10B.10</div><h2>${esc(snapshot.name)}</h2><p>${esc(snapshot.source)} · creation profile v${snapshot.creationProfileVersion}</p></div><i class="fa-solid fa-user-shield"></i></header>
+    <div class="rg-manual-callout"><i class="fa-solid ${snapshot.liveCommit ? "fa-circle-check" : "fa-lock"}"></i><div><b>${snapshot.liveCommit ? "LIVE CREATION AUTHORITY" : snapshot.readyWhenActive ? "READY WHEN ACTIVE" : "READ ONLY"}</b><span>${snapshot.liveCommit ? "CORE M9 may commit this profile because it is the active supported Rules Profile." : "The source-owned CORE M9 contract is available without activating or migrating this world."}</span></div></div>
+    <h3>Creation steps</h3><ol>${steps}</ol>
+  </div>`;
+}
+
+export function profileCreationActivationReadiness(profileId = "mg1e") {
+  const policy = resolveM10BCharacterCreationPolicy(profileId);
+  const profile = resolveCharacterCreationProfile(profileId);
+  return freeze({
+    phase:"M10B.10",
+    profileId:policy.rulesProfileId,
+    creationProfileId:profile.id,
+    foundationOnly:policy.foundationOnly,
+    selectable:policy.selectable,
+    supported:policy.supported,
+    readyWhenActive:policy.readyWhenActive,
+    liveCommit:policy.liveCommit,
+    coreEngine:policy.coreEngine,
+    ratedWises:policy.ratedWises,
+    inventoryPolicy:policy.inventoryPolicy,
+    conditionProvisioning:policy.conditionProvisioning,
+    automaticNpcCreation:policy.automaticNpcCreation,
+    transactionalCommit:profile.buildCommitSpec instanceof Function,
+    activationGateClosed:policy.foundationOnly || !policy.selectable || !policy.supported,
+    existingActorMigrationRequired:false
+  });
+}
+
 export function getM10B7CharacterCreationStatus() {
   const rows = ["realm-guard-legacy-mixed", "realm-guard-strict", "mg1e"].map(id => resolveM10BCharacterCreationPolicy(id));
   const mg1e = rows.find(row => row.rulesProfileId === "mg1e");
