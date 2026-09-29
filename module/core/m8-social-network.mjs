@@ -200,7 +200,9 @@ export function buildLegacySocialNetworkSnapshot(actor) {
   const recruitment = Boolean(recruitmentVersion);
   const structured = flag(actor, "recruitmentRelationships");
   const structuredVersion = Number(structured?.version ?? 0);
-  const useStructured = recruitment && structuredVersion >= 1;
+  const creationRelationships = flag(actor, "creationRelationships");
+  const useCreationRelationships = recruitment && Array.isArray(creationRelationships) && creationRelationships.length > 0;
+  const useStructured = recruitment && !useCreationRelationships && structuredVersion >= 1;
   const origin = recruitment ? RelationshipOrigin.RECRUITMENT : RelationshipOrigin.IMPORT;
   const people = [];
   const relationships = [];
@@ -268,7 +270,24 @@ export function buildLegacySocialNetworkSnapshot(actor) {
     });
   };
 
-  if (useStructured) {
+  if (useCreationRelationships) {
+    for (const entry of creationRelationships) {
+      const person = entry?.person ?? {};
+      const slot = clean(entry?.slot) || `relationship-${relationships.length + 1}`;
+      add({
+        slot,
+        raw: [clean(person?.name), clean(person?.profession), clean(person?.people), clean(person?.location)].filter(Boolean).join(", "),
+        name: clean(person?.name),
+        profession: clean(person?.profession),
+        peopleName: clean(person?.people),
+        location: clean(person?.location),
+        role: clean(entry?.role) || RelationshipRole.OTHER,
+        status: clean(entry?.status) || RelationshipStatus.UNKNOWN,
+        confidence: "STRUCTURED_HIGH",
+        sourceKind: "PROFILE_CREATION_RELATIONSHIP"
+      });
+    }
+  } else if (useStructured) {
     addStructured("parent-mother", structured.mother, RelationshipRole.PARENT);
     addStructured("parent-father", structured.father, RelationshipRole.PARENT);
     addStructured("senior-artisan", structured.seniorArtisan, RelationshipRole.SENIOR_ARTISAN);
@@ -338,9 +357,10 @@ export function buildLegacySocialNetworkSnapshot(actor) {
     people,
     relationships,
     metadata: {
-      migrationSource: useStructured ? "RECRUITMENT_STRUCTURED_RELATIONSHIPS" : recruitment ? "RECRUITMENT_2_LEGACY_FIELDS" : "LEGACY_CHARACTER_FIELDS",
+      migrationSource: useCreationRelationships ? "PROFILE_CREATION_RELATIONSHIPS" : useStructured ? "RECRUITMENT_STRUCTURED_RELATIONSHIPS" : recruitment ? "RECRUITMENT_2_LEGACY_FIELDS" : "LEGACY_CHARACTER_FIELDS",
       recruitmentVersion,
       recruitmentRelationshipsVersion: useStructured ? structuredVersion : 0,
+      profileCreationRelationships: useCreationRelationships,
       duplicatePolicy: "ACTOR_PLUS_SOURCE_SLOT",
       automaticNpcCreation: false
     }
