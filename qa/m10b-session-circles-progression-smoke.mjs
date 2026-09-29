@@ -171,6 +171,6 @@ assert.ok(conflicts.includes("Enmity Clause:"));
 assert.ok(conflicts.includes("buildM8RelationshipSheetView"));
 
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('"mg1e"'),false,"MG1E remains non-selectable in M10B.6.");
+assert.ok(activation.includes("profileActivationAvailable"),"Profile activation must use the generic metadata gate.");
 
 console.log("PASS M10B.6 Session / Circles / Progression routing · MG1E foundation v7+ · Strict wrappers · Legacy preservation · NPC resource-stack alignment");
