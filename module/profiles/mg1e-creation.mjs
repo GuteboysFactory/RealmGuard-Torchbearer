@@ -1,7 +1,7 @@
 import { CharacterCreationProfile } from "../core/m9-creation.mjs";
 
 export const MG1E_CREATION_PROFILE_ID = "mg1e";
-export const MG1E_CREATION_PROFILE_VERSION = 1;
+export const MG1E_CREATION_PROFILE_VERSION = 2;
 const SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_GUARD_RANKS = Object.freeze({
