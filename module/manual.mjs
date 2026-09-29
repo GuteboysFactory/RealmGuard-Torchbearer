@@ -125,16 +125,16 @@ function manualContent() {
   const activeName = String(active?.name ?? "Realm Guard — Legacy Mixed");
   const activeId = String(active?.id ?? "realm-guard-legacy-mixed");
   const activeVersion = String(active?.version ?? "1");
-  const sourceProfileActive = activeId === "realm-guard-strict";
+  const sourceProfileActive = activeId !== "realm-guard-legacy-mixed";
   return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
     ${referenceToolbar("Search manual & rules…")}
     <div class="rg-reference-scroll">
     <div class="rg-system-manual">
     <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · system ${systemVersion} · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. ${sourceProfileActive ? "Strict Realm Guard is active. Use the profile Rules Reference for current source-owned mechanics." : "The embedded manual text below describes the active Legacy Mixed workflow."}</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. ${sourceProfileActive ? "A source-owned Rules Profile is active. Use its profile Rules Reference for current mechanics." : "The embedded manual text below describes the active Legacy Mixed workflow."}</span></div></div>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>${sourceProfileActive ? "Source profile activation" : "How the active Legacy Mixed rules engine is built"}</b><span>${sourceProfileActive ? "The long-form manual below is retained as Legacy Mixed compatibility documentation. The active source profile uses its profile-routed Rules Reference. Existing campaign data is preserved non-destructively." : "Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions. Strict Realm Guard uses a separate MG1E 2008 → Realm Guard v1.6 lineage and is available through Rules Profile Management after conversion preview."}</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-compass"></i><div><b>${sourceProfileActive ? "Source profile activation" : "How the active Legacy Mixed rules engine is built"}</b><span>${sourceProfileActive ? "The long-form manual below is retained as Legacy Mixed compatibility documentation. The active source profile uses its own profile-routed Rules Reference. Existing campaign data is preserved non-destructively." : "Realm Guard rules take priority. Mouse Guard 2E supplies inherited core mechanics where Realm Guard does not replace them. Selected compatible Torchbearer 2E ideas are deliberately adopted where noted. Project-specific digital additions are explicitly marked as Realm Guard / Torchbearer Foundry expansions. Strict Realm Guard uses a separate MG1E 2008 → Realm Guard v1.6 lineage and is available through Rules Profile Management after conversion preview."}</span></div></div>
 
     <div class="rg-manual-legend">
       <span class="rg-rule-badge rule">RULE</span><small>tabletop rule used by the system</small>
@@ -183,7 +183,7 @@ function manualContent() {
 export async function openRealmGuardManual() {
   const activeId = String(globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.()?.id ?? "realm-guard-legacy-mixed");
   const buttons = [
-    { action: "profile-reference", label: activeId === "realm-guard-strict" ? "Open Strict Rules" : "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "profile-reference" },
+    { action: "profile-reference", label: activeId !== "realm-guard-legacy-mixed" ? "Open Active Profile Rules" : "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "profile-reference" },
     { action: "mg1e-reference", label: "Preview MG1E Rules", icon: "fa-solid fa-book-open", callback: () => "mg1e-reference" },
     { action: "rules", label: "Open Legacy Mixed Rules Journal", icon: "fa-solid fa-book-bookmark", callback: () => "rules" }
   ];
@@ -199,7 +199,7 @@ export async function openRealmGuardManual() {
   });
   if (result === "audit") setTimeout(() => void openSystemAudit(), 0);
   if (result === "rules") setTimeout(() => void openRulesReferenceJournal(), 0);
-  if (result === "profile-reference") setTimeout(() => void openProfileRulesReference(activeId === "realm-guard-strict" ? activeId : "realm-guard-strict"), 0);
+  if (result === "profile-reference") setTimeout(() => void openProfileRulesReference(activeId !== "realm-guard-legacy-mixed" ? activeId : "realm-guard-strict"), 0);
   if (result === "mg1e-reference") setTimeout(() => void openProfileRulesReference("mg1e"), 0);
 }
 
