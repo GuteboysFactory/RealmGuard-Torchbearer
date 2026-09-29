@@ -1,6 +1,14 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.10 - 🟡 M10B.10 MG1E Live Readiness Closure
+## M10B.11 - 🟡 MG1E Selectable QA Activation
+
+- Started after v1.12.0-qa.10 passed Gates A-L in Foundry VTT 13.351.
+- MG1E activation is a separate QA-only gate; stable runtime must remain unable to activate MG1E.
+- Planned switch remains settings-only, reversible and non-destructive across Legacy Mixed / Strict / MG1E.
+- No Actor/Item migration, automatic Wise rating, species-to-rank inference or destructive profile conversion is authorized.
+
+
+## v1.12.0-qa.10 - 🟢✅ M10B.10 VERIFIED / CLOSED — MG1E Live Readiness Closure
 
 - Advances MG1E foundation to profile v10 and MG1E Character Creation profile to v2.
 - Keeps MG1E FOUNDATION_ONLY, non-selectable, unsupported and non-live.
@@ -15,6 +23,7 @@
 - Adds Character Creation presentation/readiness APIs and a simulated MG1E transactional commit/rollback smoke.
 - No existing Actor/Item migration, automatic Wise rating, destructive Condition/Gear conversion or live MG1E switch is introduced.
 - Live QA follows `TEST_PROTOCOL_v1.12.0-qa.10.md`.
+- **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.10 is FULL PASS / VERIFIED / CLOSED.
 - **v1.11.0 remains STABLE / GOLD.**
 
 
