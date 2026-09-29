@@ -121,7 +121,8 @@ import {
   profileActivationAvailable,
   switchRulesProfile,
   switchToLegacyMixed,
-  switchToStrictRealmGuard
+  switchToStrictRealmGuard,
+  switchToMg1e
 } from "./m10-profile-activation.mjs";
 import {
   buildStrictHelperConsequenceContract,
@@ -149,8 +150,8 @@ export function getM10ProfilePreviewStatus() {
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
   return Object.freeze({
-    phase: "M10B.10",
-    mode: "GENERIC_PROFILE_LIVE_READINESS_ROUTER",
+    phase: "M10B.11",
+    mode: "GENERIC_PROFILE_QA_ACTIVATION_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -169,7 +170,7 @@ export function getM10ProfilePreviewStatus() {
     strictCreationLiveCommit: resolveM10BCharacterCreationPolicy("realm-guard-strict").liveCommit,
     mg1eActivationAvailable: profileActivationAvailable("mg1e"),
     mg1eCreationReadyWhenActive: resolveM10BCharacterCreationPolicy("mg1e").readyWhenActive === true,
-    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
+    nextStep: "M10B.11 MG1E Selectable QA Activation"
   });
 }
 
@@ -229,6 +230,7 @@ export function installM10ProfileConversionPreview() {
       activeProfileId: activeRulesProfileId,
       switchProfile: switchRulesProfile,
       switchToStrict: switchToStrictRealmGuard,
+      switchToMg1e,
       switchToLegacy: switchToLegacyMixed,
       previewStrictConversion,
       openStrictConversionPreview: showStrictConversionPreview,
@@ -339,6 +341,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10B.10 generic live-readiness router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.11 generic QA activation router ready", getM10ProfilePreviewStatus());
   });
 }
