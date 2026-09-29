@@ -32,7 +32,7 @@ const requiredContracts = [
   "profile-management-root",
   "profile-preview-strict",
   "profile-preview-mg1e",
-  "profile-switch-strict",
+  "profile-switch-supported",
   "profile-switch-legacy",
   "profile-switch-reload-guidance"
 ];
