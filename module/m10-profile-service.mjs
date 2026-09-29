@@ -115,6 +115,8 @@ import {
   activeRulesProfileId,
   isStrictRealmGuard,
   profileActivationStatus,
+  profileActivationAvailable,
+  switchRulesProfile,
   switchToLegacyMixed,
   switchToStrictRealmGuard
 } from "./m10-profile-activation.mjs";
@@ -141,32 +143,30 @@ function currentWorldItems() {
 
 export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
-  const strict = resolveRulesProfile("realm-guard-strict");
+  const activation = profileActivationStatus();
+  const creation = getActiveM10BCharacterCreationPolicy();
   return Object.freeze({
-    phase: "M10B.8",
-    mode: "GENERIC_PROFILE_PREVIEW_ROUTER",
+    phase: "M10B.10",
+    mode: "GENERIC_PROFILE_LIVE_READINESS_ROUTER",
     activeProfileId: active.profile.id,
-    targetProfileId: strict.profile.id,
-    targetActivationState: strict.profile.metadata?.activationState ?? "PREVIEW_ONLY",
-    liveActivation: isStrictRealmGuard(),
+    activeProfileVersion: active.profile.version,
+    activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
+    activeLiveRuleAuthority: active.profile.metadata?.foundationOnly !== true && active.profile.metadata?.liveRuleAuthority !== false,
+    activationProfiles: activation.profiles,
     profileSwitchActorItemWrites: false,
     profileSwitchWorldSettingWrites: 2,
-    conversionPreviewAvailable: true,
-    strictRulesLive: isStrictRealmGuard(),
+    conversionPreviewAvailable: active.profile.metadata?.conversionPreviewAvailable === true,
     wiseAutoConversion: false,
     profileSwitchAvailable: true,
-    conditionWrites: isStrictRealmGuard(),
-    recoveryWrites: isStrictRealmGuard(),
-    inventoryWrites: false,
-    conflictWrites: isStrictRealmGuard(),
-    sessionWrites: isStrictRealmGuard(),
-    circlesWrites: isStrictRealmGuard(),
-    progressionWrites: isStrictRealmGuard(),
-    creationWrites: getActiveM10BCharacterCreationPolicy().liveCommit,
-    strictCreationLiveCommit: resolveM10BCharacterCreationPolicy("realm-guard-strict").liveCommit,
+    creationWrites: creation.liveCommit,
+    creationReadyWhenActive: creation.readyWhenActive === true,
     scaleWrites: false,
     rulesReferenceWrites: false,
-    nextStep: "M10B.8 Comparative Scale / Rules Reference Routing QA"
+    strictRulesLive: isStrictRealmGuard(),
+    strictCreationLiveCommit: resolveM10BCharacterCreationPolicy("realm-guard-strict").liveCommit,
+    mg1eActivationAvailable: profileActivationAvailable("mg1e"),
+    mg1eCreationReadyWhenActive: resolveM10BCharacterCreationPolicy("mg1e").readyWhenActive === true,
+    nextStep: "M10B.10 MG1E Live Readiness Closure QA"
   });
 }
 
@@ -222,7 +222,9 @@ export function installM10ProfileConversionPreview() {
     globalThis.game.realmGuard.core.m10 = Object.freeze({
       getStatus: getM10ProfilePreviewStatus,
       activationStatus: profileActivationStatus,
+      activationAvailable: profileActivationAvailable,
       activeProfileId: activeRulesProfileId,
+      switchProfile: switchRulesProfile,
       switchToStrict: switchToStrictRealmGuard,
       switchToLegacy: switchToLegacyMixed,
       previewStrictConversion,
@@ -331,6 +333,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10B.8 generic Profile router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10B.10 generic live-readiness router ready", getM10ProfilePreviewStatus());
   });
 }
