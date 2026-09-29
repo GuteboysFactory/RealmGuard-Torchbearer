@@ -62,10 +62,10 @@ assert.equal(strict.presentation.showLevels, false);
 assert.equal(strict.dataPolicy.preserveInactiveData, true);
 
 assert.equal(mg1e.profile.id, "mg1e");
-assert.equal(mg1e.profile.foundationOnly, true);
-assert.equal(mg1e.profile.selectable, false);
-assert.equal(mg1e.profile.supported, false);
-assert.equal(mg1e.profile.liveRuleAuthority, false);
+assert.equal(mg1e.profile.foundationOnly, false);
+assert.equal(mg1e.profile.selectable, true);
+assert.equal(mg1e.profile.supported, true);
+assert.equal(mg1e.profile.liveRuleAuthority, true);
 assert.equal(mg1e.rules.wises.rated, true);
 assert.equal(mg1e.rules.wises.helperUse, "TEAMWORK_WISE_1D");
 assert.equal(mg1e.rules.help.synergyEnabled, false);
@@ -152,4 +152,4 @@ for (const path of routedConsumers) {
   assert.equal(source.includes("isStrictRealmGuard"), false, `${path} must remain on generic profile routing after its M10B migration.`);
 }
 
-console.log("PASS M10B capability router · generic live consumers retained through M10B.10 · MG1E foundation read-only/not selectable");
+console.log("PASS M10B capability router · generic live consumers retained through M10B.11 · MG1E QA-selectable metadata");
