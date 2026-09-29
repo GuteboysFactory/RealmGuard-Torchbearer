@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.10 — 🟢✅ M10B.10 FULL PASS / VERIFIED / CLOSED  
+**Current QA build:** v1.12.0-qa.11 — 🟡 M10B.11 MG1E Selectable QA Activation  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10B.11 — 🟡 IN PROGRESS · MG1E Selectable QA Activation  
 **Internal system id:** `realm-guard` (do not rename)
@@ -385,7 +385,7 @@ Scope:
 
 ### M10B.11 — MG1E Selectable QA Activation
 
-**Status:** 🟡 **IN PROGRESS** — separate QA activation gate.
+**Status:** 🟡 **IMPLEMENTED as v1.12.0-qa.11 candidate** — awaiting Foundry VTT 13.351 live QA.
 
 Locked scope:
 - make MG1E selectable only in QA runtime
