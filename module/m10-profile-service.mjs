@@ -48,6 +48,9 @@ import {
   profileCreationReview,
   profileCreationCommitPlan,
   profileCreationCommitPreview,
+  profileCreationPresentationSnapshot,
+  profileCreationPresentationHtml,
+  profileCreationActivationReadiness,
   familyCreationPartyContext
 } from "./m10b-character-creation.mjs";
 import {
@@ -247,6 +250,9 @@ export function installM10ProfileConversionPreview() {
       creationReview: profileCreationReview,
       creationCommitPlan: profileCreationCommitPlan,
       creationCommitPreview: profileCreationCommitPreview,
+      creationPresentationSnapshot: profileCreationPresentationSnapshot,
+      creationPresentationHtml: profileCreationPresentationHtml,
+      creationActivationReadiness: profileCreationActivationReadiness,
       comparativeScaleStatus: getM10B8ComparativeScaleStatus,
       resolveComparativeScalePolicy: resolveM10BComparativeScalePolicy,
       resolveComparativeScaleDefinition,
