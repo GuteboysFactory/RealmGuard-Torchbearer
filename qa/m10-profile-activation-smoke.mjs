@@ -78,10 +78,11 @@ for (const forbidden of ["Actor.create","createEmbeddedDocuments","deleteEmbedde
   assert.equal(activationSource.includes(forbidden), false, `Profile switch must not mutate campaign documents: ${forbidden}`);
 }
 assert.ok(activationSource.includes("restoreProfileSettings"), "Profile switch must include setting rollback.");
-assert.equal(activationSource.includes("qaRuntime"), false, "Supported Strict activation must not depend on a -qa. runtime.");
+assert.ok(activationSource.includes("qaProfileActivationRuntime"), "Generic activation gate must expose the QA-only profile boundary.");
+assert.equal(activation.profileActivationAvailable("realm-guard-strict"), true, "Supported Strict activation must remain available in stable runtime.");
 assert.equal(activationSource.includes("activation is QA-only"), false, "Supported Strict activation must remain available in stable runtime.");
 assert.ok(activationSource.includes("reloadRecommended:true"), "Supported activation must recommend reload.");
-assert.equal(activation.profileActivationAvailable("mg1e"), false, "MG1E must remain blocked by the generic activation gate.");
+assert.equal(activation.profileActivationAvailable("mg1e"), false, "MG1E QA-only activation must remain blocked in stable runtime.");
 assert.equal(beforeStatus.mg1eActivationAvailable, false);
 
 const profileMenu = fs.readFileSync("module/profile-management-menu.mjs","utf8");
@@ -204,4 +205,4 @@ assert.ok(strictReference.includes("STRICT_ACTIVE_REFERENCE"));
 assert.ok(genericReference.includes("ACTIVE RULES PROFILE"));
 assert.ok(manual.includes("openProfileRulesReference"));
 
-console.log("PASS M10A.9 Stable Activation Candidate · stable-runtime selectable · reversible settings-only switch · Legacy rollback retained");
+console.log("PASS M10A.9 stable activation regression · Strict stable-runtime selectable · MG1E QA-only gate isolated · Legacy rollback retained");
