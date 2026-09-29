@@ -84,7 +84,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.8 extends the generic profile router through Comparative Scale and profile Rules Reference while MG1E remains foundation-only and non-selectable.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10B.10 closes the remaining live-routing boundaries while MG1E remains foundation-only and non-selectable.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
@@ -126,9 +126,20 @@ export async function openRulesRegistry() {
         icon: "fa-solid fa-magnifying-glass-chart",
         callback: () => {
           const openPreview = game.realmGuard?.core?.m10?.openStrictConversionPreview;
-          if (!openPreview) return ui.notifications.warn("Realm Guard: M10 Strict conversion preview is not ready.");
+          if (!openPreview) return ui.notifications.warn("Realm Guard: Strict conversion preview is not ready.");
           void openPreview();
           return "preview-strict";
+        }
+      },
+      {
+        action: "preview-mg1e",
+        label: "Preview MG1E Conversion",
+        icon: "fa-solid fa-book-open",
+        callback: () => {
+          const openPreview = game.realmGuard?.core?.m10?.openMg1eConversionPreview;
+          if (!openPreview) return ui.notifications.warn("Realm Guard: MG1E conversion preview is not ready.");
+          void openPreview();
+          return "preview-mg1e";
         }
       },
       { action: "close", label: "Close", default: true, callback: () => "close" }
@@ -194,7 +205,7 @@ export function installRulesProfileInfrastructure() {
       exposeCoreApi();
       try {
         globalThis.Hooks?.callAll?.("realmGuardRulesProfileChanged", Object.freeze({
-          phase:"M10B.8",
+          phase:"M10B.10",
           source:"SETTING_UPDATE",
           fromProfileId:before,
           toProfileId:state.profile.id,
