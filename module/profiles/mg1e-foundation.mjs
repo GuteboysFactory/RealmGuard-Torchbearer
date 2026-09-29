@@ -4,7 +4,7 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 9,
+  version: 10,
   name: "Mouse Guard 1E — Foundation",
   classification: "SOURCE FOUNDATION / NOT SELECTABLE",
   domains: {
@@ -101,7 +101,7 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
       liveAuthority: "CORE_M9_WHEN_ACTIVE",
       readyWhenActive: true,
       profileId: "mg1e",
-      profileVersion: 1,
+      profileVersion: 2,
       familySemantics: true,
       wiseMode: "RATED",
       ratedWises: true,
