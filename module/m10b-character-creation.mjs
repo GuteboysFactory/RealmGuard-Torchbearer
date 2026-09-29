@@ -46,7 +46,7 @@ export function resolveM10BCharacterCreationPolicy(profileId = null) {
   const profileAllowsLiveCommit = liveAuthorityAllowsCommit(profile, capabilities);
 
   return freeze({
-    phase: "M10B.7",
+    phase: "M10B.10",
     source: "RESOLVED_RULES_PROFILE",
     rulesProfileId: profile.id,
     rulesProfileVersion: profile.version,
@@ -61,6 +61,7 @@ export function resolveM10BCharacterCreationPolicy(profileId = null) {
     coreEngine: String(capabilities.rules.creation.coreEngine || "CORE_M9"),
     mode: String(capabilities.rules.creation.mode || "PROFILE_DEFINED"),
     liveAuthority: String(capabilities.rules.creation.liveAuthority || "NONE"),
+    readyWhenActive: capabilities.rules.creation.readyWhenActive === true,
     profileAllowsLiveCommit,
     liveCommit: active && profileAllowsLiveCommit,
     familySemantics: capabilities.rules.creation.familySemantics === true,
@@ -219,7 +220,7 @@ export function getM10B7CharacterCreationStatus() {
   const rows = ["realm-guard-legacy-mixed", "realm-guard-strict", "mg1e"].map(id => resolveM10BCharacterCreationPolicy(id));
   const mg1e = rows.find(row => row.rulesProfileId === "mg1e");
   return freeze({
-    phase: "M10B.7",
+    phase: "M10B.10",
     mode: "GENERIC_CHARACTER_CREATION_PROFILE_ROUTER",
     coreEngine: "CORE_M9",
     profiles: rows,
@@ -228,7 +229,8 @@ export function getM10B7CharacterCreationStatus() {
       creationProfileVersion: mg1e?.creationProfileVersion ?? 0,
       foundationOnly: mg1e?.foundationOnly === true,
       selectable: mg1e?.selectable === true,
-      liveCommit: mg1e?.liveCommit === true
+      liveCommit: mg1e?.liveCommit === true,
+      readyWhenActive: mg1e?.readyWhenActive === true
     },
     writesOnResolve: 0,
     automaticConversion: false,
