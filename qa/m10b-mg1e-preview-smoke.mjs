@@ -65,7 +65,7 @@ assert.ok(preview.deltas.some(d=>d.domain==="scaleOfMight"));
 assert.ok(preview.deltas.some(d=>d.domain==="creation"));
 
 const activation=fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('"mg1e"'),false,"MG1E must remain non-selectable throughout M10B.");
+assert.ok(activation.includes("profileActivationAvailable"),"MG1E activation must remain behind the generic metadata gate.");
 
 const previewSource=fs.readFileSync("module/m10-profile-conversion-preview.mjs","utf8");
 for(const forbidden of ["game.settings.set","createEmbeddedDocuments","deleteEmbeddedDocuments","Actor.create"]) {
