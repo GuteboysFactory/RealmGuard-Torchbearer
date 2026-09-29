@@ -30,7 +30,7 @@ async function switchProfileAction(event, target) {
   const confirmed = await foundry.applications.api.DialogV2.wait({
     window:{title:`Realm Guard · Activate ${resolved.name}`,resizable:true},
     content:`<div class="realm-guard"><h2>Switch this world to ${resolved.name}?</h2>
-      <p>This is a <b>supported profile switch</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
+      <p>This is a <b>${resolved.metadata?.qaActivationOnly ? "QA-only" : "supported"} profile switch</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
       <p><b>World impact:</b> ${preview.worldImpact?.rangers ?? 0} Rangers · ${preview.worldImpact?.wiseItems ?? 0} Wise Items · ${preview.worldImpact?.actorsWithProfileSpecificConditions ?? 0} Actor(s) with profile-specific Conditions.</p>
       <p>No automatic Wise rating, Talent deletion, Condition deletion or inventory migration will occur.</p>
       <p><b>Reload the world after switching.</b></p></div>`,
@@ -91,7 +91,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
           : row.foundationOnly ? "Foundation-only: live activation remains locked."
             : !row.selectable ? "Profile is not selectable."
               : !row.supported ? "Profile is not marked supported."
-                : "Profile is not in an activatable state."
+                : row.qaActivationOnly && !activation.qaRuntime ? "QA-only profile: activation is available only in a -qa. build."
+                  : "Profile is not in an activatable state."
       }));
     return foundry.utils.mergeObject(context, {
       activeProfile:{
@@ -107,19 +108,20 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       },
       mg1eProfile:{
         id:mg1e.profile.id,name:mg1e.profile.name,version:mg1e.profile.version,
-        activationState:mg1e.profile.metadata?.activationState ?? "FOUNDATION_ONLY",
+        activationState:mg1e.profile.metadata?.activationState ?? "QA_ACTIVE",
         classification:mg1e.profile.classification,
         sourceLineage:(mg1e.profile.metadata?.sourceLineage ?? []).join(" → "),
         rulesSnapshotHash:mg1e.profile.rulesSnapshotHash,
-        selectable:mg1e.profile.metadata?.selectable !== false
+        selectable:mg1e.profile.metadata?.selectable !== false,
+        qaActivationOnly:mg1e.profile.metadata?.qaActivationOnly === true
       },
       impactRows:impactRows(mgPreview.worldImpact),
       previewAvailable:true,
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
-      phase:"M10B.10",
-      nextStep:"MG1E live-readiness is being closed behind its activation gate; it remains non-selectable in this build"
+      phase:"M10B.11",
+      nextStep:"MG1E is selectable only in QA builds for M10B.11; profile switching remains reversible and settings-only"
     }, { inplace:false });
   }
 }
