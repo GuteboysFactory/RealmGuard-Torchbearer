@@ -1,21 +1,23 @@
-# Realm Guard / Torchbearer v1.12.0-qa.8 — M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing
+# Realm Guard / Torchbearer v1.12.0-qa.10 — M10B.10 MG1E Live Readiness Closure
 
-Built after v1.12.0-qa.7 M10B.7 passed full live Foundry VTT 13.351 QA.
+Built after v1.12.0-qa.8 M10B.8 passed full live Foundry VTT 13.351 QA and the M10B.9 activation-readiness audit.
 
 Highlights:
-- advances MG1E foundation to profile v9; remains FOUNDATION_ONLY / non-selectable / non-live
-- adds generic read-only Comparative Scale provider
-- adds source-owned MG1E Natural Order ranks 1–9 with Mouse rank 3
-- adds MG1E Fighter/Hunter outcome planning
-- adds MG1E Militarist thresholds 20 / 100 / 200 / 2,000 / 20,000
-- adds MG1E Scientist high-scale guided planning
-- preserves Realm Guard v1.6 Scale of Might ranks 1–6, Dúnadan rank 3 and thresholds 10 / 100 / 1,000 / 10,000
-- preserves Lore Master Effective Rank and Token of Power manual guidance
-- keeps illustrated Realm Guard army table alternate/reference only
-- Strict Scale API now delegates to generic M10B.8 provider
-- adds generic profile Rules Reference for Strict and MG1E
-- Strict Rules Reference API remains as compatibility wrapper
-- Manual uses generic profile reference routing and adds MG1E read-only preview
-- Legacy Mixed permanent Rules Journal remains untouched
-- no MG1E activation, Actor scale migration, NPC auto-rank inference or live Conflict enforcement
+- advances the MG1E foundation to profile v10 and MG1E Character Creation profile to v2
+- keeps MG1E FOUNDATION_ONLY, non-selectable, unsupported and non-live
+- replaces the two-profile activation whitelist with a generic metadata-driven activation gate
+- explicitly proves that MG1E activation remains rejected with zero setting writes
+- routes rated-Wise Item Sheet editing through profile capabilities instead of Strict identity
+- routes Conflict descriptor-Nature availability through profile policy instead of a Strict id check
+- routes Manual active-profile Rules Reference presentation generically
+- makes Profile Management activation reporting generic while keeping MG1E locked
+- adds generic M10 live-readiness status / APIs
+- promotes MG1E CORE M9 Character Creation to READY_WHEN_ACTIVE while live execution remains disabled
+- makes M9 skill and Condition provisioning profile-owned
+- carries the full MG1E canonical Skill set in new-character commit plans
+- provisions the MG1E Sick condition set from the commit plan
+- lets CORE M8 ingest profile-owned creation relationships
+- adds a profile-owned Character Creation presentation/readiness contract
+- adds simulated MG1E transactional-commit QA, including compensating rollback
+- performs no existing Actor/Item migration and no live MG1E activation
 - v1.11.0 remains STABLE / GOLD
