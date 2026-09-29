@@ -13,5 +13,5 @@
 # CORE M8 profile creation relationships supported
 # simulated MG1E transactional commit + rollback smoke
 # no existing Actor/Item migration or destructive conversion
-# historical Profile Management smoke migrated to generic switch contract
+# historical Profile Management + MG1E activation smokes migrated to generic switch contract
 # Foundry v13.351 QA required
