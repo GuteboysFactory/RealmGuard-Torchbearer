@@ -147,6 +147,7 @@ export function buildM10BGearInventoryConflictPolicy(capabilities) {
       actionsPerExchange: Math.max(1, Number(conflict.actionsPerExchange ?? 3)),
       rotateParticipants: conflict.rotateParticipants !== false,
       helpAllowed: conflict.helpAllowed !== false,
+      descriptorNatureAllowed: conflict.descriptorNatureAllowed === true,
       toolScope: String(conflict.toolScope ?? "PROFILE_DEFINED"),
       unarmedDefaultDice: Number(conflict.unarmedDefaultDice ?? (familySemantics ? 0 : -1)),
       toolContent: String(conflict.toolContent ?? (familySemantics ? "MG1E_2008" : "LEGACY_CURRENT")),
