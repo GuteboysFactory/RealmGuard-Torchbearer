@@ -1,17 +1,16 @@
-1.12.0-qa.8
-# M10B.8 Comparative Scale / Natural Order + Generic Rules Reference Routing
-# M10B.7 live QA FULL PASS / VERIFIED / CLOSED
-# MG1E foundation advanced to profile v9; remains FOUNDATION_ONLY / non-selectable / non-live
-# generic Comparative Scale provider added
-# source-owned MG1E Natural Order ranks 1-9; Mouse rank 3
-# MG1E Fighter/Hunter, Militarist and Scientist guided planners
-# Strict Realm Guard v1.6 Scale of Might delegated to generic provider
-# Strict v1.6 army table remains authoritative; illustrated table alternate/reference only
-# generic profile Rules Reference for Strict and MG1E
-# Strict reference API retained as compatibility wrapper
-# Manual routes rules previews through generic provider
-# permanent Legacy Mixed Rules Journal untouched
-# no Actor/Item/Journal/settings scale writes
-# no MG1E activation, auto-rank inference or live Conflict blocking
+1.12.0-qa.10
+# M10B.10 MG1E Live Readiness Closure
+# M10B.8 live QA FULL PASS / VERIFIED / CLOSED
+# M10B.9 activation-readiness audit COMPLETE
+# MG1E Rules Profile v10 / Character Creation profile v2
+# MG1E remains FOUNDATION_ONLY / non-selectable / unsupported / non-live
+# generic metadata-driven profile activation gate; MG1E stays rejected
+# rated Wise Item editor routed by profile capabilities
+# Conflict descriptor Nature routed by profile policy
+# Manual / Profile Management / M10 readiness routing generalized
+# MG1E CORE M9 creation contract READY_WHEN_ACTIVE behind closed gate
+# profile-owned M9 Skill / Condition provisioning
+# CORE M8 profile creation relationships supported
+# simulated MG1E transactional commit + rollback smoke
+# no existing Actor/Item migration or destructive conversion
 # Foundry v13.351 QA required
-# activation manual smoke migrated to generic Rules Reference routing
