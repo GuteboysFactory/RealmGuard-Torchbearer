@@ -257,6 +257,7 @@ export function buildProfileCapabilities(profile) {
         profileId: text(d.creation?.profileId, profile.id),
         profileVersion: numeric(d.creation?.profileVersion, 0),
         liveAuthority: text(d.creation?.liveAuthority, "NONE"),
+        readyWhenActive: bool(d.creation?.readyWhenActive, false),
         familySemantics: bool(d.creation?.familySemantics, false),
         wiseMode: text(d.creation?.wiseMode, ratedWises ? "RATED" : "UNRATED").toUpperCase(),
         ratedWises: bool(d.creation?.ratedWises, ratedWises),
