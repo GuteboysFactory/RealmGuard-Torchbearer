@@ -19,10 +19,10 @@
   {{/if}}
 
   {{#if isWise}}
-    {{#if isStrictProfile}}
+    {{#if showRatedWiseControls}}
       <section class="rg-wise-editor-block">
         <div class="rg-wise-editor-head">
-          <div><h3><i class="fa-solid fa-book-open"></i> Rated Wise</h3><small>Strict Realm Guard only. Assigning a rating is an explicit edit; profile switching never guesses or migrates old Wises.</small></div>
+          <div><h3><i class="fa-solid fa-book-open"></i> Rated Wise</h3><small>Rated-Wise profile. Assigning a rating is an explicit edit; profile switching never guesses or migrates old Wises.</small></div>
           {{#if system.rating}}<span class="rg-wise-editor-rating">RATING {{system.rating}}</span>{{else}}<span class="rg-wise-editor-unrated">UNRATED</span>{{/if}}
         </div>
         <label>Rating<input type="number" name="system.rating" value="{{system.rating}}" min="0" max="12" /><small>0 keeps this preserved Wise unrated. A rating above 0 makes it testable and available for I Am Wise.</small></label>
