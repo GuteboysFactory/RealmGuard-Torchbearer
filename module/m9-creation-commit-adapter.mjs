@@ -1,5 +1,5 @@
 import { ensureDefaultSkills, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
-import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
+import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS, isDefaultCondition } from "./conditions.mjs";
 import { ensureM8RecruitmentNetwork } from "./m8-social-network-service.mjs";
 
 function clone(value) {
@@ -41,9 +41,15 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
+function plannedSkillNames(plan) {
+  const ratings = plan.provisioning?.canonicalSkills?.ratings ?? {};
+  const explicit = Array.isArray(plan.provisioning?.canonicalSkills?.names) ? plan.provisioning.canonicalSkills.names : [];
+  return [...new Set([...(explicit.length ? explicit : RG_DEFAULT_SKILLS), ...Object.keys(ratings)].map(name => String(name ?? "").trim()).filter(Boolean))];
+}
+
 function skillProjection(plan) {
   const ratings = plan.provisioning?.canonicalSkills?.ratings ?? {};
-  return RG_DEFAULT_SKILLS.map(name => ({
+  return plannedSkillNames(plan).map(name => ({
     name,
     rating: Number(ratings[name]?.rating ?? 0),
     learning: clone(ratings[name]?.learning ?? { passed: 0, failed: 0, passNeeded: 1, failNeeded: 1 }),
@@ -113,7 +119,26 @@ function fault(armedPhase, phase) {
 }
 
 async function applySkillRatings(actor, plan) {
-  await ensureDefaultSkills(actor);
+  const explicitNames = Array.isArray(plan.provisioning?.canonicalSkills?.names) ? plan.provisioning.canonicalSkills.names : [];
+  if (!explicitNames.length) await ensureDefaultSkills(actor);
+
+  const wanted = plannedSkillNames(plan);
+  const existing = new Map(Array.from(actor?.items ?? []).filter(entry => entry.type === "role").map(item => [String(item.name ?? "").trim().toLowerCase(), item]));
+  const missing = wanted.filter(name => !existing.has(name.toLowerCase())).map(name => ({
+    name,
+    type: "role",
+    flags: { "realm-guard": { defaultSkill: true, profileProvisionedSkill: true } },
+    system: {
+      rating: 0,
+      learning: { passed: 0, failed: 0, passNeeded: 1, failNeeded: 1 },
+      beginnerAttempts: 0,
+      description: "",
+      notes: "",
+      versus: false
+    }
+  }));
+  if (missing.length) await actor.createEmbeddedDocuments("Item", missing);
+
   const ratings = plan.provisioning?.canonicalSkills?.ratings ?? {};
   const updates = [];
   for (const item of Array.from(actor?.items ?? []).filter(entry => entry.type === "role")) {
@@ -130,6 +155,43 @@ async function applySkillRatings(actor, plan) {
   return updates.length;
 }
 
+async function ensurePlannedConditions(actor, plan) {
+  const names = Array.isArray(plan.provisioning?.canonicalConditions?.names) ? plan.provisioning.canonicalConditions.names : [];
+  if (!names.length) return ensureDefaultConditions(actor);
+  const normalize = value => String(value ?? "").trim().toLowerCase();
+  const existing = new Map(Array.from(actor?.conditions ?? []).map(item => [normalize(item.name), item]));
+  const definitions = new Map(RG_DEFAULT_CONDITIONS.map(entry => [normalize(entry.name), entry]));
+  const create = [];
+  for (const name of names) {
+    const key = normalize(name);
+    const found = existing.get(key);
+    if (found) {
+      if (!isDefaultCondition(found)) await found.setFlag("realm-guard", "defaultCondition", true);
+      continue;
+    }
+    const source = definitions.get(key);
+    if (!source) continue;
+    create.push({
+      name: source.name,
+      type: "condition",
+      flags: { "realm-guard": { defaultCondition: true, profileProvisionedCondition: true } },
+      system: {
+        active: false,
+        icon: source.icon,
+        rollModifier: source.rollModifier,
+        appliesTo: source.appliesTo ?? "all",
+        recoveryType: source.recoveryType ?? "manual",
+        recoveryAbility: source.recoveryAbility ?? "",
+        recoveryRole: source.recoveryRole ?? "",
+        recoveryObstacle: Number(source.recoveryObstacle ?? 1),
+        recoveryNote: source.recoveryNote ?? "",
+        description: `<p>${source.description}</p>`
+      }
+    });
+  }
+  return create.length ? actor.createEmbeddedDocuments("Item", create) : [];
+}
+
 async function createPlannedItems(actor, plan) {
   const docs = [
     ...clone(plan.provisioning?.traits ?? []),
@@ -144,7 +206,7 @@ const DEFAULT_RUNTIME = Object.freeze({
   createActor: defaultCreateActor,
   applySkillRatings,
   createPlannedItems,
-  ensureConditions: ensureDefaultConditions,
+  ensureConditions: ensurePlannedConditions,
   normalizeRelationships: ensureM8RecruitmentNetwork
 });
 
@@ -271,7 +333,7 @@ export class FoundryCreationCommitAdapter {
 
       phase = "PROVISION_CONDITIONS";
       fault(faultPhase, phase);
-      await this.runtime.ensureConditions(actor);
+      await this.runtime.ensureConditions(actor, plan);
       completedPhases.push(phase);
 
       phase = "NORMALIZE_RELATIONSHIPS";
