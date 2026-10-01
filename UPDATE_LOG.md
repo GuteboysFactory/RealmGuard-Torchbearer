@@ -1,6 +1,21 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.12 - 🟡 M10C.1 MG2E Source Audit & Profile Foundation
+## v1.12.0-qa.13 - 🟡 M10C.2 MG2E Domain-Completion Audit + Generic Conversion Preview Routing
+
+- M10C.1 is now FULL PASS / VERIFIED / CLOSED after Gates A-I passed in Foundry VTT 13.351.
+- Advances standalone `mg2e` Rules Profile to v2 while keeping it `FOUNDATION_ONLY`, non-selectable, unsupported and non-live.
+- Completes read-only source ownership for MG2E advancement, Gear/carrying, Conflict, Players' Turn / End Session, Natural Order and Recruitment rank templates.
+- Adds standalone MG2E Natural Order definition instead of inheriting MG1E; source-owned MG2E-only rank differences remain isolated.
+- Adds MG2E conversion preview to Profile Management, Rules Registry and CORE M10 API.
+- Preview performs zero Actor, Item, Journal and world-setting writes and cannot activate MG2E.
+- MG2E Wises remain unrated; Trait L2 remains +1D twice/session; Sick Healer remains Ob4.
+- Recruitment remains foundation-only with no transactional CORE M9 commit authority.
+- Legacy Mixed, Strict Realm Guard and MG1E routing remain unchanged.
+- Adds dedicated M10C.2 smoke coverage, source audit and Foundry v13.351 live protocol.
+- v1.11.0 remains STABLE / GOLD.
+
+
+## v1.12.0-qa.12 - 🟢✅ M10C.1 VERIFIED / CLOSED — MG2E Source Audit & Profile Foundation
 
 - M10B.11 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
 - Starts M10C with a standalone Mouse Guard 2E source profile foundation; MG2E does not inherit MG1E or Realm Guard.
@@ -12,6 +27,7 @@
 - Recruitment foundation records five Guard ranks, Nature base 3/questions, skill cap 6 and rank-based unrated Wise counts.
 - No activation path, conversion preview, Actor/Item migration or campaign mutation is introduced.
 - Adds dedicated M10C.1 smoke coverage and live QA protocol for foundation isolation.
+- **Live QA:** Gates A-I all PASS in Foundry VTT 13.351; M10C.1 is FULL PASS / VERIFIED / CLOSED.
 - v1.11.0 remains STABLE / GOLD.
 
 
