@@ -422,7 +422,7 @@ export function mg2eWeaponActionPlan(name, action, context = {}) {
   }
 
   let dice = Number(def[act + "Dice"] ?? 0);
-  let conditionalSuccess = Number(def[act + "Success"] ?? 0);
+  let conditionalSuccess = context.successful === true ? Number(def[act + "Success"] ?? 0) : 0;
   let autoDisarm = false;
 
   if (key === "sword" && Number(def.chooseOneFightActionDice ?? 0) !== 0) {
@@ -446,7 +446,7 @@ export function mg2eWeaponActionPlan(name, action, context = {}) {
     missile: def.missile === true,
     twoHands: def.twoHands === true,
     shieldCompatible: def.shieldCompatible !== false,
-    fatigueRecoveryHealthDice: Number(def.fatigueRecoveryHealthDice ?? 0),
+    fatigueRecoveryHealthDice: context.usedPreviousTurn === true ? Number(def.fatigueRecoveryHealthDice ?? 0) : 0,
     definition: { ...def },
     liveApplication: false,
     writesPlanned: 0
