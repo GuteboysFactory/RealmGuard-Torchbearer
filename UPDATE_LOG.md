@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.14 - 🟡 M10C.3 MG2E Shadow Rule Adapters / Activation-Readiness Foundation
+
+- M10C.2 is now FULL PASS / VERIFIED / CLOSED after Gates A-J passed in Foundry VTT 13.351.
+- Advances standalone `mg2e` Rules Profile to v3 while keeping it `FOUNDATION_ONLY`, non-selectable, unsupported and non-live.
+- Adds dedicated MG2E read-only shadow adapters for Tests, Advancement, Beginner's Luck learning, Traits, unrated Wises, Help, Nature, Recovery, Gear/carrying, Conflict, Players' Turn / End Session, Circles, Natural Order and Character Creation foundation.
+- Exposes shadow planners under `game.realmGuard.core.m10.mg2e` without adding a MG2E activation helper.
+- Adds explicit activation-readiness reporting and keeps activation blocked behind remaining Recruitment commit, Rules Reference, live-parity and explicit activation milestones.
+- Character Creation remains preview/foundation only; no transactional commit, provenance write or relationship write is authorized.
+- Natural Order remains read-only through the generic Comparative Scale router; no Actor rank inference or write is introduced.
+- Shadow adapters report `liveApplication:false` and plan zero Actor / Item / Journal / world-setting writes.
+- Legacy Mixed, Strict Realm Guard and MG1E routing remain unchanged.
+- v1.11.0 remains STABLE / GOLD.
+
 ## v1.12.0-qa.13 - 🟡 M10C.2 MG2E Domain-Completion Audit + Generic Conversion Preview Routing
 
 - M10C.1 is now FULL PASS / VERIFIED / CLOSED after Gates A-I passed in Foundry VTT 13.351.
