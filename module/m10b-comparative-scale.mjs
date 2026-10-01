@@ -290,7 +290,8 @@ export function getM10B8ComparativeScaleStatus() {
   const mg1e = resolveM10BComparativeScalePolicy("mg1e");
   const mg2e = resolveM10BComparativeScalePolicy("mg2e");
   return freeze({
-    phase:"M10C.2",
+    phase:"M10B.8",
+    extendedPhase:"M10C.2",
     mode:"GENERIC_COMPARATIVE_SCALE",
     profiles:{legacy,strict,mg1e,mg2e},
     writesActors:false,
