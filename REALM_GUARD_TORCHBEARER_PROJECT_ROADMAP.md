@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.11 — 🟡 M10B.11 MG1E Selectable QA Activation  
+**Current QA build:** v1.12.0-qa.12 — 🟡 M10C.1 MG2E Source Audit & Profile Foundation  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10B.11 — 🟡 IN PROGRESS · MG1E Selectable QA Activation  
+**Current CORE gate:** M10C.1 — 🟡 IN PROGRESS · MG2E Source Audit & Profile Foundation  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -385,7 +385,7 @@ Scope:
 
 ### M10B.11 — MG1E Selectable QA Activation
 
-**Status:** 🟡 **IMPLEMENTED as v1.12.0-qa.11 candidate** — awaiting Foundry VTT 13.351 live QA.
+**Status:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** on v1.12.0-qa.11 in Foundry VTT 13.351.
 
 Locked scope:
 - make MG1E selectable only in QA runtime
@@ -402,7 +402,29 @@ Locked scope:
 - Strict remains supported and reversible
 - stable channel remains v1.11.0 until a later explicit stable-candidate gate
 
-**M10B.11 PASS gate:** full Foundry v13.351 QA must prove the QA-only activation boundary, reversible multi-profile switching, reload persistence, MG1E live rules routing, live MG1E Recruitment/CORE M9 commit, rollback safety and unchanged existing campaign documents.
+**M10B.11 PASS gate:** 🟢✅ PASSED. Gates A-L verified the QA-only activation boundary, reversible multi-profile switching, reload persistence, MG1E live rules routing, live MG1E Recruitment/CORE M9 commit, rollback safety, existing-data safety and multi-client refresh.
+
+**M10B closure:** ✅ **VERIFIED / CLOSED**. MG1E is a functioning third profile path in QA runtime; stable remains v1.11.0 until a later explicit promotion gate.
+
+### M10C — Mouse Guard 2E explicit profile
+
+**Status:** 🟡 **M10C.1 IN PROGRESS** — source-audited foundation only.
+
+**M10C.1 scope — MG2E Source Audit & Profile Foundation:**
+- register standalone `mg2e` Rules Profile v1; it does not inherit MG1E or Realm Guard
+- keep MG2E `FOUNDATION_ONLY`, non-selectable, unsupported and non-live
+- encode only source-audited 2015 domains; no silent fallback for unaudited domains
+- source-own Mouse Nature descriptors: Escaping / Climbing / Hiding / Foraging
+- source-own MG2E Trait semantics: L1 +1D once/session, L2 +1D twice/session, L3 +1s on applicable tests
+- source-own unrated Wises and I Am Wise / Deeper Understanding / Of Course! effects
+- source-own five adverse Conditions and MG2E Recovery order/routes, including Healer Ob3 for Injured and Ob4 for Sick
+- source-own Circles hometown +1D, known Contact +1D and Enmity Clause +3s
+- establish MG2E Recruitment foundation: five Guard ranks, Nature base 3/questions, skill cap 6, rank-based unrated Wise counts
+- preserve Levels/Talents and Tokens of Power as inactive/non-MG2E domains
+- no activation UI/API, no conversion preview yet, no Actor/Item/Journal/settings writes
+- no existing campaign-data migration
+
+**M10C.1 PASS gate:** profile resolves independently as `mg2e`; audited domains match the 2015 source contracts; activation remains impossible; Legacy Mixed / Strict / MG1E behavior remains unchanged; release smokes are green.
 
 ### M9 — Creation / Recruitment Migration
 
