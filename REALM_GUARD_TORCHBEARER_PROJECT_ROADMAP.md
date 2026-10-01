@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.13 — 🟡 M10C.2 MG2E Domain-Completion Audit + Conversion Preview  
+**Current QA build:** v1.12.0-qa.14 — 🟡 M10C.3 MG2E Shadow Rule Adapters / Activation-Readiness Foundation  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.2 — 🟡 IN PROGRESS · MG2E Domain-Completion Audit + Generic Conversion Preview Routing  
+**Current CORE gate:** M10C.3 — 🟡 IN PROGRESS · MG2E Shadow Rule Adapters / Activation-Readiness Foundation  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -408,7 +408,7 @@ Locked scope:
 
 ### M10C — Mouse Guard 2E explicit profile
 
-**Status:** 🟡 **M10C.2 IN PROGRESS** — M10C.1 is FULL PASS / VERIFIED / CLOSED; source-domain completion and read-only preview routing are now under QA.
+**Status:** 🟡 **M10C.3 IN PROGRESS** — M10C.1 and M10C.2 are FULL PASS / VERIFIED / CLOSED; read-only MG2E shadow adapters and activation-readiness reporting are now under QA.
 
 **M10C.1 scope — MG2E Source Audit & Profile Foundation:**
 - register standalone `mg2e` Rules Profile v1; it does not inherit MG1E or Realm Guard
@@ -442,9 +442,24 @@ Locked scope:
 - no MG2E activation API/button, no Actor migration, no Wise conversion, no Condition cleanup, no inventory rewrite
 - preserve Legacy Mixed / Strict / MG1E behavior
 
-**M10C.2 PASS gate:** MG2E v2 resolves independently; domain contracts and Natural Order match the 2015 source; preview is read-only and available from UI/API; activation remains impossible; no campaign data is mutated; existing profiles remain unchanged; release pipeline and Foundry v13.351 QA are green.
+**M10C.2 PASS gate:** 🟢✅ PASSED. MG2E v2 resolves independently; domain contracts and Natural Order match the 2015 source; preview is read-only and available from UI/API; activation remains impossible; no campaign data is mutated; existing profiles remain unchanged; release pipeline and Foundry v13.351 QA are green.
 
-**Next bounded slice after closure:** **M10C.3 — MG2E Shadow Rule Adapters / Activation-Readiness Foundation**.
+**M10C.2 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351.
+
+**M10C.3 scope — MG2E Shadow Rule Adapters / Activation-Readiness Foundation:**
+- advance standalone `mg2e` Rules Profile v2 → v3 while retaining FOUNDATION_ONLY / non-selectable / unsupported / non-live state
+- add dedicated read-only MG2E shadow adapters sourced only from the MG2E profile domains
+- cover Tests, Advancement, Beginner's Luck learning, Traits, unrated Wise effects, Help, Mouse Nature, Recovery, Gear/carrying, Conflict, Players' Turn / End Session, Circles, Natural Order and Character Creation foundation
+- expose the shadow adapters under `game.realmGuard.core.m10.mg2e`
+- keep all shadow plans at `liveApplication:false` with zero Actor / Item / Journal / settings writes
+- keep MG2E Natural Order on the existing generic Comparative Scale service without species→rank writes
+- add explicit activation-readiness reporting with blockers instead of enabling activation
+- Character Creation remains foundation/read-only: no transactional commit adapter, no provenance write, no relationship write
+- preserve Legacy Mixed / Strict / MG1E behavior and historical M10B phase metadata
+
+**M10C.3 PASS gate:** all MG2E shadow adapters resolve source-correct values in Foundry v13.351; activation-readiness reports the remaining blockers; MG2E stays FOUNDATION_ONLY and unactivatable; no existing campaign data changes; Legacy/Strict/MG1E regressions remain green.
+
+**Next bounded slice after closure:** **M10C.4 — MG2E Activation-Readiness Closure Audit**.
 
 ### M9 — Creation / Recruitment Migration
 
