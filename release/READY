@@ -1,13 +1,13 @@
-1.12.0-qa.12
-# M10C.1 MG2E Source Audit & Profile Foundation
-# M10B.11 live QA FULL PASS / VERIFIED / CLOSED
-# standalone MG2E Rules Profile v1
+1.12.0-qa.13
+# M10C.2 MG2E Domain-Completion Audit + Generic Conversion Preview Routing
+# M10C.1 live QA FULL PASS / VERIFIED / CLOSED
+# standalone MG2E Rules Profile v2
 # FOUNDATION_ONLY / non-selectable / unsupported / non-live
-# no MG1E or Realm Guard inheritance
-# audited Nature / Traits / unrated Wises / Help / Conditions / Recovery / Circles / Recruitment foundation
-# no MG2E activation API or Profile Management switch
-# no conversion preview yet
-# no Actor/Item/Journal/world-setting migration
+# complete read-only advancement / inventory / conflict / session / Natural Order / Recruitment foundation
+# standalone MG2E Natural Order; no MG1E fallback
+# read-only MG2E conversion preview in Profile Management / Rules Registry / CORE API
+# zero Actor/Item/Journal/world-setting writes
+# no MG2E activation API/button
+# no MG2E CORE M9 live commit
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
-# retrigger after preserving historical profile-capability phase
