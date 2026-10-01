@@ -248,7 +248,8 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
       tenderpawMentorMustBeCurrentPlayerCharacterPreferredPatrolLeader: true,
       experiencedMentorRequiresNpcOrOldfurPc: true,
       enemyValidation: "MG2E_OPTIONAL_ANY_APPROPRIATE_ENEMY",
-      enemyHouseRuleAllowed: true,
+      enemyScope: "ANY_APPROPRIATE_CHARACTER_OR_CREATURE",
+      enemyHouseRuleAllowed: false,
       cloakTenderpawStartsWithout: true,
       startingRewards: { fate: 1, persona: 1 },
       startingGear: {
