@@ -86,6 +86,35 @@ import {
   profileRulesReferenceSnapshot
 } from "./m10b-rules-reference.mjs";
 import {
+  getM10C3Mg2eShadowStatus,
+  mg2eActivationReadiness,
+  mg2eAdvancementPlan,
+  mg2eAdvancementRequirements,
+  mg2eArmorPlan,
+  mg2eBeginnerLearningPlan,
+  mg2eCirclesPlan,
+  mg2eConflictActionSkills,
+  mg2eConflictDispositionPlan,
+  mg2eCreationShadowSnapshot,
+  mg2eEndSessionPlan,
+  mg2eGearRelevancePlan,
+  mg2eHelpPlan,
+  mg2eInventoryPlan,
+  mg2eNaturePlan,
+  mg2ePlayerTurnPlan,
+  mg2eRecoveryPlan,
+  mg2eScaleEntry,
+  mg2eScaleGroupWarPlan,
+  mg2eScaleOutcomePlan,
+  mg2eScaleRankFor,
+  mg2eScaleSpecialPlan,
+  mg2eTestPolicySnapshot,
+  mg2eTraitAgainstPlan,
+  mg2eTraitBenefitPlan,
+  mg2eWeaponActionPlan,
+  mg2eWiseUsePlan
+} from "./m10c-mg2e-shadow-adapters.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -150,8 +179,8 @@ export function getM10ProfilePreviewStatus() {
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
   return Object.freeze({
-    phase: "M10C.2",
-    mode: "GENERIC_PROFILE_FOUNDATION_PREVIEW_ROUTER",
+    phase: "M10C.3",
+    mode: "GENERIC_PROFILE_FOUNDATION_PREVIEW_ROUTER_PLUS_MG2E_SHADOW",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -173,7 +202,9 @@ export function getM10ProfilePreviewStatus() {
     mg2eActivationAvailable: profileActivationAvailable("mg2e"),
     mg2eFoundationOnly: resolveRulesProfile("mg2e").profile.metadata?.foundationOnly === true,
     mg2eConversionPreviewAvailable: resolveRulesProfile("mg2e").profile.metadata?.conversionPreviewAvailable === true,
-    nextStep: "M10C.2 MG2E Domain-Completion Audit + Generic Conversion Preview Routing"
+    mg2eShadowAdaptersReady: resolveRulesProfile("mg2e").profile.metadata?.shadowAdaptersReady === true,
+    mg2eActivationReadiness: mg2eActivationReadiness(),
+    nextStep: "M10C.4 MG2E activation-readiness closure audit"
   });
 }
 
@@ -263,6 +294,36 @@ export function installM10ProfileConversionPreview() {
       openMg1eConversionPreview: showMg1eConversionPreview,
       previewMg2eConversion,
       openMg2eConversionPreview: showMg2eConversionPreview,
+      mg2eShadowStatus: getM10C3Mg2eShadowStatus,
+      mg2e: Object.freeze({
+        getStatus: getM10C3Mg2eShadowStatus,
+        activationReadiness: mg2eActivationReadiness,
+        testPolicy: mg2eTestPolicySnapshot,
+        advancementRequirements: mg2eAdvancementRequirements,
+        advancementPlan: mg2eAdvancementPlan,
+        beginnerLearningPlan: mg2eBeginnerLearningPlan,
+        traitBenefitPlan: mg2eTraitBenefitPlan,
+        traitAgainstPlan: mg2eTraitAgainstPlan,
+        wiseUsePlan: mg2eWiseUsePlan,
+        helpPlan: mg2eHelpPlan,
+        naturePlan: mg2eNaturePlan,
+        recoveryPlan: mg2eRecoveryPlan,
+        inventoryPlan: mg2eInventoryPlan,
+        conflictActionSkills: mg2eConflictActionSkills,
+        conflictDispositionPlan: mg2eConflictDispositionPlan,
+        weaponActionPlan: mg2eWeaponActionPlan,
+        armorPlan: mg2eArmorPlan,
+        gearRelevancePlan: mg2eGearRelevancePlan,
+        playerTurnPlan: mg2ePlayerTurnPlan,
+        endSessionPlan: mg2eEndSessionPlan,
+        circlesPlan: mg2eCirclesPlan,
+        scaleRankFor: mg2eScaleRankFor,
+        scaleEntry: mg2eScaleEntry,
+        scaleOutcomePlan: mg2eScaleOutcomePlan,
+        scaleGroupWarPlan: mg2eScaleGroupWarPlan,
+        scaleSpecialPlan: mg2eScaleSpecialPlan,
+        creationShadowSnapshot: mg2eCreationShadowSnapshot
+      }),
       gearInventoryConflictStatus: getM10B5GearInventoryConflictStatus,
       resolveGearInventoryConflictPolicy: resolveM10BGearInventoryConflictPolicy,
       sessionCirclesProgressionStatus: getM10B6SessionCirclesProgressionStatus,
@@ -368,6 +429,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.2 generic profile preview router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.3 MG2E shadow adapter router ready", getM10ProfilePreviewStatus());
   });
 }
