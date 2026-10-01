@@ -1,5 +1,6 @@
 const STRICT_TARGET_ID = "realm-guard-strict";
 const MG1E_TARGET_ID = "mg1e";
+const MG2E_TARGET_ID = "mg2e";
 
 export const STRICT_CONVERSION_DELTAS = Object.freeze([
   { id:"SOURCE_LINEAGE", domain:"profile", severity:"RULE_OWNERSHIP", title:"Rules source lineage", from:"Legacy Mixed project behavior", to:"Mouse Guard 1E / 2008 inheritance + Realm Guard v1.6 overrides", dataAction:"NONE", note:"Changes source ownership and interpretation, not stored campaign data." },
@@ -30,6 +31,22 @@ export const MG1E_CONVERSION_DELTAS = Object.freeze([
   { id:"CREATION", domain:"creation", severity:"FUTURE_CREATION_ONLY", title:"MG1E Character Creation", from:"Current profile creation model", to:"MG1E 21-step source creation model", dataAction:"NO_OLD_ACTOR_MIGRATION", note:"Existing Actors are never rewritten; live MG1E creation is deferred to M10B.7." }
 ].map(Object.freeze));
 
+export const MG2E_CONVERSION_DELTAS = Object.freeze([
+  { id:"SOURCE_LINEAGE", domain:"profile", severity:"RULE_OWNERSHIP", title:"Rules source lineage", from:"Current active profile", to:"Mouse Guard Roleplaying Game: Second Edition / 2015", dataAction:"NONE", note:"MG2E is a standalone source profile; it does not inherit MG1E or Realm Guard." },
+  { id:"WISE_MODEL", domain:"wises", severity:"DATA_PRESERVE_POLICY_CHANGE", title:"Wises become unrated", from:"Current profile may use rated Wises", to:"Unrated Wises · I Am Wise / Deeper Understanding / Of Course!", dataAction:"PRESERVE_EXISTING_DATA", note:"Existing Wise ratings remain stored but are not MG2E rule authority." },
+  { id:"TRAIT_SEMANTICS", domain:"traits", severity:"RULE_POLICY", title:"MG2E Trait levels", from:"Current profile semantics", to:"L1 +1D once/session · L2 +1D twice/session · L3 +1s on applicable tests", dataAction:"NONE", note:"Trait Items are preserved." },
+  { id:"ADVANCEMENT", domain:"progression", severity:"RULE_POLICY", title:"MG2E advancement", from:"Current profile advancement", to:"Passes = rating · fails = rating-1 · one advancement test per skill/scene", dataAction:"PRESERVE_EXISTING_DATA", note:"Existing pass/fail marks are preserved; no conversion is performed." },
+  { id:"NATURE", domain:"nature", severity:"RULE_POLICY", title:"Mouse Nature", from:"Current profile Nature", to:"Escaping · Climbing · Hiding · Foraging", dataAction:"PRESERVE_EXISTING_DATA", note:"Stored Nature values remain untouched." },
+  { id:"CONDITIONS", domain:"conditions", severity:"DATA_PRESERVE_RULE_DISABLE", title:"MG2E Conditions", from:"Current profile condition set", to:"Healthy · Hungry & Thirsty · Angry · Tired · Injured · Sick", dataAction:"PRESERVE_EXISTING_ITEMS", note:"Other profile Conditions remain stored but inactive under MG2E." },
+  { id:"INVENTORY", domain:"inventory", severity:"DATA_PRESERVE_POLICY_CHANGE", title:"MG2E carry limits", from:"Current inventory authority", to:"Loose Gear · two weapons or one bulky weapon · bag/satchel capacity · armor + personal items", dataAction:"PRESERVE_PLACEMENT_METADATA", note:"Foundry placement metadata remains presentation-only." },
+  { id:"CONFLICT", domain:"conflict", severity:"RULE_POLICY", title:"MG2E Conflict", from:"Current profile conflict content", to:"Three-action exchanges · MG2E disposition/action skills · 2015 weapons and armor", dataAction:"PRESERVE_EXISTING_DATA", note:"No Conflict document or Gear mutation occurs." },
+  { id:"SESSION", domain:"session", severity:"RULE_POLICY", title:"MG2E Players' Turn / End Session", from:"Current session/reward policy", to:"One free test · Checks · alternation · MG2E Fate/Persona awards", dataAction:"PRESERVE_EXISTING_DATA", note:"Session state is not changed by preview." },
+  { id:"NATURAL_ORDER", domain:"naturalOrder", severity:"RULE_OWNERSHIP", title:"MG2E Natural Order", from:"Current profile comparative scale", to:"2015 nine-rank Natural Order · Militarist / Scientist exceptions", dataAction:"NONE", note:"No Actor rank is inferred or written." },
+  { id:"LEVELS_TALENTS", domain:"progression", severity:"DATA_PRESERVE_RULE_DISABLE", title:"Levels / Talents disabled", from:"Legacy/project progression may exist", to:"Not base MG2E domains", dataAction:"PRESERVE_EXISTING_DATA", note:"Stored Level/Talent data is preserved." },
+  { id:"TOKENS_OF_POWER", domain:"tokensOfPower", severity:"DATA_PRESERVE_RULE_DISABLE", title:"Tokens of Power disabled", from:"Realm Guard/project feature", to:"Not a base MG2E domain", dataAction:"PRESERVE_EXISTING_DATA", note:"Token Items remain stored." },
+  { id:"CREATION", domain:"creation", severity:"FUTURE_CREATION_ONLY", title:"MG2E Recruitment", from:"Current profile creation model", to:"2015 21-step Recruitment · five ranks · unrated rank-based Wises", dataAction:"NO_OLD_ACTOR_MIGRATION", note:"M10C.2 is read-only; MG2E CORE M9 commit remains disabled." }
+].map(Object.freeze));
+
 function clone(value){ if(Array.isArray(value)) return value.map(clone); if(value&&typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,clone(v)])); return value; }
 function stable(value){ if(Array.isArray(value)) return value.map(stable); if(value&&typeof value==="object") return Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])); return value; }
 function same(a,b){ return JSON.stringify(stable(a))===JSON.stringify(stable(b)); }
@@ -47,7 +64,7 @@ export function profileDomainDiff(fromProfile,toProfile){
 
 export function scanProfileWorldImpact(actors=[],worldItems=[]){
   const rows=Array.from(actors??[]);
-  const refs={wises:[],talents:[],structuredGear:[],profileConditions:[],legacyCreation:[],strictCreation:[],mg1eCreation:[]};
+  const refs={wises:[],talents:[],structuredGear:[],profileConditions:[],legacyCreation:[],strictCreation:[],mg1eCreation:[],mg2eCreation:[]};
   const counts={wiseItems:0,ratedWiseItems:0,unratedWiseItems:0,talentItems:0,structuredGearItems:0,freshItems:0,afraidItems:0,strainedItems:0,sickItems:0,tokenOfPowerItems:0,aboveLevelOne:0};
   for(const actor of rows){
     const items=listItems(actor), wises=items.filter(i=>i?.type==="wise"), talents=items.filter(i=>i?.type==="talent"), tokens=items.filter(i=>i?.type==="tokenOfPower");
@@ -63,6 +80,7 @@ export function scanProfileWorldImpact(actors=[],worldItems=[]){
     if(pid==="realm-guard-legacy-mixed") refs.legacyCreation.push(actorRef(actor));
     if(pid==="realm-guard-strict") refs.strictCreation.push(actorRef(actor));
     if(pid==="mg1e") refs.mg1eCreation.push(actorRef(actor));
+    if(pid==="mg2e") refs.mg2eCreation.push(actorRef(actor));
   }
   const standalone=Array.from(worldItems??[]);
   return freeze({
@@ -83,6 +101,7 @@ export function scanProfileWorldImpact(actors=[],worldItems=[]){
     actorsWithLegacyCreationProvenance:refs.legacyCreation.length,
     actorsWithStrictCreationProvenance:refs.strictCreation.length,
     actorsWithMg1eCreationProvenance:refs.mg1eCreation.length,
+    actorsWithMg2eCreationProvenance:refs.mg2eCreation.length,
     standaloneTemplates:{
       wises:standalone.filter(i=>i?.type==="wise").length,
       talents:standalone.filter(i=>i?.type==="talent").length,
@@ -95,14 +114,14 @@ export function scanProfileWorldImpact(actors=[],worldItems=[]){
 
 export const scanStrictWorldImpact = scanProfileWorldImpact;
 
-function deltasFor(targetId){ return targetId===MG1E_TARGET_ID ? MG1E_CONVERSION_DELTAS : STRICT_CONVERSION_DELTAS; }
+function deltasFor(targetId){ return targetId===MG1E_TARGET_ID ? MG1E_CONVERSION_DELTAS : targetId===MG2E_TARGET_ID ? MG2E_CONVERSION_DELTAS : STRICT_CONVERSION_DELTAS; }
 
 export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],worldItems=[]}={}){
   if(!fromProfile?.id||!toProfile?.id) throw new Error("Profile conversion preview requires source and target Rules Profiles.");
   const targetId=String(toProfile.id);
   return freeze({
     kind:"ProfileConversionPreview",
-    phase:"M10B.2",
+    phase: targetId===MG2E_TARGET_ID ? "M10C.2" : "M10B.2",
     mode:"READ_ONLY",
     readOnly:true,
     activationAllowed:false,
@@ -117,7 +136,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
       preserveExistingActors:true,preserveWiseItems:true,preserveTalentItems:true,preserveInventoryMetadata:true,
       preserveConditionItems:true,preserveTokenOfPowerItems:true,preserveProgressionData:true
     },
-    nextStep: targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains OFF" : "Strict profile remains supported and reversible"
+    nextStep: targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.2 MG2E foundation preview only · activation remains OFF" : "Strict profile remains supported and reversible"
   });
 }
 
@@ -129,6 +148,10 @@ export function buildMg1eConversionPreview(options={}) {
   if(options?.toProfile?.id!==MG1E_TARGET_ID) throw new Error("MG1E conversion preview requires mg1e as target.");
   return buildProfileConversionPreview(options);
 }
+export function buildMg2eConversionPreview(options={}) {
+  if(options?.toProfile?.id!==MG2E_TARGET_ID) throw new Error("MG2E conversion preview requires mg2e as target.");
+  return buildProfileConversionPreview(options);
+}
 
 function esc(value){ return globalThis.foundry?.utils?.escapeHTML ? globalThis.foundry.utils.escapeHTML(String(value??"")) : String(value??""); }
 
@@ -138,7 +161,7 @@ export function profileConversionPreviewHtml(preview){
     ["Rangers",w.rangers],["Wise Items",w.wiseItems],["Rated Wises",w.ratedWiseItems],["Unrated Wises",w.unratedWiseItems],
     ["Talent Items",w.talentItems],["Structured Gear Items",w.structuredGearItems],["Fresh",w.freshItems],["Afraid",w.afraidItems],
     ["Strained",w.strainedItems],["Sick",w.sickItems],["Token of Power Items",w.tokenOfPowerItems],["Actors above Level 1",w.aboveLevelOne],
-    ["Legacy-created Actors",w.actorsWithLegacyCreationProvenance],["Strict-created Actors",w.actorsWithStrictCreationProvenance]
+    ["Legacy-created Actors",w.actorsWithLegacyCreationProvenance],["Strict-created Actors",w.actorsWithStrictCreationProvenance],["MG1E-created Actors",w.actorsWithMg1eCreationProvenance],["MG2E-created Actors",w.actorsWithMg2eCreationProvenance]
   ].map(([label,value])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(128,128,128,.16);"><span>${esc(label)}</span><b>${esc(value)}</b></div>`).join("");
   const deltas=preview.deltas.map(delta=>`
     <section style="padding:9px 0;border-top:1px solid rgba(128,128,128,.22);">
@@ -155,7 +178,7 @@ export function profileConversionPreviewHtml(preview){
       <div><small>Current</small><br><b>${esc(preview.source.name)}</b><br><small>${esc(preview.source.rulesSnapshotHash)}</small></div>
       <div><small>Preview target</small><br><b>${esc(preview.target.name)}</b><br><small>${esc(preview.target.rulesSnapshotHash)}</small></div>
     </div>
-    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation is not available during M10B.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
+    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is FOUNDATION_ONLY. Activation is not available during M10C.2.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
     <section><h3>World impact scan</h3>${impact}</section>
     <section><h3>Profile deltas</h3><small>${preview.domainDiff.length} technical domain differences · ${preview.deltas.length} reviewed deltas.</small>${deltas}</section>
   </div>`;
@@ -163,6 +186,7 @@ export function profileConversionPreviewHtml(preview){
 
 export const strictConversionPreviewHtml = profileConversionPreviewHtml;
 export const mg1eConversionPreviewHtml = profileConversionPreviewHtml;
+export const mg2eConversionPreviewHtml = profileConversionPreviewHtml;
 
 async function openPreview({fromState,toState,actors,worldItems,title}={}){
   if(!globalThis.game?.user?.isGM) return globalThis.ui?.notifications?.warn?.("Realm Guard: profile conversion preview is GM-only.");
@@ -175,3 +199,4 @@ async function openPreview({fromState,toState,actors,worldItems,title}={}){
 }
 export function openStrictConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Strict Conversion Preview"}); }
 export function openMg1eConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Mouse Guard 1E Conversion Preview"}); }
+export function openMg2eConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Mouse Guard 2E Conversion Preview"}); }
