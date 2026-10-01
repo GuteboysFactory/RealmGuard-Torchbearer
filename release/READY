@@ -10,3 +10,4 @@
 # no Actor/Item/Journal/world-setting migration
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
+# retrigger after preserving historical profile-capability phase
