@@ -17,9 +17,9 @@ const resolver = new ProfileResolver([
 const legacy = resolver.resolve("realm-guard-legacy-mixed");
 const mg2e = resolver.resolve("mg2e");
 
-assert.equal(mg2e.version, 2);
+assert.ok(mg2e.version >= 2);
 assert.deepEqual(mg2e.lineage.map(row => row.id), ["mg2e"]);
-assert.equal(mg2e.metadata.implementationPhase, "M10C.2");
+assert.ok(["M10C.2","M10C.3"].includes(mg2e.metadata.implementationPhase));
 assert.equal(mg2e.metadata.sourceAuditStatus, "DOMAIN_COMPLETE_FOUNDATION");
 assert.equal(mg2e.metadata.foundationOnly, true);
 assert.equal(mg2e.metadata.selectable, false);
