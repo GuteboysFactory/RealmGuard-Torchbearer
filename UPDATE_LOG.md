@@ -1,6 +1,21 @@
 # Realm Guard - Update Log
 
-## v1.12.0-qa.11 - 🟡 M10B.11 MG1E Selectable QA Activation
+## v1.12.0-qa.12 - 🟡 M10C.1 MG2E Source Audit & Profile Foundation
+
+- M10B.11 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
+- Starts M10C with a standalone Mouse Guard 2E source profile foundation; MG2E does not inherit MG1E or Realm Guard.
+- Registers `mg2e` profile v1 as `FOUNDATION_ONLY`, non-selectable, unsupported and non-live.
+- Audited foundation domains include Mouse Nature, Traits, unrated Wises, Help/Wise Aid, Conditions/Recovery, Circles and Recruitment structure from the 2015 rulebook.
+- MG2E Trait semantics are source-owned: level 1 +1D once/session, level 2 +1D twice/session, level 3 +1s on applicable tests.
+- MG2E Wises are unrated and expose I Am Wise, Deeper Understanding and Of Course! contracts.
+- MG2E Recovery keeps the 2015 Injury Healer Ob3 / Sickness Healer Ob4 split.
+- Recruitment foundation records five Guard ranks, Nature base 3/questions, skill cap 6 and rank-based unrated Wise counts.
+- No activation path, conversion preview, Actor/Item migration or campaign mutation is introduced.
+- Adds dedicated M10C.1 smoke coverage and live QA protocol for foundation isolation.
+- v1.11.0 remains STABLE / GOLD.
+
+
+## v1.12.0-qa.11 - 🟢✅ M10B.11 VERIFIED / CLOSED — MG1E Selectable QA Activation
 
 - Started after v1.12.0-qa.10 passed Gates A-L in Foundry VTT 13.351.
 - MG1E profile advances to v11 and becomes `QA_ACTIVE`, selectable and supported only when the running system version is a QA build; stable runtime keeps activation closed.
@@ -8,6 +23,7 @@
 - Active MG1E now authorizes its READY_WHEN_ACTIVE CORE M9 Recruitment commit plan, including provenance and CORE M8 relationships.
 - No Actor/Item migration, automatic Wise rating, species-to-rank inference or destructive profile conversion is authorized.
 - Live QA follows `TEST_PROTOCOL_v1.12.0-qa.11.md`.
+- **Live QA:** Gates A-L all PASS in Foundry VTT 13.351; M10B.11 is FULL PASS / VERIFIED / CLOSED.
 
 
 ## v1.12.0-qa.10 - 🟢✅ M10B.10 VERIFIED / CLOSED — MG1E Live Readiness Closure
