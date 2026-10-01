@@ -1,9 +1,11 @@
 import { resolveRulesProfile } from "./rules-profile-service.mjs";
 import { MG1E_NATURAL_ORDER_DEFINITION } from "./profiles/mg1e-natural-order.mjs";
+import { MG2E_NATURAL_ORDER_DEFINITION } from "./profiles/mg2e-natural-order.mjs";
 import { REALM_GUARD_STRICT_SCALE_DEFINITION } from "./profiles/realm-guard-strict-scale.mjs";
 
 const DEFINITIONS = new Map([
   ["mg1e", MG1E_NATURAL_ORDER_DEFINITION],
+  ["mg2e", MG2E_NATURAL_ORDER_DEFINITION],
   ["realm-guard-strict", REALM_GUARD_STRICT_SCALE_DEFINITION]
 ]);
 
@@ -193,7 +195,7 @@ export function familyScaleSpecialPlan(profileId, { actorRank = null, actorType 
   if (!fromRank || !toRank) return freeze({ ok:false, reasonCode:"UNKNOWN_SCALE_RANK", liveApplication:false });
   const difference = toRank - fromRank;
 
-  if (special.mode === "MG1E_SCIENTIST") {
+  if (["MG1E_SCIENTIST", "MG2E_SCIENTIST"].includes(special.mode)) {
     const eligible = difference >= Number(special.eligibleFromDifference ?? 2);
     return freeze({
       ok:true,
@@ -286,10 +288,11 @@ export function getM10B8ComparativeScaleStatus() {
   const legacy = resolveM10BComparativeScalePolicy("realm-guard-legacy-mixed");
   const strict = resolveM10BComparativeScalePolicy("realm-guard-strict");
   const mg1e = resolveM10BComparativeScalePolicy("mg1e");
+  const mg2e = resolveM10BComparativeScalePolicy("mg2e");
   return freeze({
-    phase:"M10B.8",
+    phase:"M10C.2",
     mode:"GENERIC_COMPARATIVE_SCALE",
-    profiles:{legacy,strict,mg1e},
+    profiles:{legacy,strict,mg1e,mg2e},
     writesActors:false,
     writesItems:false,
     writesJournals:false,
