@@ -1,13 +1,12 @@
-1.12.0-qa.13
-# M10C.2 MG2E Domain-Completion Audit + Generic Conversion Preview Routing
-# M10C.1 live QA FULL PASS / VERIFIED / CLOSED
-# standalone MG2E Rules Profile v2
+1.12.0-qa.14
+# M10C.3 MG2E Shadow Rule Adapters / Activation-Readiness Foundation
+# M10C.2 live QA FULL PASS / VERIFIED / CLOSED
+# standalone MG2E Rules Profile v3
 # FOUNDATION_ONLY / non-selectable / unsupported / non-live
-# complete read-only advancement / inventory / conflict / session / Natural Order / Recruitment foundation
-# standalone MG2E Natural Order; no MG1E fallback
-# read-only MG2E conversion preview in Profile Management / Rules Registry / CORE API
-# zero Actor/Item/Journal/world-setting writes
-# no MG2E activation API/button
-# no MG2E CORE M9 live commit
+# read-only shadow adapters across tests / advancement / traits / wises / nature / recovery / inventory / conflict / session / circles / Natural Order
+# activation-readiness blockers explicit; activation remains OFF
+# Character Creation remains foundation-only; no live commit / provenance / relationship writes
+# zero Actor/Item/Journal/world-setting writes from MG2E shadow planners
+# no Actor rank inference or migration
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
