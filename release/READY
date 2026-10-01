@@ -1,17 +1,12 @@
-1.12.0-qa.11
-# M10B.11 MG1E Selectable QA Activation
-# M10B.10 live QA FULL PASS / VERIFIED / CLOSED
-# MG1E Rules Profile v11 / Character Creation profile v2
-# MG1E QA_ACTIVE and selectable only in -qa. runtime
-# stable runtime activation remains closed
-# read-only conversion preview + explicit GM confirmation
-# reversible settings-only Legacy / Strict / MG1E switching
-# runtime refresh + profile-change hook + reload guidance
-# MG1E CORE M9 live commit only while MG1E is active
-# MG1E provenance + CORE M8 relationship writes for new characters
-# no existing Actor/Item migration
-# no automatic Wise rating or species-to-rank inference
-# no destructive Condition/Gear/Talent/Token conversion
+1.12.0-qa.12
+# M10C.1 MG2E Source Audit & Profile Foundation
+# M10B.11 live QA FULL PASS / VERIFIED / CLOSED
+# standalone MG2E Rules Profile v1
+# FOUNDATION_ONLY / non-selectable / unsupported / non-live
+# no MG1E or Realm Guard inheritance
+# audited Nature / Traits / unrated Wises / Help / Conditions / Recovery / Circles / Recruitment foundation
+# no MG2E activation API or Profile Management switch
+# no conversion preview yet
+# no Actor/Item/Journal/world-setting migration
+# Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
-# retrigger after M10B historical smoke migration
-# retrigger after Strict QA-only inheritance fix
