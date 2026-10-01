@@ -10,6 +10,7 @@ import {
 import { ProfileResolver } from "../module/core/rules-profile.mjs";
 import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "../module/profiles/realm-guard-legacy-mixed.mjs";
 import { MG1E_FOUNDATION_PROFILE } from "../module/profiles/mg1e-foundation.mjs";
+import { MG2E_FOUNDATION_PROFILE } from "../module/profiles/mg2e-foundation.mjs";
 import { REALM_GUARD_STRICT_PROFILE } from "../module/profiles/realm-guard-strict.mjs";
 import { buildProfileConversionPreview } from "../module/m10-profile-conversion-preview.mjs";
 
@@ -44,14 +45,16 @@ for (const contract of requiredContracts) {
 
 const resolver = new ProfileResolver([
   MG1E_FOUNDATION_PROFILE,
+  MG2E_FOUNDATION_PROFILE,
   REALM_GUARD_LEGACY_MIXED_PROFILE,
   REALM_GUARD_STRICT_PROFILE
 ]);
 const legacy = resolver.resolve("realm-guard-legacy-mixed");
 const strict = resolver.resolve("realm-guard-strict");
 const mg1e = resolver.resolve("mg1e");
+const mg2e = resolver.resolve("mg2e");
 
-for (const target of [strict, mg1e]) {
+for (const target of [strict, mg1e, mg2e]) {
   const preview = buildProfileConversionPreview({ fromProfile: legacy, toProfile: target, actors: [], worldItems: [] });
   if (preview.mode !== "READ_ONLY" || preview.readOnly !== true) throw new Error(`${target.id} conversion preview is not READ_ONLY.`);
   if (preview.activationAllowed !== false) throw new Error(`${target.id} conversion preview must never activate a profile.`);
