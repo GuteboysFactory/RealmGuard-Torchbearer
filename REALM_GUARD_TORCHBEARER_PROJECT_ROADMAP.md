@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.12 — 🟡 M10C.1 MG2E Source Audit & Profile Foundation  
+**Current QA build:** v1.12.0-qa.13 — 🟡 M10C.2 MG2E Domain-Completion Audit + Conversion Preview  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.1 — 🟡 IN PROGRESS · MG2E Source Audit & Profile Foundation  
+**Current CORE gate:** M10C.2 — 🟡 IN PROGRESS · MG2E Domain-Completion Audit + Generic Conversion Preview Routing  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -408,7 +408,7 @@ Locked scope:
 
 ### M10C — Mouse Guard 2E explicit profile
 
-**Status:** 🟡 **M10C.1 IN PROGRESS** — source-audited foundation only.
+**Status:** 🟡 **M10C.2 IN PROGRESS** — M10C.1 is FULL PASS / VERIFIED / CLOSED; source-domain completion and read-only preview routing are now under QA.
 
 **M10C.1 scope — MG2E Source Audit & Profile Foundation:**
 - register standalone `mg2e` Rules Profile v1; it does not inherit MG1E or Realm Guard
@@ -424,7 +424,27 @@ Locked scope:
 - no activation UI/API, no conversion preview yet, no Actor/Item/Journal/settings writes
 - no existing campaign-data migration
 
-**M10C.1 PASS gate:** profile resolves independently as `mg2e`; audited domains match the 2015 source contracts; activation remains impossible; Legacy Mixed / Strict / MG1E behavior remains unchanged; release smokes are green.
+**M10C.1 PASS gate:** 🟢✅ PASSED. Gates A-I verified independent MG2E registration, activation isolation, Legacy/Strict/MG1E regression safety, source snapshot correctness, existing-data safety and release/channel state.
+
+**M10C.1 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351.
+
+**M10C.2 scope — MG2E Domain-Completion Audit + Generic Conversion Preview Routing:**
+- advance standalone `mg2e` Rules Profile v1 → v2 while keeping it `FOUNDATION_ONLY`, non-selectable, unsupported and non-live
+- complete source-owned Ability/Skill advancement contracts: pass=rating, fail=rating-1, rating 0/1 one pass, clean slate, one advancement test per skill/scene, Beginner's Luck opens at 2 from maximum Nature attempts
+- add MG2E LOOSE Gear/carrying contracts and relevant Gear +1D guidance while preserving Foundry placement metadata as presentation-only
+- add source-owned MG2E Conflict disposition/action-skill tables, 2015 weapon/armor contracts and two-helper action limit
+- add Players' Turn/check economy and End Session reward ownership
+- add standalone MG2E Natural Order definition and generic Comparative Scale routing
+- explicitly isolate MG2E Natural Order entries from MG1E-only entries
+- complete read-only Recruitment rank templates, Resources/Circles, mentor/enemy/cloak/start-reward/Gear contracts
+- add read-only MG2E conversion preview to Profile Management, Rules Registry and CORE M10 API
+- preview writes zero Actors, Items, Journals and settings
+- no MG2E activation API/button, no Actor migration, no Wise conversion, no Condition cleanup, no inventory rewrite
+- preserve Legacy Mixed / Strict / MG1E behavior
+
+**M10C.2 PASS gate:** MG2E v2 resolves independently; domain contracts and Natural Order match the 2015 source; preview is read-only and available from UI/API; activation remains impossible; no campaign data is mutated; existing profiles remain unchanged; release pipeline and Foundry v13.351 QA are green.
+
+**Next bounded slice after closure:** **M10C.3 — MG2E Shadow Rule Adapters / Activation-Readiness Foundation**.
 
 ### M9 — Creation / Recruitment Migration
 
