@@ -4,11 +4,13 @@ import { ProfileResolver, createProfileSnapshot } from "./core/rules-profile.mjs
 import { RulesRegistry } from "./core/rules-registry.mjs";
 import { REALM_GUARD_LEGACY_MIXED_PROFILE } from "./profiles/realm-guard-legacy-mixed.mjs";
 import { MG1E_FOUNDATION_PROFILE } from "./profiles/mg1e-foundation.mjs";
+import { MG2E_FOUNDATION_PROFILE } from "./profiles/mg2e-foundation.mjs";
 import { REALM_GUARD_STRICT_PROFILE } from "./profiles/realm-guard-strict.mjs";
 import { buildProfileCapabilities } from "./profile-capabilities.mjs";
 
 const resolver = new ProfileResolver([
   MG1E_FOUNDATION_PROFILE,
+  MG2E_FOUNDATION_PROFILE,
   REALM_GUARD_LEGACY_MIXED_PROFILE,
   REALM_GUARD_STRICT_PROFILE
 ]);
@@ -84,7 +86,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 allows MG1E live activation only in QA builds while stable activation remains closed.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.1 also registers MG2E as a non-selectable source foundation.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
@@ -205,7 +207,7 @@ export function installRulesProfileInfrastructure() {
       exposeCoreApi();
       try {
         globalThis.Hooks?.callAll?.("realmGuardRulesProfileChanged", Object.freeze({
-          phase:"M10B.11",
+          phase:"M10C.1",
           source:"SETTING_UPDATE",
           fromProfileId:before,
           toProfileId:state.profile.id,
