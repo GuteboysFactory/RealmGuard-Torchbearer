@@ -28,7 +28,7 @@
       </button>
     </div>
 
-    <div style="padding:12px 0 2px;">
+    <div style="padding:12px 0;border-bottom:1px solid rgba(128,128,128,.22);">
       <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
         <div><b>{{mg1eProfile.name}}</b><br><small>{{mg1eProfile.sourceLineage}}</small></div>
         <div style="text-align:right;"><b>{{mg1eProfile.activationState}}</b><br><small>v{{mg1eProfile.version}}</small></div>
@@ -37,7 +37,19 @@
       <button type="button" data-action="previewMg1e" data-rg-contract="profile-preview-mg1e" {{#unless previewAvailable}}disabled{{/unless}}>
         <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG1E Conversion
       </button>
-      <p style="margin-bottom:0;"><small>Mouse Guard 1E is QA-selectable in M10B.11. Stable runtime keeps this activation gate closed.</small></p>
+      <p style="margin-bottom:0;"><small>Mouse Guard 1E remains QA-selectable; stable runtime keeps its activation gate closed.</small></p>
+    </div>
+
+    <div style="padding:12px 0 2px;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;">
+        <div><b>{{mg2eProfile.name}}</b><br><small>{{mg2eProfile.sourceLineage}}</small></div>
+        <div style="text-align:right;"><b>{{mg2eProfile.activationState}}</b><br><small>v{{mg2eProfile.version}}</small></div>
+      </div>
+      <p><small>{{mg2eProfile.classification}} · Rules snapshot: {{mg2eProfile.rulesSnapshotHash}}</small></p>
+      <button type="button" data-action="previewMg2e" data-rg-contract="profile-preview-mg2e" {{#unless mg2eProfile.conversionPreviewAvailable}}disabled{{/unless}}>
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG2E Conversion
+      </button>
+      <p style="margin-bottom:0;"><small>Mouse Guard 2E is FOUNDATION_ONLY in M10C.2. Preview is read-only; activation remains unavailable.</small></p>
     </div>
   </section>
 
