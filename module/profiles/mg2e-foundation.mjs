@@ -4,7 +4,7 @@ const MG2E_SOURCE = "Mouse Guard Roleplaying Game: Second Edition (2015)";
 
 export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg2e",
-  version: 2,
+  version: 3,
   name: "Mouse Guard 2E",
   classification: "SOURCE PROFILE / FOUNDATION",
   domains: {
@@ -336,13 +336,15 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10C.2",
+    implementationPhase: "M10C.3",
     sourceAuditStatus: "DOMAIN_COMPLETE_FOUNDATION",
+    shadowAdaptersReady: true,
+    shadowAdapterMode: "READ_ONLY",
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
-    pendingDomains: ["full-recruitment-commit","live-rules-reference","activation-readiness"],
-    nextStep: "M10C.3 MG2E shadow rule adapters / activation-readiness foundation"
+    pendingDomains: ["full-recruitment-commit","live-rules-reference","activation-readiness-closure"],
+    nextStep: "M10C.4 MG2E activation-readiness closure audit"
   }
 });
