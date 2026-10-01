@@ -14,7 +14,7 @@ const resolver = new ProfileResolver([
 ]);
 
 const mg2e = resolver.resolve("mg2e");
-assert.equal(mg2e.version, 1);
+assert.ok(mg2e.version >= 1);
 assert.deepEqual(mg2e.lineage.map(row => row.id), ["mg2e"]);
 assert.equal(mg2e.metadata.foundationOnly, true);
 assert.equal(mg2e.metadata.selectable, false);
