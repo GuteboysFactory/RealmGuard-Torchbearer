@@ -1,4 +1,4 @@
-import { previewMg1eConversion, previewStrictConversion, showMg1eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
+import { previewMg1eConversion, previewMg2eConversion, previewStrictConversion, showMg1eConversionPreview, showMg2eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { profileActivationStatus, switchRulesProfile } from "./m10-profile-activation.mjs";
 
@@ -20,6 +20,7 @@ function impactRows(impact = {}) {
 
 async function previewStrictAction() { await showStrictConversionPreview(); }
 async function previewMg1eAction() { await showMg1eConversionPreview(); }
+async function previewMg2eAction() { await showMg2eConversionPreview(); }
 
 async function switchProfileAction(event, target) {
   const button = target ?? event?.currentTarget ?? event?.target;
@@ -68,7 +69,7 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
     classes:["realm-guard","rg-profile-management"],
     position:{width:760,height:820},
     window:{title:"Realm Guard / Torchbearer · Rules Profile Management",icon:"fa-solid fa-scale-balanced",resizable:true},
-    actions:{previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,switchProfile:switchProfileAction,switchLegacy:switchLegacyAction}
+    actions:{previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,previewMg2e:previewMg2eAction,switchProfile:switchProfileAction,switchLegacy:switchLegacyAction}
   };
 
   static PARTS = { main:{template:"systems/realm-guard/templates/apps/profile-management.hbs",scrollable:[""]} };
@@ -78,7 +79,9 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
     const active = getRulesProfileRuntime();
     const strict = resolveRulesProfile("realm-guard-strict");
     const mg1e = resolveRulesProfile("mg1e");
+    const mg2e = resolveRulesProfile("mg2e");
     const mgPreview = previewMg1eConversion();
+    const mg2Preview = previewMg2eConversion();
     const activation = profileActivationStatus();
     const activationRows = (activation.profiles ?? [])
       .filter(row => row.id !== "realm-guard-legacy-mixed")
@@ -115,13 +118,22 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
         selectable:mg1e.profile.metadata?.selectable !== false,
         qaActivationOnly:mg1e.profile.metadata?.qaActivationOnly === true
       },
-      impactRows:impactRows(mgPreview.worldImpact),
+      mg2eProfile:{
+        id:mg2e.profile.id,name:mg2e.profile.name,version:mg2e.profile.version,
+        activationState:mg2e.profile.metadata?.activationState ?? "FOUNDATION_ONLY",
+        classification:mg2e.profile.classification,
+        sourceLineage:(mg2e.profile.metadata?.sourceLineage ?? []).join(" → "),
+        rulesSnapshotHash:mg2e.profile.rulesSnapshotHash,
+        selectable:mg2e.profile.metadata?.selectable !== false,
+        conversionPreviewAvailable:mg2e.profile.metadata?.conversionPreviewAvailable === true
+      },
+      impactRows:impactRows(mg2Preview.worldImpact),
       previewAvailable:true,
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
-      phase:"M10B.11",
-      nextStep:"MG1E is selectable only in QA builds for M10B.11; profile switching remains reversible and settings-only"
+      phase:"M10C.2",
+      nextStep:"MG2E remains FOUNDATION_ONLY in M10C.2; conversion preview is read-only and profile switching remains unavailable"
     }, { inplace:false });
   }
 }
