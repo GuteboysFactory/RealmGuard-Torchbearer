@@ -57,7 +57,7 @@ export function buildProfileCapabilities(profile) {
   const foundationOnly = profile.metadata?.foundationOnly === true;
 
   const capabilities = {
-    phase: "M10B.8",
+    phase: "M10C.1",
     source: "RESOLVED_RULES_PROFILE",
     profile: {
       id: profile.id,
