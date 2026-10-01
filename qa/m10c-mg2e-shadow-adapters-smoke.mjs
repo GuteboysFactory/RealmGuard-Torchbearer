@@ -122,11 +122,11 @@ assert.deepEqual(mg2eConflictActionSkills("fight animal","defend").skills, ["Lor
 assert.equal(mg2eConflictActionSkills("fight","attack").maxActionHelpers, 2);
 assert.deepEqual(mg2eConflictDispositionPlan("journey").bases, ["Health"]);
 
-const axe = mg2eWeaponActionPlan("Axe","attack");
+const axe = mg2eWeaponActionPlan("Axe","attack",{successful:true});
 assert.equal(axe.conditionalSuccess, 1);
 assert.equal(mg2eWeaponActionPlan("Halberd","attack").dice, 1);
 assert.equal(mg2eWeaponActionPlan("Halberd","maneuver").dice, -1);
-assert.equal(mg2eWeaponActionPlan("Spear","feint").conditionalSuccess, 1);
+assert.equal(mg2eWeaponActionPlan("Spear","feint",{successful:true}).conditionalSuccess, 1);
 assert.equal(mg2eWeaponActionPlan("Shield","defend").dice, 2);
 assert.equal(mg2eWeaponActionPlan("Bow","attack",{raining:true}).ok, false);
 
