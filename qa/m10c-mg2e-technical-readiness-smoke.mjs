@@ -53,7 +53,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.5","M10C.6"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
@@ -203,7 +203,7 @@ assert.ok(reference.pages.some(page => page.id === "creation"));
 assert.ok(reference.pages.some(page => page.id === "wises-traits-help"));
 
 const referenceStatus = getM10B8RulesReferenceStatus();
-assert.ok(["M10C.5","M10C.6"].includes(referenceStatus.extendedPhase));
+assert.ok(["M10C.5","M10C.6","M10C.7"].includes(referenceStatus.extendedPhase));
 assert.equal(referenceStatus.mg2e.profileId, "mg2e");
 assert.ok(referenceStatus.mg2e.pages.length >= 9);
 
@@ -233,7 +233,7 @@ assert.ok(["M10C.6 MG2E Live Parity QA Foundation","M10C.7 MG2E Controlled Live 
 const blockerById = new Map(audit.blockers.map(row => [row.id,row]));
 assert.equal(blockerById.get("FULL_RECRUITMENT_COMMIT_ADAPTER").state, "CLOSED");
 assert.equal(blockerById.get("DEDICATED_LIVE_RULES_REFERENCE").state, "CLOSED");
-assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN"].includes(blockerById.get("LIVE_PARITY_QA").state));
+assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(blockerById.get("LIVE_PARITY_QA").state));
 assert.equal(blockerById.get("EXPLICIT_ACTIVATION_MILESTONE").state, "DEFERRED");
 
 for (const path of [
