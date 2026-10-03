@@ -54,7 +54,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.3","M10C.4","M10C.5","M10C.6"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.3","M10C.4","M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdaptersReady, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdapterMode, "READ_ONLY");
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
