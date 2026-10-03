@@ -1,5 +1,21 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.16 - 🟡 M10C.5 MG2E Technical Live-Readiness Closure
+
+- M10C.4 is now FULL PASS / VERIFIED / CLOSED after Gates A-K passed in Foundry VTT 13.351.
+- Keeps standalone `mg2e` Rules Profile at v3 and keeps activation OFF.
+- Adds a source-owned Mouse Guard 2E CORE M9 CharacterCreationProfile v3 using the 2015 Recruitment structure.
+- Recruitment models the five Guard ranks, rank-based Skills/Resources/Circles/Wises, source hometown packages, life-experience choices, Specialty, three Mouse Nature questions, unrated Wises, Trait selections, relationships, cloak, Belief/Goal/Instinct and starting Gear/rewards.
+- MG2E Recruitment commit plans are `READY_WHEN_ACTIVE` with compensating rollback but remain preview-only while MG2E is foundation-only; provenance/relationship/live Actor writes remain OFF.
+- Adds source-owned MG2E Rules Reference routing, including MG2E-specific Tests, Wises/Traits/Help, Nature, Conditions/Recovery, Inventory/Conflict, Session/Circles, Character Creation and standalone Natural Order pages.
+- Registers MG2E in the generic activation-status/Profile Management surface as a locked foundation row.
+- Does not add `switchToMg2e`; MG2E remains `FOUNDATION_ONLY`, non-selectable, unsupported and non-live.
+- Readiness audit now closes `FULL_RECRUITMENT_COMMIT_ADAPTER` and `DEDICATED_LIVE_RULES_REFERENCE`.
+- `LIVE_PARITY_QA` remains BLOCKED_NOT_RUN and `EXPLICIT_ACTIVATION_MILESTONE` remains DEFERRED.
+- Existing Actors, Items, Journals, Wise ratings, Conditions, inventory placement and Natural Order ranks are never migrated by this slice.
+- Legacy Mixed, Strict Realm Guard and MG1E remain unchanged.
+- v1.11.0 remains STABLE / GOLD.
+
 ## v1.12.0-qa.15 - 🟡 M10C.4 MG2E Activation-Readiness Closure Audit
 
 - M10C.3 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
