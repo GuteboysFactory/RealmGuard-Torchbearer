@@ -28,7 +28,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.4","M10C.5"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.4","M10C.5","M10C.6"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.activationReadinessAuditComplete, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
@@ -50,7 +50,7 @@ assert.equal(audit.activationSurfaceRegistered, true);
 assert.equal(audit.existingActorMigrationRequired, false);
 assert.equal(audit.destructiveConversionRequired, false);
 assert.deepEqual(audit.writes, {actors:0,items:0,journals:0,settings:0});
-assert.equal(audit.decision, "NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN");
+assert.ok(["NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN","NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"].includes(audit.decision));
 
 const byId = new Map(audit.blockers.map(row => [row.id,row]));
 const recruitment = byId.get("FULL_RECRUITMENT_COMMIT_ADAPTER");
@@ -68,7 +68,7 @@ assert.ok(reference.evidence.pageCount >= 8);
 assert.equal(reference.evidence.zeroWrite, true);
 
 const parity = byId.get("LIVE_PARITY_QA");
-assert.equal(parity.state, "BLOCKED_NOT_RUN");
+assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN"].includes(parity.state));
 assert.equal(parity.evidence.shadowAdaptersReady, true);
 assert.equal(parity.evidence.liveApplication, false);
 assert.equal(parity.evidence.activationAvailable, false);
