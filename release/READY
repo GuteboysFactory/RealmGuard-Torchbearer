@@ -1,12 +1,14 @@
-1.12.0-qa.14
-# M10C.3 MG2E Shadow Rule Adapters / Activation-Readiness Foundation
-# M10C.2 live QA FULL PASS / VERIFIED / CLOSED
+1.12.0-qa.15
+# M10C.4 MG2E Activation-Readiness Closure Audit
+# M10C.3 live QA FULL PASS / VERIFIED / CLOSED
 # standalone MG2E Rules Profile v3
-# FOUNDATION_ONLY / non-selectable / unsupported / non-live
-# read-only shadow adapters across tests / advancement / traits / wises / nature / recovery / inventory / conflict / session / circles / Natural Order
-# activation-readiness blockers explicit; activation remains OFF
-# Character Creation remains foundation-only; no live commit / provenance / relationship writes
-# zero Actor/Item/Journal/world-setting writes from MG2E shadow planners
-# no Actor rank inference or migration
+# readiness audit only; no MG2E rule semantics changed
+# FULL_RECRUITMENT_COMMIT_ADAPTER = OPEN
+# DEDICATED_LIVE_RULES_REFERENCE = OPEN
+# LIVE_PARITY_QA = BLOCKED_NOT_RUN
+# EXPLICIT_ACTIVATION_MILESTONE = DEFERRED
+# zero Actor/Item/Journal/world-setting writes
+# MG2E remains FOUNDATION_ONLY / non-selectable / unsupported / non-live
+# next: M10C.5 Technical Live-Readiness Closure
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
