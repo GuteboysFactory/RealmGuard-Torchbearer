@@ -79,6 +79,7 @@ export function profileActivationStatus() {
   const legacy = activationProfileSummary(LEGACY_PROFILE_ID);
   const strict = activationProfileSummary(STRICT_PROFILE_ID);
   const mg1e = activationProfileSummary(MG1E_PROFILE_ID);
+  const mg2e = activationProfileSummary("mg2e");
   const switchAvailable = strict.activationAvailable;
   return Object.freeze({
     phase: "M10B.11",
@@ -86,7 +87,7 @@ export function profileActivationStatus() {
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
-    profiles: Object.freeze([legacy, strict, mg1e]),
+    profiles: Object.freeze([legacy, strict, mg1e, mg2e]),
     strictProfileId: strict.id,
     strictProfileVersion: strict.version,
     strictActivationState: strict.activationState,
@@ -99,6 +100,11 @@ export function profileActivationStatus() {
     mg1eSelectable: mg1e.selectable,
     mg1eSupported: mg1e.supported,
     mg1eActivationAvailable: mg1e.activationAvailable,
+    mg2eSelectable: mg2e.selectable,
+    mg2eSupported: mg2e.supported,
+    mg2eActivationAvailable: mg2e.activationAvailable,
+    mg2eActivationState: mg2e.activationState,
+    mg2eActivationSurfaceRegistered: true,
     qaRuntime: qaProfileActivationRuntime(),
     actorWritesOnSwitch: 0,
     itemWritesOnSwitch: 0,
