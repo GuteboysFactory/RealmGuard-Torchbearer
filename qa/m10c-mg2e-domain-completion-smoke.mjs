@@ -100,7 +100,7 @@ const fakeActor = {
   flags:{"realm-guard":{creationProvenance:{rulesProfileId:"mg1e"}}}
 };
 const preview = buildMg2eConversionPreview({fromProfile:legacy,toProfile:mg2e,actors:[fakeActor],worldItems:[]});
-assert.equal(preview.phase, "M10C.2");
+assert.equal(preview.phase, "M10C.8");
 assert.equal(preview.mode, "READ_ONLY");
 assert.equal(preview.activationAllowed, false);
 assert.equal(preview.writesPlanned, 0);
@@ -163,4 +163,4 @@ const activationSource = fs.readFileSync("module/m10-profile-activation.mjs","ut
 assert.equal(activationSource.includes("switchToMg2e"), true);
 assert.equal(activationSource.includes('MG2E_PROFILE_ID'), true);
 
-console.log("PASS M10C.2 MG2E domain-complete foundation · Natural Order · read-only conversion preview · activation remains OFF");
+console.log("PASS MG2E domain completion · Natural Order · M10C.8 read-only conversion preview");

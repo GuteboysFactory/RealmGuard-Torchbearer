@@ -209,3 +209,7 @@ Every package receives its own QA protocol. Stable 1.x work is built from the la
 ## Current MG2E QA milestone — 2026-10-03
 
 M10C.7 / qa.18 FULL PASS confirmed by the user in Foundry v13.351. M10C.8 / v1.12.0-qa.19 implements explicit reversible QA activation. See REALM_GUARD_TORCHBEARER_PROJECT_ROADMAP.md and TEST_PROTOCOL_v1.12.0-qa.19.md. Stable remains v1.11.0; qa.19 live activation QA is pending.
+
+## v1.12.0-qa.20 — M10C.8 preview correction
+
+MG2E Conversion Preview remains zero-write and now reports QA-active status and separate explicit activation. Focused Gate A / B / L plus activation sanity are pending. Stable remains v1.11.0.

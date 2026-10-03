@@ -1,0 +1,53 @@
+import assert from "node:assert/strict";
+import { resolveRulesProfile } from "../module/rules-profile-service.mjs";
+import { buildMg2eConversionPreview, buildProfileConversionPreview, profileConversionPreviewHtml, openMg2eConversionPreview } from "../module/m10-profile-conversion-preview.mjs";
+
+const fromState=resolveRulesProfile("realm-guard-legacy-mixed");
+const toState=resolveRulesProfile("mg2e");
+const actor={id:"existing",type:"character",system:{rank:"Ranger",species:"mouse",progression:{level:4}},items:[{type:"wise",system:{rating:3}},{type:"gear",system:{inventory:{location:"back"}}}]};
+const worldItems=[{type:"wise",system:{rating:2}}];
+const snapshot=JSON.stringify({actor,worldItems,fromState,toState});
+let writes=0;
+const settings=new Map([["activeRulesProfileId","realm-guard-legacy-mixed"],["activeRulesProfileVersion",1]]);
+globalThis.game={system:{version:"1.12.0-qa.20"},user:{isGM:true},actors:{contents:[actor]},items:{contents:worldItems},settings:{get:(_ns,key)=>settings.get(key),set:()=>{writes++;throw new Error("Preview must not write settings");}}};
+globalThis.Actor={create:()=>{writes++;throw new Error("Preview must not create Actors");}};
+globalThis.Item={create:()=>{writes++;throw new Error("Preview must not create Items");}};
+globalThis.JournalEntry={create:()=>{writes++;throw new Error("Preview must not create Journals");}};
+const options={fromProfile:fromState.profile,toProfile:toState.profile,actors:[actor],worldItems};
+const preview=buildMg2eConversionPreview(options);
+assert.equal(preview.phase,"M10C.8");
+assert.equal(preview.mode,"READ_ONLY");
+assert.equal(preview.readOnly,true);
+assert.equal(preview.activationAllowed,true); // Separate target permission, never a preview action.
+assert.equal(preview.previewActivationAllowed,false);
+assert.equal(preview.writesPlanned,0);
+assert.equal(preview.safety.profileSwitch,false);
+assert.equal(preview.safety.destructiveConversion,false);
+for(const key of ["actorWrites","itemWrites","journalWrites","settingWrites"])assert.equal(preview.safety[key],0);
+assert.ok(Object.isFrozen(preview));
+const html=profileConversionPreviewHtml(preview);
+assert.match(html,/MG2E is QA-active \(M10C\.8\)/);
+assert.match(html,/separate explicit GM action in QA/);
+assert.match(html,/READ ONLY/);
+assert.doesNotMatch(JSON.stringify(preview)+html,/FOUNDATION_ONLY|M10C\.2|commit remains disabled|activation remains OFF/);
+assert.match(preview.nextStep,/separate explicit GM action/);
+game.user.isGM=false;
+assert.equal(buildMg2eConversionPreview(options).activationAllowed,false);
+game.user.isGM=true;
+game.system.version="1.11.0";
+assert.equal(buildMg2eConversionPreview(options).activationAllowed,false);
+game.system.version="1.12.0-qa.20";
+let dialog;
+globalThis.foundry={applications:{api:{DialogV2:{wait:async options=>{dialog=options;return "close";}}}}};
+const opened=await openMg2eConversionPreview({fromState,toState});
+assert.equal(opened.previewActivationAllowed,false);
+assert.deepEqual(dialog.buttons.map(button=>button.action),["close"]);
+for(const id of ["realm-guard-strict","mg1e"]){
+  const other=buildProfileConversionPreview({...options,toProfile:resolveRulesProfile(id).profile});
+  assert.equal(other.phase,"M10B.2");
+  assert.equal(other.activationAllowed,false);
+}
+assert.equal(writes,0);
+assert.equal(JSON.stringify({actor,worldItems,fromState,toState}),snapshot);
+assert.deepEqual([...settings],[["activeRulesProfileId","realm-guard-legacy-mixed"],["activeRulesProfileVersion",1]]);
+console.log("PASS M10C.8 MG2E conversion preview · QA / stable / player permissions · current copy · zero writes");

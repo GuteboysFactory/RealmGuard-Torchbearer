@@ -1,5 +1,12 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.20 — M10C.8 Conversion Preview Correction
+
+- Replaces stale MG2E foundation copy with M10C.8 QA-active guidance.
+- Reports separate GM activation permission through the existing QA gate; the preview stays READ_ONLY and zero-write.
+- Adds preview regression smoke; Stable stays v1.11.0.
+- Focused live follow-up: Gate A, Gate B, Gate L and quick activation sanity; results remain pending.
+
 ## v1.12.0-qa.19 — 🟡 M10C.8 MG2E Explicit QA Activation
 
 - M10C.7 / qa.18 FULL PASS confirmed by the user in Foundry v13.351.

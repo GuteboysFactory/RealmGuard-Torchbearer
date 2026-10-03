@@ -2,10 +2,14 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.19 — 🟡 M10C.8 MG2E Explicit QA Activation
+**Current QA build:** v1.12.0-qa.20 — 🟡 M10C.8 MG2E Explicit QA Activation
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10C.8 — 🟡 IN PROGRESS · MG2E Explicit QA Activation
 **Internal system id:** `realm-guard` (do not rename)
+
+## qa.20 corrective follow-up
+
+MG2E Conversion Preview now describes M10C.8 QA activation accurately and remains zero-write. Focused live Gate A / B / L and activation sanity are pending; Stable remains v1.11.0. See TEST_PROTOCOL_v1.12.0-qa.20.md.
 
 ## MG-family CORE migration status
 
