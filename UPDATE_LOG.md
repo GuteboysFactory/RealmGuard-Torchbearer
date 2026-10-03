@@ -1,5 +1,13 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.1 — M10D.1 Torchbearer 2E Foundation
+
+- Source audit covers 19 domains using only the five supplied project authorities.
+- Standalone Rules / Creation Profile v1 and M10D read-only status/readiness API.
+- TB2E activation/creation remain locked; zero-write conversion preview.
+- Existing profiles unchanged; Stable remains 1.12.0.
+- First Foundry foundation/source-review gate is pending TEST_PROTOCOL_v1.13.0-qa.1.md.
+
 ## v1.12.0 — STABLE / GOLD
 
 - Promotes user-verified qa.20; M10C.8 FULL PASS / VERIFIED / CLOSED.

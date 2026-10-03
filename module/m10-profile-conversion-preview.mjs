@@ -1,3 +1,4 @@
+import { TB2E_SOURCE_COVERAGE_MATRIX } from "./m10d-tb2e-source-coverage.mjs";
 import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 
 const STRICT_TARGET_ID = "realm-guard-strict";
@@ -123,7 +124,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
   const targetId=String(toProfile.id);
   return freeze({
     kind:"ProfileConversionPreview",
-    phase: targetId===MG2E_TARGET_ID ? "M10C.8" : "M10B.2",
+    phase: targetId==="torchbearer2e" ? "M10D.1" : targetId===MG2E_TARGET_ID ? "M10C.8" : "M10B.2",
     mode:"READ_ONLY",
     readOnly:true,
     // Target activation permission is separate from this zero-write preview.
@@ -133,14 +134,14 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
     source:{id:fromProfile.id,version:fromProfile.version,name:fromProfile.name,rulesSnapshotHash:fromProfile.rulesSnapshotHash},
     target:{id:toProfile.id,version:toProfile.version,name:toProfile.name,rulesSnapshotHash:toProfile.rulesSnapshotHash,lineage:clone(toProfile.metadata?.sourceLineage??toProfile.lineage??[])},
     domainDiff:profileDomainDiff(fromProfile,toProfile),
-    deltas:deltasFor(targetId).map(clone),
+    deltas:(targetId==="torchbearer2e" ? TB2E_SOURCE_COVERAGE_MATRIX.map(row=>({id:row.id,domain:row.domain,severity:row.status,title:row.domain,from:"Existing profile data is preserved",to:row.status+" / READ_ONLY",dataAction:"NONE",note:row.evidence+" · "+row.verifiedScope+" · "+row.gaps})) : deltasFor(targetId)).map(clone),
     worldImpact:scanProfileWorldImpact(actors,worldItems),
     safety:{
       actorWrites:0,itemWrites:0,journalWrites:0,settingWrites:0,profileSwitch:false,destructiveConversion:false,
       preserveExistingActors:true,preserveWiseItems:true,preserveTalentItems:true,preserveInventoryMetadata:true,
       preserveConditionItems:true,preserveTokenOfPowerItems:true,preserveProgressionData:true
     },
-    nextStep: targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E supported stable · activation is a separate explicit GM action · this preview makes no writes" : "Strict profile remains supported and reversible"
+    nextStep: targetId==="torchbearer2e" ? "M10D.1 source review only · TB2E FOUNDATION_ONLY · activation and creation commit remain locked" : targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E supported stable · activation is a separate explicit GM action · this preview makes no writes" : "Strict profile remains supported and reversible"
   });
 }
 
@@ -182,7 +183,7 @@ export function profileConversionPreviewHtml(preview){
       <div><small>Current</small><br><b>${esc(preview.source.name)}</b><br><small>${esc(preview.source.rulesSnapshotHash)}</small></div>
       <div><small>Preview target</small><br><b>${esc(preview.target.name)}</b><br><small>${esc(preview.target.rulesSnapshotHash)}</small></div>
     </div>
-    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is supported stable (M10C.8). Activation is a separate explicit GM action; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
+    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id==="torchbearer2e"?"Torchbearer 2E is FOUNDATION_ONLY / READ_ONLY. No live activation, profile switch, creation commit or conversion is available. Guides are incomplete rule sources.":preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is supported stable (M10C.8). Activation is a separate explicit GM action; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
     <section><h3>World impact scan</h3>${impact}</section>
     <section><h3>Profile deltas</h3><small>${preview.domainDiff.length} technical domain differences · ${preview.deltas.length} reviewed deltas.</small>${deltas}</section>
   </div>`;
@@ -204,3 +205,9 @@ async function openPreview({fromState,toState,actors,worldItems,title}={}){
 export function openStrictConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Strict Conversion Preview"}); }
 export function openMg1eConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Mouse Guard 1E Conversion Preview"}); }
 export function openMg2eConversionPreview(options={}){ return openPreview({...options,title:"Realm Guard · Mouse Guard 2E Conversion Preview"}); }
+
+export function buildTorchbearer2eConversionPreview(options={}) {
+  if(options?.toProfile?.id!=="torchbearer2e") throw new Error("TB2E conversion preview requires torchbearer2e as target.");
+  return buildProfileConversionPreview(options);
+}
+export function openTorchbearer2eConversionPreview(options={}) { return openPreview({...options,title:"Realm Guard · Torchbearer 2E Foundation Preview"}); }

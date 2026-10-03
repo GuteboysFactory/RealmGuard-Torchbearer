@@ -7,11 +7,14 @@ import { REALM_GUARD_STRICT_CREATION_PROFILE } from "./profiles/realm-guard-stri
 import { MG1E_CREATION_PROFILE } from "./profiles/mg1e-creation.mjs";
 import { MG2E_CREATION_PROFILE } from "./profiles/mg2e-creation.mjs";
 
+import { TORCHBEARER2E_CREATION_PROFILE } from "./profiles/torchbearer2e-creation.mjs";
+
 const CREATION_PROFILES = new Map([
   [REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id, REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE],
   [REALM_GUARD_STRICT_CREATION_PROFILE.id, REALM_GUARD_STRICT_CREATION_PROFILE],
   [MG1E_CREATION_PROFILE.id, MG1E_CREATION_PROFILE],
-  [MG2E_CREATION_PROFILE.id, MG2E_CREATION_PROFILE]
+  [MG2E_CREATION_PROFILE.id, MG2E_CREATION_PROFILE],
+  [TORCHBEARER2E_CREATION_PROFILE.id, TORCHBEARER2E_CREATION_PROFILE]
 ]);
 const ENGINES = new Map([...CREATION_PROFILES.entries()].map(([id, profile]) => [id, new CharacterCreationEngine(profile)]));
 const previewAdapter = new FoundryCreationCommitAdapter({ shadowOnly: true });

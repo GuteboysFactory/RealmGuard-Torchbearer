@@ -217,3 +217,7 @@ MG2E Conversion Preview remains zero-write and now reports QA-active status and 
 ## v1.12.0 — STABLE / GOLD
 
 Promoted from verified qa.20. M10C.8 FULL PASS / VERIFIED / CLOSED. MG2E supported stable; no gameplay changes. QA stays v1.12.0-qa.20.
+
+## v1.13.0-qa.1 — M10D.1 TB2E Foundation
+
+Source-constrained 19-domain audit, locked Rules / Creation Profile v1 and zero-write preview/status API. No later live domains. Stable remains 1.12.0. First foundation gate pending.

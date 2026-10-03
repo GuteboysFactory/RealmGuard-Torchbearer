@@ -1,6 +1,6 @@
-1.12.0
-# STABLE promotion from exact verified qa.20 code
-# M10C.8 FULL PASS / VERIFIED / CLOSED; MG2E supported stable
-# No gameplay changes; separate explicit GM settings-only activation
-# QA channel remains 1.12.0-qa.20
-# Stable moves only after published ZIP / manifest verification
+1.13.0-qa.1
+# M10D.1 Torchbearer 2E Source Coverage Matrix + Profile Foundation
+# 19 classified domains; supplied project sources only
+# FOUNDATION_ONLY / READ_ONLY; no activation / creation / migration / document writes
+# Stable remains 1.12.0; existing profile regression required
+# No later M10D live domains; first Foundry foundation gate pending

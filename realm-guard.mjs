@@ -27,6 +27,7 @@ import { installContextHelp } from "./module/context-help.mjs";
 import { installTokenNameHover } from "./module/token-hover.mjs";
 import { installCoreBaseline } from "./module/core-baseline.mjs";
 import { installRulesProfileInfrastructure } from "./module/rules-profile-service.mjs";
+import { installM10DFoundation } from "./module/m10d-tb2e-foundation.mjs";
 import { installM10ProfileConversionPreview } from "./module/m10-profile-service.mjs";
 import { installProfileManagementMenu } from "./module/profile-management-menu.mjs";
 import { installEffectEngineInfrastructure } from "./module/effect-engine-service.mjs";
@@ -50,7 +51,7 @@ import { installWindowPositionPersistence } from "./module/window-position-servi
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 
 Hooks.once("init", () => {
-  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.12.0"}`);
+  console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.13.0-qa.1"}`);
 
   CONFIG.Actor.documentClass = RealmGuardActor;
   CONFIG.Actor.dataModels = { character: RealmGuardCharacterData, npc: RealmGuardNpcData };
@@ -77,6 +78,7 @@ Hooks.once("init", () => {
   installProfileManagementMenu();
   installRulesProfileInfrastructure();
   installM10ProfileConversionPreview();
+  installM10DFoundation();
   installEffectEngineInfrastructure();
   installTalentEffectShadow();
   installTestEngineInfrastructure();

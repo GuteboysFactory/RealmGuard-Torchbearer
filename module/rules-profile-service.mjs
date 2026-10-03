@@ -8,9 +8,12 @@ import { MG2E_FOUNDATION_PROFILE } from "./profiles/mg2e-foundation.mjs";
 import { REALM_GUARD_STRICT_PROFILE } from "./profiles/realm-guard-strict.mjs";
 import { buildProfileCapabilities } from "./profile-capabilities.mjs";
 
+import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-foundation.mjs";
+
 const resolver = new ProfileResolver([
   MG1E_FOUNDATION_PROFILE,
   MG2E_FOUNDATION_PROFILE,
+  TORCHBEARER2E_FOUNDATION_PROFILE,
   REALM_GUARD_LEGACY_MIXED_PROFILE,
   REALM_GUARD_STRICT_PROFILE
 ]);

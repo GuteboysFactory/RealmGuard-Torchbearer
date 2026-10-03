@@ -1,3 +1,4 @@
+import { showTorchbearer2eConversionPreview } from "./m10d-tb2e-foundation.mjs";
 import { previewMg1eConversion, previewMg2eConversion, previewStrictConversion, showMg1eConversionPreview, showMg2eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { profileActivationStatus, switchRulesProfile } from "./m10-profile-activation.mjs";
@@ -69,7 +70,7 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
     classes:["realm-guard","rg-profile-management"],
     position:{width:760,height:820},
     window:{title:"Realm Guard / Torchbearer · Rules Profile Management",icon:"fa-solid fa-scale-balanced",resizable:true},
-    actions:{previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,previewMg2e:previewMg2eAction,switchProfile:switchProfileAction,switchLegacy:switchLegacyAction}
+    actions:{previewTb2e:showTorchbearer2eConversionPreview,previewStrict:previewStrictAction,previewMg1e:previewMg1eAction,previewMg2e:previewMg2eAction,switchProfile:switchProfileAction,switchLegacy:switchLegacyAction}
   };
 
   static PARTS = { main:{template:"systems/realm-guard/templates/apps/profile-management.hbs",scrollable:[""]} };

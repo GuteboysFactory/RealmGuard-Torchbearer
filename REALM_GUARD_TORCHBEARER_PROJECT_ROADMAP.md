@@ -2,10 +2,14 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.12.0-qa.20 — 🟡 M10C.8 MG2E Explicit QA Activation
+**Current QA build:** v1.13.0-qa.1 — M10D.1 TB2E Source Coverage + Foundation
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.8 — FULL PASS / VERIFIED / CLOSED · MG2E supported stable
+**Current CORE gate:** M10D.1 — IN PROGRESS · Source-constrained TB2E foundation
 **Internal system id:** `realm-guard` (do not rename)
+
+## M10D.1 — Torchbearer 2E Source Coverage + Profile Foundation
+
+Active QA: v1.13.0-qa.1. Only guide-supported source audit and standalone Rules / Creation Profile v1; no live activation or writes. All gaps/ambiguities are explicit. Stable remains v1.12.0; M10C.8 remains FULL PASS / VERIFIED / CLOSED. First foundation gate pending. See M10D_1_TB2E_SOURCE_COVERAGE_MATRIX_2026-10-04.md and TEST_PROTOCOL_v1.13.0-qa.1.md.
 
 ## v1.12.0 stable promotion
 
