@@ -86,7 +86,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.6 adds the MG2E zero-write live-parity QA foundation after technical readiness closure; activation remains unavailable pending controlled parity execution.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.7 adds bounded QA-only MG2E controlled parity execution for Wise Effects, Help, Inventory/Gear and Conflict; activation remains unavailable until a separate explicit milestone.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
