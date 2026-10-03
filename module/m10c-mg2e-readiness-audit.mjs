@@ -103,7 +103,9 @@ export function mg2eActivationReadinessAudit() {
         activationAvailable: profileActivationAvailable(PROFILE_ID),
         genericActivationRouterPresent: String(activation.mode ?? "") === "GENERIC_PROFILE_QA_ACTIVATION_GATE"
       },
-      "Do not change activation metadata in M10C.4. First register MG2E in generic activation status/Profile Management and close technical readiness; activation becomes a separate explicit QA milestone."
+      activationSurfaceRegistered
+        ? "Activation surface is registered and locked. Keep MG2E foundation-only until live parity passes and an explicit activation milestone authorizes metadata changes."
+        : "Register MG2E in generic activation status/Profile Management without enabling activation; activation remains a separate explicit QA milestone."
     )
   ];
 
@@ -140,7 +142,9 @@ export function mg2eActivationReadinessAudit() {
     decision: technicalBlockers.length
       ? "NOT_READY_TECHNICAL_IMPLEMENTATION_REQUIRED"
       : "NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN",
-    nextStep: "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
+    nextStep: technicalBlockers.length
+      ? "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
+      : "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
 
