@@ -3,6 +3,7 @@ import { profileRulesReferenceSnapshot } from "./m10b-rules-reference.mjs";
 import { profileActivationAvailable, profileActivationStatus } from "./m10-profile-activation.mjs";
 import { getM10C3Mg2eShadowStatus } from "./m10c-mg2e-shadow-adapters.mjs";
 import { mg2eLiveParityFoundationStatus } from "./m10c-mg2e-live-parity.mjs";
+import { mg2eControlledLiveParityStatus } from "./m10c-mg2e-controlled-live-parity.mjs";
 import { resolveRulesProfile } from "./rules-profile-service.mjs";
 
 const PROFILE_ID = "mg2e";
@@ -31,6 +32,7 @@ export function mg2eActivationReadinessAudit() {
   const reference = profileRulesReferenceSnapshot(PROFILE_ID);
   const activation = profileActivationStatus();
   const parityFoundation = mg2eLiveParityFoundationStatus();
+  const controlledParity = mg2eControlledLiveParityStatus();
 
   const activationSurfaceRegistered = (activation.profiles ?? []).some(row => row.id === PROFILE_ID);
   const referenceProfileOwned = reference.mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY";
@@ -84,23 +86,36 @@ export function mg2eActivationReadinessAudit() {
     ),
     blocker(
       "LIVE_PARITY_QA",
-      parityFoundation.foundationReady ? "FOUNDATION_READY_NOT_RUN" : "BLOCKED_FOUNDATION_INCOMPLETE",
+      controlledParity.liveParityVerified
+        ? "CLOSED"
+        : parityFoundation.foundationReady
+          ? "CONTROLLED_EXECUTION_IN_PROGRESS"
+          : "BLOCKED_FOUNDATION_INCOMPLETE",
       {
         shadowAdaptersReady: shadowReady,
         foundationReady: parityFoundation.foundationReady === true,
         readyDomainCount: parityFoundation.readyDomainCount,
         domainCount: parityFoundation.domainCount,
         handoffRequired: [...(parityFoundation.handoffRequired ?? [])],
-        liveParityVerified: parityFoundation.liveParityVerified === true,
+        liveParityVerified: controlledParity.liveParityVerified === true,
+        controlledExecutionReady: controlledParity.controlledExecutionReady === true,
+        executedDomainCount: controlledParity.executedDomainCount,
+        passedDomainCount: controlledParity.passedDomainCount,
+        pendingDomains: [...(controlledParity.pendingDomains ?? [])],
+        failedDomains: [...(controlledParity.failedDomains ?? [])],
         liveApplication: shadow.liveApplication === true,
         activationAvailable: profileActivationAvailable(PROFILE_ID),
-        reason: parityFoundation.foundationReady
-          ? "The zero-write MG2E live-parity candidate matrix is complete. Controlled Foundry execution has not run yet."
-          : "The MG2E live-parity candidate matrix still contains foundation mismatches."
+        reason: controlledParity.liveParityVerified
+          ? "All four bounded MG2E controlled handoff domains passed runtime execution while activation remained locked."
+          : parityFoundation.foundationReady
+            ? "The zero-write MG2E parity foundation is complete. Controlled execution must pass all four handoff domains."
+            : "The MG2E live-parity candidate matrix still contains foundation mismatches."
       },
-      parityFoundation.foundationReady
-        ? "Run M10C.7 controlled live parity against the registered candidate handoffs while keeping profile activation locked."
-        : "Close the M10C.6 parity-foundation mismatches before any controlled live handoff execution."
+      controlledParity.liveParityVerified
+        ? "No further parity action required; keep activation locked until M10C.8 explicitly authorizes it."
+        : parityFoundation.foundationReady
+          ? "Complete M10C.7 controlled live parity across Wise Effects, Help, Inventory/Gear and Conflict while activation remains locked."
+          : "Close the M10C.6 parity-foundation mismatches before any controlled live handoff execution."
     ),
     blocker(
       "EXPLICIT_ACTIVATION_MILESTONE",
@@ -126,8 +141,8 @@ export function mg2eActivationReadinessAudit() {
     .map(row => row.id);
 
   return freeze({
-    phase: "M10C.4",
-    mode: "MG2E_ACTIVATION_READINESS_CLOSURE_AUDIT",
+    phase: "M10C.7",
+    mode: "MG2E_CONTROLLED_LIVE_PARITY_READINESS_AUDIT",
     profileId: profile.id,
     profileVersion: profile.version,
     auditComplete: true,
@@ -152,14 +167,18 @@ export function mg2eActivationReadinessAudit() {
     },
     decision: technicalBlockers.length
       ? "NOT_READY_TECHNICAL_IMPLEMENTATION_REQUIRED"
-      : parityFoundation.foundationReady
-        ? "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"
-        : "NOT_READY_LIVE_PARITY_FOUNDATION_INCOMPLETE",
+      : controlledParity.liveParityVerified
+        ? "NOT_READY_EXPLICIT_ACTIVATION_MILESTONE_REMAINS"
+        : parityFoundation.foundationReady
+          ? "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"
+          : "NOT_READY_LIVE_PARITY_FOUNDATION_INCOMPLETE",
     nextStep: technicalBlockers.length
       ? "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
-      : parityFoundation.foundationReady
-        ? "M10C.7 MG2E Controlled Live Parity Execution"
-        : "M10C.6 MG2E Live Parity QA Foundation"
+      : controlledParity.liveParityVerified
+        ? "M10C.8 MG2E Explicit Activation Milestone"
+        : parityFoundation.foundationReady
+          ? "M10C.7 MG2E Controlled Live Parity Execution"
+          : "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
 
