@@ -1,16 +1,14 @@
-1.12.0-qa.16
-# M10C.5 MG2E Technical Live-Readiness Closure
-# M10C.4 live QA FULL PASS / VERIFIED / CLOSED
+1.12.0-qa.17
+# M10C.6 MG2E Live Parity QA Foundation
+# M10C.5 live QA FULL PASS / VERIFIED / CLOSED
 # standalone MG2E Rules Profile v3; activation remains OFF
-# source-owned MG2E CORE M9 CharacterCreationProfile v3 READY_WHEN_ACTIVE
-# source-owned MG2E Rules Reference + Natural Order reference
-# MG2E registered in generic locked activation-status/Profile Management surface
-# FULL_RECRUITMENT_COMMIT_ADAPTER = CLOSED
-# DEDICATED_LIVE_RULES_REFERENCE = CLOSED
-# LIVE_PARITY_QA = BLOCKED_NOT_RUN
+# zero-write 13-domain MG2E live-parity foundation matrix
+# WISE_EFFECTS / HELP / INVENTORY_GEAR / CONFLICT = controlled handoffs
+# Session/Circles generic routing recognizes MG2E family semantics
+# M10B.6 source ownership edition-aware: MG1E_2008 / MG2E_2015
+# LIVE_PARITY_QA = FOUNDATION_READY_NOT_RUN when matrix is green
 # EXPLICIT_ACTIVATION_MILESTONE = DEFERRED
-# zero existing Actor/Item/Journal/profile-switch conversion writes
-# no switchToMg2e / no activation metadata changes
+# no switchToMg2e / activationAvailable remains false
+# zero Actor/Item/Journal/settings writes and no destructive migration
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
-# retrigger after historical M10C.2 smoke compatibility fix
