@@ -68,6 +68,32 @@ const TENDERPAW_WISES = Object.freeze(["Code of the Guard-wise","Legends of the 
 const CAPTAIN_REQUIRED_WISES = Object.freeze(["Lockhaven-wise","Matriarch-wise"]);
 const WEAPONS = Object.freeze(["Shield","Knife","Sword","Staff","Spear","Hook and Line","Halberd","Sling","Bow"]);
 
+const BORN_TRAITS = Object.freeze([
+  "Bigpaw","Bitter","Bodyguard","Bold","Brave","Calm","Clever","Compassionate","Cunning","Curious",
+  "Deep Ear","Defender","Determined","Driven","Early Riser","Extrovert","Fat","Fearful","Fearless",
+  "Fiery","Generous","Graceful","Guard's Honor","Innocent","Jaded","Leader","Longtail","Lost",
+  "Natural Bearings","Nimble","Nocturnal","Oldfur","Quick-Witted","Quiet","Scarred","Sharp-Eyed",
+  "Sharptooth","Short","Skeptical","Skinny","Stoic","Stubborn","Suspicious","Tall","Thoughtful",
+  "Tough","Weather Sense","Wise","Wolf's Snout","Young"
+]);
+
+const PARENT_TRAITS = Object.freeze([
+  "Bigpaw","Brave","Calm","Clever","Compassionate","Curious","Deep Ear","Defender","Determined",
+  "Early Riser","Extrovert","Fearful","Fearless","Fiery","Generous","Graceful","Longtail","Lost",
+  "Natural Bearings","Nimble","Quick-Witted","Quiet","Scarred","Sharptooth","Short","Skeptical",
+  "Skinny","Stubborn","Suspicious","Tall","Tough","Wolf's Snout"
+]);
+
+const ROAD_TRAITS = Object.freeze([
+  "Bitter","Bodyguard","Brave","Calm","Clever","Compassionate","Cunning","Curious","Defender",
+  "Driven","Early Riser","Fearful","Fearless","Jaded","Leader","Natural Bearings","Nocturnal",
+  "Oldfur","Quiet","Scarred","Sharp-Eyed","Skeptical","Skinny","Stoic","Thoughtful","Tough",
+  "Weather Sense","Wise"
+]);
+
+const WINTER_NATURE_TRAITS = Object.freeze(["Bold","Generous","Impetuous"]);
+const PREDATOR_NATURE_TRAITS = Object.freeze(["Fearless","Brave","Foolish"]);
+
 function freeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
   Object.freeze(value);
@@ -104,7 +130,9 @@ function cleanPerson(value) {
     name:String(value.name ?? "").trim(),
     actorId:String(value.actorId ?? "").trim(),
     role:String(value.role ?? value.profession ?? "").trim(),
-    notes:String(value.notes ?? "").trim()
+    notes:String(value.notes ?? "").trim(),
+    olderMouse:value.olderMouse === true,
+    traits:Array.isArray(value.traits) ? value.traits.map(t => String(t?.name ?? t ?? "").trim()).filter(Boolean) : []
   };
 }
 
@@ -165,9 +193,12 @@ function derive({ answers = {}, allocations = {} } = {}) {
   if (natureAnswers.fearPredators === true) nature += 1;
   nature = clamp(nature, 2, 7);
 
-  if (natureAnswers.saveForWinter === false) addTrait(traitChecks, "Generous");
+  if (natureAnswers.saveForWinter === false && answers.winterTrait) addTrait(traitChecks, answers.winterTrait);
   if (natureAnswers.fearPredators === false && answers.natureTrait) addTrait(traitChecks, answers.natureTrait);
 
+  addTrait(traitChecks, answers.bornTrait);
+  if (rankId === "tenderpaw") addTrait(traitChecks, answers.parentTrait);
+  if (["patrolLeader","guardCaptain"].includes(rankId)) addTrait(traitChecks, answers.roadTrait);
   for (const entry of list(allocation.traits)) addTrait(traitChecks, entry);
 
   const wises = [...new Set(list(allocation.wises))];
@@ -231,6 +262,42 @@ function issue(code, field, message, value = null) {
   return { code, field, message, value };
 }
 
+
+function partyRows(partyContext) {
+  return [...(partyContext?.existingCharacters ?? []), ...(partyContext?.otherDraftCharacters ?? [])];
+}
+
+function partyRank(row) {
+  return String(row?.rank ?? row?.answers?.rank ?? "");
+}
+
+function partyTraits(row) {
+  return new Set((row?.traits ?? []).map(t => String(t?.name ?? t ?? "").trim().toLowerCase()).filter(Boolean));
+}
+
+function validatePartyRank(rankId, answers, partyContext, errors) {
+  const rows = partyRows(partyContext);
+  if (rankId === "guardCaptain") {
+    if (answers.guardCaptainApproved !== true) {
+      errors.push(issue("MG2E_GUARD_CAPTAIN_GROUP_APPROVAL","guardCaptainApproved","A Guard Captain requires group approval."));
+    }
+    if (rows.some(row => partyRank(row) === "guardCaptain")) {
+      errors.push(issue("MG2E_GUARD_CAPTAIN_UNIQUE","rank","There may only be one Guard Captain in the group."));
+    }
+  }
+
+  if (rankId === "patrolLeader") {
+    const ranks = [...rows.map(partyRank), rankId];
+    const leaders = ranks.filter(rank => rank === "patrolLeader").length;
+    if (leaders > 1) {
+      const tenderpaws = ranks.filter(rank => rank === "tenderpaw").length;
+      if (!(ranks.length === 4 && leaders === 2 && tenderpaws === 2)) {
+        errors.push(issue("MG2E_PATROL_LEADER_LIMIT","rank","A second Patrol Leader is only allowed in a four-player group when the other two characters are Tenderpaws."));
+      }
+    }
+  }
+}
+
 function validateStep({ stepId, draft, partyContext }) {
   const a = draft.answers ?? {};
   const d = draft.derivedValues ?? {};
@@ -241,10 +308,12 @@ function validateStep({ stepId, draft, partyContext }) {
   const warnings = [];
 
   if (["identity","rank-age"].includes(stepId)) {
+    if (!String(a.name ?? "").trim()) errors.push(issue("NAME_REQUIRED","name","Enter the guardmouse's name."));
     if (!rank) errors.push(issue("MG2E_RANK_REQUIRED","rank","Choose a Mouse Guard rank."));
     if (rank && (Number(a.age) < rank.age[0] || Number(a.age) > rank.age[1])) {
       errors.push(issue("MG2E_AGE_RANGE","age",rank.label + " age must be " + rank.age[0] + "-" + rank.age[1] + ".",a.age));
     }
+    if (rank) validatePartyRank(rankId, a, partyContext, errors);
   }
 
   if (stepId === "hometown") {
@@ -295,7 +364,10 @@ function validateStep({ stepId, draft, partyContext }) {
     for (const key of ["saveForWinter","runAndHide","fearPredators"]) {
       if (typeof n[key] !== "boolean") errors.push(issue("MG2E_NATURE_QUESTION","natureAnswers." + key,"Answer all three Mouse Nature questions.",n[key]));
     }
-    if (n.fearPredators === false && !["Fearless","Brave","Foolish"].includes(String(a.natureTrait ?? ""))) {
+    if (n.saveForWinter === false && !WINTER_NATURE_TRAITS.includes(String(a.winterTrait ?? ""))) {
+      errors.push(issue("MG2E_WINTER_NATURE_TRAIT","winterTrait","If the mouse does not save for winter, choose Bold, Generous or Impetuous at level 1.",a.winterTrait));
+    }
+    if (n.fearPredators === false && !PREDATOR_NATURE_TRAITS.includes(String(a.natureTrait ?? ""))) {
       errors.push(issue("MG2E_NATURE_TRAIT","natureTrait","If the mouse does not fear owls, weasels and wolves, choose Fearless, Brave or Foolish.",a.natureTrait));
     }
   }
@@ -312,27 +384,50 @@ function validateStep({ stepId, draft, partyContext }) {
   }
 
   if (stepId === "traits") {
+    if (!BORN_TRAITS.includes(String(a.bornTrait ?? ""))) {
+      errors.push(issue("MG2E_BORN_TRAIT","bornTrait","Choose one source-listed quality the mouse was born with.",a.bornTrait));
+    }
+    if (rankId === "tenderpaw" && !PARENT_TRAITS.includes(String(a.parentTrait ?? ""))) {
+      errors.push(issue("MG2E_PARENT_TRAIT","parentTrait","Tenderpaws choose one source-listed Trait learned or inherited from their parents.",a.parentTrait));
+    }
+    if (["patrolLeader","guardCaptain"].includes(rankId) && !ROAD_TRAITS.includes(String(a.roadTrait ?? ""))) {
+      errors.push(issue("MG2E_ROAD_TRAIT","roadTrait","Patrol Leaders and Guard Captains choose one Life on the Road Trait.",a.roadTrait));
+    }
     for (const [name,rating] of Object.entries(d.traitChecks ?? {})) {
-      if (Number(rating) < 1 || Number(rating) > 3) errors.push(issue("MG2E_TRAIT_CAP","allocations.traits","Trait rating must be 1-3.",{name,rating}));
+      if (Number(rating) < 1 || Number(rating) > 3) errors.push(issue("MG2E_TRAIT_CAP","traits","Trait rating must be 1-3.",{name,rating}));
     }
   }
 
   if (stepId === "relationships") {
     const rel = normalizedRelationships(a);
+    if (!rel.parents.length) errors.push(issue("MG2E_PARENT_REQUIRED","relationships.parents","Name at least one parent."));
+    if (!rel.seniorArtisan.name) errors.push(issue("MG2E_SENIOR_ARTISAN_REQUIRED","relationships.seniorArtisan","Name the Senior Artisan."));
     if (!rel.mentor.name) errors.push(issue("MG2E_MENTOR_REQUIRED","relationships.mentor","Recruitment requires a Guard mentor."));
     if (rankId === "tenderpaw" && rel.mentor.name) {
-      const mentorPc = (partyContext?.existingCharacters ?? []).find(row => String(row?.actorId ?? "") === rel.mentor.actorId || String(row?.name ?? "") === rel.mentor.name);
-      if (!mentorPc) errors.push(issue("MG2E_TENDERPAW_PLAYER_MENTOR","relationships.mentor","A Tenderpaw mentor must be a current player character, preferably a Patrol Leader.",rel.mentor.name));
+      const mentorPc = partyRows(partyContext).find(row => String(row?.actorId ?? "") === rel.mentor.actorId || String(row?.name ?? "") === rel.mentor.name);
+      if (!mentorPc && rel.mentor.olderMouse !== true) {
+        errors.push(issue("MG2E_TENDERPAW_MENTOR","relationships.mentor","A Tenderpaw mentor should be a current player character, preferably a Patrol Leader; otherwise mark the NPC mentor as an older mouse.",rel.mentor.name));
+      }
     }
     if (rankId !== "tenderpaw" && rel.mentor.actorId) {
-      const mentorPc = (partyContext?.existingCharacters ?? []).find(row => String(row?.actorId ?? "") === rel.mentor.actorId);
-      const oldfur = (mentorPc?.traits ?? []).some(t => String(t?.name ?? "") === "Oldfur");
+      const mentorPc = partyRows(partyContext).find(row => String(row?.actorId ?? "") === rel.mentor.actorId);
+      const oldfur = mentorPc ? partyTraits(mentorPc).has("oldfur") : rel.mentor.traits.map(x => x.toLowerCase()).includes("oldfur");
       if (mentorPc && !oldfur) errors.push(issue("MG2E_EXPERIENCED_MENTOR_OLDFUR","relationships.mentor","An experienced mouse may use a player-character mentor only if that mentor has Oldfur.",rel.mentor.name));
     }
   }
 
-  if (stepId === "cloak" && rankId === "tenderpaw" && String(a.cloakColor ?? "").trim()) {
-    errors.push(issue("MG2E_TENDERPAW_NO_CLOAK","cloakColor","Tenderpaws do not start with a cloak.",a.cloakColor));
+  if (stepId === "cloak") {
+    if (rankId === "tenderpaw" && String(a.cloakColor ?? "").trim()) {
+      errors.push(issue("MG2E_TENDERPAW_NO_CLOAK","cloakColor","Tenderpaws do not start with a cloak.",a.cloakColor));
+    }
+    if (rankId !== "tenderpaw" && rank && !String(a.cloakColor ?? "").trim()) {
+      errors.push(issue("MG2E_CLOAK_REQUIRED","cloakColor","Experienced Guard ranks choose a cloak color.",a.cloakColor));
+    }
+  }
+
+  if (["belief","goal","instinct"].includes(stepId)) {
+    const key = stepId;
+    if (!String(a.drives?.[key] ?? "").trim()) errors.push(issue("MG2E_DRIVE_REQUIRED","drives." + key,"Write the character's " + key + "."));
   }
 
   if (stepId === "gear-rewards") {
@@ -473,7 +568,7 @@ export const MG2E_CREATION_PROFILE = new CharacterCreationProfile({
     { id:"nature", type:"QUESTION", sourceStep:"Mouse Nature" },
     { id:"wises", type:"ALLOCATION", sourceStep:"Being Wise" },
     { id:"resources-circles", type:"REVIEW", sourceStep:"Guard Resources / Guard Circles" },
-    { id:"traits", type:"ALLOCATION", sourceStep:"Mouse Traits" },
+    { id:"traits", type:"ALLOCATION", sourceStep:"Mouse Traits — born quality / Tenderpaw parent Trait / veteran Life on the Road Trait" },
     { id:"name-fur", type:"CHOICE", sourceStep:"Name / Fur Color" },
     { id:"relationships", type:"RELATIONSHIP", sourceStep:"Parents / Senior Artisan / Mentor / Friend / Enemy" },
     { id:"cloak", type:"CHOICE", sourceStep:"Cloak Color" },
@@ -499,7 +594,16 @@ export const MG2E_CREATION_PROFILE = new CharacterCreationProfile({
     enemyValidation:"MG2E_OPTIONAL_ANY_APPROPRIATE_ENEMY",
     enemyHouseRuleAllowed:false,
     automaticNpcCreation:false,
-    partyConstraints:["PATROL_LEADER_LIMIT","GUARD_CAPTAIN_UNIQUE_AND_GROUP_APPROVED","TENDERPAW_PLAYER_MENTOR","UNIQUE_SPECIALTY"]
+    partyConstraints:["PATROL_LEADER_LIMIT","GUARD_CAPTAIN_UNIQUE_AND_GROUP_APPROVED","TENDERPAW_MENTOR","UNIQUE_SPECIALTY"],
+    natureQuestionTraits:{
+      saveForWinterNo:[...WINTER_NATURE_TRAITS],
+      fearPredatorsNo:[...PREDATOR_NATURE_TRAITS]
+    },
+    traitSelection:{
+      born:[...BORN_TRAITS],
+      tenderpawParent:[...PARENT_TRAITS],
+      patrolLeaderGuardCaptainRoad:[...ROAD_TRAITS]
+    }
   },
   grants:{ fate:1, persona:1, checks:0 },
   metadata:{
