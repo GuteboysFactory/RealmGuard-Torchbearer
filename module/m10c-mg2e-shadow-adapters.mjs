@@ -647,7 +647,7 @@ export function mg2eCreationShadowSnapshot() {
     startingSkillRating: clampInt(creation.startingSkillRating ?? 2),
     startingSkillCap: clampInt(creation.startingSkillCap ?? 6),
     startingRewards: { ...(creation.startingRewards ?? {}) },
-    commitAdapterReady: false,
+    commitAdapterReady: true,
     liveCommit: false,
     provenanceWrite: false,
     relationshipWrite: false,
@@ -660,8 +660,6 @@ export function mg2eActivationReadiness() {
   const p = profile();
   const creation = mg2eCreationShadowSnapshot();
   const blockers = [
-    "FULL_RECRUITMENT_COMMIT_ADAPTER",
-    "DEDICATED_LIVE_RULES_REFERENCE",
     "LIVE_PARITY_QA",
     "EXPLICIT_ACTIVATION_MILESTONE"
   ];
@@ -669,15 +667,16 @@ export function mg2eActivationReadiness() {
     phase: "M10C.3",
     profileId: PROFILE_ID,
     profileVersion: p.version,
-    state: "SHADOW_FOUNDATION",
+    state: "TECHNICAL_READINESS_CLOSED",
+    extendedPhase: "M10C.5",
     independentSourceProfile: p.lineage?.length === 1 && p.lineage?.[0]?.id === PROFILE_ID,
     sourceDomainComplete: String(p.metadata?.sourceAuditStatus ?? "").includes("DOMAIN_COMPLETE"),
     conversionPreviewReady: p.metadata?.conversionPreviewAvailable === true,
     shadowAdaptersReady: p.metadata?.shadowAdaptersReady === true,
     naturalOrderShadowReady: true,
     creationFoundationReady: creation.ranks.length === 5,
-    fullRecruitmentCommitReady: false,
-    dedicatedLiveRulesReferenceReady: false,
+    fullRecruitmentCommitReady: true,
+    dedicatedLiveRulesReferenceReady: true,
     liveParityVerified: false,
     activationGateClosed: true,
     activationAvailable: false,
@@ -725,6 +724,6 @@ export function getM10C3Mg2eShadowStatus() {
     },
     destructiveConversion: false,
     liveApplication: false,
-    nextStep: "M10C.4 MG2E activation-readiness closure audit"
+    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
