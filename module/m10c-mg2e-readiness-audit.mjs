@@ -2,6 +2,7 @@ import { resolveM10BCharacterCreationPolicy } from "./m10b-character-creation.mj
 import { profileRulesReferenceSnapshot } from "./m10b-rules-reference.mjs";
 import { profileActivationAvailable, profileActivationStatus } from "./m10-profile-activation.mjs";
 import { getM10C3Mg2eShadowStatus } from "./m10c-mg2e-shadow-adapters.mjs";
+import { mg2eLiveParityFoundationStatus } from "./m10c-mg2e-live-parity.mjs";
 import { resolveRulesProfile } from "./rules-profile-service.mjs";
 
 const PROFILE_ID = "mg2e";
@@ -29,6 +30,7 @@ export function mg2eActivationReadinessAudit() {
   const creation = resolveM10BCharacterCreationPolicy(PROFILE_ID);
   const reference = profileRulesReferenceSnapshot(PROFILE_ID);
   const activation = profileActivationStatus();
+  const parityFoundation = mg2eLiveParityFoundationStatus();
 
   const activationSurfaceRegistered = (activation.profiles ?? []).some(row => row.id === PROFILE_ID);
   const referenceProfileOwned = reference.mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY";
@@ -82,14 +84,23 @@ export function mg2eActivationReadinessAudit() {
     ),
     blocker(
       "LIVE_PARITY_QA",
-      "BLOCKED_NOT_RUN",
+      parityFoundation.foundationReady ? "FOUNDATION_READY_NOT_RUN" : "BLOCKED_FOUNDATION_INCOMPLETE",
       {
         shadowAdaptersReady: shadowReady,
+        foundationReady: parityFoundation.foundationReady === true,
+        readyDomainCount: parityFoundation.readyDomainCount,
+        domainCount: parityFoundation.domainCount,
+        handoffRequired: [...(parityFoundation.handoffRequired ?? [])],
+        liveParityVerified: parityFoundation.liveParityVerified === true,
         liveApplication: shadow.liveApplication === true,
         activationAvailable: profileActivationAvailable(PROFILE_ID),
-        reason: "MG2E has no live authority, so live handoff parity cannot be truthfully verified yet."
+        reason: parityFoundation.foundationReady
+          ? "The zero-write MG2E live-parity candidate matrix is complete. Controlled Foundry execution has not run yet."
+          : "The MG2E live-parity candidate matrix still contains foundation mismatches."
       },
-      "Run live Foundry parity only after the technical creation/reference/activation-surface blockers are closed in a later bounded candidate."
+      parityFoundation.foundationReady
+        ? "Run M10C.7 controlled live parity against the registered candidate handoffs while keeping profile activation locked."
+        : "Close the M10C.6 parity-foundation mismatches before any controlled live handoff execution."
     ),
     blocker(
       "EXPLICIT_ACTIVATION_MILESTONE",
@@ -141,10 +152,14 @@ export function mg2eActivationReadinessAudit() {
     },
     decision: technicalBlockers.length
       ? "NOT_READY_TECHNICAL_IMPLEMENTATION_REQUIRED"
-      : "NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN",
+      : parityFoundation.foundationReady
+        ? "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"
+        : "NOT_READY_LIVE_PARITY_FOUNDATION_INCOMPLETE",
     nextStep: technicalBlockers.length
       ? "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
-      : "M10C.6 MG2E Live Parity QA Foundation"
+      : parityFoundation.foundationReady
+        ? "M10C.7 MG2E Controlled Live Parity Execution"
+        : "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
 
