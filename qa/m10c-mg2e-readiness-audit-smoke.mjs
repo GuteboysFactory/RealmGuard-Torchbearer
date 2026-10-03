@@ -28,7 +28,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.4","M10C.5","M10C.6"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.4","M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.activationReadinessAuditComplete, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
@@ -36,8 +36,8 @@ assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
 
 const audit = mg2eActivationReadinessAudit();
-assert.equal(audit.phase, "M10C.4");
-assert.equal(audit.mode, "MG2E_ACTIVATION_READINESS_CLOSURE_AUDIT");
+assert.ok(["M10C.4","M10C.7"].includes(audit.phase));
+assert.ok(["MG2E_ACTIVATION_READINESS_CLOSURE_AUDIT","MG2E_CONTROLLED_LIVE_PARITY_READINESS_AUDIT"].includes(audit.mode));
 assert.equal(audit.auditComplete, true);
 assert.equal(audit.activationReady, false);
 assert.equal(audit.technicalReadinessComplete, true);
@@ -68,7 +68,7 @@ assert.ok(reference.evidence.pageCount >= 8);
 assert.equal(reference.evidence.zeroWrite, true);
 
 const parity = byId.get("LIVE_PARITY_QA");
-assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN"].includes(parity.state));
+assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(parity.state));
 assert.equal(parity.evidence.shadowAdaptersReady, true);
 assert.equal(parity.evidence.liveApplication, false);
 assert.equal(parity.evidence.activationAvailable, false);
