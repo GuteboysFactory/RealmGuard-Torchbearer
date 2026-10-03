@@ -119,6 +119,11 @@ import {
   mg2eActivationReadinessAudit
 } from "./m10c-mg2e-readiness-audit.mjs";
 import {
+  getM10C6Mg2eLiveParityFoundationStatus,
+  mg2eLiveParityFoundationStatus,
+  mg2eLiveParityMatrix
+} from "./m10c-mg2e-live-parity.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -182,9 +187,10 @@ export function getM10ProfilePreviewStatus() {
   const active = getRulesProfileRuntime();
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
+  const parity = mg2eLiveParityFoundationStatus();
   return Object.freeze({
-    phase: "M10C.5",
-    mode: "MG2E_TECHNICAL_LIVE_READINESS_ROUTER",
+    phase: "M10C.6",
+    mode: "MG2E_LIVE_PARITY_QA_FOUNDATION_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -213,7 +219,10 @@ export function getM10ProfilePreviewStatus() {
     mg2eCreationProfileAvailable: resolveM10BCharacterCreationPolicy("mg2e").creationProfileAvailable === true,
     mg2eRulesReferenceOwned: profileRulesReferenceSnapshot("mg2e").mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY",
     mg2eActivationSurfaceRegistered: (activation.profiles ?? []).some(row => row.id === "mg2e"),
-    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
+    mg2eLiveParityFoundationReady: parity.foundationReady === true,
+    mg2eLiveParityVerified: parity.liveParityVerified === true,
+    mg2eLiveParityHandoffRequired: [...(parity.handoffRequired ?? [])],
+    nextStep: "M10C.7 MG2E Controlled Live Parity Execution"
   });
 }
 
@@ -305,8 +314,11 @@ export function installM10ProfileConversionPreview() {
       openMg2eConversionPreview: showMg2eConversionPreview,
       mg2eShadowStatus: getM10C3Mg2eShadowStatus,
       mg2eReadinessAudit: getM10C4Mg2eReadinessAuditStatus,
+      mg2eLiveParityFoundation: getM10C6Mg2eLiveParityFoundationStatus,
       mg2e: Object.freeze({
         readinessAudit: mg2eActivationReadinessAudit,
+        liveParityStatus: mg2eLiveParityFoundationStatus,
+        liveParityMatrix: mg2eLiveParityMatrix,
         getStatus: getM10C3Mg2eShadowStatus,
         activationReadiness: mg2eActivationReadiness,
         testPolicy: mg2eTestPolicySnapshot,
@@ -448,6 +460,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.5 MG2E technical live-readiness router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.6 MG2E live parity QA foundation ready", getM10ProfilePreviewStatus());
   });
 }
