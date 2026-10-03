@@ -124,6 +124,13 @@ import {
   mg2eLiveParityMatrix
 } from "./m10c-mg2e-live-parity.mjs";
 import {
+  getM10C7Mg2eControlledLiveParityStatus,
+  mg2eControlledLiveParityMatrix,
+  mg2eControlledLiveParityStatus,
+  resetMg2eControlledLiveParityEvidence,
+  runMg2eControlledLiveParityHandoff
+} from "./m10c-mg2e-controlled-live-parity.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -188,9 +195,10 @@ export function getM10ProfilePreviewStatus() {
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
   const parity = mg2eLiveParityFoundationStatus();
+  const controlledParity = mg2eControlledLiveParityStatus();
   return Object.freeze({
-    phase: "M10C.6",
-    mode: "MG2E_LIVE_PARITY_QA_FOUNDATION_ROUTER",
+    phase: "M10C.7",
+    mode: "MG2E_CONTROLLED_LIVE_PARITY_EXECUTION_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -220,9 +228,14 @@ export function getM10ProfilePreviewStatus() {
     mg2eRulesReferenceOwned: profileRulesReferenceSnapshot("mg2e").mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY",
     mg2eActivationSurfaceRegistered: (activation.profiles ?? []).some(row => row.id === "mg2e"),
     mg2eLiveParityFoundationReady: parity.foundationReady === true,
-    mg2eLiveParityVerified: parity.liveParityVerified === true,
+    mg2eLiveParityVerified: controlledParity.liveParityVerified === true,
     mg2eLiveParityHandoffRequired: [...(parity.handoffRequired ?? [])],
-    nextStep: "M10C.7 MG2E Controlled Live Parity Execution"
+    mg2eControlledParityReady: controlledParity.controlledExecutionReady === true,
+    mg2eControlledParityExecuted: controlledParity.executedDomainCount,
+    mg2eControlledParityPassed: controlledParity.passedDomainCount,
+    nextStep: controlledParity.liveParityVerified
+      ? "M10C.8 MG2E Explicit Activation Milestone"
+      : "M10C.7 MG2E Controlled Live Parity Execution"
   });
 }
 
@@ -315,10 +328,15 @@ export function installM10ProfileConversionPreview() {
       mg2eShadowStatus: getM10C3Mg2eShadowStatus,
       mg2eReadinessAudit: getM10C4Mg2eReadinessAuditStatus,
       mg2eLiveParityFoundation: getM10C6Mg2eLiveParityFoundationStatus,
+      mg2eControlledLiveParity: getM10C7Mg2eControlledLiveParityStatus,
       mg2e: Object.freeze({
         readinessAudit: mg2eActivationReadinessAudit,
-        liveParityStatus: mg2eLiveParityFoundationStatus,
-        liveParityMatrix: mg2eLiveParityMatrix,
+        liveParityFoundationStatus: mg2eLiveParityFoundationStatus,
+        liveParityFoundationMatrix: mg2eLiveParityMatrix,
+        liveParityStatus: mg2eControlledLiveParityStatus,
+        liveParityMatrix: mg2eControlledLiveParityMatrix,
+        runControlledHandoff: runMg2eControlledLiveParityHandoff,
+        resetControlledParity: resetMg2eControlledLiveParityEvidence,
         getStatus: getM10C3Mg2eShadowStatus,
         activationReadiness: mg2eActivationReadiness,
         testPolicy: mg2eTestPolicySnapshot,
@@ -460,6 +478,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.6 MG2E live parity QA foundation ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.7 MG2E controlled live parity execution ready", getM10ProfilePreviewStatus());
   });
 }
