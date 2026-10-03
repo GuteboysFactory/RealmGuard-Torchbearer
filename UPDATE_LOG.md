@@ -1,5 +1,22 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.17 - 🟡 M10C.6 MG2E Live Parity QA Foundation
+
+- M10C.5 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
+- Keeps standalone `mg2e` Rules Profile at v3 and keeps activation OFF.
+- Adds a zero-write 13-domain MG2E live-parity foundation matrix covering Tests, Advancement/Beginner's Luck, Traits, Wises, Help, Nature, Conditions/Recovery, Inventory/Gear, Conflict, Session/Circles/Progression, Natural Order, Character Creation and Rules Reference.
+- Maps every domain to a deterministic candidate provider and the live surface a later controlled parity milestone must exercise.
+- Explicitly marks WISE_EFFECTS, HELP, INVENTORY_GEAR and CONFLICT as controlled handoff domains.
+- Prevents future MG2E live routing from silently falling through Legacy unrated-Wise rerolls or MG1E weapon/armor semantics.
+- Generic Session/Circles capability routing now recognizes MG2E family semantics.
+- M10B.6 source ownership is edition-aware: MG1E_2008 / MG2E_2015 / LEGACY_CURRENT.
+- Readiness audit advances LIVE_PARITY_QA to FOUNDATION_READY_NOT_RUN when all 13 domains are green; this does not claim live parity verified.
+- EXPLICIT_ACTIVATION_MILESTONE remains DEFERRED.
+- No `switchToMg2e` is added; MG2E remains FOUNDATION_ONLY, non-selectable, unsupported and non-live.
+- M10C.6 performs zero Actor, Item, Journal and world-setting writes and no destructive migration.
+- Legacy Mixed, Strict Realm Guard and MG1E remain unchanged.
+- v1.11.0 remains STABLE / GOLD.
+
 ## v1.12.0-qa.16 - 🟡 M10C.5 MG2E Technical Live-Readiness Closure
 
 - M10C.4 is now FULL PASS / VERIFIED / CLOSED after Gates A-K passed in Foundry VTT 13.351.
