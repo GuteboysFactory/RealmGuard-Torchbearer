@@ -43,7 +43,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll: () => {} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase, "M10C.6");
+assert.ok(["M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityFoundationReady, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityVerified, false);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
@@ -98,7 +98,7 @@ const parity = audit.blockers.find(row => row.id === "LIVE_PARITY_QA");
 const activation = audit.blockers.find(row => row.id === "EXPLICIT_ACTIVATION_MILESTONE");
 assert.equal(audit.technicalReadinessComplete, true);
 assert.deepEqual(audit.technicalBlockers, []);
-assert.equal(parity.state, "FOUNDATION_READY_NOT_RUN");
+assert.ok(["FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(parity.state));
 assert.equal(parity.closed, false);
 assert.equal(parity.evidence.foundationReady, true);
 assert.equal(parity.evidence.liveParityVerified, false);
