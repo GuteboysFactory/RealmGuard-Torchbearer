@@ -115,6 +115,10 @@ import {
   mg2eWiseUsePlan
 } from "./m10c-mg2e-shadow-adapters.mjs";
 import {
+  getM10C4Mg2eReadinessAuditStatus,
+  mg2eActivationReadinessAudit
+} from "./m10c-mg2e-readiness-audit.mjs";
+import {
   getStrictGearInventoryConflictStatus,
   strictArmorPlan,
   strictAvailableConflictTools,
@@ -179,8 +183,8 @@ export function getM10ProfilePreviewStatus() {
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
   return Object.freeze({
-    phase: "M10C.3",
-    mode: "GENERIC_PROFILE_FOUNDATION_PREVIEW_ROUTER_PLUS_MG2E_SHADOW",
+    phase: "M10C.4",
+    mode: "MG2E_ACTIVATION_READINESS_AUDIT_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -204,7 +208,8 @@ export function getM10ProfilePreviewStatus() {
     mg2eConversionPreviewAvailable: resolveRulesProfile("mg2e").profile.metadata?.conversionPreviewAvailable === true,
     mg2eShadowAdaptersReady: resolveRulesProfile("mg2e").profile.metadata?.shadowAdaptersReady === true,
     mg2eActivationReadiness: mg2eActivationReadiness(),
-    nextStep: "M10C.4 MG2E activation-readiness closure audit"
+    mg2eReadinessAudit: mg2eActivationReadinessAudit(),
+    nextStep: "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
   });
 }
 
@@ -295,7 +300,9 @@ export function installM10ProfileConversionPreview() {
       previewMg2eConversion,
       openMg2eConversionPreview: showMg2eConversionPreview,
       mg2eShadowStatus: getM10C3Mg2eShadowStatus,
+      mg2eReadinessAudit: getM10C4Mg2eReadinessAuditStatus,
       mg2e: Object.freeze({
+        readinessAudit: mg2eActivationReadinessAudit,
         getStatus: getM10C3Mg2eShadowStatus,
         activationReadiness: mg2eActivationReadiness,
         testPolicy: mg2eTestPolicySnapshot,
@@ -429,6 +436,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.3 MG2E shadow adapter router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.4 MG2E activation-readiness audit router ready", getM10ProfilePreviewStatus());
   });
 }
