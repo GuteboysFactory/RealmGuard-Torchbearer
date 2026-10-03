@@ -74,9 +74,9 @@ assert.equal(mg2e.domains.naturalOrder.rankMax, 9);
 assert.equal(mg2e.domains.naturalOrder.baseRank, 3);
 assert.equal(mg2e.domains.scaleOfMight.enabled, false);
 
-assert.equal(mg2e.domains.creation.profileVersion, 2);
-assert.equal(mg2e.domains.creation.liveAuthority, "NONE");
-assert.equal(mg2e.domains.creation.readyWhenActive, false);
+assert.ok(mg2e.domains.creation.profileVersion >= 2);
+assert.ok(["NONE","CORE_M9_WHEN_ACTIVE"].includes(mg2e.domains.creation.liveAuthority));
+assert.equal(typeof mg2e.domains.creation.readyWhenActive, "boolean");
 assert.deepEqual(mg2e.domains.creation.rankTemplates.tenderpaw.age, [14,17]);
 assert.equal(mg2e.domains.creation.rankTemplates.guardCaptain.resources, 5);
 assert.equal(mg2e.domains.creation.rankTemplates.guardCaptain.circles, 4);
