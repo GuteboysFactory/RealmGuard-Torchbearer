@@ -668,7 +668,7 @@ export function mg2eActivationReadiness() {
     profileId: PROFILE_ID,
     profileVersion: p.version,
     state: "TECHNICAL_READINESS_CLOSED",
-    extendedPhase: "M10C.5",
+    extendedPhase: "M10C.6",
     independentSourceProfile: p.lineage?.length === 1 && p.lineage?.[0]?.id === PROFILE_ID,
     sourceDomainComplete: String(p.metadata?.sourceAuditStatus ?? "").includes("DOMAIN_COMPLETE"),
     conversionPreviewReady: p.metadata?.conversionPreviewAvailable === true,
@@ -677,6 +677,7 @@ export function mg2eActivationReadiness() {
     creationFoundationReady: creation.ranks.length === 5,
     fullRecruitmentCommitReady: true,
     dedicatedLiveRulesReferenceReady: true,
+    liveParityFoundationReady: p.metadata?.liveParityFoundationReady === true,
     liveParityVerified: false,
     activationGateClosed: true,
     activationAvailable: false,
@@ -724,6 +725,8 @@ export function getM10C3Mg2eShadowStatus() {
     },
     destructiveConversion: false,
     liveApplication: false,
-    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
+    nextStep: p.metadata?.liveParityFoundationReady === true
+      ? "M10C.7 MG2E Controlled Live Parity Execution"
+      : "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
