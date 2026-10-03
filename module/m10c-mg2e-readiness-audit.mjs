@@ -138,7 +138,7 @@ export function mg2eActivationReadinessAudit() {
         genericActivationRouterPresent: String(activation.mode ?? "") === "GENERIC_PROFILE_QA_ACTIVATION_GATE"
       },
       activationAuthorized
-        ? "Explicit QA activation is authorized after verified qa.18 live parity. Profile switching is GM-only and settings-only; stable activation remains closed."
+        ? "M10C.8 is FULL PASS / VERIFIED / CLOSED after verified qa.20. MG2E is supported stable; profile switching remains explicit, GM-only and settings-only."
         : activationSurfaceRegistered
         ? "Activation surface is registered and locked. Keep MG2E foundation-only until live parity passes and an explicit activation milestone authorizes metadata changes."
         : "Register MG2E in generic activation status/Profile Management without enabling activation; activation remains a separate explicit QA milestone."
@@ -185,7 +185,7 @@ export function mg2eActivationReadinessAudit() {
         : parityFoundation.foundationReady
           ? "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"
           : "NOT_READY_LIVE_PARITY_FOUNDATION_INCOMPLETE",
-    nextStep: activationAuthorized ? "Complete M10C.8 MG2E selectable activation live QA" : technicalBlockers.length
+    nextStep: activationAuthorized ? "M10C.8 FULL PASS / VERIFIED / CLOSED · MG2E supported stable" : technicalBlockers.length
       ? "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
       : parityVerified
         ? "M10C.8 MG2E Explicit Activation Milestone"

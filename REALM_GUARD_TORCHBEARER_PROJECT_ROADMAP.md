@@ -1,11 +1,15 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
+**Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
 **Current QA build:** v1.12.0-qa.20 — 🟡 M10C.8 MG2E Explicit QA Activation
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.8 — 🟡 IN PROGRESS · MG2E Explicit QA Activation
+**Current CORE gate:** M10C.8 — FULL PASS / VERIFIED / CLOSED · MG2E supported stable
 **Internal system id:** `realm-guard` (do not rename)
+
+## v1.12.0 stable promotion
+
+User-verified qa.20 promoted with no gameplay changes. M10C.8 FULL PASS / VERIFIED / CLOSED; MG2E supported stable. QA remains v1.12.0-qa.20. Promotion sanity: TEST_PROTOCOL_v1.12.0.md. Earlier QA notes below are historical.
 
 ## qa.20 corrective follow-up
 

@@ -88,7 +88,9 @@ assert.deepEqual(audit.openBlockers, []);
 game.system.version = "1.12.0";
 const activationModule = await import("../module/m10-profile-activation.mjs");
 writes.length = 0;
-await assert.rejects(() => activationModule.switchRulesProfile("mg2e"), /not in an activatable state/i);
+game.user.isGM = false;
+await assert.rejects(() => activationModule.switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 assert.equal(writes.length, 0);
 
 const auditSource = fs.readFileSync("module/m10c-mg2e-readiness-audit.mjs","utf8");

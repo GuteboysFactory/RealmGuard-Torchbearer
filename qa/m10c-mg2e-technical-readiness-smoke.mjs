@@ -216,10 +216,12 @@ assert.equal(mg2eActivation.selectable, true);
 assert.equal(mg2eActivation.supported, true);
 assert.equal(mg2eActivation.activationAvailable, true);
 game.system.version = "1.12.0";
-assert.equal(profileActivationAvailable("mg2e"), false);
+assert.equal(profileActivationAvailable("mg2e"), true);
 
 writes.length = 0;
-await assert.rejects(() => switchRulesProfile("mg2e"), /not in an activatable state/i);
+game.user.isGM = false;
+await assert.rejects(() => switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 assert.equal(writes.length, 0);
 
 game.system.version = "1.12.0-qa.19";
@@ -230,7 +232,7 @@ assert.equal(audit.activationAvailable, true);
 assert.deepEqual(audit.technicalBlockers, []);
 assert.deepEqual(audit.openBlockers, []);
 assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
-assert.equal(audit.nextStep, "Complete M10C.8 MG2E selectable activation live QA");
+assert.equal(audit.nextStep, "M10C.8 FULL PASS / VERIFIED / CLOSED · MG2E supported stable");
 
 const blockerById = new Map(audit.blockers.map(row => [row.id,row]));
 assert.equal(blockerById.get("FULL_RECRUITMENT_COMMIT_ADAPTER").state, "CLOSED");

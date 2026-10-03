@@ -20,7 +20,7 @@ assert.equal(mg2e.metadata.foundationOnly, false);
 assert.equal(mg2e.metadata.selectable, true);
 assert.equal(mg2e.metadata.supported, true);
 assert.equal(mg2e.metadata.liveRuleAuthority, true);
-assert.equal(mg2e.metadata.activationState, "QA_ACTIVE");
+assert.equal(mg2e.metadata.activationState, "SUPPORTED");
 assert.equal(mg2e.domains.wises.ratingMode, "NONE");
 assert.equal(mg2e.domains.wises.testableOnOwn, false);
 assert.equal(mg2e.domains.wises.effects.iAmWise.dice, 1);

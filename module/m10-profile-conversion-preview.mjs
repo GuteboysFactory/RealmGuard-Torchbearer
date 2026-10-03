@@ -46,7 +46,7 @@ export const MG2E_CONVERSION_DELTAS = Object.freeze([
   { id:"NATURAL_ORDER", domain:"naturalOrder", severity:"RULE_OWNERSHIP", title:"MG2E Natural Order", from:"Current profile comparative scale", to:"2015 nine-rank Natural Order · Militarist / Scientist exceptions", dataAction:"NONE", note:"No Actor rank is inferred or written." },
   { id:"LEVELS_TALENTS", domain:"progression", severity:"DATA_PRESERVE_RULE_DISABLE", title:"Levels / Talents disabled", from:"Legacy/project progression may exist", to:"Not base MG2E domains", dataAction:"PRESERVE_EXISTING_DATA", note:"Stored Level/Talent data is preserved." },
   { id:"TOKENS_OF_POWER", domain:"tokensOfPower", severity:"DATA_PRESERVE_RULE_DISABLE", title:"Tokens of Power disabled", from:"Realm Guard/project feature", to:"Not a base MG2E domain", dataAction:"PRESERVE_EXISTING_DATA", note:"Token Items remain stored." },
-  { id:"CREATION", domain:"creation", severity:"FUTURE_CREATION_ONLY", title:"MG2E Recruitment", from:"Current profile creation model", to:"2015 21-step Recruitment · five ranks · unrated rank-based Wises", dataAction:"NO_OLD_ACTOR_MIGRATION", note:"M10C.8 MG2E is QA-active; new Recruitment requires separate explicit MG2E activation. Existing Actors are never migrated by this preview." }
+  { id:"CREATION", domain:"creation", severity:"FUTURE_CREATION_ONLY", title:"MG2E Recruitment", from:"Current profile creation model", to:"2015 21-step Recruitment · five ranks · unrated rank-based Wises", dataAction:"NO_OLD_ACTOR_MIGRATION", note:"M10C.8 MG2E is supported stable; new Recruitment requires separate explicit MG2E activation. Existing Actors are never migrated by this preview." }
 ].map(Object.freeze));
 
 function clone(value){ if(Array.isArray(value)) return value.map(clone); if(value&&typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,clone(v)])); return value; }
@@ -140,7 +140,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
       preserveExistingActors:true,preserveWiseItems:true,preserveTalentItems:true,preserveInventoryMetadata:true,
       preserveConditionItems:true,preserveTokenOfPowerItems:true,preserveProgressionData:true
     },
-    nextStep: targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E QA-active · activation is a separate explicit GM action in QA · this preview makes no writes" : "Strict profile remains supported and reversible"
+    nextStep: targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E supported stable · activation is a separate explicit GM action · this preview makes no writes" : "Strict profile remains supported and reversible"
   });
 }
 
@@ -182,7 +182,7 @@ export function profileConversionPreviewHtml(preview){
       <div><small>Current</small><br><b>${esc(preview.source.name)}</b><br><small>${esc(preview.source.rulesSnapshotHash)}</small></div>
       <div><small>Preview target</small><br><b>${esc(preview.target.name)}</b><br><small>${esc(preview.target.rulesSnapshotHash)}</small></div>
     </div>
-    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is QA-active (M10C.8). Activation is a separate explicit GM action in QA; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
+    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is supported stable (M10C.8). Activation is a separate explicit GM action; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
     <section><h3>World impact scan</h3>${impact}</section>
     <section><h3>Profile deltas</h3><small>${preview.domainDiff.length} technical domain differences · ${preview.deltas.length} reviewed deltas.</small>${deltas}</section>
   </div>`;

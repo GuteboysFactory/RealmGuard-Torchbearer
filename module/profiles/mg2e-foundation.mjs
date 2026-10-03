@@ -6,9 +6,9 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg2e",
   version: 3,
   name: "Mouse Guard 2E",
-  classification: "SOURCE PROFILE / QA SELECTABLE",
+  classification: "SOURCE PROFILE / SUPPORTED STABLE",
   domains: {
-    profile: { activationState: "QA_ACTIVE" },
+    profile: { activationState: "SUPPORTED" },
 
     tests: { mode: "MG2E", ordinary: true, versus: true, beginnersLuck: true },
 
@@ -324,7 +324,7 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     ["SCALE_OF_MIGHT.MODE","scaleOfMight","Scale of Might","NOT A BASE MG2E DOMAIN"]
   ].map(([id, domain, title, activeValue]) => ({
     id, domain, title, activeValue,
-    classification: "SOURCE-AUDITED QA PROFILE",
+    classification: "SOURCE-AUDITED SUPPORTED STABLE PROFILE",
     automation: "GUIDED",
     source: MG2E_SOURCE,
     sourceVersion: "2015 / 2E"
@@ -334,8 +334,8 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     foundationOnly: false,
     selectable: true,
     supported: true,
-    activationState: "QA_ACTIVE",
-    qaActivationOnly: true,
+    activationState: "SUPPORTED",
+    qaActivationOnly: false,
     sourceLineage: ["Mouse Guard RPG 2E / 2015"],
     gameplayChangeIntended: true,
     liveRuleAuthority: true,
@@ -355,11 +355,14 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     liveParityEvidenceAuthority: "USER_CONFIRMED_FOUNDRY_13_351_FULL_PASS",
     explicitActivationAuthorized: true,
     activationMilestone: "M10C.8",
+    activationMilestoneStatus: "FULL PASS / VERIFIED / CLOSED",
+    activationVerifiedRelease: "1.12.0-qa.20",
+    activationEvidenceAuthority: "USER_CONFIRMED_FOUNDRY_13_351_FULL_PASS",
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
     pendingDomains: [],
-    nextStep: "Complete M10C.8 MG2E selectable activation live QA"
+    nextStep: "M10C.8 FULL PASS / VERIFIED / CLOSED · MG2E supported stable"
   }
 });

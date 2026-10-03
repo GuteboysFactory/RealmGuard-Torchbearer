@@ -1,5 +1,12 @@
 # Realm Guard - Update Log
 
+## v1.12.0 — STABLE / GOLD
+
+- Promotes user-verified qa.20; M10C.8 FULL PASS / VERIFIED / CLOSED.
+- MG2E supported stable via support metadata; no gameplay or activation implementation changes.
+- Rules / Creation Profile v3, explicit GM settings-only switching and zero-write preview retained.
+- Stable promotion follows package verification; QA stays on 1.12.0-qa.20.
+
 ## v1.12.0-qa.20 — M10C.8 Conversion Preview Correction
 
 - Replaces stale MG2E foundation copy with M10C.8 QA-active guidance.

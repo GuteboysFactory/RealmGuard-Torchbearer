@@ -137,8 +137,10 @@ globalThis.Hooks = { callAll:()=>{} };
 
 const activation = await import("../module/m10-profile-activation.mjs");
 game.system.version = "1.12.0";
-assert.equal(activation.profileActivationAvailable("mg2e"), false);
-await assert.rejects(() => activation.switchRulesProfile("mg2e"), /not in an activatable state/i);
+assert.equal(activation.profileActivationAvailable("mg2e"), true);
+game.user.isGM = false;
+await assert.rejects(() => activation.switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 
 const scale = await import("../module/m10b-comparative-scale.mjs");
 assert.equal(scale.familyScaleRankFor("mg2e","Mouse"), 3);

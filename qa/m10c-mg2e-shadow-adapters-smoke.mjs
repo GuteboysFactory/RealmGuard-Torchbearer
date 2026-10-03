@@ -194,9 +194,11 @@ assert.deepEqual(status.writes, {actors:0,items:0,journals:0,settings:0});
 
 const activation = await import("../module/m10-profile-activation.mjs");
 game.system.version = "1.12.0";
-assert.equal(activation.profileActivationAvailable("mg2e"), false);
+assert.equal(activation.profileActivationAvailable("mg2e"), true);
 writes.length = 0;
-await assert.rejects(() => activation.switchRulesProfile("mg2e"), /not in an activatable state/i);
+game.user.isGM = false;
+await assert.rejects(() => activation.switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 assert.equal(writes.length, 0);
 
 const shadowSource = fs.readFileSync("module/m10c-mg2e-shadow-adapters.mjs","utf8");

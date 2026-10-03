@@ -1,5 +1,6 @@
-1.12.0-qa.20
-# M10C.8 MG2E conversion preview correction
-# READ_ONLY / zero-write preview; separate explicit QA activation
-# Stable remains v1.11.0
-# Focused Foundry follow-up: Gate A, Gate B, Gate L + activation sanity
+1.12.0
+# STABLE promotion from exact verified qa.20 code
+# M10C.8 FULL PASS / VERIFIED / CLOSED; MG2E supported stable
+# No gameplay changes; separate explicit GM settings-only activation
+# QA channel remains 1.12.0-qa.20
+# Stable moves only after published ZIP / manifest verification

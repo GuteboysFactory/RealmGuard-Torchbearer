@@ -105,12 +105,14 @@ assert.equal(parity.evidence.liveParityVerified, true);
 assert.deepEqual(parity.evidence.handoffRequired, ["WISE_EFFECTS", "HELP", "INVENTORY_GEAR", "CONFLICT"]);
 assert.equal(activation.state, "CLOSED");
 assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
-assert.equal(audit.nextStep, "Complete M10C.8 MG2E selectable activation live QA");
+assert.equal(audit.nextStep, "M10C.8 FULL PASS / VERIFIED / CLOSED · MG2E supported stable");
 
 game.system.version = "1.12.0";
-assert.equal(profileActivationAvailable("mg2e"), false);
+assert.equal(profileActivationAvailable("mg2e"), true);
 const before = settings.get("realm-guard.activeRulesProfileId");
-await assert.rejects(() => switchRulesProfile("mg2e"), /not in an activatable state/i);
+game.user.isGM = false;
+await assert.rejects(() => switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 assert.equal(settings.get("realm-guard.activeRulesProfileId"), before);
 assert.equal(writes.length, 0);
 

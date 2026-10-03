@@ -115,12 +115,14 @@ assert.equal(activation.state, "CLOSED");
 assert.equal(activation.closed, true);
 assert.deepEqual(audit.openBlockers, []);
 assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
-assert.equal(audit.nextStep, "Complete M10C.8 MG2E selectable activation live QA");
+assert.equal(audit.nextStep, "M10C.8 FULL PASS / VERIFIED / CLOSED · MG2E supported stable");
 
 game.system.version = "1.12.0";
-assert.equal(profileActivationAvailable("mg2e"), false);
+assert.equal(profileActivationAvailable("mg2e"), true);
 writes.length = 0;
-await assert.rejects(() => switchRulesProfile("mg2e"), /not in an activatable state/i);
+game.user.isGM = false;
+await assert.rejects(() => switchRulesProfile("mg2e"), /GM-only/i);
+game.user.isGM = true;
 assert.equal(writes.length, 0);
 
 const serviceSource = fs.readFileSync("module/m10c-mg2e-controlled-live-parity.mjs","utf8");

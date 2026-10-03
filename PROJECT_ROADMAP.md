@@ -213,3 +213,7 @@ M10C.7 / qa.18 FULL PASS confirmed by the user in Foundry v13.351. M10C.8 / v1.1
 ## v1.12.0-qa.20 — M10C.8 preview correction
 
 MG2E Conversion Preview remains zero-write and now reports QA-active status and separate explicit activation. Focused Gate A / B / L plus activation sanity are pending. Stable remains v1.11.0.
+
+## v1.12.0 — STABLE / GOLD
+
+Promoted from verified qa.20. M10C.8 FULL PASS / VERIFIED / CLOSED. MG2E supported stable; no gameplay changes. QA stays v1.12.0-qa.20.
