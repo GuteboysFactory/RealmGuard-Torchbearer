@@ -50,6 +50,7 @@ function gateSnapshot() {
 
   return freeze({
     qaRuntime,
+    gmAuthority: globalThis.game?.user?.isGM === true,
     locked,
     profileId: profile.id,
     profileVersion: profile.version,
@@ -64,6 +65,7 @@ function gateSnapshot() {
 function requireControlledGate() {
   const gate = gateSnapshot();
   if (!gate.qaRuntime) throw new Error("MG2E controlled live parity execution is QA-runtime only.");
+  if (!gate.gmAuthority) throw new Error("MG2E controlled live parity execution is GM-only.");
   if (!gate.locked) throw new Error("MG2E controlled live parity execution requires the locked v3 foundation profile with activation OFF.");
   return gate;
 }
@@ -248,7 +250,8 @@ export function mg2eControlledLiveParityStatus() {
     profileId: PROFILE_ID,
     profileVersion: gate.profileVersion,
     qaRuntime: gate.qaRuntime,
-    controlledExecutionReady: gate.qaRuntime && gate.locked,
+    controlledExecutionReady: gate.qaRuntime && gate.gmAuthority && gate.locked,
+    gmAuthority: gate.gmAuthority,
     controlledExecutionOnly: true,
     liveParityVerified,
     activationAuthorized: false,
