@@ -5,11 +5,13 @@ import { getActiveRulesProfile, resolveRulesProfile } from "./rules-profile-serv
 import { REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE } from "./profiles/realm-guard-legacy-mixed-creation.mjs";
 import { REALM_GUARD_STRICT_CREATION_PROFILE } from "./profiles/realm-guard-strict-creation.mjs";
 import { MG1E_CREATION_PROFILE } from "./profiles/mg1e-creation.mjs";
+import { MG2E_CREATION_PROFILE } from "./profiles/mg2e-creation.mjs";
 
 const CREATION_PROFILES = new Map([
   [REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id, REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE],
   [REALM_GUARD_STRICT_CREATION_PROFILE.id, REALM_GUARD_STRICT_CREATION_PROFILE],
-  [MG1E_CREATION_PROFILE.id, MG1E_CREATION_PROFILE]
+  [MG1E_CREATION_PROFILE.id, MG1E_CREATION_PROFILE],
+  [MG2E_CREATION_PROFILE.id, MG2E_CREATION_PROFILE]
 ]);
 const ENGINES = new Map([...CREATION_PROFILES.entries()].map(([id, profile]) => [id, new CharacterCreationEngine(profile)]));
 const previewAdapter = new FoundryCreationCommitAdapter({ shadowOnly: true });
@@ -310,8 +312,9 @@ export function profileCreationActivationReadiness(profileId = "mg1e") {
 }
 
 export function getM10B7CharacterCreationStatus() {
-  const rows = ["realm-guard-legacy-mixed", "realm-guard-strict", "mg1e"].map(id => resolveM10BCharacterCreationPolicy(id));
+  const rows = ["realm-guard-legacy-mixed", "realm-guard-strict", "mg1e", "mg2e"].map(id => resolveM10BCharacterCreationPolicy(id));
   const mg1e = rows.find(row => row.rulesProfileId === "mg1e");
+  const mg2e = rows.find(row => row.rulesProfileId === "mg2e");
   return freeze({
     phase: "M10B.11",
     mode: "GENERIC_CHARACTER_CREATION_PROFILE_ROUTER",
@@ -324,6 +327,15 @@ export function getM10B7CharacterCreationStatus() {
       selectable: mg1e?.selectable === true,
       liveCommit: mg1e?.liveCommit === true,
       readyWhenActive: mg1e?.readyWhenActive === true
+    },
+    mg2eFoundation: {
+      profileVersion: mg2e?.rulesProfileVersion ?? 0,
+      creationProfileVersion: mg2e?.creationProfileVersion ?? 0,
+      foundationOnly: mg2e?.foundationOnly === true,
+      selectable: mg2e?.selectable === true,
+      liveCommit: mg2e?.liveCommit === true,
+      readyWhenActive: mg2e?.readyWhenActive === true,
+      creationProfileAvailable: mg2e?.creationProfileAvailable === true
     },
     writesOnResolve: 0,
     automaticConversion: false,
