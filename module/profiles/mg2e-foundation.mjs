@@ -336,15 +336,16 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10C.3",
+    implementationPhase: "M10C.4",
     sourceAuditStatus: "DOMAIN_COMPLETE_FOUNDATION",
     shadowAdaptersReady: true,
     shadowAdapterMode: "READ_ONLY",
+    activationReadinessAuditComplete: true,
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
-    pendingDomains: ["full-recruitment-commit","live-rules-reference","activation-readiness-closure"],
-    nextStep: "M10C.4 MG2E activation-readiness closure audit"
+    pendingDomains: ["full-recruitment-commit","live-rules-reference","activation-surface","live-parity","explicit-activation"],
+    nextStep: "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
   }
 });
