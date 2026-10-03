@@ -1,5 +1,21 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.18 - 🟡 M10C.7 MG2E Controlled Live Parity Execution
+
+- M10C.6 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
+- Keeps standalone `mg2e` Rules Profile at v3 and keeps activation OFF.
+- Adds a QA-runtime-only controlled execution harness for the four M10C.6 handoff domains: `WISE_EFFECTS`, `HELP`, `INVENTORY_GEAR`, and `CONFLICT`.
+- Controlled execution calls the source-owned MG2E 2015 adapters directly in Foundry runtime while the active world profile remains unchanged.
+- Wise execution verifies Deeper Understanding = Fate + one failed-die reroll and explicitly blocks Legacy unrated-Wise auto-reroll authority.
+- Help execution verifies typed Teamwork +1D, I Am Wise as a distinct route, and no Help + I Am Wise double use on the same test.
+- Inventory/Gear execution verifies LOOSE policy, MG2E carry guidance, and relevant Gear +1D only with GM approval.
+- Conflict execution verifies Fight Defend = Nature, Fight starting disposition = Fighter + Health/Nature, and MG2E 2015 weapon/armor adapters with no MG1E weapon-catalog leakage.
+- Runtime parity status remains ephemeral/zero-write; it records no Actor, Item, Journal or world-setting mutation.
+- `LIVE_PARITY_QA` closes only after all four bounded handoffs execute PASS in the same QA runtime session.
+- `EXPLICIT_ACTIVATION_MILESTONE` remains DEFERRED. No `switchToMg2e` is added.
+- Legacy Mixed, Strict Realm Guard and MG1E remain regression-safe.
+- v1.11.0 remains STABLE / GOLD.
+
 ## v1.12.0-qa.17 - 🟡 M10C.6 MG2E Live Parity QA Foundation
 
 - M10C.5 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.
