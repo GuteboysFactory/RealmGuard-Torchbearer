@@ -18,6 +18,25 @@ function actorItems(actor) {
   catch (_error) { return []; }
 }
 
+function familySourceForMode(mode) {
+  const key = String(mode ?? "").trim().toUpperCase();
+  if (key.startsWith("MG2E")) return "MG2E_2015";
+  if (key.startsWith("MG1E")) return "MG1E_2008";
+  return "LEGACY_CURRENT";
+}
+
+function sessionSource(policy) {
+  return policy?.familySemantics ? familySourceForMode(policy?.session?.mode) : "LEGACY_CURRENT";
+}
+
+function circlesSource(policy) {
+  return policy?.circles?.familySemantics ? familySourceForMode(policy?.circles?.mode) : "LEGACY_CURRENT";
+}
+
+function progressionSource(policy) {
+  return policy?.familySemantics ? familySourceForMode(policy?.progression?.mode) : "LEGACY_CURRENT";
+}
+
 export function buildM10BSessionCirclesProgressionPolicy(capabilities) {
   const rules = capabilities?.rules ?? {};
   const session = rules.session ?? {};
@@ -83,7 +102,7 @@ export function resolveM10BSessionCirclesProgressionPolicy(profileId) {
 
 export function familySessionPolicy(policy = getActiveM10BSessionCirclesProgressionPolicy()) {
   return freeze({
-    source: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    source: sessionSource(policy),
     ...policy.session,
     engine: policy.session.coreEngine || (policy.familySemantics ? "CORE_M7" : "LEGACY_CURRENT"),
     profileId: policy.profileId,
@@ -120,7 +139,7 @@ export function familyPlayerTurnTestPlan({
   });
   return freeze({
     ...plan,
-    sourceOwnership: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    sourceOwnership: sessionSource(policy),
     profileId: policy.profileId,
     engine: policy.session.coreEngine || "CORE_M7",
     liveApplication: false
@@ -139,7 +158,7 @@ export function familyRecoveryCheckPlan({
   });
   return freeze({
     ...plan,
-    sourceOwnership: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    sourceOwnership: sessionSource(policy),
     profileId: policy.profileId,
     engine: policy.session.coreEngine || "CORE_M7",
     liveApplication: false
@@ -189,7 +208,7 @@ export function familyRewardProposal({
 } = {}, policy = getActiveM10BSessionCirclesProgressionPolicy()) {
   return freeze({
     ...createM7Services().rewardEngine.proposal({ actorId, criteria, mvpId, workhorseId }),
-    sourceOwnership: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    sourceOwnership: sessionSource(policy),
     tableAuthority: policy.session.tableRewardAuthority || (policy.familySemantics ? "GROUP_CONSENSUS" : "LEGACY_CURRENT"),
     foundryCommitAuthority: policy.session.foundryCommitAuthority || "GM",
     profileId: policy.profileId,
@@ -205,7 +224,7 @@ export function familyCirclesContactPlan({
   const isContact = String(relationshipRole ?? "") === RelationshipRole.CONTACT;
   const known = Boolean(knownContact && isContact);
   return freeze({
-    source: policy.circles.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    source: circlesSource(policy),
     knownContact: known,
     successCreatesOrConfirmsContact: Boolean(successful),
     futureCirclesDice: known ? Number(policy.circles.knownContactFutureDice ?? 0) : 0,
@@ -230,7 +249,7 @@ export function familyEnmityDispositionPlan({
   const qualifyingConflict = ["argument", "speech"].includes(type);
   const active = policy.circles.enmityClause && hostileEnemy && qualifyingConflict && Boolean(againstRelationshipOwner);
   return freeze({
-    source: policy.circles.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    source: circlesSource(policy),
     active,
     dispositionSuccess: active ? Number(policy.circles.enmityArgumentSpeechDispositionSuccess ?? 0) : 0,
     scope: "ARGUMENT_OR_SPEECH_AGAINST_RELATIONSHIP_OWNER",
@@ -309,7 +328,7 @@ export function familyAdvancementRequirements(rating = 0, policy = getActiveM10B
     rating: current,
     passNeeded: current <= 1 ? Number(policy.progression.ratingZeroOnePassNeeded ?? 1) : current,
     failNeeded: current <= 1 ? 0 : current - 1,
-    source: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT"
+    source: progressionSource(policy)
   });
 }
 
@@ -373,7 +392,7 @@ export function familyBeginnerLearningPlan({
   const after = before + Number(Boolean(attempted));
   const opens = target > 0 && after >= target;
   return freeze({
-    source: policy.familySemantics ? "MG1E_2008" : "LEGACY_CURRENT",
+    source: progressionSource(policy),
     attemptsBefore: before,
     attemptsAfter: after,
     attemptsRequired: target,
