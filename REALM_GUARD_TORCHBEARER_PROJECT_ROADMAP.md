@@ -491,9 +491,27 @@ Locked scope:
 - leave `LIVE_PARITY_QA` blocked and `EXPLICIT_ACTIVATION_MILESTONE` deferred
 - preserve Legacy Mixed / Strict / MG1E and all existing campaign data
 
-**M10C.5 PASS gate:** MG2E CORE M9 Recruitment resolves source-correctly and previews a zero-write READY_WHEN_ACTIVE transaction; MG2E Rules Reference is profile-owned/read-only; activation surface shows MG2E locked; readiness audit reports zero technical blockers while activation remains impossible; Foundry v13.351 regression/data safety stays green.
+**M10C.5 PASS gate:** 🟢✅ PASSED. MG2E CORE M9 Recruitment resolves source-correctly and previews a zero-write READY_WHEN_ACTIVE transaction; MG2E Rules Reference is profile-owned/read-only; activation surface shows MG2E locked; readiness audit reports zero technical blockers while activation remains impossible; Foundry v13.351 regression/data safety stays green.
 
-**Next bounded slice after closure:** **M10C.6 — MG2E Live Parity QA Foundation**.
+**M10C.5 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351.
+
+**M10C.6 scope — MG2E Live Parity QA Foundation:**
+- keep standalone `mg2e` Rules Profile v3 FOUNDATION_ONLY / non-selectable / unsupported / non-live
+- build a zero-write 13-domain live-parity foundation matrix over Tests, Advancement/Beginner's Luck, Traits, Wises, Help, Nature, Conditions/Recovery, Inventory/Gear, Conflict, Session/Circles/Progression, Natural Order, Character Creation and Rules Reference
+- map every domain to an explicit candidate provider and the later live execution surface
+- classify Wise Effects, Help, Inventory/Gear and Conflict as controlled handoff domains rather than silently binding them to existing Legacy/MG1E live behavior
+- preserve MG2E unrated-Wise semantics through the dedicated MG2E Wise adapter; do not reuse Legacy unrated-Wise auto-reroll behavior
+- preserve MG2E 2015 weapon/armor semantics through dedicated MG2E adapters; do not route MG2E through the MG1E weapon catalog
+- extend generic Session/Circles capability routing to recognize MG2E family semantics
+- make M10B.6 source ownership edition-aware: MG1E_2008 vs MG2E_2015
+- advance LIVE_PARITY_QA from BLOCKED_NOT_RUN to FOUNDATION_READY_NOT_RUN only when all 13 domains are foundation-ready
+- keep EXPLICIT_ACTIVATION_MILESTONE deferred and keep activation unavailable
+- add no `switchToMg2e`, no Actor/Item/Journal/settings writes and no existing-data migration
+- preserve Legacy Mixed / Strict / MG1E behavior
+
+**M10C.6 PASS gate:** all 13 parity-foundation domains resolve green; the four controlled handoffs remain explicit; readiness audit reports FOUNDATION_READY_NOT_RUN rather than live parity verified; MG2E activation remains impossible; Foundry v13.351 regression/data safety and release/channel verification remain green.
+
+**Next bounded slice after closure:** **M10C.7 — MG2E Controlled Live Parity Execution**.
 
 ### M9 — Creation / Recruitment Migration
 
