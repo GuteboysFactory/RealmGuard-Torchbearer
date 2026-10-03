@@ -86,7 +86,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.4 audits MG2E activation readiness and classifies the remaining blockers; activation remains unavailable.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.5 closes MG2E Recruitment, Rules Reference and locked activation-surface readiness; activation remains unavailable pending live parity.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
