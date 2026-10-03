@@ -340,17 +340,19 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10C.5",
+    implementationPhase: "M10C.6",
     sourceAuditStatus: "DOMAIN_COMPLETE_FOUNDATION",
     shadowAdaptersReady: true,
     shadowAdapterMode: "READ_ONLY",
     activationReadinessAuditComplete: true,
     technicalLiveReadinessClosure: true,
+    liveParityFoundationReady: true,
+    liveParityVerified: false,
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
-    pendingDomains: ["live-parity","explicit-activation"],
-    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
+    pendingDomains: ["live-parity-execution","explicit-activation"],
+    nextStep: "M10C.7 MG2E Controlled Live Parity Execution"
   }
 });
