@@ -24,8 +24,12 @@ const SHARED_PAGES = Object.freeze([
     ruleIds:["PROFILE.IDENTITY"],
     bulletsByProfile:{
       mg1e:[
-        "Mouse Guard Roleplaying Game (2008 / 1E) is the source authority for this foundation profile.",
-        "This preview is foundation-only and does not activate Mouse Guard 1E gameplay in the world."
+        "Mouse Guard Roleplaying Game (2008 / 1E) is the source authority for this profile.",
+        "MG1E owns its source rules and does not use MG2E as fallback."
+      ],
+      mg2e:[
+        "Mouse Guard Roleplaying Game: Second Edition (2015) is the sole source authority for this profile.",
+        "MG2E is standalone and does not inherit MG1E or Realm Guard Strict overrides."
       ],
       "realm-guard-strict":[
         "Mouse Guard Roleplaying Game (2008 / 1E) is the inherited core.",
@@ -38,21 +42,45 @@ const SHARED_PAGES = Object.freeze([
     id:"tests",
     title:"Tests, Advancement & Beginner's Luck",
     ruleIds:["TEST.RESOLUTION","ABILITY.ADVANCEMENT","PROGRESSION.LEVELS_TALENTS"],
-    bullets:[
-      "Ordinary and versus tests use the MG1E-family test engine.",
-      "Pass/Fail advancement is profile-owned; Levels and Talents are not part of MG1E-family source progression.",
-      "Beginner's Luck learning uses the source-family learning route represented by the active profile."
-    ]
+    bulletsByProfile:{
+      mg1e:[
+        "Ordinary and versus tests use the MG1E-family test engine.",
+        "Pass/Fail advancement is profile-owned; Levels and Talents are not part of MG1E progression.",
+        "Beginner's Luck follows the MG1E source route."
+      ],
+      mg2e:[
+        "Ordinary and versus tests use the source-owned MG2E test contract.",
+        "Ability and Skill advancement requires passed tests equal to rating and failed tests equal to rating minus one; ratings 0/1 require one passed test.",
+        "Beginner's Luck opens a new Skill at rating 2 after attempts equal to Maximum Nature and does not advance Will or Health."
+      ],
+      "realm-guard-strict":[
+        "Ordinary and versus tests use the MG1E-family test engine with Realm Guard v1.6 overrides.",
+        "Pass/Fail advancement is profile-owned; Levels and Talents are not part of Strict source progression.",
+        "Beginner's Luck follows the inherited MG1E-family route unless Realm Guard explicitly overrides it."
+      ]
+    }
   },
   {
     id:"wises-traits-help",
-    title:"Rated Wises, Traits & Help",
+    title:"Wises, Traits & Help",
     ruleIds:["WISE.MODE","TRAIT.MODE","HELP.MODE"],
-    bullets:[
-      "Wises are rated and advance like Skills in MG1E-family source profiles.",
-      "Traits use MG1E level semantics with Trait Against / Checks.",
-      "I Am Wise and Teamwork remain separate profile-routed contributions."
-    ]
+    bulletsByProfile:{
+      mg1e:[
+        "Wises are rated and advance like Skills.",
+        "Traits use MG1E level semantics with Trait Against / Checks.",
+        "I Am Wise and Teamwork remain separate profile-routed contributions."
+      ],
+      mg2e:[
+        "Wises are unrated. I Am Wise grants +1D to an ally in place of ordinary Help.",
+        "Deeper Understanding spends Fate to reroll one failed die; Of Course! spends Persona to reroll all failed dice.",
+        "Trait level 1 grants +1D once per session, level 2 grants +1D twice per session and level 3 grants +1s to applicable tests."
+      ],
+      "realm-guard-strict":[
+        "Wises are rated under Realm Guard v1.6 / inherited MG1E semantics.",
+        "Traits use the Strict profile's source-owned level semantics.",
+        "I Am Wise and Teamwork remain separate profile-routed contributions."
+      ]
+    }
   },
   {
     id:"nature-resources",
@@ -63,6 +91,11 @@ const SHARED_PAGES = Object.freeze([
         "Mouse Nature descriptors are Escaping, Climbing, Hiding and Foraging.",
         "Nature is distinct from Natural Order; one does not determine the other.",
         "Tap Nature excludes Resources and Circles."
+      ],
+      mg2e:[
+        "Mouse Nature descriptors are Escaping, Climbing, Hiding and Foraging.",
+        "Nature is distinct from Natural Order; one does not determine the other.",
+        "Recruitment starts from Nature 3 and asks three source questions; Tap Nature excludes Resources and Circles."
       ],
       "realm-guard-strict":[
         "Dúnadan Nature descriptors are Tradition, Family and Grief.",
@@ -80,6 +113,11 @@ const SHARED_PAGES = Object.freeze([
         "MG1E conditions are Healthy, Hungry & Thirsty, Angry, Tired, Injured and Sick.",
         "Recovery uses the MG1E turn/check economy."
       ],
+      mg2e:[
+        "MG2E conditions are Healthy, Hungry & Thirsty, Angry, Tired, Injured and Sick.",
+        "Injured self-recovery is Health Ob4 with Healer Ob3 after failure; Sick self-recovery is Will Ob4 with Healer Ob4 after failure.",
+        "GM Turn recovery costs two Checks."
+      ],
       "realm-guard-strict":[
         "Strict conditions are Healthy, Hungry & Thirsty, Angry, Tired, Injured and Strained.",
         "Strained replaces Sick under Realm Guard v1.6 ownership.",
@@ -91,21 +129,45 @@ const SHARED_PAGES = Object.freeze([
     id:"inventory-conflict",
     title:"Inventory & Conflict",
     ruleIds:["INVENTORY.POLICY","CONFLICT.ENGINE","TOKENS_OF_POWER.MODE"],
-    bullets:[
-      "MG1E-family source profiles use LOOSE inventory rules authority; Foundry placement metadata remains presentation.",
-      "Conflict uses the shared MG-family structure with profile-owned action/disposition content.",
-      "Fictional applicability and unusual edge cases remain table decisions."
-    ]
+    bulletsByProfile:{
+      mg1e:[
+        "MG1E uses LOOSE inventory rules authority; Foundry placement metadata remains presentation.",
+        "Conflict uses the shared MG-family structure with MG1E-owned action/disposition content.",
+        "Fictional applicability and unusual edge cases remain table decisions."
+      ],
+      mg2e:[
+        "MG2E uses LOOSE inventory authority with source carrying guidance; relevant Gear can grant +1D.",
+        "Conflict uses three actions per exchange, Attack / Defend / Feint / Maneuver and at most two action helpers.",
+        "Weapons and armor use MG2E source-owned action effects; Foundry placement metadata remains presentation."
+      ],
+      "realm-guard-strict":[
+        "Strict uses LOOSE inventory rules authority; Foundry placement metadata remains presentation.",
+        "Conflict uses the shared MG-family structure with Realm Guard-owned action/disposition content.",
+        "Fictional applicability and unusual edge cases remain table decisions."
+      ]
+    }
   },
   {
     id:"session-circles",
     title:"Turns, End Session & Circles",
     ruleIds:["SESSION.TURN_MANAGER","SESSION.END_SESSION","CIRCLES.MODE"],
-    bullets:[
-      "Players' Turn uses one free test and Checks for additional tests.",
-      "End Session rewards are a table/group judgement with GM Foundry commit authority.",
-      "Circles uses source-profile ownership while CORE M8 remains storage/tooling."
-    ]
+    bulletsByProfile:{
+      mg1e:[
+        "Players' Turn uses one free test and Checks for additional tests.",
+        "End Session rewards are a table/group judgement with GM Foundry commit authority.",
+        "Circles uses source-profile ownership while CORE M8 remains storage/tooling."
+      ],
+      mg2e:[
+        "Players' Turn grants one free test; later tests and a Player Turn Conflict cost one Check, with alternation except when solo.",
+        "Fate is capped at three awards per session and Persona at four; MVP and Workhorse are unique and cannot go to the same player.",
+        "Circles grants +1D in the hometown and +1D for a known Contact; Enmity grants +3s to Argument/Speech disposition."
+      ],
+      "realm-guard-strict":[
+        "Players' Turn uses one free test and Checks for additional tests.",
+        "End Session rewards are a table/group judgement with GM Foundry commit authority.",
+        "Circles uses source-profile ownership while CORE M8 remains storage/tooling."
+      ]
+    }
   },
   {
     id:"creation",
@@ -114,8 +176,13 @@ const SHARED_PAGES = Object.freeze([
     bulletsByProfile:{
       mg1e:[
         "CORE M9 hosts a source-owned Mouse Guard 1E Recruitment profile.",
-        "MG1E remains foundation-only: draft, validation, review and commit planning are read-only.",
-        "No MG1E Actor or relationship writes are authorized by this reference."
+        "Starting Wises are rated and the source-owned profile is transactional when MG1E is active.",
+        "Existing Actors are never migrated by profile activation."
+      ],
+      mg2e:[
+        "CORE M9 hosts a source-owned Mouse Guard 2E Recruitment profile using the 21-step source structure.",
+        "Five Guard ranks, source hometown packages, Skill selection, three Nature questions and unrated Wise restrictions are profile-owned.",
+        "The transactional commit plan is READY_WHEN_ACTIVE but remains read-only while MG2E is foundation-only; no existing Actor is migrated."
       ],
       "realm-guard-strict":[
         "CORE M9 is reused with the Realm Guard v1.6 Strict creation profile.",
@@ -127,6 +194,17 @@ const SHARED_PAGES = Object.freeze([
 ]);
 
 function scalePage(profileId) {
+  if (profileId === "mg2e") return {
+    id:"scale",
+    title:"Natural Order",
+    ruleIds:["NATURAL_ORDER.MODE"],
+    bullets:[
+      "Natural Order is Mouse Guard 2E's comparative-scale axis and is separate from Nature.",
+      "Mouse is rank 3 on the standalone nine-rank MG2E Natural Order scale.",
+      "Fighter/Hunter outcomes are limited by rank difference; Militarist and Scientist provide MG2E source-specific high-scale routes.",
+      "MG2E does not inherit MG1E-only Natural Order entries such as Chipmunk or Star-Nosed Mole."
+    ]
+  };
   if (profileId === "mg1e") return {
     id:"scale",
     title:"Natural Order",
@@ -165,7 +243,7 @@ function bulletsFor(spec, profileId) {
 
 export function profileRulesReferenceSnapshot(profileId = null) {
   const { profile, registry } = resolveRulesProfile(profileId);
-  if (!["mg1e","realm-guard-strict"].includes(profile.id)) {
+  if (!["mg1e","mg2e","realm-guard-strict"].includes(profile.id)) {
     return freeze({
       phase:"M10B.8",
       mode:"LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY",
@@ -216,7 +294,7 @@ export function profileRulesReferenceSnapshot(profileId = null) {
 
 export function profileRulesReferenceHtml(profileId = null) {
   const snapshot = profileRulesReferenceSnapshot(profileId);
-  const profileLabel = snapshot.profileId === "mg1e" ? "Mouse Guard 1E" : snapshot.profileId === "realm-guard-strict" ? "Strict Realm Guard" : snapshot.profileName;
+  const profileLabel = snapshot.profileId === "mg1e" ? "Mouse Guard 1E" : snapshot.profileId === "mg2e" ? "Mouse Guard 2E" : snapshot.profileId === "realm-guard-strict" ? "Strict Realm Guard" : snapshot.profileName;
   const pages = snapshot.pages.map(page => `
     <details class="rg-rules-detail">
       <summary><i class="fa-solid fa-book-bookmark"></i> ${esc(page.title)}</summary>
@@ -254,7 +332,7 @@ export function profileRulesReferenceHtml(profileId = null) {
 export async function openProfileRulesReference(profileId = null) {
   const snapshot = profileRulesReferenceSnapshot(profileId);
   if (!globalThis.foundry?.applications?.api?.DialogV2) return snapshot;
-  const profileLabel = snapshot.profileId === "mg1e" ? "Mouse Guard 1E" : snapshot.profileId === "realm-guard-strict" ? "Strict Realm Guard" : snapshot.profileName;
+  const profileLabel = snapshot.profileId === "mg1e" ? "Mouse Guard 1E" : snapshot.profileId === "mg2e" ? "Mouse Guard 2E" : snapshot.profileId === "realm-guard-strict" ? "Strict Realm Guard" : snapshot.profileName;
   return foundry.applications.api.DialogV2.wait({
     window:{title:`Realm Guard · ${profileLabel} Rules Reference${snapshot.liveAuthority ? "" : " Preview"}`,resizable:true},
     position:{width:820,height:840},
@@ -271,6 +349,8 @@ export function getM10B8RulesReferenceStatus() {
     mode:"GENERIC_PROFILE_RULES_REFERENCE",
     strict:profileRulesReferenceSnapshot("realm-guard-strict"),
     mg1e:profileRulesReferenceSnapshot("mg1e"),
+    mg2e:profileRulesReferenceSnapshot("mg2e"),
+    extendedPhase:"M10C.5",
     legacyPermanentJournalPreserved:true,
     writesJournal:false,
     writesActors:false,
