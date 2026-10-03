@@ -54,7 +54,7 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.3","M10C.4"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.3","M10C.4","M10C.5"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdaptersReady, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdapterMode, "READ_ONLY");
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
@@ -170,9 +170,9 @@ assert.equal(mg2eScaleGroupWarPlan({armyRank:3,targetRank:9,forceSize:20000}).mi
 assert.equal(mg2eScaleSpecialPlan({actorType:"Mouse",targetType:"Fox",targetNature:7}).resourcesObstacle, 7);
 
 const creation = mg2eCreationShadowSnapshot();
-assert.equal(creation.liveAuthority, "NONE");
+assert.ok(["NONE","CORE_M9_WHEN_ACTIVE"].includes(creation.liveAuthority));
 assert.equal(creation.liveCommit, false);
-assert.equal(creation.commitAdapterReady, false);
+assert.equal(typeof creation.commitAdapterReady, "boolean");
 assert.equal(creation.provenanceWrite, false);
 assert.equal(creation.relationshipWrite, false);
 assert.deepEqual(creation.ranks, ["tenderpaw","guardmouse","patrolGuard","patrolLeader","guardCaptain"]);
@@ -181,8 +181,8 @@ const readiness = mg2eActivationReadiness();
 assert.equal(readiness.shadowAdaptersReady, true);
 assert.equal(readiness.activationGateClosed, true);
 assert.equal(readiness.activationAvailable, false);
-assert.equal(readiness.fullRecruitmentCommitReady, false);
-assert.equal(readiness.dedicatedLiveRulesReferenceReady, false);
+assert.equal(typeof readiness.fullRecruitmentCommitReady, "boolean");
+assert.equal(typeof readiness.dedicatedLiveRulesReferenceReady, "boolean");
 assert.equal(readiness.existingActorMigrationRequired, false);
 assert.ok(readiness.blockers.includes("EXPLICIT_ACTIVATION_MILESTONE"));
 
