@@ -1,5 +1,14 @@
 # Realm Guard - Update Log
 
+## v1.12.0-qa.19 — 🟡 M10C.8 MG2E Explicit QA Activation
+
+- M10C.7 / qa.18 FULL PASS confirmed by the user in Foundry v13.351.
+- Explicit MG2E QA activation is authorized; stable builds remain gated.
+- Rules / Creation Profile v3 retained; switching is settings-only, reversible and GM-only.
+- Dedicated Wise effects and MG2E 2015 Conflict routes are connected; source-owned armor/carry/narrative exceptions remain guided.
+- No existing Actor/Item/Journal migration or automatic Wise/species conversion.
+- qa.19 activation round-trip live QA is pending TEST_PROTOCOL_v1.12.0-qa.19.md.
+
 ## v1.12.0-qa.18 - 🟡 M10C.7 MG2E Controlled Live Parity Execution
 
 - M10C.6 is now FULL PASS / VERIFIED / CLOSED after Gates A-L passed in Foundry VTT 13.351.

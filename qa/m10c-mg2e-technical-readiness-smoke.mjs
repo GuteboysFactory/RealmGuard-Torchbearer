@@ -53,11 +53,11 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
+assert.ok(["M10C.5","M10C.6","M10C.7","M10C.8"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.domains.creation.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 assert.equal(MG2E_FOUNDATION_PROFILE.domains.creation.readyWhenActive, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.domains.creation.profileVersion, 3);
@@ -85,7 +85,7 @@ assert.equal(creationPolicy.coreEngine, "CORE_M9");
 assert.equal(creationPolicy.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 assert.equal(creationPolicy.readyWhenActive, true);
 assert.equal(creationPolicy.liveCommit, false);
-assert.equal(creationPolicy.foundationOnly, true);
+assert.equal(creationPolicy.foundationOnly, false);
 
 const creationReadiness = profileCreationActivationReadiness("mg2e");
 assert.equal(creationReadiness.transactionalCommit, true);
@@ -192,7 +192,7 @@ const reference = profileRulesReferenceSnapshot("mg2e");
 assert.equal(reference.profileId, "mg2e");
 assert.equal(reference.mode, "READ_ONLY_PROFILE_REFERENCE");
 assert.equal(reference.liveAuthority, false);
-assert.equal(reference.foundationOnly, true);
+assert.equal(reference.foundationOnly, false);
 assert.equal(reference.writesJournal, false);
 assert.equal(reference.writesActors, false);
 assert.equal(reference.writesItems, false);
@@ -203,7 +203,7 @@ assert.ok(reference.pages.some(page => page.id === "creation"));
 assert.ok(reference.pages.some(page => page.id === "wises-traits-help"));
 
 const referenceStatus = getM10B8RulesReferenceStatus();
-assert.ok(["M10C.5","M10C.6","M10C.7"].includes(referenceStatus.extendedPhase));
+assert.ok(["M10C.5","M10C.6","M10C.7","M10C.8"].includes(referenceStatus.extendedPhase));
 assert.equal(referenceStatus.mg2e.profileId, "mg2e");
 assert.ok(referenceStatus.mg2e.pages.length >= 9);
 
@@ -211,30 +211,32 @@ const activation = profileActivationStatus();
 const mg2eActivation = activation.profiles.find(row => row.id === "mg2e");
 assert.ok(mg2eActivation);
 assert.equal(activation.mg2eActivationSurfaceRegistered, true);
-assert.equal(mg2eActivation.foundationOnly, true);
-assert.equal(mg2eActivation.selectable, false);
-assert.equal(mg2eActivation.supported, false);
-assert.equal(mg2eActivation.activationAvailable, false);
+assert.equal(mg2eActivation.foundationOnly, false);
+assert.equal(mg2eActivation.selectable, true);
+assert.equal(mg2eActivation.supported, true);
+assert.equal(mg2eActivation.activationAvailable, true);
+game.system.version = "1.12.0";
 assert.equal(profileActivationAvailable("mg2e"), false);
 
 writes.length = 0;
-await assert.rejects(() => switchRulesProfile("mg2e"), /foundation-only/i);
+await assert.rejects(() => switchRulesProfile("mg2e"), /not in an activatable state/i);
 assert.equal(writes.length, 0);
 
+game.system.version = "1.12.0-qa.19";
 const audit = mg2eActivationReadinessAudit();
 assert.equal(audit.technicalReadinessComplete, true);
 assert.equal(audit.activationSurfaceRegistered, true);
-assert.equal(audit.activationAvailable, false);
+assert.equal(audit.activationAvailable, true);
 assert.deepEqual(audit.technicalBlockers, []);
-assert.deepEqual(audit.openBlockers, ["LIVE_PARITY_QA","EXPLICIT_ACTIVATION_MILESTONE"]);
-assert.ok(["NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN","NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"].includes(audit.decision));
-assert.ok(["M10C.6 MG2E Live Parity QA Foundation","M10C.7 MG2E Controlled Live Parity Execution"].includes(audit.nextStep));
+assert.deepEqual(audit.openBlockers, []);
+assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
+assert.equal(audit.nextStep, "Complete M10C.8 MG2E selectable activation live QA");
 
 const blockerById = new Map(audit.blockers.map(row => [row.id,row]));
 assert.equal(blockerById.get("FULL_RECRUITMENT_COMMIT_ADAPTER").state, "CLOSED");
 assert.equal(blockerById.get("DEDICATED_LIVE_RULES_REFERENCE").state, "CLOSED");
-assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(blockerById.get("LIVE_PARITY_QA").state));
-assert.equal(blockerById.get("EXPLICIT_ACTIVATION_MILESTONE").state, "DEFERRED");
+assert.equal(blockerById.get("LIVE_PARITY_QA").state, "CLOSED");
+assert.equal(blockerById.get("EXPLICIT_ACTIVATION_MILESTONE").state, "CLOSED");
 
 for (const path of [
   "module/profiles/mg2e-creation.mjs",
@@ -248,7 +250,7 @@ for (const path of [
 }
 
 const activationSource = fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activationSource.includes("switchToMg2e"), false);
-assert.equal(activationSource.includes("MG2E_PROFILE_ID"), false);
+assert.equal(activationSource.includes("switchToMg2e"), true);
+assert.equal(activationSource.includes("MG2E_PROFILE_ID"), true);
 
 console.log("PASS M10C.5 MG2E technical live-readiness · Recruitment READY_WHEN_ACTIVE · profile-owned Rules Reference · locked activation surface · activation OFF");

@@ -171,6 +171,9 @@ export function teamworkEntries(sessionId) {
     sourceKind: entry.sourceKind,
     sourceName: entry.sourceName,
     dice: 1,
+    mode: getActiveM10BFamilyRulePolicy().mg2eWises && entry.sourceKind === "Wise" ? "I_AM_WISE" : "TEAMWORK",
+    helperConditionRisk: !(getActiveM10BFamilyRulePolicy().mg2eWises && entry.sourceKind === "Wise"),
+    twistRisk: getActiveM10BFamilyRulePolicy().mg2eWises && entry.sourceKind === "Wise",
     synergy: Boolean(entry.synergy),
     note: String(entry.note ?? ""),
     approvedByGm: Boolean(entry.approvedByGm)

@@ -1,3 +1,4 @@
+import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { resolveRulesProfile } from "./rules-profile-service.mjs";
 import {
   familyScaleEntry,
@@ -659,16 +660,14 @@ export function mg2eCreationShadowSnapshot() {
 export function mg2eActivationReadiness() {
   const p = profile();
   const creation = mg2eCreationShadowSnapshot();
-  const blockers = [
-    "LIVE_PARITY_QA",
-    "EXPLICIT_ACTIVATION_MILESTONE"
-  ];
+  const authorized = p.metadata?.explicitActivationAuthorized === true && p.metadata?.liveParityVerified === true;
+  const blockers = authorized ? [] : ["LIVE_PARITY_QA", "EXPLICIT_ACTIVATION_MILESTONE"];
   return freeze({
     phase: "M10C.3",
     profileId: PROFILE_ID,
     profileVersion: p.version,
-    state: "TECHNICAL_READINESS_CLOSED",
-    extendedPhase: "M10C.6",
+    state: authorized ? "QA_ACTIVATION_AUTHORIZED" : "TECHNICAL_READINESS_CLOSED",
+    extendedPhase: p.metadata?.implementationPhase ?? "M10C.6",
     independentSourceProfile: p.lineage?.length === 1 && p.lineage?.[0]?.id === PROFILE_ID,
     sourceDomainComplete: String(p.metadata?.sourceAuditStatus ?? "").includes("DOMAIN_COMPLETE"),
     conversionPreviewReady: p.metadata?.conversionPreviewAvailable === true,
@@ -678,9 +677,9 @@ export function mg2eActivationReadiness() {
     fullRecruitmentCommitReady: true,
     dedicatedLiveRulesReferenceReady: true,
     liveParityFoundationReady: p.metadata?.liveParityFoundationReady === true,
-    liveParityVerified: false,
-    activationGateClosed: true,
-    activationAvailable: false,
+    liveParityVerified: p.metadata?.liveParityVerified === true,
+    activationGateClosed: !profileActivationAvailable(PROFILE_ID),
+    activationAvailable: profileActivationAvailable(PROFILE_ID),
     foundationOnly: p.metadata?.foundationOnly === true,
     selectable: p.metadata?.selectable !== false,
     supported: p.metadata?.supported !== false,
@@ -725,7 +724,9 @@ export function getM10C3Mg2eShadowStatus() {
     },
     destructiveConversion: false,
     liveApplication: false,
-    nextStep: p.metadata?.liveParityFoundationReady === true
+    nextStep: p.metadata?.explicitActivationAuthorized === true
+      ? "Complete M10C.8 MG2E selectable activation live QA"
+      : p.metadata?.liveParityFoundationReady === true
       ? "M10C.7 MG2E Controlled Live Parity Execution"
       : "M10C.6 MG2E Live Parity QA Foundation"
   });

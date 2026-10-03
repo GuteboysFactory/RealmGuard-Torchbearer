@@ -306,7 +306,7 @@ export function profileCreationActivationReadiness(profileId = "mg1e") {
     conditionProvisioning:policy.conditionProvisioning,
     automaticNpcCreation:policy.automaticNpcCreation,
     transactionalCommit:profile.buildCommitSpec instanceof Function,
-    activationGateClosed:policy.foundationOnly || !policy.selectable || !policy.supported || (policy.rulesProfileId === "mg1e" && !policy.active),
+    activationGateClosed:policy.foundationOnly || !policy.selectable || !policy.supported || (["mg1e", "mg2e"].includes(policy.rulesProfileId) && !policy.active),
     existingActorMigrationRequired:false
   });
 }

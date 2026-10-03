@@ -33,6 +33,8 @@ export function mg2eActivationReadinessAudit() {
   const activation = profileActivationStatus();
   const parityFoundation = mg2eLiveParityFoundationStatus();
   const controlledParity = mg2eControlledLiveParityStatus();
+  const verifiedRelease = profile.metadata?.liveParityVerified === true && profile.metadata?.liveParityVerifiedRelease === "1.12.0-qa.18";
+  const parityVerified = verifiedRelease || controlledParity.liveParityVerified === true;
 
   const activationSurfaceRegistered = (activation.profiles ?? []).some(row => row.id === PROFILE_ID);
   const referenceProfileOwned = reference.mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY";
@@ -49,6 +51,10 @@ export function mg2eActivationReadinessAudit() {
   const shadowReady = shadow?.activationReadiness?.shadowAdaptersReady === true
     && shadow?.liveApplication === false
     && Object.values(shadow?.writes ?? {}).every(value => Number(value) === 0);
+
+  const activationAuthorized = profile.metadata?.explicitActivationAuthorized === true && parityVerified
+    && parityFoundation.foundationReady && recruitmentReady && shadowReady
+    && referenceProfileOwned && referenceHasPages && referenceZeroWrite;
 
   const blockers = [
     blocker(
@@ -86,7 +92,7 @@ export function mg2eActivationReadinessAudit() {
     ),
     blocker(
       "LIVE_PARITY_QA",
-      controlledParity.liveParityVerified
+      parityVerified
         ? "CLOSED"
         : parityFoundation.foundationReady
           ? "CONTROLLED_EXECUTION_IN_PROGRESS"
@@ -97,29 +103,31 @@ export function mg2eActivationReadinessAudit() {
         readyDomainCount: parityFoundation.readyDomainCount,
         domainCount: parityFoundation.domainCount,
         handoffRequired: [...(parityFoundation.handoffRequired ?? [])],
-        liveParityVerified: controlledParity.liveParityVerified === true,
+        liveParityVerified: parityVerified === true,
         controlledExecutionReady: controlledParity.controlledExecutionReady === true,
+        verifiedRelease: verifiedRelease ? profile.metadata.liveParityVerifiedRelease : null,
+        evidenceAuthority: verifiedRelease ? profile.metadata.liveParityEvidenceAuthority : "CURRENT_RUNTIME",
         executedDomainCount: controlledParity.executedDomainCount,
         passedDomainCount: controlledParity.passedDomainCount,
         pendingDomains: [...(controlledParity.pendingDomains ?? [])],
         failedDomains: [...(controlledParity.failedDomains ?? [])],
         liveApplication: shadow.liveApplication === true,
         activationAvailable: profileActivationAvailable(PROFILE_ID),
-        reason: controlledParity.liveParityVerified
+        reason: parityVerified
           ? "All four bounded MG2E controlled handoff domains passed runtime execution while activation remained locked."
           : parityFoundation.foundationReady
             ? "The zero-write MG2E parity foundation is complete. Controlled execution must pass all four handoff domains."
             : "The MG2E live-parity candidate matrix still contains foundation mismatches."
       },
-      controlledParity.liveParityVerified
-        ? "No further parity action required; keep activation locked until M10C.8 explicitly authorizes it."
+      parityVerified
+        ? "Controlled parity is verified; M10C.8 activation authorization is reported separately."
         : parityFoundation.foundationReady
           ? "Complete M10C.7 controlled live parity across Wise Effects, Help, Inventory/Gear and Conflict while activation remains locked."
           : "Close the M10C.6 parity-foundation mismatches before any controlled live handoff execution."
     ),
     blocker(
       "EXPLICIT_ACTIVATION_MILESTONE",
-      "DEFERRED",
+      activationAuthorized ? "CLOSED" : "DEFERRED",
       {
         foundationOnly: profile.metadata?.foundationOnly === true,
         selectable: profile.metadata?.selectable !== false,
@@ -129,7 +137,9 @@ export function mg2eActivationReadinessAudit() {
         activationAvailable: profileActivationAvailable(PROFILE_ID),
         genericActivationRouterPresent: String(activation.mode ?? "") === "GENERIC_PROFILE_QA_ACTIVATION_GATE"
       },
-      activationSurfaceRegistered
+      activationAuthorized
+        ? "Explicit QA activation is authorized after verified qa.18 live parity. Profile switching is GM-only and settings-only; stable activation remains closed."
+        : activationSurfaceRegistered
         ? "Activation surface is registered and locked. Keep MG2E foundation-only until live parity passes and an explicit activation milestone authorizes metadata changes."
         : "Register MG2E in generic activation status/Profile Management without enabling activation; activation remains a separate explicit QA milestone."
     )
@@ -141,8 +151,8 @@ export function mg2eActivationReadinessAudit() {
     .map(row => row.id);
 
   return freeze({
-    phase: "M10C.7",
-    mode: "MG2E_CONTROLLED_LIVE_PARITY_READINESS_AUDIT",
+    phase: "M10C.8",
+    mode: "MG2E_EXPLICIT_ACTIVATION_READINESS_AUDIT",
     profileId: profile.id,
     profileVersion: profile.version,
     auditComplete: true,
@@ -151,7 +161,10 @@ export function mg2eActivationReadinessAudit() {
     shadowReadinessVerified: shadowReady,
     sourceDomainComplete: String(profile.metadata?.sourceAuditStatus ?? "").includes("DOMAIN_COMPLETE"),
     independentSourceProfile: profile.lineage?.length === 1 && profile.lineage?.[0]?.id === PROFILE_ID,
-    activationGateClosed: true,
+    activationGateClosed: !profileActivationAvailable(PROFILE_ID),
+    activationAuthorized,
+    liveParityVerified: parityVerified,
+    verifiedRelease: verifiedRelease ? profile.metadata.liveParityVerifiedRelease : null,
     activationAvailable: profileActivationAvailable(PROFILE_ID),
     activationSurfaceRegistered,
     existingActorMigrationRequired: false,
@@ -165,16 +178,16 @@ export function mg2eActivationReadinessAudit() {
       journals: 0,
       settings: 0
     },
-    decision: technicalBlockers.length
+    decision: activationAuthorized ? "READY_EXPLICIT_QA_ACTIVATION" : technicalBlockers.length
       ? "NOT_READY_TECHNICAL_IMPLEMENTATION_REQUIRED"
-      : controlledParity.liveParityVerified
+      : parityVerified
         ? "NOT_READY_EXPLICIT_ACTIVATION_MILESTONE_REMAINS"
         : parityFoundation.foundationReady
           ? "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"
           : "NOT_READY_LIVE_PARITY_FOUNDATION_INCOMPLETE",
-    nextStep: technicalBlockers.length
+    nextStep: activationAuthorized ? "Complete M10C.8 MG2E selectable activation live QA" : technicalBlockers.length
       ? "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
-      : controlledParity.liveParityVerified
+      : parityVerified
         ? "M10C.8 MG2E Explicit Activation Milestone"
         : parityFoundation.foundationReady
           ? "M10C.7 MG2E Controlled Live Parity Execution"

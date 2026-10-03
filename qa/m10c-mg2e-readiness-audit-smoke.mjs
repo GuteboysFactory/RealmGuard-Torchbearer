@@ -28,29 +28,29 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.4","M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.4","M10C.5","M10C.6","M10C.7","M10C.8"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.activationReadinessAuditComplete, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 
 const audit = mg2eActivationReadinessAudit();
-assert.ok(["M10C.4","M10C.7"].includes(audit.phase));
-assert.ok(["MG2E_ACTIVATION_READINESS_CLOSURE_AUDIT","MG2E_CONTROLLED_LIVE_PARITY_READINESS_AUDIT"].includes(audit.mode));
+assert.equal(audit.phase, "M10C.8");
+assert.equal(audit.mode, "MG2E_EXPLICIT_ACTIVATION_READINESS_AUDIT");
 assert.equal(audit.auditComplete, true);
-assert.equal(audit.activationReady, false);
+assert.equal(audit.activationReady, true);
 assert.equal(audit.technicalReadinessComplete, true);
 assert.equal(audit.shadowReadinessVerified, true);
 assert.equal(audit.sourceDomainComplete, true);
 assert.equal(audit.independentSourceProfile, true);
-assert.equal(audit.activationGateClosed, true);
-assert.equal(audit.activationAvailable, false);
+assert.equal(audit.activationGateClosed, false);
+assert.equal(audit.activationAvailable, true);
 assert.equal(audit.activationSurfaceRegistered, true);
 assert.equal(audit.existingActorMigrationRequired, false);
 assert.equal(audit.destructiveConversionRequired, false);
 assert.deepEqual(audit.writes, {actors:0,items:0,journals:0,settings:0});
-assert.ok(["NOT_READY_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN","NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN"].includes(audit.decision));
+assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
 
 const byId = new Map(audit.blockers.map(row => [row.id,row]));
 const recruitment = byId.get("FULL_RECRUITMENT_COMMIT_ADAPTER");
@@ -68,29 +68,27 @@ assert.ok(reference.evidence.pageCount >= 8);
 assert.equal(reference.evidence.zeroWrite, true);
 
 const parity = byId.get("LIVE_PARITY_QA");
-assert.ok(["BLOCKED_NOT_RUN","FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(parity.state));
+assert.equal(parity.state, "CLOSED");
 assert.equal(parity.evidence.shadowAdaptersReady, true);
 assert.equal(parity.evidence.liveApplication, false);
-assert.equal(parity.evidence.activationAvailable, false);
+assert.equal(parity.evidence.activationAvailable, true);
 
 const activation = byId.get("EXPLICIT_ACTIVATION_MILESTONE");
-assert.equal(activation.state, "DEFERRED");
-assert.equal(activation.evidence.foundationOnly, true);
-assert.equal(activation.evidence.selectable, false);
-assert.equal(activation.evidence.supported, false);
+assert.equal(activation.state, "CLOSED");
+assert.equal(activation.evidence.foundationOnly, false);
+assert.equal(activation.evidence.selectable, true);
+assert.equal(activation.evidence.supported, true);
 assert.equal(activation.evidence.activationSurfaceRegistered, true);
-assert.equal(activation.evidence.activationAvailable, false);
+assert.equal(activation.evidence.activationAvailable, true);
 assert.equal(activation.evidence.genericActivationRouterPresent, true);
 
 assert.deepEqual(audit.technicalBlockers, []);
-assert.deepEqual(audit.openBlockers, [
-  "LIVE_PARITY_QA",
-  "EXPLICIT_ACTIVATION_MILESTONE"
-]);
+assert.deepEqual(audit.openBlockers, []);
 
+game.system.version = "1.12.0";
 const activationModule = await import("../module/m10-profile-activation.mjs");
 writes.length = 0;
-await assert.rejects(() => activationModule.switchRulesProfile("mg2e"), /foundation-only/i);
+await assert.rejects(() => activationModule.switchRulesProfile("mg2e"), /not in an activatable state/i);
 assert.equal(writes.length, 0);
 
 const auditSource = fs.readFileSync("module/m10c-mg2e-readiness-audit.mjs","utf8");

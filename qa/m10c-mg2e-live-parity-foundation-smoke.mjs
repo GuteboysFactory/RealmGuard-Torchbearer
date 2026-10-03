@@ -43,14 +43,14 @@ globalThis.game = {
 globalThis.Hooks = { callAll: () => {} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.6","M10C.7","M10C.8"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityFoundationReady, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityVerified, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
-assert.deepEqual(MG2E_FOUNDATION_PROFILE.metadata.pendingDomains, ["live-parity-execution", "explicit-activation"]);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityVerified, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
+assert.deepEqual(MG2E_FOUNDATION_PROFILE.metadata.pendingDomains, []);
 
 const caps = resolveProfileCapabilities("mg2e");
 assert.equal(caps.rules.session.familySemantics, true);
@@ -98,18 +98,19 @@ const parity = audit.blockers.find(row => row.id === "LIVE_PARITY_QA");
 const activation = audit.blockers.find(row => row.id === "EXPLICIT_ACTIVATION_MILESTONE");
 assert.equal(audit.technicalReadinessComplete, true);
 assert.deepEqual(audit.technicalBlockers, []);
-assert.ok(["FOUNDATION_READY_NOT_RUN","CONTROLLED_EXECUTION_IN_PROGRESS"].includes(parity.state));
-assert.equal(parity.closed, false);
+assert.equal(parity.state, "CLOSED");
+assert.equal(parity.closed, true);
 assert.equal(parity.evidence.foundationReady, true);
-assert.equal(parity.evidence.liveParityVerified, false);
+assert.equal(parity.evidence.liveParityVerified, true);
 assert.deepEqual(parity.evidence.handoffRequired, ["WISE_EFFECTS", "HELP", "INVENTORY_GEAR", "CONFLICT"]);
-assert.equal(activation.state, "DEFERRED");
-assert.equal(audit.decision, "NOT_READY_CONTROLLED_LIVE_PARITY_AND_EXPLICIT_ACTIVATION_REMAIN");
-assert.equal(audit.nextStep, "M10C.7 MG2E Controlled Live Parity Execution");
+assert.equal(activation.state, "CLOSED");
+assert.equal(audit.decision, "READY_EXPLICIT_QA_ACTIVATION");
+assert.equal(audit.nextStep, "Complete M10C.8 MG2E selectable activation live QA");
 
+game.system.version = "1.12.0";
 assert.equal(profileActivationAvailable("mg2e"), false);
 const before = settings.get("realm-guard.activeRulesProfileId");
-await assert.rejects(() => switchRulesProfile("mg2e"), /foundation-only/i);
+await assert.rejects(() => switchRulesProfile("mg2e"), /not in an activatable state/i);
 assert.equal(settings.get("realm-guard.activeRulesProfileId"), before);
 assert.equal(writes.length, 0);
 
@@ -128,4 +129,4 @@ for (const path of [
   }
 }
 
-console.log("PASS M10C.6 MG2E live parity QA foundation · 13/13 domains ready · 4 controlled handoffs identified · activation OFF · zero writes");
+console.log("PASS M10C.6 MG2E live parity QA foundation · 13/13 domains ready · 4 controlled handoffs identified · source adapters zero-write · stable activation locked");

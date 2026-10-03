@@ -27,7 +27,7 @@ async function switchProfileAction(event, target) {
   const profileId = String(button?.dataset?.profileId ?? "").trim();
   if (!profileId) return;
   const resolved = resolveRulesProfile(profileId).profile;
-  const preview = profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
+  const preview = profileId === "mg2e" ? previewMg2eConversion() : profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
   const confirmed = await foundry.applications.api.DialogV2.wait({
     window:{title:`Realm Guard · Activate ${resolved.name}`,resizable:true},
     content:`<div class="realm-guard"><h2>Switch this world to ${resolved.name}?</h2>
@@ -132,8 +132,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
-      phase:"M10C.7",
-      nextStep:"M10C.7 runs the four bounded MG2E controlled parity handoffs in QA only; activation remains unavailable pending an explicit activation milestone"
+      phase:"M10C.8",
+      nextStep:"MG2E is explicitly selectable in QA after M10C.7 FULL PASS; switching preserves campaign data"
     }, { inplace:false });
   }
 }

@@ -26,6 +26,7 @@ export function buildM10BFamilyRulePolicy(capabilities) {
     profileId: String(capabilities?.profile?.id ?? ""),
     profileVersion: Number(capabilities?.profile?.version ?? 0),
     ratedWises,
+    mg2eWises: String(rules.wises?.selfUse) === "MG2E_EXPLICIT_WISE_EFFECT",
     wiseSelfUse: String(rules.wises?.selfUse ?? "PROFILE_DEFINED"),
     wiseHelperUse: String(rules.wises?.helperUse ?? "PROFILE_DEFINED"),
     mg1eTraits,
@@ -52,8 +53,8 @@ export function getActiveM10BFamilyRulePolicy() {
 
 export function allowedHelperKindsForTest(testKind, policy = getActiveM10BFamilyRulePolicy()) {
   const kind = normalizedKind(testKind);
-  if (policy.helperSourcePolicy !== "MG1E_TYPED") return freeze(["Skill", "Ability", "Wise"]);
-  if (kind === "Ability") return freeze(["Ability"]);
+  if (!["MG1E_TYPED", "MG2E_TYPED"].includes(policy.helperSourcePolicy)) return freeze(["Skill", "Ability", "Wise"]);
+  if (kind === "Ability") return freeze(policy.helperSourcePolicy === "MG2E_TYPED" ? ["Ability", "Wise"] : ["Ability"]);
   if (kind === "Skill" || kind === "Wise") return freeze(["Skill", "Wise"]);
   return freeze(["Skill", "Wise", "Ability"]);
 }
@@ -68,7 +69,7 @@ export function natureDescriptorText(policy = getActiveM10BFamilyRulePolicy()) {
 }
 
 export function natureProfileLabel(policy = getActiveM10BFamilyRulePolicy()) {
-  if (String(policy.nature.mode).toUpperCase().startsWith("MG1E") && policy.profileId === "mg1e") return "Nature (Mouse)";
+  if (/^MG(?:1|2)E/.test(String(policy.nature.mode).toUpperCase()) && ["mg1e", "mg2e"].includes(policy.profileId)) return "Nature (Mouse)";
   return "Nature";
 }
 

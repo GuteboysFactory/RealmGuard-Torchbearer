@@ -167,7 +167,8 @@ import {
   switchRulesProfile,
   switchToLegacyMixed,
   switchToStrictRealmGuard,
-  switchToMg1e
+  switchToMg1e,
+  switchToMg2e
 } from "./m10-profile-activation.mjs";
 import {
   buildStrictHelperConsequenceContract,
@@ -197,8 +198,8 @@ export function getM10ProfilePreviewStatus() {
   const parity = mg2eLiveParityFoundationStatus();
   const controlledParity = mg2eControlledLiveParityStatus();
   return Object.freeze({
-    phase: "M10C.7",
-    mode: "MG2E_CONTROLLED_LIVE_PARITY_EXECUTION_ROUTER",
+    phase: "M10C.8",
+    mode: "MG2E_EXPLICIT_QA_ACTIVATION_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -228,14 +229,12 @@ export function getM10ProfilePreviewStatus() {
     mg2eRulesReferenceOwned: profileRulesReferenceSnapshot("mg2e").mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY",
     mg2eActivationSurfaceRegistered: (activation.profiles ?? []).some(row => row.id === "mg2e"),
     mg2eLiveParityFoundationReady: parity.foundationReady === true,
-    mg2eLiveParityVerified: controlledParity.liveParityVerified === true,
+    mg2eLiveParityVerified: resolveRulesProfile("mg2e").profile.metadata?.liveParityVerified === true,
     mg2eLiveParityHandoffRequired: [...(parity.handoffRequired ?? [])],
     mg2eControlledParityReady: controlledParity.controlledExecutionReady === true,
     mg2eControlledParityExecuted: controlledParity.executedDomainCount,
     mg2eControlledParityPassed: controlledParity.passedDomainCount,
-    nextStep: controlledParity.liveParityVerified
-      ? "M10C.8 MG2E Explicit Activation Milestone"
-      : "M10C.7 MG2E Controlled Live Parity Execution"
+    nextStep: "Complete M10C.8 MG2E selectable activation live QA"
   });
 }
 
@@ -318,6 +317,7 @@ export function installM10ProfileConversionPreview() {
       switchProfile: switchRulesProfile,
       switchToStrict: switchToStrictRealmGuard,
       switchToMg1e,
+      switchToMg2e,
       switchToLegacy: switchToLegacyMixed,
       previewStrictConversion,
       openStrictConversionPreview: showStrictConversionPreview,
@@ -478,6 +478,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.7 MG2E controlled live parity execution ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.8 MG2E explicit QA activation ready", getM10ProfilePreviewStatus());
   });
 }

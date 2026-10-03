@@ -146,7 +146,7 @@ export function evaluateM5ConflictToolLiveHandoff({
   const conflictType = String(state?.type ?? "fight");
   const disabled = state?.effects?.[side]?.disabledGearIds ?? [];
 
-  if (!coreEvaluationEnabled) {
+  if (!coreEvaluationEnabled && activeConflictPolicy().conflict?.mode !== "MG2E") {
     telemetry.rollbackEvaluations += 1;
     const event = record({
       operation,

@@ -54,13 +54,13 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 assert.equal(MG2E_FOUNDATION_PROFILE.version, 3);
-assert.ok(["M10C.3","M10C.4","M10C.5","M10C.6","M10C.7"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
+assert.ok(["M10C.3","M10C.4","M10C.5","M10C.6","M10C.7","M10C.8"].includes(MG2E_FOUNDATION_PROFILE.metadata.implementationPhase));
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdaptersReady, true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.shadowAdapterMode, "READ_ONLY");
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, true);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, false);
-assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.foundationOnly, false);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.selectable, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.supported, true);
+assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 
 const testPolicy = mg2eTestPolicySnapshot();
 assert.equal(testPolicy.mode, "MG2E");
@@ -179,12 +179,12 @@ assert.deepEqual(creation.ranks, ["tenderpaw","guardmouse","patrolGuard","patrol
 
 const readiness = mg2eActivationReadiness();
 assert.equal(readiness.shadowAdaptersReady, true);
-assert.equal(readiness.activationGateClosed, true);
-assert.equal(readiness.activationAvailable, false);
+assert.equal(readiness.activationGateClosed, false);
+assert.equal(readiness.activationAvailable, true);
 assert.equal(typeof readiness.fullRecruitmentCommitReady, "boolean");
 assert.equal(typeof readiness.dedicatedLiveRulesReferenceReady, "boolean");
 assert.equal(readiness.existingActorMigrationRequired, false);
-assert.ok(readiness.blockers.includes("EXPLICIT_ACTIVATION_MILESTONE"));
+assert.deepEqual(readiness.blockers, []);
 
 const status = getM10C3Mg2eShadowStatus();
 assert.equal(status.phase, "M10C.3");
@@ -193,9 +193,10 @@ assert.equal(status.liveApplication, false);
 assert.deepEqual(status.writes, {actors:0,items:0,journals:0,settings:0});
 
 const activation = await import("../module/m10-profile-activation.mjs");
+game.system.version = "1.12.0";
 assert.equal(activation.profileActivationAvailable("mg2e"), false);
 writes.length = 0;
-await assert.rejects(() => activation.switchRulesProfile("mg2e"), /foundation-only/i);
+await assert.rejects(() => activation.switchRulesProfile("mg2e"), /not in an activatable state/i);
 assert.equal(writes.length, 0);
 
 const shadowSource = fs.readFileSync("module/m10c-mg2e-shadow-adapters.mjs","utf8");
@@ -203,7 +204,7 @@ for (const forbidden of ["game.settings.set","Actor.create","createEmbeddedDocum
   assert.equal(shadowSource.includes(forbidden), false, "MG2E shadow adapter must remain zero-write: " + forbidden);
 }
 const activationSource = fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activationSource.includes("switchToMg2e"), false);
-assert.equal(activationSource.includes("MG2E_PROFILE_ID"), false);
+assert.equal(activationSource.includes("switchToMg2e"), true);
+assert.equal(activationSource.includes("MG2E_PROFILE_ID"), true);
 
 console.log("PASS M10C.3 MG2E read-only shadow adapters · activation readiness blockers explicit · zero writes · activation OFF");

@@ -6,9 +6,9 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg2e",
   version: 3,
   name: "Mouse Guard 2E",
-  classification: "SOURCE PROFILE / FOUNDATION",
+  classification: "SOURCE PROFILE / QA SELECTABLE",
   domains: {
-    profile: { activationState: "FOUNDATION_ONLY" },
+    profile: { activationState: "QA_ACTIVE" },
 
     tests: { mode: "MG2E", ordinary: true, versus: true, beginnersLuck: true },
 
@@ -324,23 +324,23 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     ["SCALE_OF_MIGHT.MODE","scaleOfMight","Scale of Might","NOT A BASE MG2E DOMAIN"]
   ].map(([id, domain, title, activeValue]) => ({
     id, domain, title, activeValue,
-    classification: "SOURCE-AUDITED FOUNDATION",
-    automation: "READ ONLY",
+    classification: "SOURCE-AUDITED QA PROFILE",
+    automation: "GUIDED",
     source: MG2E_SOURCE,
     sourceVersion: "2015 / 2E"
   })),
 
   metadata: {
-    foundationOnly: true,
-    selectable: false,
-    supported: false,
-    activationState: "FOUNDATION_ONLY",
-    qaActivationOnly: false,
+    foundationOnly: false,
+    selectable: true,
+    supported: true,
+    activationState: "QA_ACTIVE",
+    qaActivationOnly: true,
     sourceLineage: ["Mouse Guard RPG 2E / 2015"],
-    gameplayChangeIntended: false,
-    liveRuleAuthority: false,
+    gameplayChangeIntended: true,
+    liveRuleAuthority: true,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10C.7",
+    implementationPhase: "M10C.8",
     sourceAuditStatus: "DOMAIN_COMPLETE_FOUNDATION",
     shadowAdaptersReady: true,
     shadowAdapterMode: "READ_ONLY",
@@ -350,12 +350,16 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     controlledLiveParityReady: true,
     controlledLiveParityMode: "QA_ONLY_EXPLICIT_HANDOFFS",
     controlledLiveParityDomains: ["WISE_EFFECTS","HELP","INVENTORY_GEAR","CONFLICT"],
-    liveParityVerified: false,
+    liveParityVerified: true,
+    liveParityVerifiedRelease: "1.12.0-qa.18",
+    liveParityEvidenceAuthority: "USER_CONFIRMED_FOUNDRY_13_351_FULL_PASS",
+    explicitActivationAuthorized: true,
+    activationMilestone: "M10C.8",
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
-    pendingDomains: ["live-parity-execution","explicit-activation"],
-    nextStep: "M10C.7 MG2E Controlled Live Parity Execution"
+    pendingDomains: [],
+    nextStep: "Complete M10C.8 MG2E selectable activation live QA"
   }
 });

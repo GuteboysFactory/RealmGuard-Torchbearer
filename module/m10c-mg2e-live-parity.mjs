@@ -230,7 +230,7 @@ export function mg2eLiveParityMatrix() {
         profileAvailable: creation.creationProfileAvailable === true,
         profileVersion: creation.creationProfileVersion === 3,
         readyWhenActive: creation.readyWhenActive === true,
-        liveCommitLocked: creation.liveCommit === false,
+        liveCommitGated: creation.liveCommit === false || (creation.active && profile.metadata?.explicitActivationAuthorized === true),
         zeroResolveWrites: Object.values(creation.writes ?? {}).every(value => Number(value) === 0)
       }
     }),
@@ -238,7 +238,7 @@ export function mg2eLiveParityMatrix() {
       candidateProvider: "M10B8_PROFILE_RULES_REFERENCE",
       liveSurface: "Rules Reference UI",
       checks: {
-        mode: reference.mode === "READ_ONLY_PROFILE_REFERENCE",
+        mode: ["READ_ONLY_PROFILE_REFERENCE", "ACTIVE_PROFILE_REFERENCE"].includes(reference.mode),
         profileId: reference.profileId === PROFILE_ID,
         pages: Array.isArray(reference.pages) && reference.pages.length >= 9,
         zeroWrite: reference.writesJournal === false

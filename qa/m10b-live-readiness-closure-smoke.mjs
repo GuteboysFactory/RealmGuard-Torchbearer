@@ -59,7 +59,7 @@ assert.equal(mgCaps.rules.creation.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 assert.equal(activation.profileActivationAvailable("realm-guard-strict"), true);
 assert.equal(activation.profileActivationAvailable("mg1e"), false);
 const activationStatus = activation.profileActivationStatus();
-assert.equal(activationStatus.phase, "M10B.11");
+assert.equal(activationStatus.phase, "M10C.8");
 assert.equal(activationStatus.mg1eActivationAvailable, false);
 assert.equal(activationStatus.mg1eSelectable, true);
 assert.equal(activationStatus.mg1eSupported, true);

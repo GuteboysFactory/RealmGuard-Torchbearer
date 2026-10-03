@@ -16,11 +16,11 @@ const resolver = new ProfileResolver([
 const mg2e = resolver.resolve("mg2e");
 assert.ok(mg2e.version >= 1);
 assert.deepEqual(mg2e.lineage.map(row => row.id), ["mg2e"]);
-assert.equal(mg2e.metadata.foundationOnly, true);
-assert.equal(mg2e.metadata.selectable, false);
-assert.equal(mg2e.metadata.supported, false);
-assert.equal(mg2e.metadata.liveRuleAuthority, false);
-assert.equal(mg2e.metadata.activationState, "FOUNDATION_ONLY");
+assert.equal(mg2e.metadata.foundationOnly, false);
+assert.equal(mg2e.metadata.selectable, true);
+assert.equal(mg2e.metadata.supported, true);
+assert.equal(mg2e.metadata.liveRuleAuthority, true);
+assert.equal(mg2e.metadata.activationState, "QA_ACTIVE");
 assert.equal(mg2e.domains.wises.ratingMode, "NONE");
 assert.equal(mg2e.domains.wises.testableOnOwn, false);
 assert.equal(mg2e.domains.wises.effects.iAmWise.dice, 1);
@@ -44,12 +44,12 @@ assert.deepEqual(mg2e.domains.creation.wiseCountByRank, {
 const service = fs.readFileSync("module/rules-profile-service.mjs","utf8");
 assert.ok(service.includes("MG2E_FOUNDATION_PROFILE"));
 const activation = fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activation.includes('MG2E_PROFILE_ID'), false, "M10C.1 must not add an MG2E activation path.");
-assert.equal(activation.includes('switchToMg2e'), false, "M10C.1 must remain foundation-only.");
+assert.equal(activation.includes('MG2E_PROFILE_ID'), true, "M10C.8 adds an explicit QA activation path.");
+assert.equal(activation.includes('switchToMg2e'), true, "M10C.8 explicit QA switch is present.");
 
 for (const forbidden of ["Actor.create","createEmbeddedDocuments","deleteEmbeddedDocuments","JournalEntry.create"]) {
   const source = fs.readFileSync("module/profiles/mg2e-foundation.mjs","utf8");
   assert.equal(source.includes(forbidden), false);
 }
 
-console.log("PASS M10C.1 MG2E source foundation · non-selectable · no live authority · source-audited domains registered");
+console.log("PASS M10C.1 MG2E source foundation · QA-selectable · source ownership retained · source-audited domains registered");

@@ -157,7 +157,7 @@ assert.ok(sheet.includes("futureCirclesDice"));
 assert.ok(sheet.includes("progression.talentsEnabled"));
 assert.equal(sheet.includes("isStrictRealmGuard"),false);
 
-const npc=fs.readFileSync("templates/actor/npc.hbs","utf8");
+const npc=fs.readFileSync("templates/actor/npc.hbs","utf8").replace(/\r\n/g,"\n");
 const identityClose=npc.indexOf("</div>\n    <div class=\"rg-npc-resource-stack rg-meta\"");
 assert.ok(identityClose>0,"NPC resources must be a right-side sibling of identity, matching the Character header pattern.");
 const css=fs.readFileSync("styles/realm-guard.css","utf8");

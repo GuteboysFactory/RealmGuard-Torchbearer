@@ -19,12 +19,12 @@ const mg2e = resolver.resolve("mg2e");
 
 assert.ok(mg2e.version >= 2);
 assert.deepEqual(mg2e.lineage.map(row => row.id), ["mg2e"]);
-assert.ok(["M10C.2","M10C.3","M10C.4","M10C.5","M10C.6","M10C.7"].includes(mg2e.metadata.implementationPhase));
+assert.ok(["M10C.2","M10C.3","M10C.4","M10C.5","M10C.6","M10C.7","M10C.8"].includes(mg2e.metadata.implementationPhase));
 assert.equal(mg2e.metadata.sourceAuditStatus, "DOMAIN_COMPLETE_FOUNDATION");
-assert.equal(mg2e.metadata.foundationOnly, true);
-assert.equal(mg2e.metadata.selectable, false);
-assert.equal(mg2e.metadata.supported, false);
-assert.equal(mg2e.metadata.liveRuleAuthority, false);
+assert.equal(mg2e.metadata.foundationOnly, false);
+assert.equal(mg2e.metadata.selectable, true);
+assert.equal(mg2e.metadata.supported, true);
+assert.equal(mg2e.metadata.liveRuleAuthority, true);
 assert.equal(mg2e.metadata.conversionPreviewAvailable, true);
 
 assert.equal(mg2e.domains.abilities.advancement, "PASS_EQUALS_RATING_FAIL_EQUALS_RATING_MINUS_1");
@@ -136,8 +136,9 @@ globalThis.game = {
 globalThis.Hooks = { callAll:()=>{} };
 
 const activation = await import("../module/m10-profile-activation.mjs");
+game.system.version = "1.12.0";
 assert.equal(activation.profileActivationAvailable("mg2e"), false);
-await assert.rejects(() => activation.switchRulesProfile("mg2e"), /foundation-only/i);
+await assert.rejects(() => activation.switchRulesProfile("mg2e"), /not in an activatable state/i);
 
 const scale = await import("../module/m10b-comparative-scale.mjs");
 assert.equal(scale.familyScaleRankFor("mg2e","Mouse"), 3);
@@ -159,7 +160,7 @@ for (const forbidden of ["game.settings.set","Actor.create","createEmbeddedDocum
   assert.equal(previewSource.includes(forbidden), false, `MG2E preview must remain zero-write: ${forbidden}`);
 }
 const activationSource = fs.readFileSync("module/m10-profile-activation.mjs","utf8");
-assert.equal(activationSource.includes("switchToMg2e"), false);
-assert.equal(activationSource.includes('MG2E_PROFILE_ID'), false);
+assert.equal(activationSource.includes("switchToMg2e"), true);
+assert.equal(activationSource.includes('MG2E_PROFILE_ID'), true);
 
 console.log("PASS M10C.2 MG2E domain-complete foundation · Natural Order · read-only conversion preview · activation remains OFF");

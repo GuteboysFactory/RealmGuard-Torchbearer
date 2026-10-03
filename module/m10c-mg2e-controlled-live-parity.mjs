@@ -52,6 +52,7 @@ function gateSnapshot() {
     qaRuntime,
     gmAuthority: globalThis.game?.user?.isGM === true,
     locked,
+    diagnosticsAuthorized: profile.metadata?.explicitActivationAuthorized === true && profile.metadata?.liveParityVerified === true,
     profileId: profile.id,
     profileVersion: profile.version,
     foundationOnly: profile.metadata?.foundationOnly === true,
@@ -66,7 +67,7 @@ function requireControlledGate() {
   const gate = gateSnapshot();
   if (!gate.qaRuntime) throw new Error("MG2E controlled live parity execution is QA-runtime only.");
   if (!gate.gmAuthority) throw new Error("MG2E controlled live parity execution is GM-only.");
-  if (!gate.locked) throw new Error("MG2E controlled live parity execution requires the locked v3 foundation profile with activation OFF.");
+  if (!gate.locked && !gate.diagnosticsAuthorized) throw new Error("MG2E controlled live parity execution requires the locked v3 foundation profile with activation OFF.");
   return gate;
 }
 
@@ -241,20 +242,25 @@ export function mg2eControlledLiveParityStatus() {
   const matrix = mg2eControlledLiveParityMatrix();
   const executedDomainCount = matrix.filter(row => row.executed).length;
   const passedDomainCount = matrix.filter(row => row.passed).length;
-  const liveParityVerified = matrix.length === DOMAIN_IDS.length
+  const runtimeParityVerified = matrix.length === DOMAIN_IDS.length
     && matrix.every(row => row.state === "EXECUTED_PASS");
 
+  const metadata = resolveRulesProfile(PROFILE_ID).profile.metadata;
+  const verifiedRelease = metadata?.liveParityVerified === true ? metadata.liveParityVerifiedRelease : null;
+  const liveParityVerified = runtimeParityVerified || Boolean(verifiedRelease);
   return freeze({
     phase: "M10C.7",
     mode: "MG2E_CONTROLLED_LIVE_PARITY_EXECUTION",
     profileId: PROFILE_ID,
     profileVersion: gate.profileVersion,
     qaRuntime: gate.qaRuntime,
-    controlledExecutionReady: gate.qaRuntime && gate.gmAuthority && gate.locked,
+    controlledExecutionReady: gate.qaRuntime && gate.gmAuthority && (gate.locked || gate.diagnosticsAuthorized),
     gmAuthority: gate.gmAuthority,
     controlledExecutionOnly: true,
     liveParityVerified,
-    activationAuthorized: false,
+    runtimeParityVerified,
+    verifiedRelease,
+    activationAuthorized: metadata?.explicitActivationAuthorized === true,
     activationExpected: false,
     activationAvailable: gate.activationAvailable,
     foundationOnly: gate.foundationOnly,
@@ -270,7 +276,9 @@ export function mg2eControlledLiveParityStatus() {
     writes: { actors: 0, items: 0, journals: 0, settings: 0 },
     destructiveMigration: false,
     activeProfileMutation: false,
-    nextStep: liveParityVerified
+    nextStep: metadata?.explicitActivationAuthorized === true
+      ? "Complete M10C.8 MG2E selectable activation live QA"
+      : liveParityVerified
       ? "M10C.8 MG2E Explicit Activation Milestone"
       : "Complete M10C.7 controlled execution for all four handoff domains"
   });

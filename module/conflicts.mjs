@@ -11,7 +11,7 @@ import { applyExchangeToolScope } from "./core/m6-conflict-tool-scope.mjs";
 import { m6ApplyPostResolutionState, m6AdvanceAfterActionState, m6ApplyManeuverState, m6FinishConflictState } from "./core/m6-conflict-runtime.mjs";
 import { evaluateM6ConflictStateLiveHandoff } from "./m6-conflict-state-handoff.mjs";
 import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "./teamwork.mjs";
-import { getActiveM10BGearInventoryConflictPolicy, familyConflictActionSkills, familyConflictDispositionPlan } from "./m10b-gear-inventory-conflict.mjs";
+import { getActiveM10BGearInventoryConflictPolicy, familyConflictActionSkills, familyConflictDispositionPlan, familyWeaponActionPlan } from "./m10b-gear-inventory-conflict.mjs";
 import { getActiveM10BSessionCirclesProgressionPolicy, familyEnmityDispositionPlan } from "./m10b-session-circles-progression.mjs";
 import { buildM8RelationshipSheetView } from "./m8-social-network-service.mjs";
 
@@ -940,6 +940,12 @@ function gearActionModifiers(actor, action, state, side, weaponId = null) {
     return { dice, conditionalSuccess, successPenalty, notes, hasSword: false, swordAction: "", requirement: String(tool.requirement ?? ""), toolName: selected.name };
   }
   const weapon = selected.item;
+  if (activeConflictPolicy().conflict.mode === "MG2E") {
+    const swordAction = String(state.effects?.[side]?.swordActions?.[actor?.id] ?? state.effects?.[side]?.swordAction ?? "");
+    const plan = familyWeaponActionPlan(weapon.name, action, { swordUsefulAction: swordAction }, activeConflictPolicy());
+    return { dice: plan.dice ?? 0, conditionalSuccess: plan.conditionalSuccess ?? 0, successPenalty: 0,
+      notes: plan.notes ?? [], hasSword: normalizedGearName(weapon) === "sword", swordAction, requirement: "", toolName: weapon.name };
+  }
   const names = new Set(weapon ? [normalizedGearName(weapon)] : []);
   if (names.has("shield") && action === "defend") { dice += 2; notes.push("Shield +2D Defend"); }
   if (names.has("halberd")) {
@@ -1069,7 +1075,7 @@ async function openPoolDialog({ actor, title, choices, temporaryDice = 0, gear =
     ${sword}
     ${teamworkBlock}
     ${tapNature}
-    <fieldset><legend>Resources / Character</legend><label>Persona dice <select name="persona" ${personaAvailable < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= personaAvailable).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select></label><label>Trait <select name="traitId"><option value="">None</option>${traitOptions}</select></label><small>${isFamilyConflictProfile() ? "MG1E-family Traits: L1 +1D once/session, L2 +1D every applicable test, L3 reroll all failed dice once/session." : "Trait benefits use normal session limits: L1 +1D once, L2 +1D twice, L3 +1s when relevant."}</small><label>${ratedWiseMode ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${wiseOptions}</select></label>${tokenBlock}${talentBlock}</fieldset>
+    <fieldset><legend>Resources / Character</legend><label>Persona dice <select name="persona" ${personaAvailable < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= personaAvailable).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select></label><label>Trait <select name="traitId"><option value="">None</option>${traitOptions}</select></label><small>${activeConflictPolicy().presentation.mg1eTraitSemantics ? "MG1E-family Traits: L1 +1D once/session, L2 +1D every applicable test, L3 reroll all failed dice once/session." : "Trait benefits use normal session limits: L1 +1D once, L2 +1D twice, L3 +1s when relevant."}</small><label>${activeConflictPolicy().conflict.mode === "MG2E" ? "Wise (choose effect after roll)" : ratedWiseMode ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${wiseOptions}</select></label>${tokenBlock}${talentBlock}</fieldset>
     <small>Fate is offered after the roll when a 6 is present. Conflict rolls do not spend Players' Turn Free Tests/Checks.</small>
   </div>`;
   let result=null;

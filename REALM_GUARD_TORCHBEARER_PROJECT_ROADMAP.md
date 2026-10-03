@@ -2,23 +2,35 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.18 — 🟡 M10C.7 MG2E Controlled Live Parity Execution  
+**Current QA build:** v1.12.0-qa.19 — 🟡 M10C.8 MG2E Explicit QA Activation
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.7 — 🟡 IN PROGRESS · MG2E Controlled Live Parity Execution  
+**Current CORE gate:** M10C.8 — 🟡 IN PROGRESS · MG2E Explicit QA Activation
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
 
+### M10C.8 — MG2E Explicit QA Activation
+
+**Status:** 🟡 ACTIVE in v1.12.0-qa.19. M10C.7 / qa.18 is FULL PASS / VERIFIED / CLOSED per the user confirmation in Foundry v13.351.
+
+- Explicit GM-only, QA-only reversible MG2E switching; two profile settings and no document migration.
+- Rules Profile v3 / Character Creation Profile v3 retained.
+- Source-owned MG2E Wise / Help / Conflict routing; Legacy / Strict / MG1E regression-safe.
+- Preserve Wises, Conditions, inventory placement, Creation provenance and Natural Order ranks.
+- Armor/carry/narrative exceptions remain guided by source-owned planners.
+- Closure requires qa.19 live activation, reload, rollback, Recruitment, representative rolls, data safety and release/channel QA.
+- Stable MG2E promotion is deferred until explicit approval after the activation live QA gate.
+
 ### M10C.7 — MG2E Controlled Live Parity Execution
 
-**Status:** 🟡 ACTIVE in v1.12.0-qa.18. M10C.6 is FULL PASS / VERIFIED / CLOSED.
+**Status:** ✅ FULL PASS / VERIFIED / CLOSED in v1.12.0-qa.18, confirmed by the user in Foundry VTT 13.351. The following scope describes that historical locked-profile milestone.
 
 - Execute exactly four bounded QA-only MG2E handoffs: Wise Effects, Help, Inventory/Gear and Conflict.
 - Keep MG2E Rules Profile v3 FOUNDATION_ONLY, non-selectable, unsupported and without live rule authority.
 - Controlled execution is runtime/ephemeral and zero-write; it must not change Actors, Items, Journals or world settings.
 - Verify source-owned MG2E 2015 routes and explicitly reject Legacy Wise auto-reroll leakage and MG1E weapon-catalog leakage.
 - LIVE_PARITY_QA may close only after all four handoffs pass in the same Foundry QA session.
-- Explicit profile activation remains a separate future milestone, M10C.8.
+- Explicit profile activation is handled by the current M10C.8 QA milestone.
 
 
 

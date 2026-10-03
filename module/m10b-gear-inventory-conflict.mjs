@@ -1,3 +1,4 @@
+import { mg2eWeaponActionPlan, mg2eArmorPlan, mg2eInventoryPlan } from "./m10c-mg2e-shadow-adapters.mjs";
 import { createM5Services, INVENTORY_MODES } from "./core/m5-services.mjs";
 import { getActiveProfileCapabilities, resolveProfileCapabilities } from "./rules-profile-service.mjs";
 
@@ -128,7 +129,7 @@ export function buildM10BGearInventoryConflictPolicy(capabilities) {
   const disposition = conflict.disposition && typeof conflict.disposition === "object" ? conflict.disposition : {};
   const alias = conflict.weaponAlias && typeof conflict.weaponAlias === "object" ? conflict.weaponAlias : {};
   const disarmTargetKinds = Array.isArray(conflict.disarmTargetKinds) ? [...conflict.disarmTargetKinds] : ["weapon", "gear", "trait", "natural"];
-  const familySemantics = String(conflict.mode ?? "").toUpperCase().includes("MG1E");
+  const familySemantics = /^MG(?:1|2)E/.test(String(conflict.mode ?? "").toUpperCase());
   return freeze({
     phase: "M10B.5",
     profileId: String(capabilities?.profile?.id ?? ""),
@@ -270,6 +271,12 @@ function normalOrSpear(range) {
 }
 
 export function familyWeaponActionPlan(name, action, context = {}, policy = getActiveM10BGearInventoryConflictPolicy()) {
+  if (policy.conflict.mode === "MG2E") {
+    const plan = mg2eWeaponActionPlan(name, action, { ...context, chosenFightAction: context.chosenFightAction ?? context.swordUsefulAction });
+    // Conditional successes are passed to the existing post-success resolver.
+    const successfulPlan = mg2eWeaponActionPlan(name, action, { ...context, successful: true });
+    return freeze({ ...plan, conditionalSuccess: successfulPlan.conditionalSuccess ?? 0, successPenalty: 0, source: "MG2E_2015", notes: ["MG2E 2015 source-owned weapon adapter"], liveApplication: false });
+  }
   const normalizedAction = ACTIONS.includes(normalize(action)) ? normalize(action) : "attack";
   const halberdMode = normalize(context.halberdMode ?? context.mode ?? "");
   const def = familyWeaponDefinition(name, { halberdMode }, policy);
@@ -415,6 +422,10 @@ function armorDefinition(name, policy) {
 }
 
 export function familyArmorPlan(name, context = {}, policy = getActiveM10BGearInventoryConflictPolicy()) {
+  if (policy.conflict.mode === "MG2E") return mg2eArmorPlan(name, {
+    ...context, sneaking: context.sneaking ?? context.sneakingOrHiding, hiding: context.hiding ?? context.sneakingOrHiding,
+    fatigueRecovery: context.fatigueRecovery ?? (context.purpose === "fatigue-recovery" && context.usedPreviousTurn)
+  });
   if (!policy.familySemantics) return freeze({ ok: false, reasonCode: "PROFILE_ARMOR_NOT_ROUTED", armorName: String(name ?? ""), profileId: policy.profileId, liveApplication: false });
   const def = armorDefinition(name, policy);
   if (!def) return freeze({ ok: false, reasonCode: "UNKNOWN_PROFILE_ARMOR", armorName: String(name ?? ""), profileId: policy.profileId, liveApplication: false });
@@ -461,6 +472,7 @@ export function familyInventoryPolicyPlan(actor, policy = getActiveM10BGearInven
     paperDollPresentationAllowed: policy.inventory.paperDollPresentationAllowed,
     preservePlacementMetadata: true,
     capacityMode: policy.inventory.capacityMode,
+    carryLimits: policy.conflict.mode === "MG2E" ? mg2eInventoryPlan().carryLimits : null,
     gearItems: gear.length,
     gearItemsWithPlacementMetadata: withPlacementMetadata.length,
     writesPlanned: 0,
@@ -477,7 +489,7 @@ export function familyAvailableConflictTools(actor, options = {}, policy = getAc
       return freeze({
         ...tool,
         effects: policy.familySemantics ? [] : tool.effects,
-        profileWeapon: familyWeaponDefinition(tool.name, {}, policy),
+        profileWeapon: policy.conflict.mode === "MG2E" ? mg2eWeaponActionPlan(tool.name, "attack") : familyWeaponDefinition(tool.name, {}, policy),
         placementAuthority: policy.inventory.placementAuthority
       });
     }

@@ -78,8 +78,8 @@ export function buildProfileCapabilities(profile) {
         ratingMode: text(d.wises?.ratingMode, "PROFILE_DEFINED").toUpperCase(),
         rated: ratedWises,
         testableAsSkill: ratedWises,
-        selfUse: ratedWises ? "I_AM_WISE_1D" : legacyHelp ? "LEGACY_WISE_REROLL" : "PROFILE_DEFINED",
-        helperUse: ratedWises && d.help?.teamwork === true
+        selfUse: text(d.wises?.mode).toUpperCase() === "MG2E" ? "MG2E_EXPLICIT_WISE_EFFECT" : ratedWises ? "I_AM_WISE_1D" : legacyHelp ? "LEGACY_WISE_REROLL" : "PROFILE_DEFINED",
+        helperUse: text(d.wises?.mode).toUpperCase() === "MG2E" ? "MG2E_I_AM_WISE_1D" : ratedWises && d.help?.teamwork === true
           ? "TEAMWORK_WISE_1D"
           : legacyHelp ? "LEGACY_I_AM_WISE_1D" : "PROFILE_DEFINED"
       },

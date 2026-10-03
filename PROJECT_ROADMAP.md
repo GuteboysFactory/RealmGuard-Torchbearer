@@ -204,3 +204,8 @@ Superseded by v1.0.8.2 before GOLD promotion.
 
 Every package receives its own QA protocol. Stable 1.x work is built from the latest verified GOLD baseline and remains non-destructive wherever possible. v1.0.8 is the active QA branch; v1.0.7.1 remains the verified GOLD fallback until v1.0.8 passes live QA.
 
+
+
+## Current MG2E QA milestone — 2026-10-03
+
+M10C.7 / qa.18 FULL PASS confirmed by the user in Foundry v13.351. M10C.8 / v1.12.0-qa.19 implements explicit reversible QA activation. See REALM_GUARD_TORCHBEARER_PROJECT_ROADMAP.md and TEST_PROTOCOL_v1.12.0-qa.19.md. Stable remains v1.11.0; qa.19 live activation QA is pending.

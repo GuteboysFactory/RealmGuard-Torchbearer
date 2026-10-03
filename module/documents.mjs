@@ -4,6 +4,7 @@ import { resolveTokenPowerUse, tokenPowerChatText } from "./tokens-of-power.mjs"
 import { spendTrackedResource } from "./progression.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 import { traitLevel, traitPositiveStatus, traitPositiveDice, traitPositiveSuccessBonus, consumeTraitPositiveUse } from "./traits.mjs";
+import { applyMg2eWiseEffect } from "./m10c-mg2e-live-wises.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
 
 function familyPolicy() { return getActiveM10BFamilyRulePolicy(); }
@@ -77,7 +78,7 @@ export class RealmGuardActor extends Actor {
   _rollAssist({ traitId = null, wiseId = null, traitMode = "help", versus = false } = {}) {
     const policy = familyPolicy();
     const ratedWises = policy.ratedWises;
-    const angry = !policy.mg1eTraits && hasActiveCondition(this, "Angry");
+    const angry = !policy.mg1eTraits && !policy.mg2eWises && hasActiveCondition(this, "Angry");
     const trait = traitId ? this.items.get(traitId) : null;
     const requestedWise = wiseId ? this.items.get(wiseId) : null;
     const requestedMode = trait?.type === "trait" ? String(traitMode || "help") : "none";
@@ -133,6 +134,7 @@ export class RealmGuardActor extends Actor {
   }
 
   async _applyWiseReroll(baseFaces, wise, assist = null) {
+    if (familyPolicy().mg2eWises) return applyMg2eWiseEffect(this, baseFaces, wise);
     if (usesMg1eTraitRules()) {
       const trait = assist?.trait;
       if (trait?.type === "trait" && assist?.traitMode === "help" && traitLevel(trait) === 3 && traitPositiveStatus(this, trait).available) {

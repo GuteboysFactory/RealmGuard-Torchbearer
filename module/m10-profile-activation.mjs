@@ -8,6 +8,7 @@ const LIVE_ACTIVATION_STATES = Object.freeze(["SUPPORTED", "STABLE", "ACTIVE", "
 
 export const STRICT_PROFILE_ID = "realm-guard-strict";
 export const MG1E_PROFILE_ID = "mg1e";
+export const MG2E_PROFILE_ID = "mg2e";
 
 export function qaProfileActivationRuntime() {
   const version = String(globalThis.game?.system?.version ?? "");
@@ -49,6 +50,7 @@ export function profileActivationAvailable(profileId) {
     && profile?.metadata?.supported !== false
     && LIVE_ACTIVATION_STATES.includes(activationState)
     && (!qaOnly || qaProfileActivationRuntime())
+    && (profile.id !== MG2E_PROFILE_ID || (profile.metadata?.explicitActivationAuthorized === true && profile.metadata?.liveParityVerified === true))
   );
 }
 
@@ -82,7 +84,7 @@ export function profileActivationStatus() {
   const mg2e = activationProfileSummary("mg2e");
   const switchAvailable = strict.activationAvailable;
   return Object.freeze({
-    phase: "M10B.11",
+    phase: "M10C.8",
     mode: "GENERIC_PROFILE_QA_ACTIVATION_GATE",
     activeProfileId: active.id,
     activeProfileVersion: active.version,
@@ -154,7 +156,7 @@ export async function switchRulesProfile(targetProfileId, _options = {}) {
     await writeProfileSettings(target);
     const runtime = refreshRulesProfileRuntime();
     const event = Object.freeze({
-      phase:"M10B.11",
+      phase:"M10C.8",
       fromProfileId:before.id,
       fromProfileVersion:beforeVersion,
       toProfileId:runtime.profile.id,
@@ -188,6 +190,10 @@ export async function switchToStrictRealmGuard() {
 
 export async function switchToMg1e() {
   return switchRulesProfile(MG1E_PROFILE_ID);
+}
+
+export async function switchToMg2e() {
+  return switchRulesProfile(MG2E_PROFILE_ID);
 }
 
 export async function switchToLegacyMixed() {

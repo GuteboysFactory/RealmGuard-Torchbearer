@@ -44,6 +44,7 @@ export function traitPositiveDice(actor, trait) {
 
 export function traitPositiveSuccessBonus(actor, trait, { baseSuccesses = 0, target = 0, versus = false } = {}) {
   if (usesMg1eTraits() || traitLevel(trait) !== 3) return 0;
+  if (getActiveM10BFamilyRulePolicy().mg2eWises) return 1;
   const own = Number(baseSuccesses ?? 0);
   const opposition = Number(target ?? 0);
   // MG2E +1s is added after a passed/tied roll. It can break a Versus tie,
