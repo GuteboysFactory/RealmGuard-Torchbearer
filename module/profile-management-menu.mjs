@@ -132,8 +132,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
-      phase:"M10C.5",
-      nextStep:"M10C.5 closes MG2E technical readiness; activation remains unavailable pending live parity and an explicit activation milestone"
+      phase:"M10C.6",
+      nextStep:"M10C.6 establishes the zero-write MG2E live-parity foundation; activation remains unavailable pending controlled parity execution and an explicit activation milestone"
     }, { inplace:false });
   }
 }
