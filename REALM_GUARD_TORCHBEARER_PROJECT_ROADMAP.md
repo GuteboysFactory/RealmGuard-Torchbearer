@@ -2,9 +2,9 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.11.0 — 🟢✅ STABLE / GOLD  
-**Current QA build:** v1.12.0-qa.14 — 🟡 M10C.3 MG2E Shadow Rule Adapters / Activation-Readiness Foundation  
+**Current QA build:** v1.12.0-qa.15 — 🟡 M10C.4 MG2E Activation-Readiness Closure Audit  
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10C.3 — 🟡 IN PROGRESS · MG2E Shadow Rule Adapters / Activation-Readiness Foundation  
+**Current CORE gate:** M10C.4 — 🟡 IN PROGRESS · MG2E Activation-Readiness Closure Audit  
 **Internal system id:** `realm-guard` (do not rename)
 
 ## MG-family CORE migration status
@@ -408,7 +408,7 @@ Locked scope:
 
 ### M10C — Mouse Guard 2E explicit profile
 
-**Status:** 🟡 **M10C.3 IN PROGRESS** — M10C.1 and M10C.2 are FULL PASS / VERIFIED / CLOSED; read-only MG2E shadow adapters and activation-readiness reporting are now under QA.
+**Status:** 🟡 **M10C.4 IN PROGRESS** — M10C.1, M10C.2 and M10C.3 are FULL PASS / VERIFIED / CLOSED; activation-readiness closure audit is now under QA.
 
 **M10C.1 scope — MG2E Source Audit & Profile Foundation:**
 - register standalone `mg2e` Rules Profile v1; it does not inherit MG1E or Realm Guard
@@ -457,9 +457,27 @@ Locked scope:
 - Character Creation remains foundation/read-only: no transactional commit adapter, no provenance write, no relationship write
 - preserve Legacy Mixed / Strict / MG1E behavior and historical M10B phase metadata
 
-**M10C.3 PASS gate:** all MG2E shadow adapters resolve source-correct values in Foundry v13.351; activation-readiness reports the remaining blockers; MG2E stays FOUNDATION_ONLY and unactivatable; no existing campaign data changes; Legacy/Strict/MG1E regressions remain green.
+**M10C.3 PASS gate:** 🟢✅ PASSED. All MG2E shadow adapters resolve source-correct values in Foundry v13.351; activation-readiness reports the remaining blockers; MG2E stays FOUNDATION_ONLY and unactivatable; no existing campaign data changes; Legacy/Strict/MG1E regressions remain green.
 
-**Next bounded slice after closure:** **M10C.4 — MG2E Activation-Readiness Closure Audit**.
+**M10C.3 result:** 🟢✅ **FULL PASS / VERIFIED / CLOSED** in Foundry VTT 13.351.
+
+**M10C.4 scope — MG2E Activation-Readiness Closure Audit:**
+- audit the four explicit M10C.3 blockers without enabling MG2E
+- verify whether CORE M9 already has a source-owned MG2E creation profile / transactional commit path that can become READY_WHEN_ACTIVE
+- verify whether the generic Rules Reference router already owns MG2E or still treats it as external/Legacy
+- verify whether live parity can truthfully run while MG2E has no live authority
+- verify whether MG2E is registered in the generic activation-status/Profile Management surface
+- expose a read-only `mg2eActivationReadinessAudit()` through CORE M10
+- classify blockers as CLOSED / OPEN / BLOCKED_NOT_RUN / DEFERRED with evidence and next action
+- write zero Actors, Items, Journals and settings
+- keep profile version 3; this audit changes readiness metadata, not MG2E rule semantics
+- preserve Legacy Mixed / Strict / MG1E behavior
+
+**M10C.4 audit result expected before live QA:** FULL_RECRUITMENT_COMMIT_ADAPTER = OPEN; DEDICATED_LIVE_RULES_REFERENCE = OPEN; LIVE_PARITY_QA = BLOCKED_NOT_RUN; EXPLICIT_ACTIVATION_MILESTONE = DEFERRED. Generic activation router exists, but MG2E is not yet registered in the activation-status/Profile Management surface.
+
+**M10C.4 PASS gate:** Foundry v13.351 reproduces the same blocker classification, confirms zero writes and unchanged activation isolation, and existing profile regressions remain green.
+
+**Next bounded slice after closure:** **M10C.5 — MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface**.
 
 ### M9 — Creation / Recruitment Migration
 
