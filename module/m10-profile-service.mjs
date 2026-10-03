@@ -183,8 +183,8 @@ export function getM10ProfilePreviewStatus() {
   const activation = profileActivationStatus();
   const creation = getActiveM10BCharacterCreationPolicy();
   return Object.freeze({
-    phase: "M10C.4",
-    mode: "MG2E_ACTIVATION_READINESS_AUDIT_ROUTER",
+    phase: "M10C.5",
+    mode: "MG2E_TECHNICAL_LIVE_READINESS_ROUTER",
     activeProfileId: active.profile.id,
     activeProfileVersion: active.profile.version,
     activeActivationState: active.profile.metadata?.activationState ?? "ACTIVE",
@@ -209,7 +209,11 @@ export function getM10ProfilePreviewStatus() {
     mg2eShadowAdaptersReady: resolveRulesProfile("mg2e").profile.metadata?.shadowAdaptersReady === true,
     mg2eActivationReadiness: mg2eActivationReadiness(),
     mg2eReadinessAudit: mg2eActivationReadinessAudit(),
-    nextStep: "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
+    mg2eCreationReadyWhenActive: resolveM10BCharacterCreationPolicy("mg2e").readyWhenActive === true,
+    mg2eCreationProfileAvailable: resolveM10BCharacterCreationPolicy("mg2e").creationProfileAvailable === true,
+    mg2eRulesReferenceOwned: profileRulesReferenceSnapshot("mg2e").mode !== "LEGACY_MIXED_REFERENCE_OWNED_EXTERNALLY",
+    mg2eActivationSurfaceRegistered: (activation.profiles ?? []).some(row => row.id === "mg2e"),
+    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
   });
 }
 
@@ -329,7 +333,15 @@ export function installM10ProfileConversionPreview() {
         scaleOutcomePlan: mg2eScaleOutcomePlan,
         scaleGroupWarPlan: mg2eScaleGroupWarPlan,
         scaleSpecialPlan: mg2eScaleSpecialPlan,
-        creationShadowSnapshot: mg2eCreationShadowSnapshot
+        creationShadowSnapshot: mg2eCreationShadowSnapshot,
+        creationPolicy: () => resolveM10BCharacterCreationPolicy("mg2e"),
+        creationProfile: () => resolveCharacterCreationProfile("mg2e"),
+        creationActivationReadiness: () => profileCreationActivationReadiness("mg2e"),
+        creationCommitPlan: draft => profileCreationCommitPlan("mg2e", draft),
+        creationCommitPreview: draft => profileCreationCommitPreview("mg2e", draft),
+        rulesReferenceSnapshot: () => profileRulesReferenceSnapshot("mg2e"),
+        rulesReferenceHtml: () => profileRulesReferenceHtml("mg2e"),
+        openRulesReference: () => openProfileRulesReference("mg2e")
       }),
       gearInventoryConflictStatus: getM10B5GearInventoryConflictStatus,
       resolveGearInventoryConflictPolicy: resolveM10BGearInventoryConflictPolicy,
@@ -436,6 +448,6 @@ export function installM10ProfileConversionPreview() {
         openRulesReferencePreview: openStrictRulesReferencePreview
       })
     });
-    console.log("realm-guard | M10C.4 MG2E activation-readiness audit router ready", getM10ProfilePreviewStatus());
+    console.log("realm-guard | M10C.5 MG2E technical live-readiness router ready", getM10ProfilePreviewStatus());
   });
 }
