@@ -222,12 +222,16 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     creation: {
       mode: "MG2E",
       coreEngine: "CORE_M9",
-      liveAuthority: "NONE",
-      readyWhenActive: false,
+      liveAuthority: "CORE_M9_WHEN_ACTIVE",
+      readyWhenActive: true,
       profileId: "mg2e",
-      profileVersion: 2,
+      profileVersion: 3,
+      familySemantics: true,
       wiseMode: "UNRATED",
       ratedWises: false,
+      startingSkillWiseCap: 6,
+      inventoryPolicy: "LOOSE",
+      conditionProvisioning: "MG2E_PROFILE_SET",
       maxWiseCount: 4,
       wiseCountByRank: { tenderpaw: 1, guardmouse: 1, patrolGuard: 2, patrolLeader: 3, guardCaptain: 4 },
       tenderpawWiseChoices: ["Code of the Guard-wise", "Legends of the Guard-wise"],
@@ -336,16 +340,17 @@ export const MG2E_FOUNDATION_PROFILE = new RulesProfile({
     gameplayChangeIntended: false,
     liveRuleAuthority: false,
     conversionPreviewAvailable: true,
-    implementationPhase: "M10C.4",
+    implementationPhase: "M10C.5",
     sourceAuditStatus: "DOMAIN_COMPLETE_FOUNDATION",
     shadowAdaptersReady: true,
     shadowAdapterMode: "READ_ONLY",
     activationReadinessAuditComplete: true,
+    technicalLiveReadinessClosure: true,
     auditedDomains: [
       "tests","abilities-advancement","nature","traits","wises","help","conditions","recovery",
       "inventory-gear","conflict","session","circles","creation","progression","natural-order"
     ],
-    pendingDomains: ["full-recruitment-commit","live-rules-reference","activation-surface","live-parity","explicit-activation"],
-    nextStep: "M10C.5 MG2E Technical Live-Readiness Closure — Recruitment + Rules Reference + Activation Surface"
+    pendingDomains: ["live-parity","explicit-activation"],
+    nextStep: "M10C.6 MG2E Live Parity QA Foundation"
   }
 });
