@@ -137,10 +137,10 @@ function gearDoc(name, category = "Gear") {
   };
 }
 
-function derive(answers = {}) {
+function derive({ answers = {}, allocations = {} } = {}) {
   const rankId = String(answers.rank ?? "").trim();
   const rank = RANKS[rankId] ?? null;
-  const allocation = answers.allocations ?? {};
+  const allocation = allocations ?? {};
   const ratings = { ...(rank?.skills ?? {}) };
   const traitChecks = {};
   const hometown = HOMETOWNS[String(answers.hometown ?? "").trim()] ?? null;
@@ -175,7 +175,8 @@ function derive(answers = {}) {
   if (answers.weapon) gear.push({name:String(answers.weapon),kind:"Weapon"});
   for (const name of list(answers.jobTools)) gear.push({name,kind:"Gear"});
 
-  return freeze({
+  return {
+    derivedValues: {
     identity:{
       name:String(answers.name ?? "").trim(),
       concept:String(answers.concept ?? "").trim(),
@@ -205,20 +206,37 @@ function derive(answers = {}) {
       mentorTrainingCount:rank.mentorTrainingCount,
       specialtyCount:rank.specialtyCount
     } : null,
-    hometownRule:hometown
-  });
+    hometownRule:hometown,
+    skillChecks:{},
+    wiseChecks:{},
+    grants:[
+      { type:"RESOURCE", key:"fate", value:1 },
+      { type:"RESOURCE", key:"persona", value:1 }
+    ],
+    creationPolicy:{
+      source:SOURCE,
+      wiseMode:"UNRATED",
+      startingSkillRating:2,
+      startingSkillCap:6,
+      inventoryPolicy:"LOOSE",
+      automaticNpcCreation:false,
+      liveAuthority:"CORE_M9_WHEN_ACTIVE"
+    }
+    },
+    warnings:[]
+  };
 }
 
 function issue(code, field, message, value = null) {
   return { code, field, message, value };
 }
 
-function validateStep(stepId, draft, partyContext) {
+function validateStep({ stepId, draft, partyContext }) {
   const a = draft.answers ?? {};
   const d = draft.derivedValues ?? {};
   const rankId = String(a.rank ?? "");
   const rank = RANKS[rankId];
-  const allocation = a.allocations ?? {};
+  const allocation = draft.allocations ?? {};
   const errors = [];
   const warnings = [];
 
@@ -400,7 +418,7 @@ function buildCommitSpec({ draft }) {
           recruitmentNatureAnswers:{ ...(a.natureAnswers ?? {}) },
           recruitmentWiseNames:[...(d.wises ?? [])],
           recruitmentHometown:String(a.hometown ?? ""),
-          recruitmentSpecialty:String(a.allocations?.specialty ?? "")
+          recruitmentSpecialty:String(draft.allocations?.specialty ?? "")
         }
       }
     },
