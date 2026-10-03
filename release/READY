@@ -1,15 +1,16 @@
-1.12.0-qa.17
-# M10C.6 MG2E Live Parity QA Foundation
-# M10C.5 live QA FULL PASS / VERIFIED / CLOSED
-# standalone MG2E Rules Profile v3; activation remains OFF
-# zero-write 13-domain MG2E live-parity foundation matrix
-# WISE_EFFECTS / HELP / INVENTORY_GEAR / CONFLICT = controlled handoffs
-# Session/Circles generic routing recognizes MG2E family semantics
-# M10B.6 source ownership edition-aware: MG1E_2008 / MG2E_2015
-# LIVE_PARITY_QA = FOUNDATION_READY_NOT_RUN when matrix is green
-# EXPLICIT_ACTIVATION_MILESTONE = DEFERRED
+1.12.0-qa.18
+# M10C.7 MG2E Controlled Live Parity Execution
+# M10C.6 live QA FULL PASS / VERIFIED / CLOSED
+# standalone MG2E Rules Profile v3; Character Creation Profile v3
+# MG2E remains FOUNDATION_ONLY / selectable=false / supported=false / liveRuleAuthority=false
+# controlled execution is GM-only and QA-runtime-only
+# WISE_EFFECTS / HELP / INVENTORY_GEAR / CONFLICT = bounded runtime handoffs
+# Legacy unrated-Wise auto-reroll leakage blocked
+# MG1E weapon-catalog leakage blocked
+# runtime parity evidence is ephemeral and zero-write
+# LIVE_PARITY_QA closes only after 4/4 controlled handoffs PASS
+# EXPLICIT_ACTIVATION_MILESTONE remains DEFERRED
 # no switchToMg2e / activationAvailable remains false
 # zero Actor/Item/Journal/settings writes and no destructive migration
 # Legacy Mixed / Strict / MG1E regression must remain green
 # Foundry v13.351 QA required
-# retrigger after historical M10C.2 phase compatibility update
