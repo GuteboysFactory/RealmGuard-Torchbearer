@@ -163,7 +163,7 @@ export function buildProfileCapabilities(profile) {
       },
       session: {
         mode: text(d.session?.mode, legacyCurrent(d.session) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
-        familySemantics: !legacyCurrent(d.session) && text(d.session?.mode).toUpperCase().startsWith("MG1E"),
+        familySemantics: !legacyCurrent(d.session) && /^MG(?:1|2)E/.test(text(d.session?.mode).toUpperCase()),
         coreEngine: text(d.session?.coreEngine),
         playerTurnFreeTests: numeric(d.session?.playerTurnFreeTests ?? d.session?.freePlayerTurnTests, 1),
         additionalTestCheckCost: numeric(d.session?.additionalTestCheckCost, 1),
@@ -178,7 +178,7 @@ export function buildProfileCapabilities(profile) {
       },
       circles: {
         mode: text(d.circles?.mode, legacyCurrent(d.circles) ? "LEGACY_CURRENT" : "PROFILE_DEFINED"),
-        familySemantics: !legacyCurrent(d.circles) && text(d.circles?.mode).toUpperCase().startsWith("MG1E"),
+        familySemantics: !legacyCurrent(d.circles) && /^MG(?:1|2)E/.test(text(d.circles?.mode).toUpperCase()),
         socialStorage: text(d.circles?.socialStorage, legacyCurrent(d.circles) ? "LEGACY_CURRENT" : "CORE_M8_FOUNDRY_TOOLING"),
         knownContactFutureDice: numeric(d.circles?.knownContactFutureDice, legacyCurrent(d.circles) ? 0 : 1),
         enmityClause: bool(d.circles?.enmityClause, !legacyCurrent(d.circles)),
