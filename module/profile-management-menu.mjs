@@ -132,8 +132,8 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
-      phase:"M10C.3",
-      nextStep:"MG2E shadow rule adapters are READ ONLY in M10C.3; activation and live commit remain unavailable"
+      phase:"M10C.4",
+      nextStep:"M10C.4 audits MG2E activation readiness; activation remains unavailable until technical blockers and live parity are closed"
     }, { inplace:false });
   }
 }
