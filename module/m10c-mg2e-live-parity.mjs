@@ -88,7 +88,7 @@ export function mg2eLiveParityMatrix() {
   const fightDisposition = mg2eConflictDispositionPlan("fight");
   const axe = mg2eWeaponActionPlan("Axe", "attack", { successful: true });
   const lightArmor = mg2eArmorPlan("Light Armor", { conflictType: "fight" });
-  const relevantGear = mg2eGearRelevancePlan({ id: "gear-qa", name: "Rope", type: "gear" }, { gmApproved: true });
+  const relevantGear = mg2eGearRelevancePlan({ isGear: true, gmApproved: true });
   const mouseRank = mg2eScaleRankFor("Mouse");
   const foxOutcome = mg2eScaleOutcomePlan({ actorType: "Mouse", targetType: "Fox" });
 
@@ -177,7 +177,7 @@ export function mg2eLiveParityMatrix() {
       checks: {
         policyLoose: gearConflict.inventory.policy === "LOOSE",
         placementPresentationOnly: gearConflict.inventory.placementPresentationOnly === true,
-        carryPlanValid: inventory.ok === true,
+        carryPlanValid: inventory.withinGuidance === true,
         relevantGearPlusOne: relevantGear.eligible === true && relevantGear.dice === 1
       },
       notes: ["MG2E Gear must not be routed through the MG1E weapon catalog."]
