@@ -124,8 +124,8 @@ function addTrait(checks, name) {
 }
 
 function cleanPerson(value) {
-  if (!value) return { name:"", actorId:"", role:"", notes:"" };
-  if (typeof value === "string") return { name:value.trim(), actorId:"", role:"", notes:"" };
+  if (!value) return { name:"", actorId:"", role:"", notes:"", olderMouse:false, traits:[] };
+  if (typeof value === "string") return { name:value.trim(), actorId:"", role:"", notes:"", olderMouse:false, traits:[] };
   return {
     name:String(value.name ?? "").trim(),
     actorId:String(value.actorId ?? "").trim(),
@@ -191,7 +191,7 @@ function derive({ answers = {}, allocations = {} } = {}) {
     if (ratings.Fighter != null) ratings.Fighter = Math.max(1, Number(ratings.Fighter) - 1);
   }
   if (natureAnswers.fearPredators === true) nature += 1;
-  nature = clamp(nature, 2, 7);
+  nature = clamp(nature, 2, 6);
 
   if (natureAnswers.saveForWinter === false && answers.winterTrait) addTrait(traitChecks, answers.winterTrait);
   if (natureAnswers.fearPredators === false && answers.natureTrait) addTrait(traitChecks, answers.natureTrait);
