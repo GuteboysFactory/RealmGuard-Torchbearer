@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.2 — M10D.2 Torchbearer 2E Wises Shadow
+
+- M10D.1 is FULL PASS / VERIFIED / CLOSED in Foundry v13.351.
+- Adds a source-owned READ_ONLY shadow adapter for the VERIFIED TB2E Wises contract only.
+- Models unrated Wises, I Am Wise +1D aid, Fate/Persona paid rerolls, Of Course-before-Deeper ordering and no-die-rerolled-twice enforcement for Deeper Understanding.
+- Adds read-only Wise-cycle guidance; no automatic Wise mutation or advancement write.
+- TB2E remains FOUNDATION_ONLY / non-selectable / non-live; all resource spends and document writes remain OFF.
+- Stable remains 1.12.0; Legacy Mixed / Strict RG / MG1E / MG2E definitions remain unchanged.
+- Live Wises shadow QA follows TEST_PROTOCOL_v1.13.0-qa.2.md.
+
 ## v1.13.0-qa.1 — M10D.1 Torchbearer 2E Foundation
 
 - Source audit covers 19 domains using only the five supplied project authorities.

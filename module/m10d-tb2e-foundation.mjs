@@ -4,17 +4,20 @@ import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-found
 import { resolveRulesProfile, getRulesProfileRuntime } from "./rules-profile-service.mjs";
 import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
+import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
-  return freezeTb2e({phase:"M10D.1",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  const wiseShadow=tb2eWiseShadowStatus();
+  return freezeTb2e({phase:"M10D.2",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
     domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
+    shadowReadyDomains:["wises"],wiseShadowReady:wiseShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"Source review only; no later M10D domains are enabled live"});
+    nextStep:"M10D.2 Wises shadow QA only; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -36,6 +39,8 @@ export function installM10DFoundation() {
     game.realmGuard.core.m10d=Object.freeze({getStatus:tb2eFoundationStatus,readinessAudit:tb2eReadinessAudit,
       sourceCoverageMatrix:tb2eSourceCoverageMatrix,getRulesProfile:()=>resolveRulesProfile("torchbearer2e").profile,
       getCreationProfile:()=>TORCHBEARER2E_CREATION_PROFILE,
-      previewConversion:previewTorchbearer2eConversion,showConversionPreview:showTorchbearer2eConversionPreview});
+      previewConversion:previewTorchbearer2eConversion,showConversionPreview:showTorchbearer2eConversionPreview,
+      wiseShadowStatus:tb2eWiseShadowStatus,
+      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan})});
   });
 }

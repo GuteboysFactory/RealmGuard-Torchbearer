@@ -8,6 +8,7 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   domains:{
     ...Object.fromEntries(TB2E_SOURCE_COVERAGE_MATRIX.map(row=>[row.id,{mode:"READ_ONLY",coverage:row.status,liveEnabled:false}])),
     profile:{activationState:"FOUNDATION_ONLY"},
+    wises:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",ratingMode:"NONE",shadowAdapterReady:true},
     creation:{mode:"READ_ONLY",profileId:"torchbearer2e",liveAuthority:"NONE",liveEnabled:false,coverage:"PARTIAL"},
     inventory:{mode:"READ_ONLY",policy:"UNESTABLISHED",structuredPlacementAuthority:false,liveEnabled:false,coverage:"PARTIAL"},
     progression:{mode:"READ_ONLY",levels:false,talents:false,liveEnabled:false,coverage:"PARTIAL"},
@@ -20,11 +21,12 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   })),
   metadata:{
     foundationOnly:true,selectable:false,supported:false,liveRuleAuthority:false,activationState:"FOUNDATION_ONLY",
-    implementationPhase:"M10D.1",mode:"READ_ONLY",conversionPreviewAvailable:true,
+    implementationPhase:"M10D.2",mode:"READ_ONLY",conversionPreviewAvailable:true,
     liveParityVerified:false,explicitActivationAuthorized:false,creationCommitAllowed:false,
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:false,sourceCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
+    wiseShadowAdapterReady:true,shadowReadyDomains:["wises"],
     inheritedRuleProviders:[],writesPlanned:0,
-    nextStep:"Review source coverage and obtain missing rule authority before any later M10D live milestone"
+    nextStep:"Verify the source-owned Wises shadow adapter; all TB2E live authority remains locked"
   }
 });
