@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.3 — M10D.3 Torchbearer 2E Help / Teamwork Shadow
+
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Help / Teamwork domain.
+- Covers same/suggested Skill Help, Will/Health/Resources/Circles support, Nature descriptor Help, Beginner's Luck pre-halving Help, Instinct and 4+ party Conflict Help.
+- Keeps I Am Wise on its separate Wise route and blocks Town Recovery / Town Resources Help per the supplied guide.
+- Helper failure/Condition consequences remain table guidance only; no automatic Condition mutation.
+- Missing suggested-help catalogues and unavailable DG details remain unimplemented.
+- TB2E stays FOUNDATION_ONLY / non-selectable / non-live; Stable remains 1.12.0.
+- M10D.2 formal live closure remains pending the user's explicit Gate F check; qa.3 does not retroactively claim it.
+
 ## v1.13.0-qa.2 — M10D.2 Torchbearer 2E Wises Shadow
 
 - M10D.1 is FULL PASS / VERIFIED / CLOSED in Foundry v13.351.

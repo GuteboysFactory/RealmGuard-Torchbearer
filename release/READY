@@ -1,6 +1,6 @@
-1.13.0-qa.2
-# M10D.2 Torchbearer 2E Wises READ_ONLY shadow adapter
-# VERIFIED Wise contract only; no MG/RG fallback rules
-# No activation / resource spend / migration / Actor-Item-Journal-setting writes
+1.13.0-qa.3
+# M10D.3 Torchbearer 2E Help / Teamwork READ_ONLY shadow adapter
+# PARTIAL source contract only; no invented suggested-help catalogue or DG details
+# No activation / resource spend / condition writes / Actor-Item-Journal-setting writes
 # Stable remains 1.12.0; existing profiles regression-safe
-# Foundry Wises shadow QA pending TEST_PROTOCOL_v1.13.0-qa.2.md
+# Foundry Help shadow QA pending TEST_PROTOCOL_v1.13.0-qa.3.md
