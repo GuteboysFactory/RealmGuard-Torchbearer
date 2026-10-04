@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.7 — M10D.6 Torchbearer 2E Abilities / Skills Bounded Shadow
+
+- **M10D.5 Nature = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Abilities / Skills domain.
+- Models Will/Health, Resources/Circles and fixed Precedence/Might roles without importing unavailable rules.
+- Registers the 33 guide-named Skills, the 24-known-Skills limit and exact Will/Health Beginner's Luck mapping.
+- Covers new-Skill learning threshold (BL attempts = Maximum Nature, learn at rating 2) as zero-write guidance.
+- Covers standard pass/fail advancement thresholds and the Resources/Circles 0->1 special route as read-only plans.
+- DG160 Skill descriptions/Obstacle factors remain unavailable/source-bounded.
+- No TB2E activation/live authority, Skill provisioning, learning, advancement or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.6 — M10D.5 Torchbearer 2E Nature Bounded Shadow
 
 - **M10D.4 Tests / Dice = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

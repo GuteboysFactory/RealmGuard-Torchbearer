@@ -13,26 +13,26 @@ const settings=new Map([["activeRulesProfileId","realm-guard-legacy-mixed"],["ac
 const fail=()=>{writes++;throw new Error("TB2E foundation must not write");};
 actor.update=fail;actor.createEmbeddedDocuments=fail;actor.deleteEmbeddedDocuments=fail;
 globalThis.Actor={create:fail};globalThis.Item={create:fail};globalThis.JournalEntry={create:fail};
-globalThis.game={user:{isGM:true},system:{version:"1.13.0-qa.6"},actors:{contents:[actor]},items:{contents:items},settings:{get:(_ns,k)=>settings.get(k),set:fail},realmGuard:{core:{m10:{sentinel:"unchanged"}}}};
+globalThis.game={user:{isGM:true},system:{version:"1.13.0-qa.7"},actors:{contents:[actor]},items:{contents:items},settings:{get:(_ns,k)=>settings.get(k),set:fail},realmGuard:{core:{m10:{sentinel:"unchanged"}}}};
 globalThis.Hooks={once:(event,fn)=>{assert.equal(event,"ready");fn();}};
 globalThis.foundry={applications:{api:{DialogV2:{wait:async options=>{dialog=options;return "close";}}}}};
 const state=resolveRulesProfile("torchbearer2e");
 assert.equal(state.profile.version,1);assert.equal(state.profile.lineage.length,1);assert.equal(state.profile.lineage[0].id,"torchbearer2e");
 const meta=state.profile.metadata;
 for(const key of ["selectable","supported","liveRuleAuthority","liveParityVerified","explicitActivationAuthorized","creationCommitAllowed"])assert.equal(meta[key],false);
-assert.equal(meta.foundationOnly,true);assert.equal(meta.activationState,"FOUNDATION_ONLY");assert.equal(meta.mode,"READ_ONLY");assert.equal(meta.wiseShadowAdapterReady,true);assert.equal(meta.helpShadowAdapterReady,true);assert.equal(meta.testShadowAdapterReady,true);assert.equal(meta.natureShadowAdapterReady,true);
+assert.equal(meta.foundationOnly,true);assert.equal(meta.activationState,"FOUNDATION_ONLY");assert.equal(meta.mode,"READ_ONLY");assert.equal(meta.wiseShadowAdapterReady,true);assert.equal(meta.helpShadowAdapterReady,true);assert.equal(meta.testShadowAdapterReady,true);assert.equal(meta.natureShadowAdapterReady,true);assert.equal(meta.abilitiesShadowAdapterReady,true);
 assert.equal(state.registry.list().length,19);
-for(const version of ["1.13.0-qa.6","1.12.0"]){game.system.version=version;assert.equal(profileActivationAvailable("torchbearer2e"),false);await assert.rejects(()=>switchRulesProfile("torchbearer2e"),/foundation-only/i);}
+for(const version of ["1.13.0-qa.7","1.12.0"]){game.system.version=version;assert.equal(profileActivationAvailable("torchbearer2e"),false);await assert.rejects(()=>switchRulesProfile("torchbearer2e"),/foundation-only/i);}
 const creation=resolveCharacterCreationProfile("torchbearer2e");assert.equal(creation.version,1);assert.equal(creation.metadata.foundationOnly,true);assert.equal(creation.metadata.liveCommit,false);
 assert.equal(resolveM10BCharacterCreationPolicy("torchbearer2e").liveCommit,false);
 assert.throws(()=>creation.buildCommitSpec(),/FOUNDATION_ONLY/);
 const engine=resolveCharacterCreationEngine("torchbearer2e");const draft=engine.createDraft();
 assert.throws(()=>engine.buildCommitPlan(draft),/FOUNDATION_ONLY/);
 const status=tb2eFoundationStatus(),audit=tb2eReadinessAudit();
-assert.equal(status.domainCount,19);assert.equal(status.foundationReady,true);assert.equal(status.liveReady,false);assert.equal(status.activationAvailable,false);assert.equal(status.wiseShadowReady,true);assert.equal(status.helpShadowReady,true);assert.equal(status.testShadowReady,true);assert.equal(status.natureShadowReady,true);assert.deepEqual(status.shadowReadyDomains,["wises","help","tests","nature"]);
+assert.equal(status.domainCount,19);assert.equal(status.foundationReady,true);assert.equal(status.liveReady,false);assert.equal(status.activationAvailable,false);assert.equal(status.wiseShadowReady,true);assert.equal(status.helpShadowReady,true);assert.equal(status.testShadowReady,true);assert.equal(status.natureShadowReady,true);assert.equal(status.abilitiesShadowReady,true);assert.deepEqual(status.shadowReadyDomains,["wises","help","tests","nature","abilities"]);
 assert.equal(audit.decision,"FOUNDATION_ONLY_NOT_READY_FOR_LIVE");assert.ok(audit.blockers.length>=4);
 assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
-installM10DFoundation();assert.equal(game.realmGuard.core.m10.sentinel,"unchanged");assert.equal(game.realmGuard.core.m10d.getStatus().phase,"M10D.5");assert.equal(typeof game.realmGuard.core.m10d.wises.usePlan,"function");assert.equal(typeof game.realmGuard.core.m10d.help.plan,"function");assert.equal(typeof game.realmGuard.core.m10d.tests.resolveObstacle,"function");assert.equal(typeof game.realmGuard.core.m10d.nature.channelPlan,"function");
+installM10DFoundation();assert.equal(game.realmGuard.core.m10.sentinel,"unchanged");assert.equal(game.realmGuard.core.m10d.getStatus().phase,"M10D.6");assert.equal(typeof game.realmGuard.core.m10d.wises.usePlan,"function");assert.equal(typeof game.realmGuard.core.m10d.help.plan,"function");assert.equal(typeof game.realmGuard.core.m10d.tests.resolveObstacle,"function");assert.equal(typeof game.realmGuard.core.m10d.nature.channelPlan,"function");assert.equal(typeof game.realmGuard.core.m10d.abilities.skillInfo,"function");
 assert.equal("switchToTorchbearer2e" in game.realmGuard.core.m10d,false);
 const fromState=resolveRulesProfile(existingIds[0]);
 const preview=buildTorchbearer2eConversionPreview({fromProfile:fromState.profile,toProfile:state.profile,actors:[actor],worldItems:items});
@@ -43,7 +43,7 @@ game.user.isGM=false;let notified=false;globalThis.ui={notifications:{warn:()=>{
 await openTorchbearer2eConversionPreview({fromState,toState:state});assert.equal(notified,true);assert.equal(dialog,null);
 assert.equal(writes,0);assert.equal(JSON.stringify({actor,items}),data);assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before);
 assert.deepEqual([...settings],[["activeRulesProfileId","realm-guard-legacy-mixed"],["activeRulesProfileVersion",1]]);
-for(const file of ["module/m10d-tb2e-source-coverage.mjs","module/m10d-tb2e-foundation.mjs","module/m10d-tb2e-wise-shadow.mjs","module/m10d-tb2e-help-shadow.mjs","module/m10d-tb2e-test-shadow.mjs","module/m10d-tb2e-nature-shadow.mjs","module/profiles/torchbearer2e-foundation.mjs","module/profiles/torchbearer2e-creation.mjs"]){
+for(const file of ["module/m10d-tb2e-source-coverage.mjs","module/m10d-tb2e-foundation.mjs","module/m10d-tb2e-wise-shadow.mjs","module/m10d-tb2e-help-shadow.mjs","module/m10d-tb2e-test-shadow.mjs","module/m10d-tb2e-nature-shadow.mjs","module/m10d-tb2e-abilities-shadow.mjs","module/profiles/torchbearer2e-foundation.mjs","module/profiles/torchbearer2e-creation.mjs"]){
   const source=fs.readFileSync(file,"utf8");for(const forbidden of ["game.settings.set","Actor.create","Item.create","JournalEntry.create","createEmbeddedDocuments","deleteEmbeddedDocuments"])assert.equal(source.includes(forbidden),false,file+" must stay zero-write");
 }
 console.log("PASS M10D.1 TB2E locked foundations · no activation/creation/writes · close-only preview · existing profile snapshots preserved");
