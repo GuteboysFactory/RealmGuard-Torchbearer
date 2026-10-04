@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.6 — M10D.5 Torchbearer 2E Nature Bounded Shadow
+
+- **M10D.4 Tests / Dice = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Nature domain.
+- Separates Current and Maximum Nature, exposes the 0-7 range and source-backed Dwarf/Elf/Halfling/Human descriptor reference.
+- Covers Nature substitution for unavailable/zero-rated Skills, Channel Nature Persona/dice rules and source-backed tax previews.
+- Covers Respite, Prologue, missed-session return, leaving-town recovery and voluntary Conserve as zero-write previews.
+- Covers zero-current-from-tax loss procedure and Maximum-Nature advancement as guidance only.
+- Retirement remains explicit guidance/manual confirmation; no automatic Trait/retirement/advancement mutation.
+- No TB2E activation/live authority, resource spend or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.5 — M10D.4 Torchbearer 2E Tests / Dice Bounded Shadow
 
 - **M10D.3 Help / Teamwork = FULL PASS / VERIFIED / CLOSED** after the qa.4 metadata retest in Foundry v13.351.
