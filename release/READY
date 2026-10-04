@@ -1,6 +1,8 @@
-1.13.0-qa.4
-# M10D.3 Help shadow metadata hotfix
-# Canonical phase remains M10D.3; Town/Adventure moves to phaseContext
-# Rule outcomes unchanged; all writes/live authority remain OFF
+1.13.0-qa.5
+# M10D.4 Torchbearer 2E Tests / Dice bounded READ_ONLY shadow adapter
+# PARTIAL source contract: 4+ d6, modifiers, caller-supplied Ob, Versus margin, Fate/Luck plan, BL ordering
+# DG160 factors and complete generic tie procedure remain unavailable/manual
+# No activation / random live roll / resource spend / advancement or document-setting writes
+# M10D.3 Help shadow FULL PASS / VERIFIED / CLOSED on qa.4
 # Stable remains 1.12.0
-# Focused Foundry Gate A-D pending TEST_PROTOCOL_v1.13.0-qa.4.md
+# Foundry Tests shadow QA pending TEST_PROTOCOL_v1.13.0-qa.5.md

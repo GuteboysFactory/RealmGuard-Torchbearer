@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.5 — M10D.4 Torchbearer 2E Tests / Dice Bounded Shadow
+
+- **M10D.3 Help / Teamwork = FULL PASS / VERIFIED / CLOSED** after the qa.4 metadata retest in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Tests / Dice domain.
+- Covers d6 4+ successes, +D/-D, +s/-s, caller-supplied Obstacle resolution, Versus comparison and margin.
+- Keeps DG160 obstacle factors unavailable/manual rather than inferring them.
+- Generic Versus ties remain explicit TIE with no imported MG tie procedure.
+- Models Fate/Luck open sixes as a zero-write plan only; no Fate spend and no random follow-up roll.
+- Adds bounded Beginner's Luck ordering while keeping the missing-tools penalty manual at the source boundary.
+- No TB2E activation/live authority, resource spend, advancement write or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.4 — M10D.3 Help Shadow Metadata Hotfix
 
 - Minimal metadata-only follow-up to qa.3; Help / Teamwork rule outcomes are unchanged.

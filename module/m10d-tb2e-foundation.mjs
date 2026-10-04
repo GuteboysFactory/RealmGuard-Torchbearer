@@ -6,20 +6,22 @@ import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
 import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
+import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
   const wiseShadow=tb2eWiseShadowStatus();
   const helpShadow=tb2eHelpShadowStatus();
-  return freezeTb2e({phase:"M10D.3",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  const testShadow=tb2eTestShadowStatus();
+  return freezeTb2e({phase:"M10D.4",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
     domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
-    shadowReadyDomains:["wises","help"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,
+    shadowReadyDomains:["wises","help","tests"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"M10D.3 Help/Teamwork shadow QA only; no TB2E domain is enabled live"});
+    nextStep:"M10D.4 Tests/Dice bounded shadow QA only; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -45,6 +47,8 @@ export function installM10DFoundation() {
       wiseShadowStatus:tb2eWiseShadowStatus,
       wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan}),
       helpShadowStatus:tb2eHelpShadowStatus,
-      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan})});
+      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
+      testShadowStatus:tb2eTestShadowStatus,
+      tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan})});
   });
 }
