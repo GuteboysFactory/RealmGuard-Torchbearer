@@ -19,14 +19,17 @@ assert.equal(ability.ok,true);assert.equal(ability.eligibility,"ABILITY_ANYONE_C
 const nature=tb2eHelpPlan({sourceKind:"nature",testName:"Nature",relevantNatureDescriptor:true});
 assert.equal(nature.ok,true);assert.equal(nature.eligibility,"RELEVANT_NATURE_DESCRIPTOR");
 assert.equal(tb2eHelpPlan({sourceKind:"wise",testName:"Scout"}).reasonCode,"USE_WISE_AID_ROUTE");
-assert.equal(tb2eHelpPlan({sourceKind:"skill",testName:"Resources",phase:"TOWN"}).reasonCode,"TOWN_HELP_FORBIDDEN");
-assert.equal(tb2eHelpPlan({sourceKind:"ability",testName:"Health",phase:"TOWN",context:"RECOVERY"}).reasonCode,"TOWN_HELP_FORBIDDEN");
+const townResources=tb2eHelpPlan({sourceKind:"skill",testName:"Resources",phase:"TOWN"});
+assert.equal(townResources.reasonCode,"TOWN_HELP_FORBIDDEN");assert.equal(townResources.phase,"M10D.3");assert.equal(townResources.phaseContext,"TOWN");assert.equal(townResources.testContext,"TEST");
+const townRecovery=tb2eHelpPlan({sourceKind:"ability",testName:"Health",phase:"TOWN",context:"RECOVERY"});
+assert.equal(townRecovery.reasonCode,"TOWN_HELP_FORBIDDEN");assert.equal(townRecovery.phase,"M10D.3");assert.equal(townRecovery.phaseContext,"TOWN");assert.equal(townRecovery.testContext,"RECOVERY");
 
 const instinct=tb2eHelpPlan({sourceKind:"skill",testName:"Scout",actingOnInstinct:true,helperActingOnInstinct:true});
 assert.equal(instinct.ok,true);assert.equal(instinct.eligibility,"HELPER_ALSO_ACTING_ON_INSTINCT");
 const instinctNature=tb2eHelpPlan({sourceKind:"nature",actingOnInstinct:true,relevantNatureDescriptor:true});
 assert.equal(instinctNature.ok,true);assert.equal(instinctNature.eligibility,"RELEVANT_NATURE_DESCRIPTOR_ON_INSTINCT");
-assert.equal(tb2eHelpPlan({sourceKind:"skill",actingOnInstinct:true}).reasonCode,"INSTINCT_HELP_SOURCE_NOT_ELIGIBLE");
+const instinctBlocked=tb2eHelpPlan({sourceKind:"skill",actingOnInstinct:true});
+assert.equal(instinctBlocked.reasonCode,"INSTINCT_HELP_SOURCE_NOT_ELIGIBLE");assert.equal(instinctBlocked.phase,"M10D.3");assert.equal(instinctBlocked.phaseContext,"ADVENTURE");assert.equal(instinctBlocked.testContext,"TEST");
 
 const bl=tb2eBeginnersLuckHelpPlan({sourceName:"Will"});
 assert.equal(bl.ok,true);assert.equal(bl.dice,1);assert.equal(bl.poolStage,"PRE_HALVING");

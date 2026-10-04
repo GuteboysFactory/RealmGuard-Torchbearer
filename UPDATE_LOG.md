@@ -1,5 +1,14 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.4 — M10D.3 Help Shadow Metadata Hotfix
+
+- Minimal metadata-only follow-up to qa.3; Help / Teamwork rule outcomes are unchanged.
+- Reject plans now preserve canonical `phase: M10D.3`; Town / Adventure is exposed as `phaseContext` and test purpose as `testContext`.
+- Hardened the reject-plan builder so caller metadata cannot overwrite canonical phase/profile/reason/live/write fields.
+- Regression coverage pins Town Resources, Town Recovery and invalid Instinct Help metadata.
+- No activation, live TB2E authority, resource spend, Condition mutation or document/setting writes.
+- Stable remains 1.12.0. Focused qa.4 live retest is required before M10D.3 closure.
+
 ## v1.13.0-qa.3 — M10D.3 Torchbearer 2E Help / Teamwork Shadow
 
 - Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Help / Teamwork domain.

@@ -1,6 +1,6 @@
-1.13.0-qa.3
-# M10D.3 Torchbearer 2E Help / Teamwork READ_ONLY shadow adapter
-# PARTIAL source contract only; no invented suggested-help catalogue or DG details
-# No activation / resource spend / condition writes / Actor-Item-Journal-setting writes
-# Stable remains 1.12.0; existing profiles regression-safe
-# Foundry Help shadow QA pending TEST_PROTOCOL_v1.13.0-qa.3.md
+1.13.0-qa.4
+# M10D.3 Help shadow metadata hotfix
+# Canonical phase remains M10D.3; Town/Adventure moves to phaseContext
+# Rule outcomes unchanged; all writes/live authority remain OFF
+# Stable remains 1.12.0
+# Focused Foundry Gate A-D pending TEST_PROTOCOL_v1.13.0-qa.4.md

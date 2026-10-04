@@ -6,7 +6,7 @@ const HELP_ROW=TB2E_SOURCE_COVERAGE_MATRIX.find(row=>row.id==="help");
 
 function norm(value){return String(value??"").trim().toLowerCase();}
 function blocked(reasonCode,extra={}){
-  return freezeTb2e({ok:false,phase:"M10D.3",profileId:PROFILE_ID,reasonCode,liveApplication:false,writesPlanned:0,...extra});
+  return freezeTb2e({...extra,ok:false,phase:"M10D.3",profileId:PROFILE_ID,reasonCode,liveApplication:false,writesPlanned:0});
 }
 
 export function tb2eHelpShadowStatus(){
@@ -46,14 +46,14 @@ export function tb2eHelpPlan({
 
   if(kind==="wise") return blocked("USE_WISE_AID_ROUTE",{route:"TB2E_WISE_AID",sourceKind:"WISE"});
   if(phaseKey==="TOWN" && (contextKey==="RECOVERY" || test==="resources")){
-    return blocked("TOWN_HELP_FORBIDDEN",{phase:phaseKey,context:contextKey,testName:String(testName??"")});
+    return blocked("TOWN_HELP_FORBIDDEN",{phaseContext:phaseKey,testContext:contextKey,testName:String(testName??"")});
   }
 
   let eligibility="NONE";
   if(Boolean(actingOnInstinct)){
     if(Boolean(helperActingOnInstinct)) eligibility="HELPER_ALSO_ACTING_ON_INSTINCT";
     else if(kind==="nature" && Boolean(relevantNatureDescriptor)) eligibility="RELEVANT_NATURE_DESCRIPTOR_ON_INSTINCT";
-    else return blocked("INSTINCT_HELP_SOURCE_NOT_ELIGIBLE",{phase:phaseKey,context:contextKey});
+    else return blocked("INSTINCT_HELP_SOURCE_NOT_ELIGIBLE",{phaseContext:phaseKey,testContext:contextKey});
   } else if(Boolean(sameSkill)) eligibility="SAME_SKILL";
   else if(Boolean(suggestedHelpSkill)) eligibility="SUGGESTED_HELP_SKILL";
   else if(["will","health","resources","circles"].includes(test)) eligibility="ABILITY_ANYONE_CAN_HELP";
