@@ -1,8 +1,8 @@
-1.13.0-qa.7
-# M10D.6 Torchbearer 2E Abilities / Skills bounded READ_ONLY shadow adapter
-# PARTIAL source contract: ability ranges/types, 33 Skills, exact BL Will/Health mapping, new-Skill learning threshold, advancement threshold references
-# DG160 Skill descriptions/factors remain unavailable; Resources/Circles special effects stay deferred to their own domains
-# No activation / Skill provisioning / learning / advancement or document-setting writes
-# M10D.5 Nature FULL PASS / VERIFIED / CLOSED on qa.6
+1.13.0-qa.8
+# M10D.7 Torchbearer 2E Fate / Persona / Resources bounded READ_ONLY shadow adapter
+# PARTIAL source contract: end-session awards, Fate/Persona spend plans, Resources hometown/treasure/tax and Lifestyle previews
+# DG148 shopping obstacle tables remain unavailable; leveling execution stays in Advancement
+# No activation / Fate-Persona spend-award / Resources tax / treasure consumption or document-setting writes
+# M10D.6 Abilities/Skills FULL PASS / VERIFIED / CLOSED on qa.7
 # Stable remains 1.12.0
-# Foundry Abilities/Skills shadow QA pending TEST_PROTOCOL_v1.13.0-qa.7.md
+# Foundry Fate/Persona/Resources shadow QA pending TEST_PROTOCOL_v1.13.0-qa.8.md

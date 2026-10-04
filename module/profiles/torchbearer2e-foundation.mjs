@@ -13,6 +13,7 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     tests:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,successThreshold:4},
     nature:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,currentMaximumSeparated:true},
     abilities:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,skillLimit:24},
+    resources:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,resourcesRange:{min:0,max:10}},
     creation:{mode:"READ_ONLY",profileId:"torchbearer2e",liveAuthority:"NONE",liveEnabled:false,coverage:"PARTIAL"},
     inventory:{mode:"READ_ONLY",policy:"UNESTABLISHED",structuredPlacementAuthority:false,liveEnabled:false,coverage:"PARTIAL"},
     progression:{mode:"READ_ONLY",levels:false,talents:false,liveEnabled:false,coverage:"PARTIAL"},
@@ -25,12 +26,12 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   })),
   metadata:{
     foundationOnly:true,selectable:false,supported:false,liveRuleAuthority:false,activationState:"FOUNDATION_ONLY",
-    implementationPhase:"M10D.6",mode:"READ_ONLY",conversionPreviewAvailable:true,
+    implementationPhase:"M10D.7",mode:"READ_ONLY",conversionPreviewAvailable:true,
     liveParityVerified:false,explicitActivationAuthorized:false,creationCommitAllowed:false,
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:false,sourceCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
-    wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities"],
+    wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,resourcesShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities","resources"],
     inheritedRuleProviders:[],writesPlanned:0,
-    nextStep:"Verify source-bounded Abilities/Skills shadow semantics; all TB2E live authority remains locked"
+    nextStep:"Verify source-bounded Fate/Persona/Resources shadow semantics; all TB2E live authority remains locked"
   }
 });

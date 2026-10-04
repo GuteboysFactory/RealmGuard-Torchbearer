@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.8 — M10D.7 Torchbearer 2E Fate / Persona / Resources Bounded Shadow
+
+- **M10D.6 Abilities / Skills = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Fate / Persona / resources domain.
+- Covers end-session Fate/Persona award categories and explicit non-stacking/exclusivity rules.
+- Covers Fate plans for Luck, Deeper Understanding and Synergy plus Persona plans for Advantage, Channel Nature and Ah, Of Course!.
+- Covers Resources 0-10, hometown +1D, treasure/loot bonus dice, equal tax insulation and failure-tax previews.
+- Covers Lifestyle Resources minimum Ob 1 and source-backed pass/failure outcome guidance.
+- DG148 shopping/factor tables remain unavailable/source-bounded; level execution remains deferred to Advancement.
+- No TB2E activation/live authority, resource spend/award, tax, treasure consumption or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.7 — M10D.6 Torchbearer 2E Abilities / Skills Bounded Shadow
 
 - **M10D.5 Nature = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
