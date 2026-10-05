@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.9 — M10D.8 Torchbearer 2E Conditions Bounded Shadow
+
+- **M10D.7 Fate / Persona / Resources = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Conditions domain.
+- Separates Grind condition order from recovery order and preserves source wording rather than reconciling ambiguities.
+- Covers Fresh, Angry, Afraid, Exhausted, Injured and Sick test/capability effects plus the zero-rating boundary as zero-write plans.
+- Preserves QR41/44 versus QR51 Conflict disposition penalties as explicit UNRESOLVED_SOURCE_CONFLICT with automation disabled.
+- Preserves QR44 Exhausted recovery phase text as unresolved CAMP/TEST.
+- Covers Injured/Sick death escalation as warning/guidance only; Dead is not automatically applied.
+- Full recovery execution remains deferred to the Recovery domain.
+- No TB2E activation/live authority, Condition/Effect/death mutation or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.8 — M10D.7 Torchbearer 2E Fate / Persona / Resources Bounded Shadow
 
 - **M10D.6 Abilities / Skills = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
