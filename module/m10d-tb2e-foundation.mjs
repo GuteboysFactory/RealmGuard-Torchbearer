@@ -11,6 +11,7 @@ import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementP
 import { tb2eAbilityInfo, tb2eAbilitySkillModel, tb2eAbilitySkillShadowStatus, tb2eAdvancementThresholdPlan, tb2eBeginnersLuckAbilityPlan, tb2eNewSkillLearningPlan, tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
 import { tb2eEndSessionAwardPlan, tb2eFateSpendPlan, tb2eLifestyleResourcesPlan, tb2ePersonaSpendPlan, tb2eResourceModel, tb2eResourceShadowStatus, tb2eResourcesTaxPlan, tb2eResourcesTestPlan } from "./m10d-tb2e-resources-shadow.mjs";
 import { tb2eConditionCapabilityPlan, tb2eConditionDeathRiskPlan, tb2eConditionInfo, tb2eConditionModel, tb2eConditionShadowStatus, tb2eConditionTestEffectPlan, tb2eConditionZeroRatingPlan, tb2eConflictDispositionConditionPlan } from "./m10d-tb2e-conditions-shadow.mjs";
+import { tb2eAccommodationRecoveryPlan, tb2eExhaustedRecoveryModifierPlan, tb2eFreshEligibilityPlan, tb2eHealerFailurePlan, tb2eHealerRecoveryPlan, tb2eHungryThirstyRecoveryPlan, tb2eRecoveryModel, tb2eRecoveryShadowStatus, tb2eStandardRecoveryPlan } from "./m10d-tb2e-recovery-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -21,15 +22,16 @@ export function tb2eFoundationStatus() {
   const abilitiesShadow=tb2eAbilitySkillShadowStatus();
   const resourcesShadow=tb2eResourceShadowStatus();
   const conditionsShadow=tb2eConditionShadowStatus();
-  return freezeTb2e({phase:"M10D.8",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  const recoveryShadow=tb2eRecoveryShadowStatus();
+  return freezeTb2e({phase:"M10D.9",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
     domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
-    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,
+    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"M10D.8 Conditions bounded shadow QA only; no TB2E domain is enabled live"});
+    nextStep:"M10D.9 Recovery bounded shadow QA only; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -65,6 +67,8 @@ export function installM10DFoundation() {
       resourcesShadowStatus:tb2eResourceShadowStatus,
       resources:Object.freeze({getStatus:tb2eResourceShadowStatus,model:tb2eResourceModel,endSessionAwardPlan:tb2eEndSessionAwardPlan,fateSpendPlan:tb2eFateSpendPlan,personaSpendPlan:tb2ePersonaSpendPlan,testPlan:tb2eResourcesTestPlan,taxPlan:tb2eResourcesTaxPlan,lifestylePlan:tb2eLifestyleResourcesPlan}),
       conditionsShadowStatus:tb2eConditionShadowStatus,
-      conditions:Object.freeze({getStatus:tb2eConditionShadowStatus,model:tb2eConditionModel,conditionInfo:tb2eConditionInfo,testEffectPlan:tb2eConditionTestEffectPlan,capabilityPlan:tb2eConditionCapabilityPlan,zeroRatingPlan:tb2eConditionZeroRatingPlan,conflictDispositionPlan:tb2eConflictDispositionConditionPlan,deathRiskPlan:tb2eConditionDeathRiskPlan})});
+      conditions:Object.freeze({getStatus:tb2eConditionShadowStatus,model:tb2eConditionModel,conditionInfo:tb2eConditionInfo,testEffectPlan:tb2eConditionTestEffectPlan,capabilityPlan:tb2eConditionCapabilityPlan,zeroRatingPlan:tb2eConditionZeroRatingPlan,conflictDispositionPlan:tb2eConflictDispositionConditionPlan,deathRiskPlan:tb2eConditionDeathRiskPlan}),
+      recoveryShadowStatus:tb2eRecoveryShadowStatus,
+      recovery:Object.freeze({getStatus:tb2eRecoveryShadowStatus,model:tb2eRecoveryModel,standardPlan:tb2eStandardRecoveryPlan,hungryThirstyPlan:tb2eHungryThirstyRecoveryPlan,accommodationPlan:tb2eAccommodationRecoveryPlan,exhaustedModifierPlan:tb2eExhaustedRecoveryModifierPlan,healerPlan:tb2eHealerRecoveryPlan,healerFailurePlan:tb2eHealerFailurePlan,freshEligibilityPlan:tb2eFreshEligibilityPlan})});
   });
 }

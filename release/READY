@@ -1,8 +1,8 @@
-1.13.0-qa.9
-# M10D.8 Torchbearer 2E Conditions bounded READ_ONLY shadow adapter
-# PARTIAL source contract: Grind/recovery order separation, Fresh/Angry/Afraid/Exhausted/Injured/Sick effects, zero-rating boundary and death-risk guidance
-# QR41/44 vs QR51 disposition penalties remain explicit UNRESOLVED_SOURCE_CONFLICT; QR44 CAMP/TEST text is preserved unresolved
-# No activation / Condition-Effect-death mutation / conflict-disposition automation / recovery execution or document-setting writes
-# M10D.7 Fate/Persona/Resources FULL PASS / VERIFIED / CLOSED on qa.8
+1.13.0-qa.10
+# M10D.9 Torchbearer 2E Recovery bounded READ_ONLY shadow adapter
+# PARTIAL source contract: standard recovery, Camp/Town costs, Hungry-Thirsty routes, accommodations, Healer alternatives/failures and Fresh eligibility
+# Exhausted CAMP_TEST wording / Town sequencing / bonus stacking remain explicit source boundaries; no missing Obstacles inferred
+# No activation / recovery roll / Condition clear / Check-Lifestyle spend / stat loss / advancement reset or document-setting writes
+# M10D.8 Conditions FULL PASS / VERIFIED / CLOSED on qa.9
 # Stable remains 1.12.0
-# Foundry Conditions shadow QA pending TEST_PROTOCOL_v1.13.0-qa.9.md
+# Foundry Recovery shadow QA pending TEST_PROTOCOL_v1.13.0-qa.10.md

@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.10 — M10D.9 Torchbearer 2E Recovery Bounded Shadow
+
+- **M10D.8 Conditions = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Recovery domain.
+- Covers standard Angry/Afraid/Exhausted/Injured/Sick recovery tests, Camp Check and Town Lifestyle cost previews.
+- Covers Hungry/Thirsty recovery routes and Flophouse/Hotel/Inn/Home accommodation boundaries.
+- Preserves Exhausted CAMP/TEST wording, Town-entry sequencing and Exhausted bonus stacking as explicit unresolved source boundaries.
+- Covers Healer out-of-order recovery and Grit Your Teeth / Sweat Out The Fever as zero-write consequence previews.
+- Covers Fresh eligibility without mutating Fresh, Nature, Conditions or Lifestyle.
+- No TB2E activation/live authority, recovery execution, condition clearing, resource spend or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.9 — M10D.8 Torchbearer 2E Conditions Bounded Shadow
 
 - **M10D.7 Fate / Persona / Resources = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
