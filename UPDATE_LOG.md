@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.13 — M10D.12 Torchbearer 2E Session / Phases Bounded Shadow
+
+- **M10D.11 Advancement = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Session / phases domain.
+- Covers session-start recap/setup, Grind turn costs, Camp entry/events/check economy/watch, Town entry/events, Lifestyle/Respite, end-session reward timing and light reference.
+- Camp/Town event-result tables and a complete phase-transition graph remain unavailable and are not inferred.
+- Delegates Resources/Lifestyle, Recovery and Advancement execution to their already-bounded shadows rather than duplicating live authority.
+- No TB2E activation/live authority, phase/turn/check/resource/reward mutation or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.12 — M10D.11 Torchbearer 2E Advancement Bounded Shadow
 
 - **M10D.10 Inventory / Gear = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

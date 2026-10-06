@@ -14,6 +14,7 @@ import { tb2eConditionCapabilityPlan, tb2eConditionDeathRiskPlan, tb2eConditionI
 import { tb2eAccommodationRecoveryPlan, tb2eExhaustedRecoveryModifierPlan, tb2eFreshEligibilityPlan, tb2eHealerFailurePlan, tb2eHealerRecoveryPlan, tb2eHungryThirstyRecoveryPlan, tb2eRecoveryModel, tb2eRecoveryShadowStatus, tb2eStandardRecoveryPlan } from "./m10d-tb2e-recovery-shadow.mjs";
 import { tb2eBeltStoragePlan, tb2eCachePlan, tb2eContainerDamagePlan, tb2eContainerPlan, tb2eGearStoragePlan, tb2eInventoryLocationPlan, tb2eInventoryModel, tb2eInventoryShadowStatus, tb2eStartingGearBoundaryPlan, tb2eTwoHandedWeaponPlan } from "./m10d-tb2e-inventory-shadow.mjs";
 import { tb2eAdvancementMarkPlan, tb2eAdvancementModel, tb2eAdvancementResetPlan, tb2eAdvancementShadowStatus, tb2eAdvancementThresholdPlan as tb2eM10D11AdvancementThresholdPlan, tb2eGroupAdvancementChoicePlan, tb2eLevelProgressionBoundaryPlan, tb2eNatureAdvancementShadowPlan, tb2eNewSkillLearningAdvancementPlan, tb2eResourcesCirclesZeroToOnePlan } from "./m10d-tb2e-advancement-shadow.mjs";
+import { tb2eCampCheckPlan, tb2eCampEntryPlan, tb2eCampEventModifierPlan, tb2eEndSessionTimingPlan, tb2eGrindTurnPlan, tb2eLifestyleExitPlan, tb2eLightPlan, tb2eSessionModel, tb2eSessionShadowStatus, tb2eSessionStartPlan, tb2eTownEntryPlan, tb2eTownEventModifierPlan, tb2eWatchPlan } from "./m10d-tb2e-session-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -27,15 +28,16 @@ export function tb2eFoundationStatus() {
   const recoveryShadow=tb2eRecoveryShadowStatus();
   const inventoryShadow=tb2eInventoryShadowStatus();
   const advancementShadow=tb2eAdvancementShadowStatus();
-  return freezeTb2e({phase:"M10D.11",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  const sessionShadow=tb2eSessionShadowStatus();
+  return freezeTb2e({phase:"M10D.12",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
     domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
-    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,
+    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"M10D.11 Advancement bounded shadow QA only; no TB2E domain is enabled live"});
+    nextStep:"M10D.12 Session/Phases bounded shadow QA only; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -77,6 +79,8 @@ export function installM10DFoundation() {
       inventoryShadowStatus:tb2eInventoryShadowStatus,
       inventory:Object.freeze({getStatus:tb2eInventoryShadowStatus,model:tb2eInventoryModel,locationPlan:tb2eInventoryLocationPlan,storagePlan:tb2eGearStoragePlan,containerPlan:tb2eContainerPlan,beltPlan:tb2eBeltStoragePlan,twoHandedPlan:tb2eTwoHandedWeaponPlan,containerDamagePlan:tb2eContainerDamagePlan,cachePlan:tb2eCachePlan,startingGearBoundaryPlan:tb2eStartingGearBoundaryPlan}),
       advancementShadowStatus:tb2eAdvancementShadowStatus,
-      advancement:Object.freeze({getStatus:tb2eAdvancementShadowStatus,model:tb2eAdvancementModel,thresholdPlan:tb2eM10D11AdvancementThresholdPlan,markPlan:tb2eAdvancementMarkPlan,groupChoicePlan:tb2eGroupAdvancementChoicePlan,naturePlan:tb2eNatureAdvancementShadowPlan,newSkillPlan:tb2eNewSkillLearningAdvancementPlan,zeroToOnePlan:tb2eResourcesCirclesZeroToOnePlan,resetPlan:tb2eAdvancementResetPlan,levelBoundaryPlan:tb2eLevelProgressionBoundaryPlan})});
+      advancement:Object.freeze({getStatus:tb2eAdvancementShadowStatus,model:tb2eAdvancementModel,thresholdPlan:tb2eM10D11AdvancementThresholdPlan,markPlan:tb2eAdvancementMarkPlan,groupChoicePlan:tb2eGroupAdvancementChoicePlan,naturePlan:tb2eNatureAdvancementShadowPlan,newSkillPlan:tb2eNewSkillLearningAdvancementPlan,zeroToOnePlan:tb2eResourcesCirclesZeroToOnePlan,resetPlan:tb2eAdvancementResetPlan,levelBoundaryPlan:tb2eLevelProgressionBoundaryPlan}),
+      sessionShadowStatus:tb2eSessionShadowStatus,
+      session:Object.freeze({getStatus:tb2eSessionShadowStatus,model:tb2eSessionModel,startPlan:tb2eSessionStartPlan,grindTurnPlan:tb2eGrindTurnPlan,campEntryPlan:tb2eCampEntryPlan,campEventModifierPlan:tb2eCampEventModifierPlan,campCheckPlan:tb2eCampCheckPlan,watchPlan:tb2eWatchPlan,townEntryPlan:tb2eTownEntryPlan,townEventModifierPlan:tb2eTownEventModifierPlan,lifestyleExitPlan:tb2eLifestyleExitPlan,endSessionTimingPlan:tb2eEndSessionTimingPlan,lightPlan:tb2eLightPlan})});
   });
 }
