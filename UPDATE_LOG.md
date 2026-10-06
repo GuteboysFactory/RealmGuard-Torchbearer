@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.11 — M10D.10 Torchbearer 2E Inventory / Gear Bounded Shadow
+
+- **M10D.9 Recovery = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Inventory / Gear domain.
+- Covers body inventory locations, storage labels, Backpack/Satchel/Belt rules, two-handed holding, container nesting/damage guidance and 12-slot caches.
+- Covers source-backed starting-gear boundaries without turning visual starting tables into automatic grants.
+- Preserves missing DG148 item catalogue, DG156-157 weapon effects, Armor rules and backpack penalty magnitude as explicit unavailable boundaries.
+- No TB2E activation/live authority, item migration, placement/container/cache mutation or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.10 — M10D.9 Torchbearer 2E Recovery Bounded Shadow
 
 - **M10D.8 Conditions = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

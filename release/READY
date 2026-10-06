@@ -1,8 +1,8 @@
-1.13.0-qa.10
-# M10D.9 Torchbearer 2E Recovery bounded READ_ONLY shadow adapter
-# PARTIAL source contract: standard recovery, Camp/Town costs, Hungry-Thirsty routes, accommodations, Healer alternatives/failures and Fresh eligibility
-# Exhausted CAMP_TEST wording / Town sequencing / bonus stacking remain explicit source boundaries; no missing Obstacles inferred
-# No activation / recovery roll / Condition clear / Check-Lifestyle spend / stat loss / advancement reset or document-setting writes
-# M10D.8 Conditions FULL PASS / VERIFIED / CLOSED on qa.9
+1.13.0-qa.11
+# M10D.10 Torchbearer 2E Inventory/Gear bounded READ_ONLY shadow adapter
+# PARTIAL source contract: inventory locations, storage labels, Backpack/Satchel/Belt, two-handed rules, nesting, caches and starting-gear boundaries
+# DG148 catalogue / DG156-157 weapon effects / armor automation / backpack penalty magnitude / visual-table autogrants remain unavailable or disabled
+# No activation / placement / container-cache / gear grant / item transfer-conversion or document-setting writes
+# M10D.9 Recovery FULL PASS / VERIFIED / CLOSED on qa.10
 # Stable remains 1.12.0
-# Foundry Recovery shadow QA pending TEST_PROTOCOL_v1.13.0-qa.10.md
+# Foundry Inventory/Gear shadow QA pending TEST_PROTOCOL_v1.13.0-qa.11.md
