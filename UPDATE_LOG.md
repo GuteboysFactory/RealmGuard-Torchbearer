@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.14 — M10D.13 Torchbearer 2E Circles / Relationships Bounded Shadow
+
+- **M10D.12 Session / Phases = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Circles / relationships domain.
+- Covers Circles pass/fail outcomes, Ally preview, level-3 hometown Reputation, Friend/Enemy roleplay evolution, starting relationship questionnaire, Loner route and free Home lodging.
+- Complete Circles obstacle factors and relationship exceptions remain unavailable and are not inferred.
+- The apparent Loner/Magician-Mentor interaction is preserved as an unresolved guide boundary rather than silently reconciled.
+- No TB2E activation/live authority, Circles rating mutation, relationship persistence, NPC creation, creation grants or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.13 — M10D.12 Torchbearer 2E Session / Phases Bounded Shadow
 
 - **M10D.11 Advancement = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

@@ -20,6 +20,7 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     inventory:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,structuredPlacementAuthority:"SOURCE_BOUNDED_PREVIEW_ONLY",placementMutation:false},
     progression:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,levels:"BOUNDARY_ONLY",talents:false},
     session:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,phaseMutation:false},
+    circles:{mode:"READ_ONLY_SHADOW",coverage:"PARTIAL",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,ratingRange:{min:1,max:10},npcCreation:false,relationshipMutation:false},
     tokensOfPower:{enabled:false},scaleOfMight:{enabled:false}
   },
   registry:TB2E_SOURCE_COVERAGE_MATRIX.map(row=>({
@@ -29,12 +30,12 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   })),
   metadata:{
     foundationOnly:true,selectable:false,supported:false,liveRuleAuthority:false,activationState:"FOUNDATION_ONLY",
-    implementationPhase:"M10D.12",mode:"READ_ONLY",conversionPreviewAvailable:true,
+    implementationPhase:"M10D.13",mode:"READ_ONLY",conversionPreviewAvailable:true,
     liveParityVerified:false,explicitActivationAuthorized:false,creationCommitAllowed:false,
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:false,sourceCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
-    wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,resourcesShadowAdapterReady:true,conditionsShadowAdapterReady:true,recoveryShadowAdapterReady:true,inventoryShadowAdapterReady:true,advancementShadowAdapterReady:true,sessionShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session"],
+    wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,resourcesShadowAdapterReady:true,conditionsShadowAdapterReady:true,recoveryShadowAdapterReady:true,inventoryShadowAdapterReady:true,advancementShadowAdapterReady:true,sessionShadowAdapterReady:true,circlesShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles"],
     inheritedRuleProviders:[],writesPlanned:0,
-    nextStep:"Verify source-bounded Session/Phases shadow semantics; all TB2E live authority remains locked"
+    nextStep:"Verify source-bounded Circles/Relationships shadow semantics; all TB2E live authority remains locked"
   }
 });

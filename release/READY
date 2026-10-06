@@ -1,8 +1,8 @@
-1.13.0-qa.13
-# M10D.12 Torchbearer 2E Session/Phases bounded READ_ONLY shadow adapter
-# PARTIAL source contract: session start, Grind turns, Camp procedure/events/checks/watch, Town entry/events, Lifestyle/Respite, end-session timing and light
-# Full phase graph / Camp-Town event result tables / phase exception tables remain source-incomplete and are not inferred
-# No activation / phase-turn-check / food / reward / recovery-level or document-setting writes
-# M10D.11 Advancement FULL PASS / VERIFIED / CLOSED on qa.12
+1.13.0-qa.14
+# M10D.13 Torchbearer 2E Circles/Relationships bounded READ_ONLY shadow adapter
+# PARTIAL source contract: Circles outcomes, Ally preview, Reputation, starting relationships, Loner boundary, relationship evolution and free Home lodging
+# Complete Circles factor tables and relationship exceptions remain source-incomplete and are not inferred
+# No activation / Circles rating / relationship / NPC / gear-trait grant or document-setting writes
+# M10D.12 Session/Phases FULL PASS / VERIFIED / CLOSED on qa.13
 # Stable remains 1.12.0
-# Foundry Session/Phases shadow QA pending TEST_PROTOCOL_v1.13.0-qa.13.md
+# Foundry Circles/Relationships shadow QA pending TEST_PROTOCOL_v1.13.0-qa.14.md
