@@ -1,8 +1,8 @@
-1.13.0-qa.11
-# M10D.10 Torchbearer 2E Inventory/Gear bounded READ_ONLY shadow adapter
-# PARTIAL source contract: inventory locations, storage labels, Backpack/Satchel/Belt, two-handed rules, nesting, caches and starting-gear boundaries
-# DG148 catalogue / DG156-157 weapon effects / armor automation / backpack penalty magnitude / visual-table autogrants remain unavailable or disabled
-# No activation / placement / container-cache / gear grant / item transfer-conversion or document-setting writes
-# M10D.9 Recovery FULL PASS / VERIFIED / CLOSED on qa.10
+1.13.0-qa.12
+# M10D.11 Torchbearer 2E Advancement bounded READ_ONLY shadow adapter
+# PARTIAL source contract: pass/fail thresholds, caps, count eligibility, group choice, Nature advancement, BL Skill learning, Resources/Circles 0-to-1, reset and level boundaries
+# Visual numeric level table is not transcribed; DG113+ class benefits remain unavailable
+# No activation / mark-rating / Nature / Skill-learning / level-benefit-choice or document-setting writes
+# M10D.10 Inventory/Gear FULL PASS / VERIFIED / CLOSED on qa.11
 # Stable remains 1.12.0
-# Foundry Inventory/Gear shadow QA pending TEST_PROTOCOL_v1.13.0-qa.11.md
+# Foundry Advancement shadow QA pending TEST_PROTOCOL_v1.13.0-qa.12.md

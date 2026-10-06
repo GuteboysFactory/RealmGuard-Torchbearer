@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.12 — M10D.11 Torchbearer 2E Advancement Bounded Shadow
+
+- **M10D.10 Inventory / Gear = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Advancement domain.
+- Covers Pass/Fail thresholds/caps, Ob0/Versus/tie count eligibility, one-count context boundaries and mixed-group choice.
+- Covers Maximum-Nature advancement, Beginner's Luck Skill opening at rating 2, Resources/Circles 0-to-1 and Pass/Fail reset previews.
+- Records level progression facts while refusing to infer the visual numeric threshold table or unavailable DG113+ class benefits.
+- No TB2E activation/live authority, advancement marks, rating changes, Skill creation, Nature/level mutation or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.11 — M10D.10 Torchbearer 2E Inventory / Gear Bounded Shadow
 
 - **M10D.9 Recovery = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
