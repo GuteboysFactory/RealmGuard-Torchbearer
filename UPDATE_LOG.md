@@ -1,5 +1,14 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.15 — M10D.14 Torchbearer 2E Might / Precedence Bounded Shadow
+
+- **M10D.13 Circles / Relationships = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds a source-bounded READ_ONLY shadow adapter for the PARTIAL TB2E Might / Precedence domain.
+- Covers the QR 68-71 scale tables, player Capture/Kill/Drive Off Might limits, greater-Might and greater-Precedence +1s previews, mounted Rider boundary, post-conflict Might review and non-combat Precedence eligibility.
+- Unlisted scale assignments and exceptional interactions remain unavailable and are not inferred.
+- No TB2E activation/live authority, conflict success modifier application, Rider roll, Might/Precedence mutation, compromise/goal mutation or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.14 — M10D.13 Torchbearer 2E Circles / Relationships Bounded Shadow
 
 - **M10D.12 Session / Phases = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
