@@ -1,5 +1,15 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.16 — M10D.15 Torchbearer 2E Character Creation Bounded Completion
+
+- **M10D.14 Might / Precedence = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Completes the source-bounded READ_ONLY shadow model for the PARTIAL TB2E Character Creation domain.
+- Covers source-listed class/stock starts, Will/Health, Skill packages/redistribution, Human Upbringing, Homes, Social Graces, Specialty, Wises, Nature questionnaire, relationship/inventory delegation, starting equipment boundaries, drives, level-1 benefits and final details.
+- Visual gear/spell/relic tables and unavailable DG effects remain source-incomplete and are not inferred.
+- The executable CharacterCreationProfile remains FOUNDATION_ONLY with liveCommit=false and buildCommitSpec blocked.
+- No TB2E activation/live authority, Actor/Item creation, grants or Actor/Item/Journal/setting mutation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.15 — M10D.14 Torchbearer 2E Might / Precedence Bounded Shadow
 
 - **M10D.13 Circles / Relationships = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

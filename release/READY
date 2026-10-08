@@ -1,8 +1,8 @@
-1.13.0-qa.15
-# M10D.14 Torchbearer 2E Might/Precedence bounded READ_ONLY shadow adapter
-# PARTIAL source contract: scales, player Might goal limits, greater-scale +1s previews, mounted Rider boundary, post-conflict review and Precedence eligibility
-# Exceptional interactions and unlisted scale assignments remain source-incomplete and are not inferred
-# No activation / conflict modifier / Might-Precedence / Rider / compromise-goal or document-setting writes
-# M10D.13 Circles/Relationships FULL PASS / VERIFIED / CLOSED on qa.14
+1.13.0-qa.16
+# M10D.15 Torchbearer 2E Character Creation bounded READ_ONLY completion shadow
+# PARTIAL source contract: classes/stocks, abilities, skill redistribution, upbringing, home, graces, specialty, Wises, Nature questionnaire, relationship/inventory boundaries, drives, level1 and final details
+# Full DG trait/gear/spell/invocation details and visual random tables remain source-incomplete and are not inferred
+# No activation / executable creation / Actor-Item-grant / spell-relic roll or document-setting writes
+# M10D.14 Might/Precedence FULL PASS / VERIFIED / CLOSED on qa.15
 # Stable remains 1.12.0
-# Foundry Might/Precedence shadow QA pending TEST_PROTOCOL_v1.13.0-qa.15.md
+# Foundry Character Creation shadow QA pending TEST_PROTOCOL_v1.13.0-qa.16.md

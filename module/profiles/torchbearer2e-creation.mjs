@@ -12,11 +12,11 @@ export const TORCHBEARER2E_CREATION_PROFILE = new CharacterCreationProfile({
     ["resources-gear","Resources / Gear","CC 36-43"],["drives","Belief / Instinct / Goal","CC 44-46"],
     ["details","Level 1 / Final details","CC 47-48"]
   ].map(([id,label,evidence])=>({id,label,evidence,mode:"READ_ONLY",coverage:"PARTIAL"}))),
-  rules:freezeTb2e({mode:"READ_ONLY",coverage:"PARTIAL",grantsEnabled:false,deriveStats:false}),
+  rules:freezeTb2e({mode:"READ_ONLY",coverage:"PARTIAL",grantsEnabled:false,deriveStats:false,boundedShadowAdapterReady:true}),
   grants:freezeTb2e({}),
-  metadata:freezeTb2e({foundationOnly:true,mode:"READ_ONLY",implementationPhase:"M10D.1",activationAllowed:false,
+  metadata:freezeTb2e({foundationOnly:true,mode:"READ_ONLY",implementationPhase:"M10D.15",activationAllowed:false,
     liveCommit:false,writesPlanned:0,sourceComplete:false,sourceAuthority:TB2E_SOURCE_AUTHORITY,
-    sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id)}),
+    sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),boundedShadowAdapterReady:true}),
   derive:()=>freezeTb2e({foundationOnly:true,mode:"READ_ONLY",grants:[],warnings:["TB2E creation is a source-audit foundation. No derived statistics or document grants are authorized."]}),
   validateStep:()=>({errors:["Torchbearer 2E creation is FOUNDATION_ONLY; no creation commit is authorized."],warnings:[]}),
   buildCommitSpec:()=>{throw new Error("Torchbearer 2E creation is FOUNDATION_ONLY; no Actor, Item or Journal writes are authorized.");}

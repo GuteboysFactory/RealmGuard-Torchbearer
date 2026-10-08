@@ -17,6 +17,7 @@ import { tb2eAdvancementMarkPlan, tb2eAdvancementModel, tb2eAdvancementResetPlan
 import { tb2eCampCheckPlan, tb2eCampEntryPlan, tb2eCampEventModifierPlan, tb2eEndSessionTimingPlan, tb2eGrindTurnPlan, tb2eLifestyleExitPlan, tb2eLightPlan, tb2eSessionModel, tb2eSessionShadowStatus, tb2eSessionStartPlan, tb2eTownEntryPlan, tb2eTownEventModifierPlan, tb2eWatchPlan } from "./m10d-tb2e-session-shadow.mjs";
 import { tb2eCirclesModel, tb2eCirclesObstacleBoundaryPlan, tb2eCirclesReputationPlan, tb2eCirclesShadowStatus, tb2eCirclesTestOutcomePlan, tb2eRelationshipEvolutionPlan, tb2eRelationshipLodgingPlan, tb2eStartingRelationshipsPlan } from "./m10d-tb2e-circles-shadow.mjs";
 import { tb2eMightActionBonusPlan, tb2eMightScalePlan, tb2eMountedMightBoundaryPlan, tb2ePlayerMightGoalPlan, tb2ePostConflictMightReviewPlan, tb2ePrecedenceActionBonusPlan, tb2ePrecedenceEligibilityPlan, tb2ePrecedenceScalePlan, tb2eScalesModel, tb2eScalesShadowStatus } from "./m10d-tb2e-scales-shadow.mjs";
+import { tb2eClassStockPlan, tb2eCreationModel, tb2eCreationShadowStatus, tb2eDrivesPlan, tb2eFinalDetailsPlan, tb2eHomePlan, tb2eHumanUpbringingPlan, tb2eLevelOneBenefitPlan, tb2eNatureQuestionnairePlan, tb2eRelationshipsBoundaryPlan, tb2eSkillRedistributionPlan, tb2eSocialGracePlan, tb2eSpecialtyPlan, tb2eStartingEquipmentBoundaryPlan, tb2eStartingWisesPlan } from "./m10d-tb2e-creation-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -33,15 +34,16 @@ export function tb2eFoundationStatus() {
   const sessionShadow=tb2eSessionShadowStatus();
   const circlesShadow=tb2eCirclesShadowStatus();
   const scalesShadow=tb2eScalesShadowStatus();
-  return freezeTb2e({phase:"M10D.14",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  const creationShadow=tb2eCreationShadowStatus();
+  return freezeTb2e({phase:"M10D.15",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
     domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
-    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,
+    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,creationShadowReady:creationShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"M10D.14 Might/Precedence bounded shadow QA only; no TB2E domain is enabled live"});
+    nextStep:"M10D.15 Character Creation bounded completion QA only; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -89,6 +91,8 @@ export function installM10DFoundation() {
       circlesShadowStatus:tb2eCirclesShadowStatus,
       circles:Object.freeze({getStatus:tb2eCirclesShadowStatus,model:tb2eCirclesModel,testOutcomePlan:tb2eCirclesTestOutcomePlan,reputationPlan:tb2eCirclesReputationPlan,relationshipEvolutionPlan:tb2eRelationshipEvolutionPlan,startingPlan:tb2eStartingRelationshipsPlan,lodgingPlan:tb2eRelationshipLodgingPlan,obstacleBoundaryPlan:tb2eCirclesObstacleBoundaryPlan}),
       scalesShadowStatus:tb2eScalesShadowStatus,
-      scales:Object.freeze({getStatus:tb2eScalesShadowStatus,model:tb2eScalesModel,mightScalePlan:tb2eMightScalePlan,playerMightGoalPlan:tb2ePlayerMightGoalPlan,mightActionBonusPlan:tb2eMightActionBonusPlan,mountedMightPlan:tb2eMountedMightBoundaryPlan,postConflictMightReviewPlan:tb2ePostConflictMightReviewPlan,precedenceScalePlan:tb2ePrecedenceScalePlan,precedenceEligibilityPlan:tb2ePrecedenceEligibilityPlan,precedenceActionBonusPlan:tb2ePrecedenceActionBonusPlan})});
+      scales:Object.freeze({getStatus:tb2eScalesShadowStatus,model:tb2eScalesModel,mightScalePlan:tb2eMightScalePlan,playerMightGoalPlan:tb2ePlayerMightGoalPlan,mightActionBonusPlan:tb2eMightActionBonusPlan,mountedMightPlan:tb2eMountedMightBoundaryPlan,postConflictMightReviewPlan:tb2ePostConflictMightReviewPlan,precedenceScalePlan:tb2ePrecedenceScalePlan,precedenceEligibilityPlan:tb2ePrecedenceEligibilityPlan,precedenceActionBonusPlan:tb2ePrecedenceActionBonusPlan}),
+      creationShadowStatus:tb2eCreationShadowStatus,
+      creation:Object.freeze({getStatus:tb2eCreationShadowStatus,model:tb2eCreationModel,classStockPlan:tb2eClassStockPlan,skillRedistributionPlan:tb2eSkillRedistributionPlan,humanUpbringingPlan:tb2eHumanUpbringingPlan,homePlan:tb2eHomePlan,socialGracePlan:tb2eSocialGracePlan,specialtyPlan:tb2eSpecialtyPlan,startingWisesPlan:tb2eStartingWisesPlan,natureQuestionnairePlan:tb2eNatureQuestionnairePlan,relationshipsBoundaryPlan:tb2eRelationshipsBoundaryPlan,startingEquipmentPlan:tb2eStartingEquipmentBoundaryPlan,drivesPlan:tb2eDrivesPlan,levelOnePlan:tb2eLevelOneBenefitPlan,finalDetailsPlan:tb2eFinalDetailsPlan})});
   });
 }
