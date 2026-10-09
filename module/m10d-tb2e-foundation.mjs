@@ -19,9 +19,12 @@ import { tb2eCirclesModel, tb2eCirclesObstacleBoundaryPlan, tb2eCirclesReputatio
 import { tb2eMightActionBonusPlan, tb2eMightScalePlan, tb2eMountedMightBoundaryPlan, tb2ePlayerMightGoalPlan, tb2ePostConflictMightReviewPlan, tb2ePrecedenceActionBonusPlan, tb2ePrecedenceEligibilityPlan, tb2ePrecedenceScalePlan, tb2eScalesModel, tb2eScalesShadowStatus } from "./m10d-tb2e-scales-shadow.mjs";
 import { tb2eClassStockPlan, tb2eCreationModel, tb2eCreationShadowStatus, tb2eDrivesPlan, tb2eFinalDetailsPlan, tb2eHomePlan, tb2eHumanUpbringingPlan, tb2eLevelOneBenefitPlan, tb2eNatureQuestionnairePlan, tb2eRelationshipsBoundaryPlan, tb2eSkillRedistributionPlan, tb2eSocialGracePlan, tb2eSpecialtyPlan, tb2eStartingEquipmentBoundaryPlan, tb2eStartingWisesPlan } from "./m10d-tb2e-creation-shadow.mjs";
 import { tb2eFinalDomainAudit, tb2eFinalFoundationAudit } from "./m10d-tb2e-final-audit.mjs";
+import { tb2eCoreDomainAudit, tb2eCoreSourceCoverageMatrix, tb2eCoreSourceExpansionAudit } from "./m10d-tb2e-core-source-expansion.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
+  const coreMatrix=tb2eCoreSourceCoverageMatrix();
+  const sourceExpansionAudit=tb2eCoreSourceExpansionAudit();
   const wiseShadow=tb2eWiseShadowStatus();
   const helpShadow=tb2eHelpShadowStatus();
   const testShadow=tb2eTestShadowStatus();
@@ -36,23 +39,35 @@ export function tb2eFoundationStatus() {
   const circlesShadow=tb2eCirclesShadowStatus();
   const scalesShadow=tb2eScalesShadowStatus();
   const creationShadow=tb2eCreationShadowStatus();
-  return freezeTb2e({phase:"M10D.16",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  return freezeTb2e({phase:"M10D.17",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
-    profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
-    domainCount:matrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
+    profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:true,coreSourceComplete:true,
+    domainCount:coreMatrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,coreMatrix.filter(row=>row.status===status).length])),
+    guideBaselineCoverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
     shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,creationShadowReady:creationShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
-    sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    finalFoundationAuditComplete:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).auditComplete,
-    finalClassificationCounts:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).counts,
-    nextStep:"M10D Final Foundation Audit QA; live integration planning only after audit PASS; no TB2E domain is enabled live"});
+    sourceCoverageMatrix:coreMatrix,guideBaselineCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
+    historicalFinalFoundationAuditComplete:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).auditComplete,
+    finalFoundationAuditComplete:sourceExpansionAudit.auditComplete,
+    finalClassificationCounts:{VERIFIED:sourceExpansionAudit.sourceCounts.VERIFIED,BOUNDED_PARTIAL:0,SOURCE_BLOCKED:0,MANUAL:sourceExpansionAudit.sourceCounts.MANUAL},
+    sourceExpansionAuditComplete:sourceExpansionAudit.auditComplete,
+    existingShadowReauditRequired:sourceExpansionAudit.existingShadowReauditRequired,
+    existingShadowReauditDomains:sourceExpansionAudit.existingShadowReauditDomains,
+    newShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains,
+    liveIntegrationPaused:sourceExpansionAudit.liveIntegrationPauseRequired,
+    nextStep:"M10D.18 Core Reconciliation: re-audit 14 existing shadows against full core books and build Traits/Armor/Conflict/Magic shadows before resuming M11"});
 }
 
 export function tb2eReadinessAudit() {
-  return freezeTb2e({...tb2eFoundationStatus(),decision:"FOUNDATION_ONLY_NOT_READY_FOR_LIVE",
-    blockers:["INCOMPLETE_GUIDE_SOURCES","UNRESOLVED_SOURCE_AMBIGUITIES","NO_LIVE_ADAPTERS_AUTHORIZED","NO_EXPLICIT_ACTIVATION_MILESTONE"],
-    missingDomains:tb2eSourceCoverageMatrix().filter(row=>row.status!=="VERIFIED").map(row=>({id:row.id,status:row.status,gaps:row.gaps}))});
+  const expansion=tb2eCoreSourceExpansionAudit();
+  return freezeTb2e({...tb2eFoundationStatus(),decision:"CORE_SOURCE_COMPLETE_IMPLEMENTATION_RECONCILIATION_REQUIRED",
+    blockers:["FULL_CORE_SHADOW_REAUDIT_REQUIRED","NEW_SHADOW_ADAPTERS_REQUIRED","NO_LIVE_ADAPTERS_AUTHORIZED","NO_EXPLICIT_ACTIVATION_MILESTONE"],
+    sourceMissingDomains:[],
+    implementationGaps:[
+      ...expansion.existingShadowReauditDomains.map(id=>({id,state:"FULL_CORE_REAUDIT_REQUIRED"})),
+      ...expansion.newShadowAdapterDomains.map(id=>({id,state:"NEW_SHADOW_ADAPTER_REQUIRED"}))
+    ]});
 }
 
 export function previewTorchbearer2eConversion({actors=[],worldItems=[]}={}) {
@@ -66,11 +81,15 @@ export function installM10DFoundation() {
   Hooks.once("ready",()=>{
     game.realmGuard??={};game.realmGuard.core??={};
     game.realmGuard.core.m10d=Object.freeze({getStatus:tb2eFoundationStatus,readinessAudit:tb2eReadinessAudit,
-      sourceCoverageMatrix:tb2eSourceCoverageMatrix,getRulesProfile:()=>resolveRulesProfile("torchbearer2e").profile,
+      sourceCoverageMatrix:tb2eCoreSourceCoverageMatrix,guideBaselineCoverageMatrix:tb2eSourceCoverageMatrix,
+      sourceExpansionAudit:tb2eCoreSourceExpansionAudit,coreDomainAudit:tb2eCoreDomainAudit,
+      getRulesProfile:()=>resolveRulesProfile("torchbearer2e").profile,
       getCreationProfile:()=>TORCHBEARER2E_CREATION_PROFILE,
       previewConversion:previewTorchbearer2eConversion,showConversionPreview:showTorchbearer2eConversionPreview,
-      finalAudit:()=>tb2eFinalFoundationAudit({shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
-      finalDomainAudit:(domainId)=>tb2eFinalDomainAudit(domainId,{shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
+      finalAudit:tb2eCoreSourceExpansionAudit,
+      finalDomainAudit:tb2eCoreDomainAudit,
+      historicalFinalAudit:()=>tb2eFinalFoundationAudit({shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
+      historicalFinalDomainAudit:(domainId)=>tb2eFinalDomainAudit(domainId,{shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
       wiseShadowStatus:tb2eWiseShadowStatus,
       wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan}),
       helpShadowStatus:tb2eHelpShadowStatus,

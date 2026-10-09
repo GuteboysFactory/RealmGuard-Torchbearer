@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.19 — M10D.17 Full-Core Source Expansion Audit
+
+- Adds Dungeoneer's Handbook and Scholar's Guide as the essential Torchbearer 2E core source authority.
+- Adds Lore Master's Manual and Scavenger's Supplement as explicitly separate optional expansion sources.
+- Supersedes the old guide-only source-blocked planning result while preserving M10D.16 as historical QA evidence.
+- Full-core source classification: **18 VERIFIED / 0 SOURCE_BLOCKED / 1 MANUAL**.
+- Traits, Armor, Conflict and Magic / Invocations are now source-verified and require new bounded shadow adapters.
+- Marks all 14 existing guide-built shadows for full-core re-audit.
+- Records confirmed reconciliation issues: Character Creation absent Home/Social Grace/Specialty skills must start at rating 2; Hungry/Thirsty and Exhausted disposition penalties resolve to -1s; Help restriction is narrower than the old shadow; Nature 0/0 retirement is end-of-adventure.
+- Pauses M11 live integration until M10D.18 Core Reconciliation passes. Kill switch remains engaged and all write grants remain false.
+- No Actor/Item/Journal/Setting writes and no profile activation.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.18 — M11.1 TB2E Live Authority Framework
 
 - **M10D Final Foundation Audit = FULL PASS / VERIFIED / CLOSED**.

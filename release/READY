@@ -1,10 +1,11 @@
-1.13.0-qa.18
-# M11.1 Torchbearer 2E Live Authority Framework
-# Domain registry: OFF / SHADOW / DUAL_RUN / LIVE
-# 14 source-supportable domains remain SHADOW; 4 SOURCE_BLOCKED + 1 MANUAL remain OFF
-# Global kill switch hard-engaged; release unauthorized
-# Per-domain write contracts exist but every write permission is false
-# Memory-only dual-run comparison instrumentation; no persistent authority mutation
-# M10D Final Foundation Audit FULL PASS / VERIFIED / CLOSED
+1.13.0-qa.19
+# M10D.17 Torchbearer 2E Full-Core Source Expansion Audit
+# Core rulebooks: Dungeoneer's Handbook + Scholar's Guide
+# Optional expansions separated: Lore Master's Manual + Scavenger's Supplement
+# Current core source result: 18 VERIFIED / 0 SOURCE_BLOCKED / 1 MANUAL
+# 14 existing shadows require full-core re-audit
+# Traits / Armor / Conflict / Magic now source-verified but need new shadow adapters
+# M11.1 safety-paused; global kill switch engaged; DUAL_RUN/LIVE refused
+# Confirmed guide-era mismatches recorded for M10D.18 repair
 # Stable remains 1.12.0
-# Foundry M11.1 QA pending TEST_PROTOCOL_v1.13.0-qa.18.md
+# Foundry source-expansion QA pending TEST_PROTOCOL_v1.13.0-qa.19.md
