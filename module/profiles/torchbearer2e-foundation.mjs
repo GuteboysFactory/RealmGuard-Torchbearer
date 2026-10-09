@@ -31,12 +31,13 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   })),
   metadata:{
     foundationOnly:true,selectable:false,supported:false,liveRuleAuthority:false,activationState:"FOUNDATION_ONLY",
-    implementationPhase:"M10D.15",mode:"READ_ONLY",conversionPreviewAvailable:true,
+    implementationPhase:"M10D.16",mode:"READ_ONLY",conversionPreviewAvailable:true,
     liveParityVerified:false,explicitActivationAuthorized:false,creationCommitAllowed:false,
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:false,sourceCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
     wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,resourcesShadowAdapterReady:true,conditionsShadowAdapterReady:true,recoveryShadowAdapterReady:true,inventoryShadowAdapterReady:true,advancementShadowAdapterReady:true,sessionShadowAdapterReady:true,circlesShadowAdapterReady:true,scalesShadowAdapterReady:true,creationShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],
-    inheritedRuleProviders:[],writesPlanned:0,
-    nextStep:"Verify source-bounded Character Creation completion shadow semantics; all TB2E live authority remains locked"
+    inheritedRuleProviders:[],writesPlanned:0,finalFoundationAudit:true,
+    finalClassificationCounts:{VERIFIED:1,BOUNDED_PARTIAL:13,SOURCE_BLOCKED:4,MANUAL:1},
+    nextStep:"Run M10D Final Foundation Audit QA; after PASS plan controlled TB2E live integration while source-blocked domains stay disabled"
   }
 });

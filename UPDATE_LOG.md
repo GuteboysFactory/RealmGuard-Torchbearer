@@ -1,5 +1,18 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.17 — M10D Final Foundation Audit
+
+- **M10D.15 Character Creation Bounded Completion = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.
+- Adds the final audit over all 19 TB2E source domains.
+- Final classification is locked to **1 VERIFIED / 13 BOUNDED_PARTIAL / 4 SOURCE_BLOCKED / 1 MANUAL**.
+- Confirms all 14 current source-supportable domains have bounded READ_ONLY shadow adapters with no adapter gaps.
+- SOURCE_BLOCKED: Traits, Armor, Conflict, Magic / invocations.
+- MANUAL: Narrative adjudication.
+- Adds finalAudit/finalDomainAudit runtime inspection and a permanent audit document.
+- No TB2E activation, profile switch, Character Creation commit or document/settings mutation is authorized.
+- Next phase after QA PASS: controlled TB2E live-integration planning with explicit per-domain gates.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.16 — M10D.15 Torchbearer 2E Character Creation Bounded Completion
 
 - **M10D.14 Might / Precedence = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

@@ -18,6 +18,7 @@ import { tb2eCampCheckPlan, tb2eCampEntryPlan, tb2eCampEventModifierPlan, tb2eEn
 import { tb2eCirclesModel, tb2eCirclesObstacleBoundaryPlan, tb2eCirclesReputationPlan, tb2eCirclesShadowStatus, tb2eCirclesTestOutcomePlan, tb2eRelationshipEvolutionPlan, tb2eRelationshipLodgingPlan, tb2eStartingRelationshipsPlan } from "./m10d-tb2e-circles-shadow.mjs";
 import { tb2eMightActionBonusPlan, tb2eMightScalePlan, tb2eMountedMightBoundaryPlan, tb2ePlayerMightGoalPlan, tb2ePostConflictMightReviewPlan, tb2ePrecedenceActionBonusPlan, tb2ePrecedenceEligibilityPlan, tb2ePrecedenceScalePlan, tb2eScalesModel, tb2eScalesShadowStatus } from "./m10d-tb2e-scales-shadow.mjs";
 import { tb2eClassStockPlan, tb2eCreationModel, tb2eCreationShadowStatus, tb2eDrivesPlan, tb2eFinalDetailsPlan, tb2eHomePlan, tb2eHumanUpbringingPlan, tb2eLevelOneBenefitPlan, tb2eNatureQuestionnairePlan, tb2eRelationshipsBoundaryPlan, tb2eSkillRedistributionPlan, tb2eSocialGracePlan, tb2eSpecialtyPlan, tb2eStartingEquipmentBoundaryPlan, tb2eStartingWisesPlan } from "./m10d-tb2e-creation-shadow.mjs";
+import { tb2eFinalDomainAudit, tb2eFinalFoundationAudit } from "./m10d-tb2e-final-audit.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -35,7 +36,7 @@ export function tb2eFoundationStatus() {
   const circlesShadow=tb2eCirclesShadowStatus();
   const scalesShadow=tb2eScalesShadowStatus();
   const creationShadow=tb2eCreationShadowStatus();
-  return freezeTb2e({phase:"M10D.15",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  return freezeTb2e({phase:"M10D.16",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:false,
@@ -43,7 +44,9 @@ export function tb2eFoundationStatus() {
     shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,creationShadowReady:creationShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
-    nextStep:"M10D.15 Character Creation bounded completion QA only; no TB2E domain is enabled live"});
+    finalFoundationAuditComplete:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).auditComplete,
+    finalClassificationCounts:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).counts,
+    nextStep:"M10D Final Foundation Audit QA; live integration planning only after audit PASS; no TB2E domain is enabled live"});
 }
 
 export function tb2eReadinessAudit() {
@@ -66,6 +69,8 @@ export function installM10DFoundation() {
       sourceCoverageMatrix:tb2eSourceCoverageMatrix,getRulesProfile:()=>resolveRulesProfile("torchbearer2e").profile,
       getCreationProfile:()=>TORCHBEARER2E_CREATION_PROFILE,
       previewConversion:previewTorchbearer2eConversion,showConversionPreview:showTorchbearer2eConversionPreview,
+      finalAudit:()=>tb2eFinalFoundationAudit({shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
+      finalDomainAudit:(domainId)=>tb2eFinalDomainAudit(domainId,{shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
       wiseShadowStatus:tb2eWiseShadowStatus,
       wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan}),
       helpShadowStatus:tb2eHelpShadowStatus,

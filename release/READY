@@ -1,8 +1,9 @@
-1.13.0-qa.16
-# M10D.15 Torchbearer 2E Character Creation bounded READ_ONLY completion shadow
-# PARTIAL source contract: classes/stocks, abilities, skill redistribution, upbringing, home, graces, specialty, Wises, Nature questionnaire, relationship/inventory boundaries, drives, level1 and final details
-# Full DG trait/gear/spell/invocation details and visual random tables remain source-incomplete and are not inferred
-# No activation / executable creation / Actor-Item-grant / spell-relic roll or document-setting writes
-# M10D.14 Might/Precedence FULL PASS / VERIFIED / CLOSED on qa.15
+1.13.0-qa.17
+# M10D Final Foundation Audit
+# 19 domains: 1 VERIFIED / 13 BOUNDED_PARTIAL / 4 SOURCE_BLOCKED / 1 MANUAL
+# All 14 source-supportable domains have verified bounded READ_ONLY shadows; no adapter gaps
+# Traits / Armor / Conflict / Magic remain SOURCE_BLOCKED; Narrative remains MANUAL
+# Audit permits controlled live-integration planning only; activation/profile switch/creation commit remain blocked
+# M10D.15 Character Creation FULL PASS / VERIFIED / CLOSED on qa.16
 # Stable remains 1.12.0
-# Foundry Character Creation shadow QA pending TEST_PROTOCOL_v1.13.0-qa.16.md
+# Foundry Final Foundation Audit QA pending TEST_PROTOCOL_v1.13.0-qa.17.md
