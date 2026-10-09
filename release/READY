@@ -9,3 +9,4 @@
 # Confirmed guide-era mismatches recorded for M10D.18 repair
 # Stable remains 1.12.0
 # Foundry source-expansion QA pending TEST_PROTOCOL_v1.13.0-qa.19.md
+# CI retry after source-lineage hash correction
