@@ -36,8 +36,8 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:false,sourceCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
     wiseShadowAdapterReady:true,helpShadowAdapterReady:true,testShadowAdapterReady:true,natureShadowAdapterReady:true,abilitiesShadowAdapterReady:true,resourcesShadowAdapterReady:true,conditionsShadowAdapterReady:true,recoveryShadowAdapterReady:true,inventoryShadowAdapterReady:true,advancementShadowAdapterReady:true,sessionShadowAdapterReady:true,circlesShadowAdapterReady:true,scalesShadowAdapterReady:true,creationShadowAdapterReady:true,shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],
-    inheritedRuleProviders:[],writesPlanned:0,finalFoundationAudit:true,
+    inheritedRuleProviders:[],writesPlanned:0,finalFoundationAudit:true,liveAuthorityFrameworkReady:true,liveAuthorityFrameworkPhase:"M11.1",
     finalClassificationCounts:{VERIFIED:1,BOUNDED_PARTIAL:13,SOURCE_BLOCKED:4,MANUAL:1},
-    nextStep:"Run M10D Final Foundation Audit QA; after PASS plan controlled TB2E live integration while source-blocked domains stay disabled"
+    nextStep:"M11.1 Live Authority Framework QA; then M11.2 Wises first live-domain gate while profile activation remains blocked"
   }
 });

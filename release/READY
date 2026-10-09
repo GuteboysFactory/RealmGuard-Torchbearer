@@ -1,9 +1,10 @@
-1.13.0-qa.17
-# M10D Final Foundation Audit
-# 19 domains: 1 VERIFIED / 13 BOUNDED_PARTIAL / 4 SOURCE_BLOCKED / 1 MANUAL
-# All 14 source-supportable domains have verified bounded READ_ONLY shadows; no adapter gaps
-# Traits / Armor / Conflict / Magic remain SOURCE_BLOCKED; Narrative remains MANUAL
-# Audit permits controlled live-integration planning only; activation/profile switch/creation commit remain blocked
-# M10D.15 Character Creation FULL PASS / VERIFIED / CLOSED on qa.16
+1.13.0-qa.18
+# M11.1 Torchbearer 2E Live Authority Framework
+# Domain registry: OFF / SHADOW / DUAL_RUN / LIVE
+# 14 source-supportable domains remain SHADOW; 4 SOURCE_BLOCKED + 1 MANUAL remain OFF
+# Global kill switch hard-engaged; release unauthorized
+# Per-domain write contracts exist but every write permission is false
+# Memory-only dual-run comparison instrumentation; no persistent authority mutation
+# M10D Final Foundation Audit FULL PASS / VERIFIED / CLOSED
 # Stable remains 1.12.0
-# Foundry Final Foundation Audit QA pending TEST_PROTOCOL_v1.13.0-qa.17.md
+# Foundry M11.1 QA pending TEST_PROTOCOL_v1.13.0-qa.18.md

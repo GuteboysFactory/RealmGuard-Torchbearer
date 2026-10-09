@@ -1,5 +1,19 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.18 — M11.1 TB2E Live Authority Framework
+
+- **M10D Final Foundation Audit = FULL PASS / VERIFIED / CLOSED**.
+- Starts controlled TB2E live-integration architecture without enabling any live TB2E domain.
+- Adds OFF / SHADOW / DUAL_RUN / LIVE per-domain authority registry.
+- All 14 source-supportable domains remain SHADOW; Traits, Armor, Conflict, Magic and Narrative remain OFF.
+- Global kill switch is hard-engaged and cannot be released in M11.1.
+- Per-domain write-operation contracts are present but all permissions are false.
+- Adds memory-only DUAL_RUN comparison instrumentation and transition/write-permission previews.
+- SOURCE_BLOCKED/MANUAL domains are structurally refused above OFF.
+- No persistent mode changes, profile switch, Character Creation commit or Actor/Item/Journal/Setting writes.
+- Next milestone after QA PASS: M11.2 Wises First Live Domain.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.17 — M10D Final Foundation Audit
 
 - **M10D.15 Character Creation Bounded Completion = FULL PASS / VERIFIED / CLOSED** after Gates A-F passed in Foundry v13.351.

@@ -13,7 +13,7 @@ const settings=new Map([["activeRulesProfileId","realm-guard-legacy-mixed"],["ac
 const fail=()=>{writes++;throw new Error("TB2E foundation must not write");};
 actor.update=fail;actor.createEmbeddedDocuments=fail;actor.deleteEmbeddedDocuments=fail;
 globalThis.Actor={create:fail};globalThis.Item={create:fail};globalThis.JournalEntry={create:fail};
-globalThis.game={user:{isGM:true},system:{version:"1.13.0-qa.17"},actors:{contents:[actor]},items:{contents:items},settings:{get:(_ns,k)=>settings.get(k),set:fail},realmGuard:{core:{m10:{sentinel:"unchanged"}}}};
+globalThis.game={user:{isGM:true},system:{version:"1.13.0-qa.18"},actors:{contents:[actor]},items:{contents:items},settings:{get:(_ns,k)=>settings.get(k),set:fail},realmGuard:{core:{m10:{sentinel:"unchanged"}}}};
 globalThis.Hooks={once:(event,fn)=>{assert.equal(event,"ready");fn();}};
 globalThis.foundry={applications:{api:{DialogV2:{wait:async options=>{dialog=options;return "close";}}}}};
 const state=resolveRulesProfile("torchbearer2e");
@@ -22,7 +22,7 @@ const meta=state.profile.metadata;
 for(const key of ["selectable","supported","liveRuleAuthority","liveParityVerified","explicitActivationAuthorized","creationCommitAllowed"])assert.equal(meta[key],false);
 assert.equal(meta.foundationOnly,true);assert.equal(meta.activationState,"FOUNDATION_ONLY");assert.equal(meta.mode,"READ_ONLY");assert.equal(meta.wiseShadowAdapterReady,true);assert.equal(meta.helpShadowAdapterReady,true);assert.equal(meta.testShadowAdapterReady,true);assert.equal(meta.natureShadowAdapterReady,true);assert.equal(meta.abilitiesShadowAdapterReady,true);assert.equal(meta.resourcesShadowAdapterReady,true);assert.equal(meta.conditionsShadowAdapterReady,true);assert.equal(meta.recoveryShadowAdapterReady,true);assert.equal(meta.inventoryShadowAdapterReady,true);assert.equal(meta.advancementShadowAdapterReady,true);assert.equal(meta.sessionShadowAdapterReady,true);assert.equal(meta.circlesShadowAdapterReady,true);assert.equal(meta.scalesShadowAdapterReady,true);assert.equal(meta.creationShadowAdapterReady,true);
 assert.equal(state.registry.list().length,19);
-for(const version of ["1.13.0-qa.17","1.12.0"]){game.system.version=version;assert.equal(profileActivationAvailable("torchbearer2e"),false);await assert.rejects(()=>switchRulesProfile("torchbearer2e"),/foundation-only/i);}
+for(const version of ["1.13.0-qa.18","1.12.0"]){game.system.version=version;assert.equal(profileActivationAvailable("torchbearer2e"),false);await assert.rejects(()=>switchRulesProfile("torchbearer2e"),/foundation-only/i);}
 const creation=resolveCharacterCreationProfile("torchbearer2e");assert.equal(creation.version,1);assert.equal(creation.metadata.foundationOnly,true);assert.equal(creation.metadata.liveCommit,false);
 assert.equal(resolveM10BCharacterCreationPolicy("torchbearer2e").liveCommit,false);
 assert.throws(()=>creation.buildCommitSpec(),/FOUNDATION_ONLY/);
