@@ -25,7 +25,7 @@ function taxPreview({currentNature,maximumNature,tax}){
 export function tb2eNatureShadowStatus(){
   return freezeTb2e({
     phase:"M10D.5",mode:"TB2E_NATURE_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:NATURE_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:NATURE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",
     sourceEvidence:NATURE_ROW?.evidence??"QR 14-18, 76, 99; CC 26-30",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,traitMutationAllowed:false,advancementMutationAllowed:false,resourceSpendAllowed:false,
@@ -191,7 +191,7 @@ export function tb2eNatureLossPlan({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_LOSS_SHADOW",
     currentBefore:0,maximumBefore:Number(maximumNature),maximumAfter:nextMaximum,currentAfter:nextMaximum,
     changeOneNonClassTrait:true,traitLevelUnchanged:true,eraseTax:true,eraseNatureAdvancement:true,
-    retirementRequired:nextMaximum===0,retirementTiming:nextMaximum===0?"END_OF_CURRENT_ADVENTURE_PHASE":null,
+    retirementRequired:nextMaximum===0,retirementTiming:nextMaximum===0?"END_OF_ADVENTURE":null,
     traitMutationCommitted:false,natureMutationCommitted:false,advancementMutationCommitted:false,
     liveApplication:false,writesPlanned:0
   });

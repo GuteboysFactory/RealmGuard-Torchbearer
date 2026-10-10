@@ -43,7 +43,7 @@ const BASE_NATURE=freezeTb2e({
 export function tb2eCreationShadowStatus(){
   return freezeTb2e({
     phase:"M10D.15",mode:"TB2E_CHARACTER_CREATION_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:CREATION_ROW?.status??"PARTIAL",sourceEvidence:CREATION_ROW?.evidence??"CC 2-48; QR 8-26",
+    adapterReady:true,sourceClassification:CREATION_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",sourceEvidence:"Dungeoneer's Handbook Gather 'Round 25-47; guide baseline retained for historical QA",coreReconciliationPhase:"M10D.18_P1",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     creationCommitAllowed:false,actorCreationAllowed:false,itemCreationAllowed:false,grantApplicationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -119,10 +119,10 @@ export function tb2eSkillRedistributionPlan({className="",proposedSkills={}}={})
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"SKILL_REDISTRIBUTION_SHADOW",className:c,baseTotal,proposedTotal,skills:values,maximumRating:4,newSkillsAllowed:false,skillMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
-function raisedSkillPreview(currentRating){
+function raisedSkillPreview(currentRating,{absentRating=3}={}){
   const n=Number(currentRating??0);
   if(!Number.isFinite(n)||n<0||n>4)return null;
-  return n>=1?Math.min(4,n+1):3;
+  return n>=1?Math.min(4,n+1):absentRating;
 }
 
 export function tb2eHumanUpbringingPlan({stock="HUMAN",skill="",currentRating=0}={}){
@@ -140,20 +140,20 @@ export function tb2eHomePlan({stock="",home="",skill="",trait="",currentSkillRat
   if(!data.stocks.includes(s))return blocked("HOME_NOT_AVAILABLE_TO_STOCK",{stock:s,home:h});
   if(!data.skills.includes(sk))return blocked("INVALID_HOME_SKILL",{home:h,skill:sk});
   if(!data.traits.includes(tr))return blocked("INVALID_HOME_TRAIT",{home:h,trait:tr});
-  const finalSkillRating=raisedSkillPreview(currentSkillRating);if(finalSkillRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentSkillRating});
+  const finalSkillRating=raisedSkillPreview(currentSkillRating,{absentRating:2});if(finalSkillRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentSkillRating});
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"HOME_SHADOW",stock:s,home:h,skill:sk,trait:tr,currentSkillRating:Number(currentSkillRating),finalSkillRating,homeTraitLevelPreview:1,skillMaximumRating:4,skillMutationCommitted:false,traitMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
 export function tb2eSocialGracePlan({skill="",currentRating=0}={}){
   const sk=key(skill);if(!SOCIAL_GRACES.includes(sk))return blocked("INVALID_SOCIAL_GRACE_SKILL",{skill:sk});
-  const finalRating=raisedSkillPreview(currentRating);if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
+  const finalRating=raisedSkillPreview(currentRating,{absentRating:2});if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"SOCIAL_GRACE_SHADOW",skill:sk,currentRating:Number(currentRating),finalRating,maximumRating:4,skillMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
 export function tb2eSpecialtyPlan({skill="",currentRating=0,alreadyTakenByParty=false}={}){
   const sk=key(skill);if(!SPECIALTIES.includes(sk))return blocked("INVALID_SPECIALTY",{skill:sk});
   if(Boolean(alreadyTakenByParty))return blocked("SPECIALTY_ALREADY_TAKEN_BY_PARTY",{skill:sk});
-  const finalRating=raisedSkillPreview(currentRating);if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
+  const finalRating=raisedSkillPreview(currentRating,{absentRating:2});if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"SPECIALTY_SHADOW",skill:sk,currentRating:Number(currentRating),finalRating,maximumRating:4,underlineOnSheet:true,uniqueWithinParty:true,skillMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 

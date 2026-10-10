@@ -8,7 +8,7 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 
 const status=tb2eHelpShadowStatus();
 assert.equal(status.phase,"M10D.3");assert.equal(status.mode,"TB2E_HELP_READ_ONLY_SHADOW");assert.equal(status.sourceClassification,"PARTIAL");
-assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
+assert.equal(status.adapterReady,true);assert.equal(status.coreSourceClassification,"VERIFIED");assert.equal(status.coreReconciliationPhase,"M10D.18_P1");assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
 
 const same=tb2eHelpPlan({sourceKind:"skill",sourceName:"Cook",testName:"Cook",sameSkill:true});
 assert.equal(same.ok,true);assert.equal(same.dice,1);assert.equal(same.eligibility,"SAME_SKILL");assert.equal(same.helperConditionRisk,true);
@@ -19,10 +19,12 @@ assert.equal(ability.ok,true);assert.equal(ability.eligibility,"ABILITY_ANYONE_C
 const nature=tb2eHelpPlan({sourceKind:"nature",testName:"Nature",relevantNatureDescriptor:true});
 assert.equal(nature.ok,true);assert.equal(nature.eligibility,"RELEVANT_NATURE_DESCRIPTOR");
 assert.equal(tb2eHelpPlan({sourceKind:"wise",testName:"Scout"}).reasonCode,"USE_WISE_AID_ROUTE");
-const townResources=tb2eHelpPlan({sourceKind:"skill",testName:"Resources",phase:"TOWN"});
-assert.equal(townResources.reasonCode,"TOWN_HELP_FORBIDDEN");assert.equal(townResources.phase,"M10D.3");assert.equal(townResources.phaseContext,"TOWN");assert.equal(townResources.testContext,"TEST");
+const townResources=tb2eHelpPlan({sourceKind:"ability",sourceName:"Resources",testName:"Resources",phase:"TOWN"});
+assert.equal(townResources.ok,true);assert.equal(townResources.eligibility,"ABILITY_ANYONE_CAN_HELP");assert.equal(townResources.payingTownBills,false);
+const townBills=tb2eHelpPlan({sourceKind:"ability",sourceName:"Resources",testName:"Resources",phase:"TOWN",context:"PAY_BILLS",payingTownBills:true});
+assert.equal(townBills.reasonCode,"TOWN_BILLS_HELP_FORBIDDEN");assert.equal(townBills.phaseContext,"TOWN");assert.equal(townBills.testContext,"PAY_BILLS");
 const townRecovery=tb2eHelpPlan({sourceKind:"ability",testName:"Health",phase:"TOWN",context:"RECOVERY"});
-assert.equal(townRecovery.reasonCode,"TOWN_HELP_FORBIDDEN");assert.equal(townRecovery.phase,"M10D.3");assert.equal(townRecovery.phaseContext,"TOWN");assert.equal(townRecovery.testContext,"RECOVERY");
+assert.equal(townRecovery.reasonCode,"RECOVERY_HELP_FORBIDDEN");assert.equal(townRecovery.phase,"M10D.3");assert.equal(townRecovery.phaseContext,"TOWN");assert.equal(townRecovery.testContext,"RECOVERY");
 
 const instinct=tb2eHelpPlan({sourceKind:"skill",testName:"Scout",actingOnInstinct:true,helperActingOnInstinct:true});
 assert.equal(instinct.ok,true);assert.equal(instinct.eligibility,"HELPER_ALSO_ACTING_ON_INSTINCT");

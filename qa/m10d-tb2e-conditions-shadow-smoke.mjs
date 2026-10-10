@@ -8,8 +8,8 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 
 const status=tb2eConditionShadowStatus();
 assert.equal(status.phase,"M10D.8");assert.equal(status.mode,"TB2E_CONDITIONS_READ_ONLY_SHADOW");assert.equal(status.sourceClassification,"PARTIAL");
-assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
-assert.deepEqual(status.unresolvedSourceConflicts,["CONFLICT_DISPOSITION_PENALTY_QR41_44_VS_QR51"]);
+assert.equal(status.adapterReady,true);assert.equal(status.coreSourceClassification,"VERIFIED");assert.equal(status.coreReconciliationPhase,"M10D.18_P1");assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
+assert.deepEqual(status.unresolvedSourceConflicts,[]);
 
 const model=tb2eConditionModel();
 assert.deepEqual(model.grind.order,["FRESH","HUNGRY_THIRSTY","EXHAUSTED","ANGRY","SICK","INJURED","AFRAID","DEAD"]);
@@ -18,7 +18,7 @@ assert.deepEqual(model.recovery.order,["HUNGRY_THIRSTY","ANGRY","AFRAID","EXHAUS
 assert.equal(model.conditions.DEAD.detailsAuthority,"SOURCE_INCOMPLETE_ORDER_PLACEMENT_ONLY");
 assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseText,"CAMP_TEST");
 assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseResolved,false);
-assert.equal(model.conflictDispositionBoundary.status,"UNRESOLVED_SOURCE_CONFLICT");assert.equal(model.conflictDispositionBoundary.automation,false);
+assert.equal(model.conflictDispositionBoundary.status,"CORE_RESOLVED");assert.equal(model.conflictDispositionBoundary.successPenalties.HUNGRY_THIRSTY,"-1s_ONCE_PER_TEAM");assert.equal(model.conflictDispositionBoundary.successPenalties.EXHAUSTED,"-1s_ONCE_PER_TEAM");assert.equal(model.conflictDispositionBoundary.automation,false);
 
 const fresh=tb2eConditionTestEffectPlan({conditions:["Fresh"],test:"Skill"});
 assert.equal(fresh.diceModifier,1);assert.equal(fresh.components[0].condition,"FRESH");
@@ -40,6 +40,8 @@ assert.equal(tb2eConditionCapabilityPlan({conditions:["Sick"],capability:"ADVANC
 const instinct=tb2eConditionCapabilityPlan({conditions:["Exhausted"],capability:"FREE_INSTINCT"});
 assert.equal(instinct.allowed,false);assert.equal(instinct.turnCost,1);assert.equal(instinct.obstacleModifier,1);
 
+const dispositionResolved=tb2eConflictDispositionConditionPlan({conditions:["Hungry and Thirsty","Exhausted","Injured","Sick"]});
+assert.equal(dispositionResolved.resolution,"CORE_RESOLVED");assert.equal(dispositionResolved.successPenalty,-2);assert.equal(dispositionResolved.dicePenalty,-2);assert.deepEqual(dispositionResolved.chosenPenalty,{successes:-2,dice:-2});
 const zero=tb2eConditionZeroRatingPlan({ratingAfterConditions:0,target:"Skill"});
 assert.equal(zero.atZero,true);assert.equal(zero.mayTest,false);assert.equal(zero.mayBenefitFrom,false);assert.equal(zero.mayGrantHelp,false);assert.equal(zero.maySpendPersonaOn,false);assert.equal(zero.natureFallbackAvailable,true);
 const nonzero=tb2eConditionZeroRatingPlan({ratingAfterConditions:1,target:"Will"});assert.equal(nonzero.mayTest,true);

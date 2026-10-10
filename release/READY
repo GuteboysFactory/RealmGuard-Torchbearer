@@ -1,12 +1,11 @@
-1.13.0-qa.19
-# M10D.17 Torchbearer 2E Full-Core Source Expansion Audit
-# Core rulebooks: Dungeoneer's Handbook + Scholar's Guide
-# Optional expansions separated: Lore Master's Manual + Scavenger's Supplement
-# Current core source result: 18 VERIFIED / 0 SOURCE_BLOCKED / 1 MANUAL
-# 14 existing shadows require full-core re-audit
-# Traits / Armor / Conflict / Magic now source-verified but need new shadow adapters
-# M11.1 safety-paused; global kill switch engaged; DUAL_RUN/LIVE refused
-# Confirmed guide-era mismatches recorded for M10D.18 repair
+1.13.0-qa.20
+# M10D.18 Torchbearer 2E Core Reconciliation P1
+# Repairs 6 confirmed full-core mismatches from the guide-era shadows
+# Home / Social Grace / Specialty absent skills -> rating 2; Human Upbringing remains 3
+# Conditions disposition ambiguity resolved from Scholar's Guide (-1s Hungry/Thirsty, -1s Exhausted; Injured/Sick -1D)
+# Help restriction narrowed to Will/Health recovery + Resources town-bills test
+# Nature maximum 0 retirement -> END_OF_ADVENTURE
+# Full 14-domain re-audit still pending; Traits/Armor/Conflict/Magic adapters still pending
+# M11 remains paused; kill switch engaged; zero TB2E live writes
 # Stable remains 1.12.0
-# Foundry source-expansion QA pending TEST_PROTOCOL_v1.13.0-qa.19.md
-# CI retry after source-lineage hash correction
+# Foundry M10D.18 P1 QA pending TEST_PROTOCOL_v1.13.0-qa.20.md

@@ -20,11 +20,13 @@ import { tb2eMightActionBonusPlan, tb2eMightScalePlan, tb2eMountedMightBoundaryP
 import { tb2eClassStockPlan, tb2eCreationModel, tb2eCreationShadowStatus, tb2eDrivesPlan, tb2eFinalDetailsPlan, tb2eHomePlan, tb2eHumanUpbringingPlan, tb2eLevelOneBenefitPlan, tb2eNatureQuestionnairePlan, tb2eRelationshipsBoundaryPlan, tb2eSkillRedistributionPlan, tb2eSocialGracePlan, tb2eSpecialtyPlan, tb2eStartingEquipmentBoundaryPlan, tb2eStartingWisesPlan } from "./m10d-tb2e-creation-shadow.mjs";
 import { tb2eFinalDomainAudit, tb2eFinalFoundationAudit } from "./m10d-tb2e-final-audit.mjs";
 import { tb2eCoreDomainAudit, tb2eCoreSourceCoverageMatrix, tb2eCoreSourceExpansionAudit } from "./m10d-tb2e-core-source-expansion.mjs";
+import { tb2eCoreReconciliationStatus } from "./m10d-tb2e-core-reconciliation.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
   const coreMatrix=tb2eCoreSourceCoverageMatrix();
   const sourceExpansionAudit=tb2eCoreSourceExpansionAudit();
+  const reconciliation=tb2eCoreReconciliationStatus();
   const wiseShadow=tb2eWiseShadowStatus();
   const helpShadow=tb2eHelpShadowStatus();
   const testShadow=tb2eTestShadowStatus();
@@ -39,7 +41,7 @@ export function tb2eFoundationStatus() {
   const circlesShadow=tb2eCirclesShadowStatus();
   const scalesShadow=tb2eScalesShadowStatus();
   const creationShadow=tb2eCreationShadowStatus();
-  return freezeTb2e({phase:"M10D.17",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
+  return freezeTb2e({phase:"M10D.18",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:true,coreSourceComplete:true,
@@ -56,7 +58,12 @@ export function tb2eFoundationStatus() {
     existingShadowReauditDomains:sourceExpansionAudit.existingShadowReauditDomains,
     newShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains,
     liveIntegrationPaused:sourceExpansionAudit.liveIntegrationPauseRequired,
-    nextStep:"M10D.18 Core Reconciliation: re-audit 14 existing shadows against full core books and build Traits/Armor/Conflict/Magic shadows before resuming M11"});
+    coreReconciliationPackage:reconciliation.package,
+    coreReconciliationPackageReady:reconciliation.packageReady,
+    resolvedReconciliationFindingCount:reconciliation.resolvedFindingCount,
+    pendingReconciliationFindingCount:reconciliation.pendingFindingCount,
+    fullDomainReauditStillRequired:reconciliation.fullDomainReauditStillRequired,
+    nextStep:"M10D.18 P2: full-core re-audit existing shadows; Traits/Armor/Conflict/Magic adapters remain pending before M11 resumes"});
 }
 
 export function tb2eReadinessAudit() {
@@ -82,7 +89,7 @@ export function installM10DFoundation() {
     game.realmGuard??={};game.realmGuard.core??={};
     game.realmGuard.core.m10d=Object.freeze({getStatus:tb2eFoundationStatus,readinessAudit:tb2eReadinessAudit,
       sourceCoverageMatrix:tb2eCoreSourceCoverageMatrix,guideBaselineCoverageMatrix:tb2eSourceCoverageMatrix,
-      sourceExpansionAudit:tb2eCoreSourceExpansionAudit,coreDomainAudit:tb2eCoreDomainAudit,
+      sourceExpansionAudit:tb2eCoreSourceExpansionAudit,coreDomainAudit:tb2eCoreDomainAudit,reconciliationStatus:tb2eCoreReconciliationStatus,
       getRulesProfile:()=>resolveRulesProfile("torchbearer2e").profile,
       getCreationProfile:()=>TORCHBEARER2E_CREATION_PROFILE,
       previewConversion:previewTorchbearer2eConversion,showConversionPreview:showTorchbearer2eConversionPreview,

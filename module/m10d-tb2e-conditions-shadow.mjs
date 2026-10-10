@@ -45,20 +45,20 @@ function testFamily(value){
 export function tb2eConditionShadowStatus(){
   return freezeTb2e({
     phase:"M10D.8",mode:"TB2E_CONDITIONS_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:CONDITION_ROW?.status??"PARTIAL",
-    sourceEvidence:CONDITION_ROW?.evidence??"QR 38, 40-47, 51",
+    adapterReady:true,sourceClassification:CONDITION_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",
+    sourceEvidence:"Scholar's Guide Conditions 39-57; full-core reconciliation M10D.18 P1",coreReconciliationPhase:"M10D.18_P1",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     conditionMutationAllowed:false,effectMutationAllowed:false,deathMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
-    unresolvedSourceConflicts:["CONFLICT_DISPOSITION_PENALTY_QR41_44_VS_QR51"],
+    unresolvedSourceConflicts:[],coreReconciledFindings:["CONDITIONS_HUNGRY_EXHAUSTED_DISPOSITION_MINUS_1S"],
     boundaries:[
       "NO_LIVE_CONDITION_APPLICATION_OR_REMOVAL",
-      "NO_CONFLICT_DISPOSITION_PENALTY_AUTOMATION_WHILE_SOURCE_CONFLICT_IS_UNRESOLVED",
+      "CONFLICT_DISPOSITION_CORE_RULE_RESOLVED_READ_ONLY_NO_LIVE_MUTATION",
       "DEAD_HAS_ORDER_PLACEMENT_ONLY_IN_SUPPLIED_CONDITION_SUMMARY",
       "EXHAUSTED_RECOVERY_PHASE_TEXT_QR44_PRESERVED_AS_CAMP_TEST_UNRESOLVED",
       "FULL_RECOVERY_EXECUTION_DEFERRED_TO_RECOVERY_DOMAIN"
     ],
-    nextStep:"Verify bounded condition states/effects while preserving conflict-disposition and recovery-source ambiguities"
+    nextStep:"Continue full-core Conditions re-audit; disposition penalty ambiguity is resolved by Scholar's Guide while live mutation remains disabled"
   });
 }
 
@@ -70,8 +70,8 @@ export function tb2eConditionModel(){
     recovery:{order:RECOVERY_ORDER,executionAuthority:"DEFER_TO_M10D_RECOVERY_DOMAIN"},
     conditions:{
       FRESH:{testDice:+1,exceptTests:["RESOURCES","CIRCLES"]},
-      HUNGRY_THIRSTY:{conflictDisposition:"UNRESOLVED_SOURCE_CONFLICT",recoverySummary:"FOOD_DRINK_OR_SOURCE_APPROPRIATE_RECOVERY"},
-      EXHAUSTED:{freeInstinct:false,freeInstinctTurnCost:1,freeInstinctObstacleModifier:+1,conflictDisposition:"UNRESOLVED_SOURCE_CONFLICT",recoveryReference:{ability:"HEALTH",obstacle:3,phaseText:"CAMP_TEST",phaseResolved:false}},
+      HUNGRY_THIRSTY:{conflictDisposition:"-1s_TEAM_DISPOSITION_ONCE",recoverySummary:"FOOD_DRINK_OR_SOURCE_APPROPRIATE_RECOVERY"},
+      EXHAUSTED:{freeInstinct:false,freeInstinctTurnCost:1,freeInstinctObstacleModifier:+1,conflictDisposition:"-1s_TEAM_DISPOSITION_ONCE",recoveryReference:{ability:"HEALTH",obstacle:3,phaseText:"CAMP_TEST",phaseResolved:false}},
       ANGRY:{beneficialTraitsAllowed:false,beneficialWisesAllowed:false,precisionOrSocialObstacleGuidance:+1,recoveryExcludedFromGuidance:true,recoveryReference:{ability:"WILL",obstacle:2,phases:["CAMP","TOWN"]}},
       SICK:{diceModifier:{NATURE:-1,WILL:-1,HEALTH:-1,SKILL:-1},stacksWith:"INJURED",practiceAllowed:false,mentorLearningAllowed:false,advancementLoggingAllowed:false,recoveryReference:{ability:"WILL",obstacle:3,phases:["CAMP","TOWN"]}},
       INJURED:{diceModifier:{NATURE:-1,WILL:-1,HEALTH:-1,SKILL:-1},stacksWith:"SICK",recoveryReference:{ability:"HEALTH",obstacle:4,phases:["CAMP","TOWN"]}},
@@ -84,9 +84,10 @@ export function tb2eConditionModel(){
       natureFallbackAvailable:true
     },
     conflictDispositionBoundary:{
-      status:"UNRESOLVED_SOURCE_CONFLICT",
-      qr41_44:{HUNGRY_THIRSTY:"-1s",EXHAUSTED:"-1s",stacking:true},
-      qr51:{HUNGRY_THIRSTY:"-1D",EXHAUSTED:"-1D",INJURED:"-1D",SICK:"-1D",maximumListedPenaltyDice:-4},
+      status:"CORE_RESOLVED",
+      authority:"SCHOLARS_GUIDE_CONDITIONS_IN_CONFLICT",
+      successPenalties:{HUNGRY_THIRSTY:"-1s_ONCE_PER_TEAM",EXHAUSTED:"-1s_ONCE_PER_TEAM"},
+      dicePenalties:{INJURED:"-1D_PER_CHARACTER",SICK:"-1D_PER_CHARACTER"},
       automation:false
     },
     liveApplication:false,writesPlanned:0
@@ -182,22 +183,23 @@ export function tb2eConflictDispositionConditionPlan({conditions=[]}={}){
   const active=normalizeConditions(conditions);
   if(!active)return blocked("UNKNOWN_OR_UNSOURCED_CONDITION_IN_SET",{conditions});
   const relevant=active.filter(id=>["HUNGRY_THIRSTY","EXHAUSTED","INJURED","SICK"].includes(id));
+  const successPenalty=(active.includes("HUNGRY_THIRSTY")?-1:0)+(active.includes("EXHAUSTED")?-1:0);
+  const dicePenalty=(active.includes("INJURED")?-1:0)+(active.includes("SICK")?-1:0);
+  const components=[
+    ...(active.includes("HUNGRY_THIRSTY")?[{condition:"HUNGRY_THIRSTY",kind:"SUCCESSES",value:-1,scope:"TEAM_ONCE"}]:[]),
+    ...(active.includes("EXHAUSTED")?[{condition:"EXHAUSTED",kind:"SUCCESSES",value:-1,scope:"TEAM_ONCE"}]:[]),
+    ...(active.includes("INJURED")?[{condition:"INJURED",kind:"DICE",value:-1,scope:"AFFECTED_CHARACTER"}]:[]),
+    ...(active.includes("SICK")?[{condition:"SICK",kind:"DICE",value:-1,scope:"AFFECTED_CHARACTER"}]:[])
+  ];
   return freezeTb2e({
     ok:true,phase:"M10D.8",profileId:PROFILE_ID,mode:"CONFLICT_DISPOSITION_CONDITION_BOUNDARY",
     conditions:active,relevantConditions:relevant,
-    resolution:"UNRESOLVED_SOURCE_CONFLICT",automation:false,
-    qr41_44:{
-      HUNGRY_THIRSTY:active.includes("HUNGRY_THIRSTY")?"-1s":null,
-      EXHAUSTED:active.includes("EXHAUSTED")?"-1s":null,
-      stacking:true
-    },
-    qr51:{
-      HUNGRY_THIRSTY:active.includes("HUNGRY_THIRSTY")?"-1D":null,
-      EXHAUSTED:active.includes("EXHAUSTED")?"-1D":null,
-      INJURED:active.includes("INJURED")?"-1D":null,
-      SICK:active.includes("SICK")?"-1D":null
-    },
-    chosenPenalty:null,liveApplication:false,writesPlanned:0
+    resolution:"CORE_RESOLVED",authority:"SCHOLARS_GUIDE_CONDITIONS_IN_CONFLICT",automation:false,
+    successPenalty,dicePenalty,components,
+    teamSuccessPenaltyRules:{HUNGRY_THIRSTY:"-1s_ONCE",EXHAUSTED:"-1s_ONCE"},
+    characterDicePenaltyRules:{INJURED:"-1D",SICK:"-1D"},
+    chosenPenalty:{successes:successPenalty,dice:dicePenalty},
+    liveApplication:false,writesPlanned:0
   });
 }
 

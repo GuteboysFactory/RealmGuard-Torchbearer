@@ -12,7 +12,7 @@ function blocked(reasonCode,extra={}){
 export function tb2eHelpShadowStatus(){
   return freezeTb2e({
     phase:"M10D.3",mode:"TB2E_HELP_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",sourceEvidence:HELP_ROW?.evidence??"QR 5, 7, 59-60, 99; CC 5, 45",
+    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",sourceEvidence:HELP_ROW?.evidence??"QR 5, 7, 59-60, 99; CC 5, 45",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,conditionMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -36,7 +36,8 @@ export function tb2eHelpPlan({
   phase="ADVENTURE",
   context="TEST",
   actingOnInstinct=false,
-  helperActingOnInstinct=false
+  helperActingOnInstinct=false,
+  payingTownBills=false
 }={}){
   const kind=norm(sourceKind);
   const source=norm(sourceName);
@@ -45,8 +46,12 @@ export function tb2eHelpPlan({
   const contextKey=String(context??"TEST").trim().toUpperCase();
 
   if(kind==="wise") return blocked("USE_WISE_AID_ROUTE",{route:"TB2E_WISE_AID",sourceKind:"WISE"});
-  if(phaseKey==="TOWN" && (contextKey==="RECOVERY" || test==="resources")){
-    return blocked("TOWN_HELP_FORBIDDEN",{phaseContext:phaseKey,testContext:contextKey,testName:String(testName??"")});
+  if(contextKey==="RECOVERY" && ["will","health"].includes(test)){
+    return blocked("RECOVERY_HELP_FORBIDDEN",{phaseContext:phaseKey,testContext:contextKey,testName:String(testName??"")});
+  }
+  const townBills=Boolean(payingTownBills)||["PAY_BILLS","LIFESTYLE_EXIT"].includes(contextKey);
+  if(test==="resources" && townBills){
+    return blocked("TOWN_BILLS_HELP_FORBIDDEN",{phaseContext:phaseKey,testContext:contextKey,testName:String(testName??""),payingTownBills:true});
   }
 
   let eligibility="NONE";
@@ -63,7 +68,7 @@ export function tb2eHelpPlan({
   return freezeTb2e({
     ok:true,phase:"M10D.3",profileId:PROFILE_ID,mode:"TEAMWORK",dice:1,
     eligibility,sourceKind:String(sourceKind??"").toUpperCase(),sourceName:String(sourceName??""),
-    testName:String(testName??""),phaseContext:phaseKey,testContext:contextKey,
+    testName:String(testName??""),phaseContext:phaseKey,testContext:contextKey,payingTownBills:Boolean(payingTownBills),
     helperConditionRisk:true,wiseAid:false,resourceCost:"NONE",
     liveApplication:false,writesPlanned:0
   });

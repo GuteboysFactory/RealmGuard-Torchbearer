@@ -1,5 +1,17 @@
 # Realm Guard - Update Log
 
+## v1.13.0-qa.20 — M10D.18 Core Reconciliation P1
+
+- **M10D.17 Full-Core Source Expansion Audit = FULL PASS / VERIFIED / CLOSED**.
+- Repairs six confirmed guide-era TB2E shadow mismatches against the full core books.
+- Character Creation: Home, Social Grace and Specialty now start absent skills at rating 2; Human Upbringing correctly remains rating 3.
+- Conditions: Hungry/Thirsty and Exhausted disposition penalties resolve to -1s each; Injured/Sick remain -1D. The old guide-only source conflict is removed from the read-only shadow.
+- Help: generic Town Resources tests are no longer blocked; recovery Will/Health and leaving-town Resources bills remain no-help cases.
+- Nature: max Nature 0 retirement timing corrected to END_OF_ADVENTURE.
+- Adds M10D.18 reconciliation status with 6 resolved / 4 pending findings.
+- Full-domain re-audit and four new adapters remain outstanding; M11 remains paused with zero live writes.
+- Stable remains v1.12.0.
+
 ## v1.13.0-qa.19 — M10D.17 Full-Core Source Expansion Audit
 
 - Adds Dungeoneer's Handbook and Scholar's Guide as the essential Torchbearer 2E core source authority.

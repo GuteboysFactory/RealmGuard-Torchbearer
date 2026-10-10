@@ -8,7 +8,7 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 
 const status=tb2eCreationShadowStatus();
 assert.equal(status.phase,"M10D.15");assert.equal(status.mode,"TB2E_CHARACTER_CREATION_READ_ONLY_SHADOW");
-assert.equal(status.sourceClassification,"PARTIAL");assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);
+assert.equal(status.sourceClassification,"PARTIAL");assert.equal(status.coreSourceClassification,"VERIFIED");assert.equal(status.coreReconciliationPhase,"M10D.18_P1");assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);
 assert.equal(status.creationCommitAllowed,false);assert.equal(status.actorCreationAllowed,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
 
 const model=tb2eCreationModel();
@@ -29,10 +29,11 @@ assert.equal(tb2eHumanUpbringingPlan({stock:"Human",skill:"Haggler",currentRatin
 assert.equal(tb2eHumanUpbringingPlan({stock:"Elf",skill:"Haggler"}).reasonCode,"HUMAN_UPBRINGING_REQUIRES_HUMAN_STOCK");
 
 const home=tb2eHomePlan({stock:"Elf",home:"Elfhome",skill:"Healer",trait:"Calm",currentSkillRating:0});
-assert.equal(home.finalSkillRating,3);assert.equal(home.homeTraitLevelPreview,1);
+assert.equal(home.finalSkillRating,2);assert.equal(home.homeTraitLevelPreview,1);
 assert.equal(tb2eHomePlan({stock:"Human",home:"Elfhome",skill:"Healer",trait:"Calm"}).reasonCode,"HOME_NOT_AVAILABLE_TO_STOCK");
+assert.equal(tb2eSocialGracePlan({skill:"Orator",currentRating:0}).finalRating,2);
 assert.equal(tb2eSocialGracePlan({skill:"Orator",currentRating:2}).finalRating,3);
-assert.equal(tb2eSpecialtyPlan({skill:"Scout",currentRating:0,alreadyTakenByParty:false}).finalRating,3);
+assert.equal(tb2eSpecialtyPlan({skill:"Scout",currentRating:0,alreadyTakenByParty:false}).finalRating,2);
 assert.equal(tb2eSpecialtyPlan({skill:"Scout",alreadyTakenByParty:true}).reasonCode,"SPECIALTY_ALREADY_TAKEN_BY_PARTY");
 
 const dwWises=tb2eStartingWisesPlan({stock:"Dwarf",stockWise:"Dwarven Chronicles",customWise:"Troll-wise"});

@@ -37,7 +37,7 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
   })),
   metadata:{
     foundationOnly:true,selectable:false,supported:false,liveRuleAuthority:false,activationState:"FOUNDATION_ONLY",
-    implementationPhase:"M10D.17",mode:"READ_ONLY",conversionPreviewAvailable:true,
+    implementationPhase:"M10D.18",mode:"READ_ONLY",conversionPreviewAvailable:true,
     liveParityVerified:false,explicitActivationAuthorized:false,creationCommitAllowed:false,
     sourceLineage:TB2E_SOURCE_AUTHORITY.map(source=>source.id),sourceAuthority:TB2E_SOURCE_AUTHORITY,
     sourceComplete:true,coreSourceComplete:true,sourceCoverageMatrix:TB2E_CORE_SOURCE_COVERAGE_MATRIX,guideBaselineCoverageMatrix:TB2E_SOURCE_COVERAGE_MATRIX,
@@ -47,6 +47,7 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     finalClassificationCounts:{VERIFIED:18,BOUNDED_PARTIAL:0,SOURCE_BLOCKED:0,MANUAL:1},
     coreSourceClassificationCounts:{VERIFIED:18,MANUAL:1,SOURCE_BLOCKED:0},
     fullCoreShadowReauditRequired:true,newShadowAdaptersRequired:["traits","armor","conflict","magic"],liveIntegrationPaused:true,
-    nextStep:"M10D.18 Core Reconciliation before M11 resumes"
+    coreReconciliationPackage:"P1_CONFIRMED_MISMATCH_REPAIRS",resolvedReconciliationFindingCount:6,
+    nextStep:"M10D.18 P2 full-core shadow re-audit; M11 remains paused"
   }
 });

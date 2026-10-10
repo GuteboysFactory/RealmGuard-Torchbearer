@@ -8,7 +8,7 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 
 const status=tb2eNatureShadowStatus();
 assert.equal(status.phase,"M10D.5");assert.equal(status.mode,"TB2E_NATURE_READ_ONLY_SHADOW");assert.equal(status.sourceClassification,"PARTIAL");
-assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
+assert.equal(status.adapterReady,true);assert.equal(status.coreSourceClassification,"VERIFIED");assert.equal(status.coreReconciliationPhase,"M10D.18_P1");assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
 
 const model=tb2eNatureModel();
 assert.deepEqual(model.ratingRange,{min:0,max:7});assert.equal(model.startingNatureGuide,3);assert.equal(model.currentMaximumSeparated,true);
@@ -51,7 +51,7 @@ assert.equal(conserve.maximumAfter,4);assert.equal(conserve.currentAfter,4);asse
 const loss=tb2eNatureLossPlan({currentNature:0,maximumNature:3,reachedZeroDueToTax:true});
 assert.equal(loss.maximumAfter,2);assert.equal(loss.currentAfter,2);assert.equal(loss.changeOneNonClassTrait,true);assert.equal(loss.traitLevelUnchanged,true);assert.equal(loss.eraseTax,true);assert.equal(loss.eraseNatureAdvancement,true);
 const finalLoss=tb2eNatureLossPlan({currentNature:0,maximumNature:1,reachedZeroDueToTax:true});
-assert.equal(finalLoss.retirementRequired,true);assert.equal(finalLoss.retirementTiming,"END_OF_CURRENT_ADVENTURE_PHASE");
+assert.equal(finalLoss.retirementRequired,true);assert.equal(finalLoss.retirementTiming,"END_OF_ADVENTURE");
 
 const advance=tb2eNatureAdvancementPlan({currentNature:3,maximumNature:5,advancementTriggered:true});
 assert.equal(advance.currentAfter,4);assert.equal(advance.maximumAfter,6);assert.equal(advance.taxDifferenceBefore,2);assert.equal(advance.taxDifferenceAfter,2);
