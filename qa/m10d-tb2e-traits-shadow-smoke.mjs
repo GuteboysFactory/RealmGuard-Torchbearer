@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import {tb2eTraitsShadowStatus,tb2eTraitModel,tb2eTraitUsePlan,tb2eTraitRefreshPlan,tb2eClassTraitBoundaryPlan} from "../module/m10d-tb2e-traits-shadow.mjs";
-import {tb2eFoundationStatus,installM10DFoundation} from "../module/m10d-tb2e-foundation.mjs";
+import {tb2eFoundationStatus,tb2eReadinessAudit,installM10DFoundation} from "../module/m10d-tb2e-foundation.mjs";
+import {resolveRulesProfile} from "../module/rules-profile-service.mjs";
 
 const status=tb2eTraitsShadowStatus();
 assert.equal(status.adapterReady,true);
@@ -11,6 +12,10 @@ assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
 assert.equal(tb2eTraitModel().oneTraitPerTest,true);
 const plan=o=>tb2eTraitUsePlan({applies:true,...o});
 assert.equal(plan({level:1}).effects[0].value,1);
+assert.equal(plan({level:1}).mode,"READ_ONLY_SHADOW");
+assert.equal(plan({level:1}).useKind,"BENEFIT");
+assert.equal(plan({mode:"AGAINST"}).useKind,"AGAINST");
+assert.equal(plan({phase:"UNKNOWN"}).reasonCode,"UNKNOWN_TRAIT_PHASE");
 assert.equal(plan({level:1,benefitUses:1}).reasonCode,"BENEFIT_USES_EXHAUSTED");
 assert.equal(plan({level:2,benefitUses:1}).ok,true);
 assert.equal(plan({level:2,benefitUses:2}).ok,false);
@@ -36,6 +41,16 @@ assert.equal(tb2eTraitRefreshPlan({newSessionPrologueDelivered:false}).actionApp
 assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).gmReviewRequired,true);
 assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).retirementCommitted,false);
 assert.equal(tb2eFoundationStatus().traitsShadowReady,true);
+assert.deepEqual(tb2eFoundationStatus().p2ImplementedShadowAdapterDomains,["traits"]);
+assert.deepEqual(tb2eFoundationStatus().p2PendingShadowAdapterDomains,["armor","conflict","magic"]);
+assert.deepEqual(tb2eReadinessAudit().implementationGaps.filter(g=>g.state==="NEW_SHADOW_ADAPTER_REQUIRED").map(g=>g.id),["armor","conflict","magic"]);
+const tb2e=resolveRulesProfile("torchbearer2e");
+assert.equal(tb2e.profile.domains.traits.mode,"READ_ONLY_SHADOW");
+assert.equal(tb2e.profile.domains.traits.shadowAdapterReady,true);
+assert.equal(tb2e.profile.domains.armor.mode,"OFF");
+assert.equal(tb2e.profile.domains.conflict.mode,"OFF");
+assert.equal(tb2e.profile.domains.magic.mode,"OFF");
+assert.equal(tb2e.profile.metadata.liveRuleAuthority,false);
 const prior={sentinel:"keep"};
 let mutations=0;
 const forbid=()=>{mutations++;throw Error("Write forbidden");};
