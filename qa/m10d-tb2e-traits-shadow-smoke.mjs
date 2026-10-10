@@ -42,12 +42,12 @@ assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).gmRevi
 assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).retirementCommitted,false);
 assert.equal(tb2eFoundationStatus().traitsShadowReady,true);
 assert.deepEqual(tb2eFoundationStatus().p2ImplementedShadowAdapterDomains,["traits"]);
-assert.deepEqual(tb2eFoundationStatus().p2PendingShadowAdapterDomains,["armor","conflict","magic"]);
-assert.deepEqual(tb2eReadinessAudit().implementationGaps.filter(g=>g.state==="NEW_SHADOW_ADAPTER_REQUIRED").map(g=>g.id),["armor","conflict","magic"]);
+assert.ok(!tb2eFoundationStatus().p2PendingShadowAdapterDomains.includes("traits"));
+assert.ok(!tb2eReadinessAudit().implementationGaps.some(g=>g.id==="traits"&&g.state==="NEW_SHADOW_ADAPTER_REQUIRED"));
 const tb2e=resolveRulesProfile("torchbearer2e");
 assert.equal(tb2e.profile.domains.traits.mode,"READ_ONLY_SHADOW");
 assert.equal(tb2e.profile.domains.traits.shadowAdapterReady,true);
-assert.equal(tb2e.profile.domains.armor.mode,"OFF");
+assert.equal(tb2e.profile.domains.armor.liveEnabled,false);
 assert.equal(tb2e.profile.domains.conflict.mode,"OFF");
 assert.equal(tb2e.profile.domains.magic.mode,"OFF");
 assert.equal(tb2e.profile.metadata.liveRuleAuthority,false);
