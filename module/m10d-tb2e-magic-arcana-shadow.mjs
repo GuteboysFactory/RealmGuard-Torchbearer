@@ -39,6 +39,7 @@ export function tb2eMagicCastPlan({castingMode="FIXED",source="MEMORY",
  castingTurns=0,helpingArcanists=0,helpingArcanistsAllEquippedSameSpell=false,
  materials=false,focus=false,
  inConflict=false,conflictTiming="NONE",equippedThisRound=false,
+ spellAllowsBeforeDisposition=false,
  targetOpposition=false,freeSpellsAlreadyThisRound=0}={}){
  const mode=key(castingMode),from=key(source),timing=key(conflictTiming);
  if(!MODES.includes(mode))return blocked("INVALID_SPELL_CAST_MODE");
@@ -60,8 +61,8 @@ export function tb2eMagicCastPlan({castingMode="FIXED",source="MEMORY",
    if(!equippedThisRound||!["ACTION","BETWEEN_ROUNDS","BEFORE_DISPOSITION"].includes(timing))
     return blocked("SKILL_SWAP_MUST_BE_EQUIPPED");
   }else if(timing==="BEFORE_DISPOSITION"){
-   // Only a spell-specific ability to act before disposition authorizes this timing.
-   return blocked("BEFORE_DISPOSITION_SPELL_SPECIFIC_GM_APPROVAL_REQUIRED");
+   if(!spellAllowsBeforeDisposition)
+    return blocked("BEFORE_DISPOSITION_SPELL_SPECIFIC_GM_APPROVAL_REQUIRED");
   }else if(timing==="BETWEEN_ROUNDS"){
    if(totalTurns>0)return blocked("TURN_COST_SPELL_NOT_USABLE_IN_CONFLICT");
    if(targetOpposition)return blocked("BETWEEN_ROUNDS_SPELL_CANNOT_AFFECT_OPPOSITION");
