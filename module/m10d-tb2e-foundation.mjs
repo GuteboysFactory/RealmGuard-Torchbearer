@@ -59,6 +59,8 @@ export function tb2eFoundationStatus() {
     existingShadowReauditRequired:sourceExpansionAudit.existingShadowReauditRequired,
     existingShadowReauditDomains:sourceExpansionAudit.existingShadowReauditDomains,
     newShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains,
+    p2ImplementedShadowAdapterDomains:traitsShadow.adapterReady?["traits"]:[],
+    p2PendingShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains.filter(id=>id!=="traits"||!traitsShadow.adapterReady),
     liveIntegrationPaused:sourceExpansionAudit.liveIntegrationPauseRequired,
     coreReconciliationPackage:reconciliation.package,
     coreReconciliationPackageReady:reconciliation.packageReady,
@@ -75,7 +77,7 @@ export function tb2eReadinessAudit() {
     sourceMissingDomains:[],
     implementationGaps:[
       ...expansion.existingShadowReauditDomains.map(id=>({id,state:"FULL_CORE_REAUDIT_REQUIRED"})),
-      ...expansion.newShadowAdapterDomains.map(id=>({id,state:"NEW_SHADOW_ADAPTER_REQUIRED"}))
+      ...tb2eFoundationStatus().p2PendingShadowAdapterDomains.map(id=>({id,state:"NEW_SHADOW_ADAPTER_REQUIRED"}))
     ]});
 }
 
