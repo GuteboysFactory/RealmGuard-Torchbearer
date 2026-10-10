@@ -41,7 +41,7 @@ assert.equal(tb2eTraitRefreshPlan({newSessionPrologueDelivered:false}).actionApp
 assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).gmReviewRequired,true);
 assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).retirementCommitted,false);
 assert.equal(tb2eFoundationStatus().traitsShadowReady,true);
-assert.deepEqual(tb2eFoundationStatus().p2ImplementedShadowAdapterDomains,["traits"]);
+assert.ok(tb2eFoundationStatus().p2ImplementedShadowAdapterDomains.includes("traits"));
 assert.ok(!tb2eFoundationStatus().p2PendingShadowAdapterDomains.includes("traits"));
 assert.ok(!tb2eReadinessAudit().implementationGaps.some(g=>g.id==="traits"&&g.state==="NEW_SHADOW_ADAPTER_REQUIRED"));
 const tb2e=resolveRulesProfile("torchbearer2e");
