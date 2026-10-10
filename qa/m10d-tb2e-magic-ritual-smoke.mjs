@@ -26,7 +26,7 @@ assert.equal(invoke({baseTimeWithRelic:1,baseBurdenWithRelic:1,
 assert.equal(invoke({canSpeak:false}).ok,false);
 assert.equal(invoke({inConflict:true,conflictTiming:"ACTION"}).ok,false);
 assert.equal(invoke({castingMode:"SKILL_SWAP",inConflict:true,
- conflictTiming:"ACTION",equippedThisRound:true}).ok,true);
+ conflictTiming:"ACTION",equippedThisRound:true,withRelic:true}).ok,true);
 assert.equal(invoke({castingMode:"SKILL_SWAP",inConflict:true,
  conflictTiming:"ACTION"}).ok,false);
 const camp=purify({phase:"CAMP",currentBurden:5,atUncorruptedShrine:true,
