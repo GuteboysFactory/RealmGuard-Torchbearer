@@ -26,6 +26,9 @@ import { tb2eArmorShadowStatus, tb2eArmorModel, tb2eArmorAbsorptionPlan, tb2eShi
 import { tb2eConflictShadowStatus, tb2eConflictModel, tb2eConflictDispositionPlan, tb2eConflictActionPlan, tb2eConflictHpAllocationPlan } from "./m10d-tb2e-conflict-shadow.mjs";
 import { tb2eConflictHitPlan, tb2eConflictRegroupPlan, tb2eConflictManeuverPlan } from "./m10d-tb2e-conflict-resolution-shadow.mjs";
 import { tb2eConflictOutcomePlan } from "./m10d-tb2e-conflict-outcome-shadow.mjs";
+import { tb2eMagicShadowStatus, tb2eMagicModel } from "./m10d-tb2e-magic-shadow.mjs";
+import { tb2eMagicMemoryPlan, tb2eMagicSpellbookPlan, tb2eMagicCastPlan, tb2eMagicDischargePlan, tb2eMagicSpellInterruptPlan } from "./m10d-tb2e-magic-arcana-shadow.mjs";
+import { tb2eMagicInvocationPlan, tb2eMagicInvocationInterruptPlan, tb2eMagicPurificationPlan, tb2eMagicStigmataPlan } from "./m10d-tb2e-magic-ritual-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -49,13 +52,14 @@ export function tb2eFoundationStatus() {
   const traitsShadow=tb2eTraitsShadowStatus();
   const armorShadow=tb2eArmorShadowStatus();
   const conflictShadow=tb2eConflictShadowStatus();
+  const magicShadow=tb2eMagicShadowStatus();
   return freezeTb2e({phase:"M10D.18",profileId:"torchbearer2e",profileVersion:1,creationProfileVersion:1,
     mode:"READ_ONLY",activationState:"FOUNDATION_ONLY",foundationReady:true,liveReady:false,
     activationAllowed:false,activationAvailable:profileActivationAvailable("torchbearer2e"),
     profileSwitch:false,liveParityVerified:false,creationCommitAllowed:false,sourceComplete:true,coreSourceComplete:true,
     domainCount:coreMatrix.length,coverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,coreMatrix.filter(row=>row.status===status).length])),
     guideBaselineCoverageCounts:Object.fromEntries(["VERIFIED","PARTIAL","MANUAL","SOURCE_INCOMPLETE"].map(status=>[status,matrix.filter(row=>row.status===status).length])),
-    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,creationShadowReady:creationShadow.adapterReady===true,traitsShadowReady:traitsShadow.adapterReady===true,armorShadowReady:armorShadow.adapterReady===true,conflictShadowReady:conflictShadow.adapterReady===true,
+    shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"],wiseShadowReady:wiseShadow.adapterReady===true,helpShadowReady:helpShadow.adapterReady===true,testShadowReady:testShadow.adapterReady===true,natureShadowReady:natureShadow.adapterReady===true,abilitiesShadowReady:abilitiesShadow.adapterReady===true,resourcesShadowReady:resourcesShadow.adapterReady===true,conditionsShadowReady:conditionsShadow.adapterReady===true,recoveryShadowReady:recoveryShadow.adapterReady===true,inventoryShadowReady:inventoryShadow.adapterReady===true,advancementShadowReady:advancementShadow.adapterReady===true,sessionShadowReady:sessionShadow.adapterReady===true,circlesShadowReady:circlesShadow.adapterReady===true,scalesShadowReady:scalesShadow.adapterReady===true,creationShadowReady:creationShadow.adapterReady===true,traitsShadowReady:traitsShadow.adapterReady===true,armorShadowReady:armorShadow.adapterReady===true,conflictShadowReady:conflictShadow.adapterReady===true,magicShadowReady:magicShadow.adapterReady===true,
     sourceAuthority:TORCHBEARER2E_FOUNDATION_PROFILE.metadata.sourceAuthority,
     sourceCoverageMatrix:coreMatrix,guideBaselineCoverageMatrix:matrix,writes:{actors:0,items:0,journals:0,settings:0},destructiveConversion:false,
     historicalFinalFoundationAuditComplete:tb2eFinalFoundationAudit({shadowReadyDomains:["wises","help","tests","nature","abilities","resources","conditions","recovery","inventory","advancement","session","circles","scales","creation"]}).auditComplete,
@@ -65,15 +69,15 @@ export function tb2eFoundationStatus() {
     existingShadowReauditRequired:sourceExpansionAudit.existingShadowReauditRequired,
     existingShadowReauditDomains:sourceExpansionAudit.existingShadowReauditDomains,
     newShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains,
-    p2ImplementedShadowAdapterDomains:[...(traitsShadow.adapterReady?["traits"]:[]),...(armorShadow.adapterReady?["armor"]:[]),...(conflictShadow.adapterReady?["conflict"]:[])],
-    p2PendingShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains.filter(id=>!((id==="traits"&&traitsShadow.adapterReady)||(id==="armor"&&armorShadow.adapterReady)||(id==="conflict"&&conflictShadow.adapterReady))),
+    p2ImplementedShadowAdapterDomains:[...(traitsShadow.adapterReady?["traits"]:[]),...(armorShadow.adapterReady?["armor"]:[]),...(conflictShadow.adapterReady?["conflict"]:[]),...(magicShadow.adapterReady?["magic"]:[])],
+    p2PendingShadowAdapterDomains:sourceExpansionAudit.newShadowAdapterDomains.filter(id=>!((id==="traits"&&traitsShadow.adapterReady)||(id==="armor"&&armorShadow.adapterReady)||(id==="conflict"&&conflictShadow.adapterReady)||(id==="magic"&&magicShadow.adapterReady))),
     liveIntegrationPaused:sourceExpansionAudit.liveIntegrationPauseRequired,
     coreReconciliationPackage:reconciliation.package,
     coreReconciliationPackageReady:reconciliation.packageReady,
     resolvedReconciliationFindingCount:reconciliation.resolvedFindingCount,
     pendingReconciliationFindingCount:reconciliation.pendingFindingCount,
     fullDomainReauditStillRequired:reconciliation.fullDomainReauditStillRequired,
-    nextStep:"M10D.18 P2.3 Conflict shadow QA; Magic and full-core re-audit remain pending; M11 stays paused"});
+    nextStep:"M10D.18 P2.4 Magic shadow QA; full-core 14-domain re-audit remains pending; M11 stays paused"});
 }
 
 export function tb2eReadinessAudit() {
@@ -107,6 +111,8 @@ export function installM10DFoundation() {
       finalDomainAudit:tb2eCoreDomainAudit,
       historicalFinalAudit:()=>tb2eFinalFoundationAudit({shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
       historicalFinalDomainAudit:(domainId)=>tb2eFinalDomainAudit(domainId,{shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
+      magicShadowStatus:tb2eMagicShadowStatus,
+      magic:Object.freeze({getStatus:tb2eMagicShadowStatus,model:tb2eMagicModel,memoryPlan:tb2eMagicMemoryPlan,spellbookPlan:tb2eMagicSpellbookPlan,castPlan:tb2eMagicCastPlan,dischargePlan:tb2eMagicDischargePlan,spellInterruptPlan:tb2eMagicSpellInterruptPlan,invocationPlan:tb2eMagicInvocationPlan,invocationInterruptPlan:tb2eMagicInvocationInterruptPlan,purificationPlan:tb2eMagicPurificationPlan,stigmataPlan:tb2eMagicStigmataPlan}),
       conflictShadowStatus:tb2eConflictShadowStatus,
       conflict:Object.freeze({getStatus:tb2eConflictShadowStatus,model:tb2eConflictModel,dispositionPlan:tb2eConflictDispositionPlan,actionPlan:tb2eConflictActionPlan,hpAllocationPlan:tb2eConflictHpAllocationPlan,hitPlan:tb2eConflictHitPlan,regroupPlan:tb2eConflictRegroupPlan,maneuverPlan:tb2eConflictManeuverPlan,outcomePlan:tb2eConflictOutcomePlan}),
       armorShadowStatus:tb2eArmorShadowStatus,

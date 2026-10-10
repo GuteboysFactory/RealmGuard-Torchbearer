@@ -93,7 +93,7 @@ assert.equal(profile.domains.armor.mode,"READ_ONLY_SHADOW");
 assert.equal(profile.domains.armor.liveEnabled,false);
 assert.equal(profile.domains.armor.shadowAdapterReady,true);
 assert.equal(profile.domains.conflict.liveEnabled,false);
-assert.equal(profile.domains.magic.mode,"OFF");
+assert.equal(profile.domains.magic.liveEnabled,false);
 assert.equal(profile.metadata.liveRuleAuthority,false);
 assert.equal(profileActivationAvailable("torchbearer2e"),false);
 let writes=0;

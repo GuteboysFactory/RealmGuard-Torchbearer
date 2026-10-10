@@ -1,12 +1,10 @@
-1.13.0-qa.23
-# M10D.18 P2.3 Conflict read-only shadow; full TB2E source-backed
-# Scholar's Guide Conflict pp.59-81 + Dungeoneer's Handbook Weapons pp.156-159
-# Actions, skill matrix, disposition, HP, attacks, regroup, maneuvers, manual compromises
-# Traits and Armor remain verified; Magic pending
-# Full 14-domain existing shadow re-audit required
-# Legacy Mixed live authority, M11 PAUSED, global kill switch ENGAGED
-# No Actor/Item/Journal/Settings writes, no destructive migration
-# Stable v1.12.0 unchanged; QA release only
-# Foundry QA protocol TEST_PROTOCOL_v1.13.0-qa.23.md
-# QA pipeline retry: signed-zero normalization in Conflict disposition
-# QA recheck: update historical Traits smoke to live safety rather than fixed OFF state
+1.13.0-qa.24
+# M10D.18 P2.4 Magic read-only shadow: Arcana + Ritual
+# DH 89-97 spell memory/casting/scrolls, DH 98-106 invocation/relic/burden/Urdr
+# SG Conflict p79 restrictions; spell-specific effects remain GM/manual
+# Traits/Armor/Conflict verified; Magic new adapter QA pending
+# 14 historical shadow domains still require full-core source re-audit
+# Legacy Mixed live authority; global kill switch ENGAGED; M11 PAUSED
+# No Actor/Item/Journal/Settings writes, no roll execution, no live TB2E parity claim
+# Stable v1.12.0 stays unchanged; QA-only release
+# Foundry QA: TEST_PROTOCOL_v1.13.0-qa.24.md
