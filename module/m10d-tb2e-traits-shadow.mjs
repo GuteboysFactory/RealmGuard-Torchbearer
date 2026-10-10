@@ -6,6 +6,7 @@ const PHASE = "M10D.18_P2.1";
 const EVIDENCE = "Dungeoneer's Handbook, Traits pp. 79-81";
 const norm = value => String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
 const isCount = value => Number.isInteger(value) && value >= 0;
+const VALID_PHASES = ["ADVENTURE","CAMP","TOWN"];
 
 function response(data) {
   return freezeTb2e({
@@ -76,7 +77,7 @@ export function tb2eTraitUsePlan({
   if (!isCount(benefitUses) || !isCount(againstUses)) return blocked("INVALID_USAGE_COUNTER");
   const kind=norm(mode), place=norm(phase), choice=norm(againstOption);
   if (!["BENEFIT","AGAINST"].includes(kind)) return blocked("INVALID_TRAIT_MODE");
-  if (!place) return blocked("PHASE_REQUIRED");
+  if (!VALID_PHASES.includes(place)) return blocked("UNKNOWN_TRAIT_PHASE",{phase:place});
   if (traitAlreadyUsedOnTest) return blocked("ONLY_ONE_TRAIT_PER_TEST");
   if (!applies) return blocked("FICTIONAL_APPLICABILITY_NOT_APPROVED");
 
@@ -84,14 +85,14 @@ export function tb2eTraitUsePlan({
     if (angry) return blocked("ANGRY_BLOCKS_BENEFICIAL_TRAIT");
     if (level<=2) {
       if (benefitUses>=level) return blocked("BENEFIT_USES_EXHAUSTED",{limit:level});
-      return response({ok:true, mode:"BENEFIT", level, phase:place,
+      return response({ok:true, useKind:"BENEFIT", level, phase:place,
         effects:[effect("DICE_MODIFIER",1,"SELF","PRE_ROLL","TRAIT_BENEFIT_L"+level)],
         usage:{current:benefitUses,limit:level,wouldConsume:1},
         checksAwarded:0, commitAllowed:false});
     }
     const result=norm(outcome);
     if (!["PASS","FAIL","TIE"].includes(result)) return blocked("LEVEL_3_NEEDS_POST_ROLL_OUTCOME");
-    return response({ok:true, mode:"BENEFIT", level, phase:place, outcome:result,
+    return response({ok:true, useKind:"BENEFIT", level, phase:place, outcome:result,
       effects:result==="FAIL" ? [] : [effect("SUCCESS_MODIFIER",1,"SELF","POST_ROLL","TRAIT_BENEFIT_L3")],
       usage:{current:benefitUses,limit:null,wouldConsume:0},
       checksAwarded:0, commitAllowed:false});
@@ -112,7 +113,7 @@ export function tb2eTraitUsePlan({
       ? effect("DICE_MODIFIER",2,"OPPONENT","PRE_ROLL",rule)
       : effect("STATE_CHANGE","OPPONENT_WINS_TIE","OUTCOME","POST_ROLL",rule);
   const checksAwarded=choice==="SELF_MINUS_1D"?1:2;
-  return response({ok:true, mode:"AGAINST", level, phase:place, againstOption:choice,
+  return response({ok:true, useKind:"AGAINST", level, phase:place, againstOption:choice,
     effects:[mechanical,effect("CURRENCY",checksAwarded,"CHECKS","POST_RESOLVE",rule)],
     usage:{current:againstUses,limit:1,wouldConsume:1},
     checksAwarded, checksAwardCommitted:false, commitAllowed:false});
