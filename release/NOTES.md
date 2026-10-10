@@ -1,14 +1,17 @@
-# Realm Guard / Torchbearer v1.13.0-qa.21 — M10D.18 P2.1 Traits Shadow Adapter
+# Realm Guard / Torchbearer v1.13.0-qa.22 — M10D.18 P2.2 Armor Shadow
 
-Builds on the user-verified M10D.18 P1 v1.13.0-qa.20. This is a QA-only milestone, not a Stable promotion.
+Builds on the Foundry-verified P2.1 Traits adapter in v1.13.0-qa.21. **QA candidate only — Stable v1.12.0 unchanged.**
 
-- Adds a dedicated, pure Torchbearer 2E Traits read-only shadow adapter grounded in the Dungeoneer's Handbook, pp. 79–81 (CORE source; not MG legacy behavior).
-- Benefit: Trait level 1 +1D once/session, level 2 +1D twice/session, level 3 +1s for passed/tied tests. Fictional applicability is table-approved; no automatic use consumption.
-- Against self: -1D (1 check), +2D to versus opponent (2 checks), or break a versus tie for opponent (2 checks); each Trait only once/session; prohibited in Camp, Town, and PvP.
-- One Trait per test; prologue refresh plan; class-Trait loss handled as manual GM adjudication; no automatic retirement.
-- Read-only diagnostics: game.realmGuard.core.m10d.traits with getStatus(), model(), usePlan(), refreshPlan(), classTraitBoundaryPlan(). Readiness audit tracks implemented P2 Traits while Armor, Conflict, and Magic remain pending.
-- Adds automated P2.1 smoke tests for source-level invariants, blocked cases, read-only mode, API registration, unchanged existing profile and zero-write behavior.
-- Existing P1 fixes remain intact. All 14 existing domain re-audits remain pending. M11 live integration remains PAUSED, global kill switch remains ENGAGED. No activation or Character Creation commit for TB2E.
-- Zero new Actor, Item, Journal, or Settings writes. No destructive migration.
-- The release pipeline must pass syntax, preflight, all historical/current smoke tests, ZIP integrity and asset-download verification **before** updating QA channel manifest.
-- Stable channel remains **v1.12.0**; Foundry 13.351 QA is still required to verify this candidate.
+- Adds Torchbearer 2E CORE Armor read-only plans based on the Dungeoneer's Handbook pp. 150–151 (leather, chain, plate, helmet) and pp. 156–159 (shield and weapon bypasses), plus Scholar's Guide p. 65 (direct target and overflow damage).
+- Damage absorption applies only for Kill, Capture, Drive Off conflict hits from Attack/Feint when the protection holder is directly targeted and leading the action; overflow cannot be protected.
+- Leather: one d6 per fight, 4–6 absorbs 1; bows/crossbows/spears bypass. No armor damage from ordinary leather absorption.
+- Chain: absorbs 1 unless hit by mace or warhammer; wear d6 1–3 damages the armor, **even when those weapons bypass protection**.
+- Plate: absorbs 1; d6 1–2 damages normally, 1–3 versus mace or warhammer.
+- Helmet: absorbs one point once; post-use disposition (lost/damaged/destroyed) requires GM determination.
+- Shield: +2D Defend when equipped, or absorbs one point once and is destroyed; gear/HP mutations remain disabled.
+- Pure diagnostic API: `game.realmGuard.core.m10d.armor.getStatus()/model()/absorptionPlan()/shieldDefendPlan()/repairBoundaryPlan()`. Caller supplies all hit context and d6; **no dice are rolled**. No automatic multi-piece stacking, enchanted variants, or live repair test.
+- Adds QA smoke tests for protection matrices, bypass, wear, overflow, phase/target requirements, installed API, fixed read-only state and zero writes.
+- P2.1 Traits remains VERIFIED. Conflict and Magic adapters are still pending. Fourteen previous shadows still require full-core reconciliation re-audit. No live promotion.
+- Global kill switch remains ENGAGED, M11 integration PAUSED and Legacy Mixed remains live authority. No Actor/Item/Journal/Settings writes or destructive migrations.
+- The release workflow must pass syntax, release preflight, historical and new smokes, Foundry ZIP, GitHub Release and asset verification before promoting the QA channel.
+- Foundry 13.351 user QA follows `TEST_PROTOCOL_v1.13.0-qa.22.md`. QA success is not a Stable promotion.
