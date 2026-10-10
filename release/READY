@@ -1,11 +1,10 @@
-1.13.0-qa.21
-# M10D.18 P2.1 Traits read-only shadow adapter (Dungeoneer's Handbook pp. 79-81)
-# QA channel only; no Stable promotion
-# Level 1 +1D once, level 2 +1D twice, level 3 +1s passed/tied
-# Against: self -1D / versus opponent +2D / break tie; checks 1 or 2
-# Read-only diagnostic API and zero-write regression tests
-# P1 qa.20 Foundry-verified; 14-domain re-audit still required
-# Armor, Conflict and Magic adapters remain pending
-# M11 PAUSED; global kill switch ENGAGED; Legacy Mixed authoritative
-# Stable remains 1.12.0
-# Foundry QA pending TEST_PROTOCOL_v1.13.0-qa.21.md
+1.13.0-qa.22
+# M10D.18 P2.2 Armor read-only shadow based on full TB2E CORE source books
+# DH 150-151, 156-159: leather, chain, plate, helmet, shield and weapon bypass
+# SG 65: conflict direct-target hit, Attack/Feint, overflow restrictions
+# P2.1 Traits verified; Armor QA pending; Conflict and Magic remain OFF
+# 14 older adapters still require full-core re-audit; M11 PAUSED
+# Global kill switch ENGAGED; Legacy Mixed remains live authority
+# Zero Actor/Item/Journal/Settings writes, no destructive migration
+# Stable remains 1.12.0; release only to QA channel
+# Foundry QA protocol: TEST_PROTOCOL_v1.13.0-qa.22.md

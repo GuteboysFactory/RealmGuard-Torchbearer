@@ -23,8 +23,8 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     session:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,phaseMutation:false},
     circles:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,ratingRange:{min:1,max:10},npcCreation:false,relationshipMutation:false},
     scales:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,mightRange:{min:1,max:8},precedenceRange:{min:0,max:7},conflictMutation:false},
-    traits:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,implementationState:"P2_1_TRAITS_SHADOW_QA_PENDING"},
-    armor:{mode:"OFF",coverage:"VERIFIED",liveEnabled:false,automation:"DISABLED_PENDING_ADAPTER",shadowAdapterReady:false,implementationState:"NEW_SHADOW_ADAPTER_REQUIRED"},
+    traits:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,implementationState:"P2_1_TRAITS_VERIFIED"},
+    armor:{mode:"READ_ONLY_SHADOW",coverage:"VERIFIED",liveEnabled:false,automation:"SHADOW_ONLY",shadowAdapterReady:true,implementationState:"P2_2_ARMOR_SHADOW_QA_PENDING"},
     conflict:{mode:"OFF",coverage:"VERIFIED",liveEnabled:false,automation:"DISABLED_PENDING_ADAPTER",shadowAdapterReady:false,implementationState:"NEW_SHADOW_ADAPTER_REQUIRED"},
     magic:{mode:"OFF",coverage:"VERIFIED",liveEnabled:false,automation:"DISABLED_PENDING_ADAPTER",shadowAdapterReady:false,implementationState:"NEW_SHADOW_ADAPTER_REQUIRED"},
     narrative:{mode:"OFF",coverage:"MANUAL",liveEnabled:false,automation:"GM_MANUAL",implementationState:"MANUAL_ONLY"},
@@ -46,8 +46,8 @@ export const TORCHBEARER2E_FOUNDATION_PROFILE = new RulesProfile({
     historicalFinalClassificationCounts:{VERIFIED:1,BOUNDED_PARTIAL:13,SOURCE_BLOCKED:4,MANUAL:1},
     finalClassificationCounts:{VERIFIED:18,BOUNDED_PARTIAL:0,SOURCE_BLOCKED:0,MANUAL:1},
     coreSourceClassificationCounts:{VERIFIED:18,MANUAL:1,SOURCE_BLOCKED:0},
-    fullCoreShadowReauditRequired:true,p2ImplementedShadowAdapters:["traits"],newShadowAdaptersRequired:["armor","conflict","magic"],liveIntegrationPaused:true,
+    fullCoreShadowReauditRequired:true,p2ImplementedShadowAdapters:["traits","armor"],newShadowAdaptersRequired:["conflict","magic"],liveIntegrationPaused:true,
     coreReconciliationPackage:"P1_CONFIRMED_MISMATCH_REPAIRS",resolvedReconciliationFindingCount:6,
-    nextStep:"M10D.18 P2 full-core shadow re-audit; M11 remains paused"
+    nextStep:"M10D.18 P2.2 Armor shadow QA; Conflict/Magic pending; M11 paused"
   }
 });
