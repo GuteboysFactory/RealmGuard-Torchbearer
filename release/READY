@@ -9,3 +9,4 @@
 # Stable v1.12.0 unchanged; QA release only
 # Foundry QA protocol TEST_PROTOCOL_v1.13.0-qa.23.md
 # QA pipeline retry: signed-zero normalization in Conflict disposition
+# QA recheck: update historical Traits smoke to live safety rather than fixed OFF state
