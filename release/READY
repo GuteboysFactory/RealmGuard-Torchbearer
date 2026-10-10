@@ -1,12 +1,11 @@
-1.13.0-qa.20
-# M10D.18 Torchbearer 2E Core Reconciliation P1
-# Repairs 6 confirmed full-core mismatches from the guide-era shadows
-# Home / Social Grace / Specialty absent skills -> rating 2; Human Upbringing remains 3
-# Conditions disposition ambiguity resolved from Scholar's Guide (-1s Hungry/Thirsty, -1s Exhausted; Injured/Sick -1D)
-# Help restriction narrowed to Will/Health recovery + Resources town-bills test
-# Nature maximum 0 retirement -> END_OF_ADVENTURE
-# Full 14-domain re-audit still pending; Traits/Armor/Conflict/Magic adapters still pending
-# M11 remains paused; kill switch engaged; zero TB2E live writes
+1.13.0-qa.21
+# M10D.18 P2.1 Traits read-only shadow adapter (Dungeoneer's Handbook pp. 79-81)
+# QA channel only; no Stable promotion
+# Level 1 +1D once, level 2 +1D twice, level 3 +1s passed/tied
+# Against: self -1D / versus opponent +2D / break tie; checks 1 or 2
+# Read-only diagnostic API and zero-write regression tests
+# P1 qa.20 Foundry-verified; 14-domain re-audit still required
+# Armor, Conflict and Magic adapters remain pending
+# M11 PAUSED; global kill switch ENGAGED; Legacy Mixed authoritative
 # Stable remains 1.12.0
-# Foundry M10D.18 P1 QA pending TEST_PROTOCOL_v1.13.0-qa.20.md
-# CI retry after Conditions smoke reconciliation
+# Foundry QA pending TEST_PROTOCOL_v1.13.0-qa.21.md
