@@ -8,7 +8,7 @@ export function tb2eMagicInvocationPlan({castingMode="FIXED",
  currentBurden=0,urdr=1,againstCreed=false,
  sacramental=false,ritualistHelpers=0,wiseHelpers=0,
  canSpeak=true,inConflict=false,conflictTiming="NONE",
- equippedThisRound=false}={}){
+ equippedThisRound=false,invocationAllowsBeforeDisposition=false}={}){
  const mode=key(castingMode),timing=key(conflictTiming);
  if(!MODES.includes(mode))return blocked("INVALID_INVOCATION_MODE");
  if(![baseTimeWithRelic,baseBurdenWithRelic,currentBurden,urdr,ritualistHelpers,wiseHelpers].every(count))
@@ -20,9 +20,10 @@ export function tb2eMagicInvocationPlan({castingMode="FIXED",
  const afterBurden=currentBurden+increasedBurden;
  if(inConflict){
   if(mode==="SKILL_SWAP"){
+   if(time>0&&timing!=="BEFORE_DISPOSITION")return blocked("TURN_COST_INVOCATION_MUST_BE_PERFORMED_BEFORE_CONFLICT");
    if(!equippedThisRound||!["ACTION","BETWEEN_ROUNDS","BEFORE_DISPOSITION"].includes(timing))
     return blocked("INVOCATION_SKILL_SWAP_MUST_BE_EQUIPPED");
-  }else if(timing!=="BEFORE_DISPOSITION")
+  }else if(timing!=="BEFORE_DISPOSITION"||!invocationAllowsBeforeDisposition)
    return blocked("INVOCATION_SPECIFIC_CONFLICT_TIMING_REQUIRED");
  }
  return result({ok:true,operation:"PERFORM_INVOCATION",testSkill:"Ritualist",
