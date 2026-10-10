@@ -36,7 +36,8 @@ export function tb2eMagicSpellbookPlan({folios=5,existingSpells=[],newSpells=[]}
 export function tb2eMagicCastPlan({castingMode="FIXED",source="MEMORY",
  memorized=false,hasScroll=false,inSpellBook=false,
  canSpeak=true,freeHandToGesture=true,
- castingTurns=0,helpingArcanists=0,materials=false,focus=false,
+ castingTurns=0,helpingArcanists=0,helpingArcanistsAllEquippedSameSpell=false,
+ materials=false,focus=false,
  inConflict=false,conflictTiming="NONE",equippedThisRound=false,
  targetOpposition=false,freeSpellsAlreadyThisRound=0}={}){
  const mode=key(castingMode),from=key(source),timing=key(conflictTiming);
@@ -49,10 +50,13 @@ export function tb2eMagicCastPlan({castingMode="FIXED",source="MEMORY",
  if(from==="SCROLL"&&!hasScroll)return blocked("SCROLL_NOT_AVAILABLE");
  if(from==="SPELL_BOOK"&&!inSpellBook)return blocked("SPELL_NOT_IN_SPELLBOOK");
  const skillSwap=mode==="SKILL_SWAP";
+ if(inConflict&&skillSwap&&helpingArcanists>0&&!helpingArcanistsAllEquippedSameSpell)
+  return blocked("ARCANIST_HELPERS_MUST_EQUIP_SAME_SPELL");
  const addedTurns=helpingArcanists>0&&!skillSwap?1:0;
  const totalTurns=castingTurns+addedTurns;
  if(inConflict){
   if(skillSwap){
+   if(castingTurns>0)return blocked("TURN_COST_SPELL_MUST_BE_CAST_BEFORE_CONFLICT");
    if(!equippedThisRound||!["ACTION","BETWEEN_ROUNDS","BEFORE_DISPOSITION"].includes(timing))
     return blocked("SKILL_SWAP_MUST_BE_EQUIPPED");
   }else if(timing==="BEFORE_DISPOSITION"){
