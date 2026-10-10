@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import {tb2eTraitsShadowStatus,tb2eTraitModel,tb2eTraitUsePlan,tb2eTraitRefreshPlan,tb2eClassTraitBoundaryPlan} from "../module/m10d-tb2e-traits-shadow.mjs";
+import {tb2eFoundationStatus,installM10DFoundation} from "../module/m10d-tb2e-foundation.mjs";
+
+const status=tb2eTraitsShadowStatus();
+assert.equal(status.adapterReady,true);
+assert.equal(status.liveEnabled,false);
+assert.equal(status.activationAllowed,false);
+assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
+assert.equal(tb2eTraitModel().oneTraitPerTest,true);
+const plan=o=>tb2eTraitUsePlan({applies:true,...o});
+assert.equal(plan({level:1}).effects[0].value,1);
+assert.equal(plan({level:1,benefitUses:1}).reasonCode,"BENEFIT_USES_EXHAUSTED");
+assert.equal(plan({level:2,benefitUses:1}).ok,true);
+assert.equal(plan({level:2,benefitUses:2}).ok,false);
+assert.equal(plan({level:3,outcome:"PASS"}).effects[0].type,"SUCCESS_MODIFIER");
+assert.equal(plan({level:3,outcome:"TIE"}).effects[0].value,1);
+assert.equal(plan({level:3,outcome:"FAIL"}).effects.length,0);
+assert.equal(plan({level:3}).reasonCode,"LEVEL_3_NEEDS_POST_ROLL_OUTCOME");
+assert.equal(plan({applies:false}).ok,false);
+assert.equal(plan({angry:true}).ok,false);
+assert.equal(plan({traitAlreadyUsedOnTest:true}).ok,false);
+assert.equal(plan({mode:"AGAINST"}).checksAwarded,1);
+assert.equal(plan({mode:"AGAINST",againstOption:"OPPONENT_PLUS_2D",versus:true}).checksAwarded,2);
+assert.equal(plan({mode:"AGAINST",againstOption:"OPPONENT_PLUS_2D",versus:true}).effects[0].target,"OPPONENT");
+assert.equal(plan({mode:"AGAINST",againstOption:"BREAK_TIE",versus:true,outcome:"TIE"}).checksAwarded,2);
+assert.equal(plan({mode:"AGAINST",againstOption:"BREAK_TIE",versus:true,outcome:"FAIL"}).ok,false);
+assert.equal(plan({mode:"AGAINST",againstOption:"OPPONENT_PLUS_2D"}).ok,false);
+assert.equal(plan({mode:"AGAINST",phase:"CAMP"}).ok,false);
+assert.equal(plan({mode:"AGAINST",phase:"TOWN"}).ok,false);
+assert.equal(plan({mode:"AGAINST",pvp:true}).ok,false);
+assert.equal(plan({mode:"AGAINST",againstUses:1}).ok,false);
+assert.equal(tb2eTraitRefreshPlan({newSessionPrologueDelivered:true}).eligible,true);
+assert.equal(tb2eTraitRefreshPlan({newSessionPrologueDelivered:false}).actionApplied,false);
+assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).gmReviewRequired,true);
+assert.equal(tb2eClassTraitBoundaryPlan({traitLostOrUnrecognizable:true}).retirementCommitted,false);
+assert.equal(tb2eFoundationStatus().traitsShadowReady,true);
+const prior={sentinel:"keep"};
+let mutations=0;
+const forbid=()=>{mutations++;throw Error("Write forbidden");};
+globalThis.game={realmGuard:{core:{m10:prior}},settings:{set:forbid},actors:{contents:[]}};
+globalThis.Hooks={once:(type,fn)=>{assert.equal(type,"ready");fn();}};
+globalThis.Actor={create:forbid};globalThis.Item={create:forbid};
+installM10DFoundation();
+const api=game.realmGuard.core.m10d.traits;
+assert.equal(api.getStatus().adapterReady,true);
+assert.equal(api.usePlan({level:2,benefitUses:1,applies:true}).ok,true);
+assert.equal(game.realmGuard.core.m10.sentinel,"keep");
+assert.equal(mutations,0);
+for(const path of ["module/m10d-tb2e-traits-shadow.mjs"]){
+  const source=fs.readFileSync(path,"utf8");
+  for(const forbidden of ["game.settings.set","Actor.create","Item.create","JournalEntry.create","createEmbeddedDocuments","deleteEmbeddedDocuments",".update(","new Roll("])
+    assert.equal(source.includes(forbidden),false,path+" must be zero-write");
+}
+console.log("PASS M10D.18 P2.1 Traits shadow · levels/against/checks/refresh · no mutation · API exposed");
