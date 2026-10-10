@@ -9,3 +9,4 @@
 # M11 remains paused; kill switch engaged; zero TB2E live writes
 # Stable remains 1.12.0
 # Foundry M10D.18 P1 QA pending TEST_PROTOCOL_v1.13.0-qa.20.md
+# CI retry after Conditions smoke reconciliation

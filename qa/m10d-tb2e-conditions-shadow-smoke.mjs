@@ -47,8 +47,8 @@ assert.equal(zero.atZero,true);assert.equal(zero.mayTest,false);assert.equal(zer
 const nonzero=tb2eConditionZeroRatingPlan({ratingAfterConditions:1,target:"Will"});assert.equal(nonzero.mayTest,true);
 
 const conflict=tb2eConflictDispositionConditionPlan({conditions:["Hungry and Thirsty","Exhausted","Injured","Sick"]});
-assert.equal(conflict.resolution,"UNRESOLVED_SOURCE_CONFLICT");assert.equal(conflict.automation,false);assert.equal(conflict.qr41_44.HUNGRY_THIRSTY,"-1s");assert.equal(conflict.qr41_44.EXHAUSTED,"-1s");
-assert.equal(conflict.qr51.HUNGRY_THIRSTY,"-1D");assert.equal(conflict.qr51.EXHAUSTED,"-1D");assert.equal(conflict.qr51.INJURED,"-1D");assert.equal(conflict.qr51.SICK,"-1D");assert.equal(conflict.chosenPenalty,null);
+assert.equal(conflict.resolution,"CORE_RESOLVED");assert.equal(conflict.automation,false);assert.equal(conflict.successPenalty,-2);assert.equal(conflict.dicePenalty,-2);
+assert.deepEqual(conflict.teamSuccessPenaltyRules,{HUNGRY_THIRSTY:"-1s_ONCE",EXHAUSTED:"-1s_ONCE"});assert.deepEqual(conflict.characterDicePenaltyRules,{INJURED:"-1D",SICK:"-1D"});assert.deepEqual(conflict.chosenPenalty,{successes:-2,dice:-2});
 
 const risk=tb2eConditionDeathRiskPlan({conditions:["Injured","Sick"],testInvolvesSeriousHarm:true,testInvolvesSicknessDiseasePoisonMadnessOrGrief:true});
 assert.equal(risk.injuredSeriousHarm.applies,true);assert.equal(risk.injuredSeriousHarm.warnPlayerBeforehand,true);assert.equal(risk.injuredSeriousHarm.automation,false);
