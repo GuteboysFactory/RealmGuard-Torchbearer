@@ -1,15 +1,14 @@
-# Realm Guard / Torchbearer v1.13.0-qa.20 — M10D.18 Core Reconciliation P1
+# Realm Guard / Torchbearer v1.13.0-qa.21 — M10D.18 P2.1 Traits Shadow Adapter
 
-M10D.17 Full-Core Source Expansion Audit is FULL PASS / VERIFIED / CLOSED.
+Builds on the user-verified M10D.18 P1 v1.13.0-qa.20. This is a QA-only milestone, not a Stable promotion.
 
-This candidate repairs the six confirmed guide-era mismatches identified by the full Torchbearer 2E core source audit, while keeping every TB2E adapter read-only.
-
-- Character Creation: preserves Human Upbringing absent skill at rating 3, but corrects Home, Social Grace and Specialty absent skills to rating 2; existing skills still increase by one to maximum 4.
-- Conditions: resolves the old guide conflict using Scholar's Guide. Hungry & Thirsty and Exhausted each apply -1s to team disposition once; Injured and Sick remain -1D to the affected character's rolls including disposition. Shadow output now exposes separate success and dice penalties; no live mutation is enabled.
-- Help: removes the over-broad all-Town Resources block. Help is prohibited for Will/Health recovery tests and for the Resources test used to pay bills when leaving town; ordinary Resources tests are no longer blocked merely because phase=TOWN.
-- Nature: maximum Nature reduced to 0 now reports retirement timing as END_OF_ADVENTURE.
-- Adds an M10D.18 reconciliation status API tracking 6 resolved findings and 4 still-pending source-expansion findings.
-- Full-domain re-audit is still required for all 14 existing shadows; Traits, Armor, Conflict and Magic still require new shadow adapters.
-- M11 remains paused, global kill switch remains engaged, profile activation and Character Creation commit remain blocked.
-- No Actor, Item, Journal or Setting writes are added.
-- QA advances to v1.13.0-qa.20. Stable remains v1.12.0.
+- Adds a dedicated, pure Torchbearer 2E Traits read-only shadow adapter grounded in the Dungeoneer's Handbook, pp. 79–81 (CORE source; not MG legacy behavior).
+- Benefit: Trait level 1 +1D once/session, level 2 +1D twice/session, level 3 +1s for passed/tied tests. Fictional applicability is table-approved; no automatic use consumption.
+- Against self: -1D (1 check), +2D to versus opponent (2 checks), or break a versus tie for opponent (2 checks); each Trait only once/session; prohibited in Camp, Town, and PvP.
+- One Trait per test; prologue refresh plan; class-Trait loss handled as manual GM adjudication; no automatic retirement.
+- Read-only diagnostics: game.realmGuard.core.m10d.traits with getStatus(), model(), usePlan(), refreshPlan(), classTraitBoundaryPlan(). Readiness audit tracks implemented P2 Traits while Armor, Conflict, and Magic remain pending.
+- Adds automated P2.1 smoke tests for source-level invariants, blocked cases, read-only mode, API registration, unchanged existing profile and zero-write behavior.
+- Existing P1 fixes remain intact. All 14 existing domain re-audits remain pending. M11 live integration remains PAUSED, global kill switch remains ENGAGED. No activation or Character Creation commit for TB2E.
+- Zero new Actor, Item, Journal, or Settings writes. No destructive migration.
+- The release pipeline must pass syntax, preflight, all historical/current smoke tests, ZIP integrity and asset-download verification **before** updating QA channel manifest.
+- Stable channel remains **v1.12.0**; Foundry 13.351 QA is still required to verify this candidate.
