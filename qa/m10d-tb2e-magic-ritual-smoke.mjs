@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {tb2eMagicInvocationPlan as invoke,tb2eMagicPurificationPlan as purify,
- tb2eMagicStigmataPlan as stigma} from "../module/m10d-tb2e-magic-ritual-shadow.mjs";
+ tb2eMagicStigmataPlan as stigma,tb2eMagicInvocationInterruptPlan as ritualInterrupt} from "../module/m10d-tb2e-magic-ritual-shadow.mjs";
 const safe=p=>{assert.equal(p.mode,"READ_ONLY_SHADOW");assert.equal(p.liveApplication,false);
  assert.equal(p.writesPlanned,0);assert.equal(p.rollExecuted,false);
  assert.equal(p.actorWrite,false);assert.equal(p.itemWrite,false);
@@ -49,4 +49,8 @@ assert.equal(stigma({currentBurden:3,urdr:2}).precedencePenalty,-1);
 const eleven=stigma({currentBurden:11,urdr:3});safe(eleven);
 assert.equal(eleven.sourceDescribesDeathAt11Plus,true);
 assert.equal(eleven.deathApplied,false);
+const ri=ritualInterrupt({currentBurden:1,invocationBurden:2,urdr:2});
+safe(ri);assert.equal(ri.invocationDissipates,true);
+assert.equal(ri.totalBurdenAfter,3);assert.equal(ri.healthObstacle,3);
+assert.equal(ri.burdenCommitted,false);
 console.log("PASS M10D.18 P2.4 Ritual: relics, burden, Urdr, purification, stigmata; no death/condition writes");
