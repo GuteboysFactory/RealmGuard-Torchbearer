@@ -37,8 +37,10 @@ export function tb2eConflictDispositionPlan({conflictType="KILL",baseRating=0,
  const hungry=t.has("HUNGRY_AND_THIRSTY")||t.has("HUNGRY_THIRSTY");
  const exhausted=t.has("EXHAUSTED"),backpack=captainHasBackpack&&["KILL","CAPTURE","DRIVE_OFF"].includes(type);
  const darkness=captainInDimOrDarkness&&type!=="TRICK_OR_RIDDLE";
- const successesPenalty=-(Number(hungry)+Number(exhausted)+Number(backpack)+Number(darkness));
- const dicePenalty=-(Number(c.has("INJURED"))+Number(c.has("SICK")));
+ const successCount=Number(hungry)+Number(exhausted)+Number(backpack)+Number(darkness);
+ const diceCount=Number(c.has("INJURED"))+Number(c.has("SICK"));
+ const successesPenalty=successCount>0?-successCount:0;
+ const dicePenalty=diceCount>0?-diceCount:0;
  const pending=rolledSuccesses===null||(dicePenalty<0&&!rollIncludesDicePenalty);
  return result({ok:true,conflictType:type,dispositionRollSkills:SKILLS[type].disposition,
   dispositionBaseAbility:SKILLS[type].base,baseRating,rolledSuccesses,
