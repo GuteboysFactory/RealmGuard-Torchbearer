@@ -28,7 +28,7 @@ import { tb2eConflictHitPlan, tb2eConflictRegroupPlan, tb2eConflictManeuverPlan 
 import { tb2eConflictOutcomePlan } from "./m10d-tb2e-conflict-outcome-shadow.mjs";
 import { tb2eMagicShadowStatus, tb2eMagicModel } from "./m10d-tb2e-magic-shadow.mjs";
 import { tb2eMagicMemoryPlan, tb2eMagicSpellbookPlan, tb2eMagicCastPlan, tb2eMagicDischargePlan, tb2eMagicSpellInterruptPlan } from "./m10d-tb2e-magic-arcana-shadow.mjs";
-import { tb2eMagicInvocationPlan, tb2eMagicPurificationPlan, tb2eMagicStigmataPlan } from "./m10d-tb2e-magic-ritual-shadow.mjs";
+import { tb2eMagicInvocationPlan, tb2eMagicInvocationInterruptPlan, tb2eMagicPurificationPlan, tb2eMagicStigmataPlan } from "./m10d-tb2e-magic-ritual-shadow.mjs";
 
 export function tb2eFoundationStatus() {
   const matrix=tb2eSourceCoverageMatrix();
@@ -112,7 +112,7 @@ export function installM10DFoundation() {
       historicalFinalAudit:()=>tb2eFinalFoundationAudit({shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
       historicalFinalDomainAudit:(domainId)=>tb2eFinalDomainAudit(domainId,{shadowReadyDomains:tb2eFoundationStatus().shadowReadyDomains}),
       magicShadowStatus:tb2eMagicShadowStatus,
-      magic:Object.freeze({getStatus:tb2eMagicShadowStatus,model:tb2eMagicModel,memoryPlan:tb2eMagicMemoryPlan,spellbookPlan:tb2eMagicSpellbookPlan,castPlan:tb2eMagicCastPlan,dischargePlan:tb2eMagicDischargePlan,spellInterruptPlan:tb2eMagicSpellInterruptPlan,invocationPlan:tb2eMagicInvocationPlan,purificationPlan:tb2eMagicPurificationPlan,stigmataPlan:tb2eMagicStigmataPlan}),
+      magic:Object.freeze({getStatus:tb2eMagicShadowStatus,model:tb2eMagicModel,memoryPlan:tb2eMagicMemoryPlan,spellbookPlan:tb2eMagicSpellbookPlan,castPlan:tb2eMagicCastPlan,dischargePlan:tb2eMagicDischargePlan,spellInterruptPlan:tb2eMagicSpellInterruptPlan,invocationPlan:tb2eMagicInvocationPlan,invocationInterruptPlan:tb2eMagicInvocationInterruptPlan,purificationPlan:tb2eMagicPurificationPlan,stigmataPlan:tb2eMagicStigmataPlan}),
       conflictShadowStatus:tb2eConflictShadowStatus,
       conflict:Object.freeze({getStatus:tb2eConflictShadowStatus,model:tb2eConflictModel,dispositionPlan:tb2eConflictDispositionPlan,actionPlan:tb2eConflictActionPlan,hpAllocationPlan:tb2eConflictHpAllocationPlan,hitPlan:tb2eConflictHitPlan,regroupPlan:tb2eConflictRegroupPlan,maneuverPlan:tb2eConflictManeuverPlan,outcomePlan:tb2eConflictOutcomePlan}),
       armorShadowStatus:tb2eArmorShadowStatus,
