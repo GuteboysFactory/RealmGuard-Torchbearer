@@ -27,3 +27,21 @@ assert.equal(t("FEINT","MANEUVER").interaction,"INDEPENDENT");
 assert.equal(tb2eConflictActionPlan({conflictType:"ARGUMENT",action:"ATTACK",opponentAction:"DEFEND"}).ok,false);
 assert.equal(tb2eConflictActionPlan({conflictType:"CAPTURE",action:"DEFEND",opponentAction:"ATTACK"}).actionSkillOrAbility,"Hunter");
 assert.equal(tb2eConflictActionPlan({conflictType:"KILL",action:"DEFEND",opponentAction:"ATTACK"}).actionSkillOrAbility,"Health");
+
+const dis=tb2eConflictDispositionPlan({conflictType:"KILL",baseRating:5,rolledSuccesses:4,
+ teamConditions:["Hungry and Thirsty","Exhausted","Hungry and Thirsty"],
+ captainConditions:["Injured","Sick"],captainHasBackpack:true,
+ captainInDimOrDarkness:true,rollIncludesDicePenalty:true});
+safe(dis);assert.equal(dis.ok,true);assert.equal(dis.successPenalty,-4);
+assert.equal(dis.dicePenalty,-2);assert.equal(dis.startingDisposition,5);
+assert.equal(tb2eConflictDispositionPlan({baseRating:1,rolledSuccesses:0,teamConditions:["Exhausted"]}).startingDisposition,1);
+const waiting=tb2eConflictDispositionPlan({baseRating:5,rolledSuccesses:4,captainConditions:["Injured"]});
+assert.equal(waiting.calculationPending,true);assert.equal(waiting.startingDisposition,null);
+assert.equal(tb2eConflictDispositionPlan({conflictType:"TRICK_OR_RIDDLE",baseRating:3,rolledSuccesses:1,captainInDimOrDarkness:true}).successPenalty,0);
+assert.equal(tb2eConflictDispositionPlan({conflictType:"CONVINCE",baseRating:3,rolledSuccesses:1,captainHasBackpack:true}).successPenalty,0);
+assert.equal(tb2eConflictDispositionPlan({conflictType:"UNKNOWN"}).ok,false);
+const hp=tb2eConflictHpAllocationPlan({startingDisposition:9,participantIds:["a","b"],oddPointRecipients:["b"]});
+safe(hp);assert.deepEqual(hp.participants,[{id:"a",startingHp:4},{id:"b",startingHp:5}]);
+assert.equal(tb2eConflictHpAllocationPlan({startingDisposition:9,participantIds:["a","b"]}).reasonCode,"CAPTAIN_MUST_ASSIGN_ODD_HP");
+assert.equal(tb2eConflictHpAllocationPlan({startingDisposition:2,participantIds:["a","b","c"]}).reasonCode,"CAPTAIN_MUST_SELECT_ACTIVE_PARTICIPANTS");
+assert.equal(tb2eConflictHpAllocationPlan({startingDisposition:4,participantIds:["a","b"],oddPointRecipients:[]}).allocatedTotal,4);
