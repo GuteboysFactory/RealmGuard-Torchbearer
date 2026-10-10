@@ -48,7 +48,7 @@ const tb2e=resolveRulesProfile("torchbearer2e");
 assert.equal(tb2e.profile.domains.traits.mode,"READ_ONLY_SHADOW");
 assert.equal(tb2e.profile.domains.traits.shadowAdapterReady,true);
 assert.equal(tb2e.profile.domains.armor.liveEnabled,false);
-assert.equal(tb2e.profile.domains.conflict.mode,"OFF");
+assert.equal(tb2e.profile.domains.conflict.liveEnabled,false);
 assert.equal(tb2e.profile.domains.magic.mode,"OFF");
 assert.equal(tb2e.profile.metadata.liveRuleAuthority,false);
 const prior={sentinel:"keep"};
