@@ -8,3 +8,4 @@
 # No Actor/Item/Journal/Settings writes, no destructive migration
 # Stable v1.12.0 unchanged; QA release only
 # Foundry QA protocol TEST_PROTOCOL_v1.13.0-qa.23.md
+# CI rerun: normalize no-penalty 0 (avoid signed negative zero)
