@@ -76,3 +76,14 @@ export function tb2eMagicStigmataPlan({currentBurden=0,urdr=1}={}){
   sourceDescribesDeathAt11Plus:scale==="11_PLUS",
   deathApplied:false,stigmaCommitted:false});
 }
+
+export function tb2eMagicInvocationInterruptPlan({currentBurden=0,invocationBurden=0,urdr=1}={}){
+ if(![currentBurden,invocationBurden,urdr].every(count))
+  return blocked("INVALID_INTERRUPTED_INVOCATION");
+ const totalBurdenAfter=currentBurden+invocationBurden;
+ return result({ok:true,operation:"INVOCATION_INTERRUPTED",
+  invocationDissipates:true,currentBurden,burdenAddedDespiteInterrupt:invocationBurden,
+  totalBurdenAfter,urdr,healthTestRequired:totalBurdenAfter>urdr,
+  healthObstacle:totalBurdenAfter>urdr?totalBurdenAfter:null,
+  burdenCommitted:false,spellEffectCommitted:false,gmAdjudicationRequired:true});
+}
