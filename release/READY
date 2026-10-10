@@ -1,10 +1,10 @@
-1.13.0-qa.22
-# M10D.18 P2.2 Armor read-only shadow based on full TB2E CORE source books
-# DH 150-151, 156-159: leather, chain, plate, helmet, shield and weapon bypass
-# SG 65: conflict direct-target hit, Attack/Feint, overflow restrictions
-# P2.1 Traits verified; Armor QA pending; Conflict and Magic remain OFF
-# 14 older adapters still require full-core re-audit; M11 PAUSED
-# Global kill switch ENGAGED; Legacy Mixed remains live authority
-# Zero Actor/Item/Journal/Settings writes, no destructive migration
-# Stable remains 1.12.0; release only to QA channel
-# Foundry QA protocol: TEST_PROTOCOL_v1.13.0-qa.22.md
+1.13.0-qa.23
+# M10D.18 P2.3 Conflict read-only shadow; full TB2E source-backed
+# Scholar's Guide Conflict pp.59-81 + Dungeoneer's Handbook Weapons pp.156-159
+# Actions, skill matrix, disposition, HP, attacks, regroup, maneuvers, manual compromises
+# Traits and Armor remain verified; Magic pending
+# Full 14-domain existing shadow re-audit required
+# Legacy Mixed live authority, M11 PAUSED, global kill switch ENGAGED
+# No Actor/Item/Journal/Settings writes, no destructive migration
+# Stable v1.12.0 unchanged; QA release only
+# Foundry QA protocol TEST_PROTOCOL_v1.13.0-qa.23.md
