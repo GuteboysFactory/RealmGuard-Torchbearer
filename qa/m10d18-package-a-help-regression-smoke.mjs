@@ -6,15 +6,16 @@ import {profileActivationAvailable} from "../module/m10-profile-activation.mjs";
 const before=JSON.stringify(["realm-guard-legacy-mixed","realm-guard-strict","mg1e","mg2e"].map(resolveRulesProfile));
 const ok=p=>{assert.equal(p.ok,true,JSON.stringify(p));assert.equal(p.liveApplication,false);assert.equal(p.writesPlanned,0);};
 for(const p of [
-  tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Cook",targetSkillName:"Cook"}),
+  tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Cook",targetSkillName:"Cook",helperSkillTrained:true}),
   tb2eBeginnersLuckHelpPlan({sourceKind:"ability",sourceName:"Will",targetSkillName:"Cook"}),
   tb2eBeginnersLuckHelpPlan({sourceKind:"ability",sourceName:"Health",targetSkillName:"Fighter"}),
   tb2eHelpPlan({sourceKind:"nature",sourceName:"Nature",testName:"Cook",relevantNatureDescriptor:true}),
   tb2eHelpPlan({sourceKind:"ability",sourceName:"Will",testName:"Will"}),
 ])ok(p);
 const failures=[
-  [tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Fighter",targetSkillName:"Cook"}),"BEGINNERS_LUCK_HELPING_SKILL_MISMATCH"],
+  [tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Fighter",targetSkillName:"Cook",helperSkillTrained:true}),"BEGINNERS_LUCK_HELPING_SKILL_MISMATCH"],
   [tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Cook"}),"BEGINNERS_LUCK_SKILL_TARGET_REQUIRED"],
+  [tb2eBeginnersLuckHelpPlan({sourceKind:"skill",sourceName:"Cook",targetSkillName:"Cook"}),"BEGINNERS_LUCK_HELPING_SKILL_NOT_CONFIRMED_TRAINED"],
   [tb2eBeginnersLuckHelpPlan({sourceKind:"ability",sourceName:"Health",targetSkillName:"Cook"}),"BEGINNERS_LUCK_HELP_ABILITY_MISMATCH"],
   [tb2eBeginnersLuckHelpPlan({sourceKind:"ability",sourceName:"Will",targetSkillName:"Fighter"}),"BEGINNERS_LUCK_HELP_ABILITY_MISMATCH"],
   [tb2eBeginnersLuckHelpPlan({sourceKind:"ability",sourceName:"Will",targetSkillName:"NotASkill"}),"UNKNOWN_BEGINNERS_LUCK_TARGET_SKILL"],
