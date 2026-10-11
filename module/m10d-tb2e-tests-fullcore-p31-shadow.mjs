@@ -33,19 +33,22 @@ export function tb2eVersusFactorPlan({applicableFactors=0}={}){
   obstacleIncrease:0,factorsSelectedBy:"GM",modifierCommitted:false});
 }
 
-export function tb2eTieBreakerPlan({initialSourceKind="",beginnersLuckAbility="",
+export function tb2eTieBreakerPlan({initialSourceKind="",beginnersLuckAbility="",natureFallbackAbility="",
  tiebreakRollOutcome="PENDING",secondTieBrokenInPlayerFavor=false,
  playerVersusMonster=false}={}){
  const source=String(initialSourceKind).trim().toUpperCase();
  const fallback=String(beginnersLuckAbility).trim().toUpperCase();
+ const fromNature=String(natureFallbackAbility).trim().toUpperCase();
  const result=String(tiebreakRollOutcome).trim().toUpperCase();
  if(!ACTIONS.includes(source))return block("INVALID_INITIAL_SOURCE");
  if(source==="SKILL"&&!["WILL","HEALTH"].includes(fallback))
   return block("SKILL_BEGINNERS_LUCK_ABILITY_REQUIRED");
+ if(source==="NATURE"&&!["WILL","HEALTH"].includes(fromNature))
+  return block("NATURE_TIEBREAKER_ABILITY_REQUIRED");
  if(!["PENDING","PASS","FAIL","TIE"].includes(result))return block("INVALID_TIEBREAKER_RESULT");
  const tiebreakAbility=source==="SKILL"?fallback:
    ["WILL","HEALTH"].includes(source)?"NATURE":
-   source==="NATURE"?"WILL_OR_HEALTH_GM_SELECT":"NATURE";
+   source==="NATURE"?fromNature:"NATURE";
  const finalOutcome=result==="TIE"?
   (secondTieBrokenInPlayerFavor?"PASS":"FAIL"):result;
  return plan({ok:true,initialSourceKind:source,
