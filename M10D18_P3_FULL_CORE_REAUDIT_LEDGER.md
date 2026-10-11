@@ -1,6 +1,6 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
-**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` QA candidate. This ledger is a source trace and backlog, **not** a blanket audit certificate.
+**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` Foundry Gates A-D user-verified; P3.4 candidate `v1.13.0-qa.28`. This ledger is a source trace and backlog, **not** a blanket audit certificate.
 
 ## Safety invariants
 - Stable release `v1.12.0` unchanged; publish only through protected QA channel.
@@ -27,9 +27,9 @@
 | 6 | Resources / Fate / Persona | DH 59–64; SG 83–89, 97–125 | OPEN | Currency/resource tests, spending, awards, timing/tie edges |
 | 7 | Conditions | SG 39–57 | OPEN | All condition effects, disposition, recovery order, conflicts and death risk |
 | 8 | Recovery | SG 46–57, 90–125 | OPEN | Camp/Town/phase recovery & healer sequencing, failure and exception boundaries |
-| 9 | Inventory | DH 83–88, 148–159 | OPEN | Slots, gear, encumbrance, weapons, containers, breakage |
-| 10 | Advancement | DH 108–131 | OPEN | Test marks, BL/Nature, pass/fail and leveling/benefit boundaries |
-| 11 | Session | SG 22–25, 39–45, 90–130 | OPEN | Prologue/Grind/Camp/Town and checks, events & lifestyle |
+| 9 | Inventory | DH 83–88, 148–159 | **P3.4 targeted source fixes in QA** | Slots, gear, encumbrance, weapons, containers, breakage |
+| 10 | Advancement | DH 108–131 | **P3.4 targeted source fixes in QA** | Test marks, BL/Nature, pass/fail and leveling/benefit boundaries |
+| 11 | Session | SG 22–25, 39–45, 90–130 | **P3.4 targeted source fixes in QA** | Prologue/Grind/Camp/Town and checks, events & lifestyle |
 | 12 | Circles | DH 36–37, 61–64 | OPEN | Enmity, relations, factors, reputation & outcomes |
 | 13 | Scales | DH 11–12, 58–64; SG 58–82 | OPEN | Might/Precedence and conflict/social applicability |
 | 14 | Creation | DH 25–47 | OPEN | Recruitment steps, starting gear/relics/spells, P1 zero-skill corrections |
@@ -72,3 +72,7 @@
 ## P3.3 — Resources / Conditions / Recovery
 
 Candidate: `v1.13.0-qa.27`; user confirmation pending. Source findings and evidence: `M10D18_P33_SOURCE_FINDINGS.md`. The three domains remain OPEN. Domain FULL PASS remains **0/14**. M11 PAUSED, global kill switch ENGAGED, Legacy Mixed live; no writes.
+
+## P3.4 — Inventory, Advancement and Session (candidate 1.13.0-qa.28)
+
+See `M10D18_P34_SOURCE_FINDINGS.md` for exact DH/SG citations and test status. This is a **targeted** three-domain source correction, not complete source-to-implementation parity. All three domains remain OPEN for full re-audit. **FULL PASS = 0/14** until independent complete source mapping, regression, and Foundry acceptance. Global kill switch ENGAGED; M11 PAUSED; Legacy Mixed sole live authority. Stable v1.12.0 frozen.
