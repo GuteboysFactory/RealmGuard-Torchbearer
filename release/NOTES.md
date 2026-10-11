@@ -1,13 +1,11 @@
-# Realm Guard / Torchbearer v1.13.0-qa.28 — P3.4 Inventory, Advancement, Session
+# Realm Guard / Torchbearer v1.13.0-qa.29 — M10D.18 P3.5
 
-**QA ONLY · Torchbearer 2E read-only CORE shadow.** Source-grounded targeted correction from DH pp.83-88,108-114 and SG pp.39-42,90-96. Not full 14-domain parity.
+**QA ONLY — targeted Circles, Scales & Character Creation source fixes; not full 14-domain parity.**
 
-**Inventory & Gear:** Carried 4 with one carrier requires Laborer; nested sack fractional item slots rounded up and checked against available capacity; cache transfers require physically visiting cache location. Full CORE gear source exists but is not fully catalogued in adapter.
+- **Circles (DH 61–62):** Core Circles factors (personnel; Find Ally position+level+attitude) are now available as `game.realmGuard.core.m10d.circles.factorPlan`. Explicit **Enmity Clause** failure finds an enemy instead of the target, with +3 successes to enemy disposition on Drive Off / Convince / Convince Crowd when they oppose the player. No NPC or relationship write.
+- **Scales (DH 64, SG 62):** Might goal limits follow the actor's current Might, not just starting Might 3. New `game.realmGuard.core.m10d.scales.groupScaleComparisonPlan` uses the highest Might/Precedence of each team.
+- **Character Creation (DH 26–27):** Human Magician, Theurge and Warrior Will+Health distribution total 8, **minimum 2 and maximum 6 each**. Gear, spell and invocation source metadata distinguishes full book access from an unimplemented catalogue.
 
-**Advancement:** Ten-level cumulative Fate/Persona thresholds transcribed from DH112; next-level readiness requires both thresholds and being in Town. Town Resources purchase-series and bills can earn distinct marks, except when purchases already advanced rating. Full class-specific benefits not yet mapped.
+**Regression:** `qa/m10d-tb2e-p35-circles-scales-creation-smoke.mjs` and historical QA smokes. Foundry Gates A–D in `TEST_PROTOCOL_v1.13.0-qa.29.md`. Primary-source findings in `M10D18_P35_SOURCE_FINDINGS.md`.
 
-**Session:** Exhausted Instinct costs one Adventure turn or Camp check; normal/extreme Grind cadence of 4/3 turns; Camp entry requires safe rest site with at least one party check; Dark Camp reduces danger penalty by one, preserving increased recovery Ob.
-
-**Safety invariant:** Legacy Mixed sole LIVE authority; global kill switch ENGAGED; M11 PAUSED; zero new Actor/Item/Journal/Settings writes, live rolls or profile activation. Stable v1.12.0 frozen. Full historic re-audit still 0/14.
-
-Audit report: `M10D18_P34_SOURCE_FINDINGS.md`. Foundry manual Gates A–D: `TEST_PROTOCOL_v1.13.0-qa.28.md`. Automated source regression: `qa/m10d-tb2e-p34-inventory-advancement-session-smoke.mjs`.
+**Guardrails:** Torchbearer 2E remains read-only shadow, zero rolls / zero Actor, Item, Journal, Settings mutations, no creation commit. Global kill switch ENGAGED; M11 PAUSED; Legacy Mixed sole live authority. Stable v1.12.0 untouched. All 14 historical CORE domains still require full independent audit (0/14).

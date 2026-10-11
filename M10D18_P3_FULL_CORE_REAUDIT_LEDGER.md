@@ -1,6 +1,6 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
-**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` Foundry Gates A-D user-verified; P3.4 candidate `v1.13.0-qa.28`. This ledger is a source trace and backlog, **not** a blanket audit certificate.
+**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` Foundry Gates A-D user-verified; P3.4 `v1.13.0-qa.28` Foundry Gates A-D user-verified; P3.5 candidate `v1.13.0-qa.29`. This ledger is a source trace and backlog, **not** a blanket audit certificate.
 
 ## Safety invariants
 - Stable release `v1.12.0` unchanged; publish only through protected QA channel.
@@ -24,15 +24,15 @@
 | 3 | Wises | DH 76–78; SG 87–88 | **P3.2 targeted Wise fixes user-verified** | Deep review Wise effects, reroll timing, synergy / multi-wise limits; no adapter change yet |
 | 4 | Nature | DH 65–71; SG 25 | **P3.2 targeted source fixes user-verified** | Full channel/tax/recovery/advancement/retirement parity and exceptional abilities |
 | 5 | Abilities / Skills | DH 58–75, 160–176 | **P3.2 targeted source fixes in QA** | Full factors and per-skill suggested Help, tools, Learning |
-| 6 | Resources / Fate / Persona | DH 59–64; SG 83–89, 97–125 | OPEN | Currency/resource tests, spending, awards, timing/tie edges |
-| 7 | Conditions | SG 39–57 | OPEN | All condition effects, disposition, recovery order, conflicts and death risk |
-| 8 | Recovery | SG 46–57, 90–125 | OPEN | Camp/Town/phase recovery & healer sequencing, failure and exception boundaries |
-| 9 | Inventory | DH 83–88, 148–159 | **P3.4 targeted source fixes in QA** | Slots, gear, encumbrance, weapons, containers, breakage |
-| 10 | Advancement | DH 108–131 | **P3.4 targeted source fixes in QA** | Test marks, BL/Nature, pass/fail and leveling/benefit boundaries |
-| 11 | Session | SG 22–25, 39–45, 90–130 | **P3.4 targeted source fixes in QA** | Prologue/Grind/Camp/Town and checks, events & lifestyle |
-| 12 | Circles | DH 36–37, 61–64 | OPEN | Enmity, relations, factors, reputation & outcomes |
-| 13 | Scales | DH 11–12, 58–64; SG 58–82 | OPEN | Might/Precedence and conflict/social applicability |
-| 14 | Creation | DH 25–47 | OPEN | Recruitment steps, starting gear/relics/spells, P1 zero-skill corrections |
+| 6 | Resources / Fate / Persona | DH 59–64; SG 83–89, 97–125 | **P3.3 targeted source fixes user-verified** | Currency/resource tests, spending, awards, timing/tie edges |
+| 7 | Conditions | SG 39–57 | **P3.3 targeted source fixes user-verified** | All condition effects, disposition, recovery order, conflicts and death risk |
+| 8 | Recovery | SG 46–57, 90–125 | **P3.3 targeted source fixes user-verified** | Camp/Town/phase recovery & healer sequencing, failure and exception boundaries |
+| 9 | Inventory | DH 83–88, 148–159 | **P3.4 targeted source fixes user-verified** | Slots, gear, encumbrance, weapons, containers, breakage |
+| 10 | Advancement | DH 108–131 | **P3.4 targeted source fixes user-verified** | Test marks, BL/Nature, pass/fail and leveling/benefit boundaries |
+| 11 | Session | SG 22–25, 39–45, 90–130 | **P3.4 targeted source fixes user-verified** | Prologue/Grind/Camp/Town and checks, events & lifestyle |
+| 12 | Circles | DH 36–37, 61–64 | **P3.5 targeted source fixes in QA** | Enmity, relations, factors, reputation & outcomes |
+| 13 | Scales | DH 11–12, 58–64; SG 58–82 | **P3.5 targeted source fixes in QA** | Might/Precedence and conflict/social applicability |
+| 14 | Creation | DH 25–47 | **P3.5 targeted source fixes in QA** | Recruitment steps, starting gear/relics/spells, P1 zero-skill corrections |
 
 **Domain FULL PASS count: 0/14.** P3.1 consists of *targeted* findings and tests. No existing domain can be marked FULLY_REAUDITED on this patch alone. The foundation's `existingShadowReauditRequired` stays **true**.
 
@@ -76,3 +76,7 @@ Candidate: `v1.13.0-qa.27`; user confirmation pending. Source findings and evide
 ## P3.4 — Inventory, Advancement and Session (candidate 1.13.0-qa.28)
 
 See `M10D18_P34_SOURCE_FINDINGS.md` for exact DH/SG citations and test status. This is a **targeted** three-domain source correction, not complete source-to-implementation parity. All three domains remain OPEN for full re-audit. **FULL PASS = 0/14** until independent complete source mapping, regression, and Foundry acceptance. Global kill switch ENGAGED; M11 PAUSED; Legacy Mixed sole live authority. Stable v1.12.0 frozen.
+
+## P3.5 — Circles / Scales / Character Creation (candidate 1.13.0-qa.29)
+
+Detailed primary rulebook mapping and source-bounded fixes: `M10D18_P35_SOURCE_FINDINGS.md`. These are targeted validations, not FULL domain closure; all 14 historical domains remain OPEN for exhaustive source parity, including the three P3.5 subjects. **FULL PASS = 0/14**. Legacy Mixed live, M11 PAUSED, global kill switch ENGAGED, Stable v1.12.0 unchanged.

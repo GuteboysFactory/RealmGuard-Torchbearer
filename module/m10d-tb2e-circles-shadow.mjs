@@ -3,6 +3,8 @@ import { freezeTb2e, TB2E_SOURCE_COVERAGE_MATRIX } from "./m10d-tb2e-source-cove
 const PROFILE_ID="torchbearer2e";
 const PROFILE_VERSION=1;
 const CIRCLES_ROW=TB2E_SOURCE_COVERAGE_MATRIX.find(row=>row.id==="circles");
+const CIRCLES_PERSONNEL_FACTORS=freezeTb2e({PORTER:1,SENTRY:2,GUIDE:3,LABORER:1,CRAFTSMAN:2,SPECIALIST:3,EDUCATED:4,MAGICIAN:5});
+const CIRCLES_ALLY_FACTORS=freezeTb2e({POSITION:{ADVENTURER:1,TOWNSFOLK:2,GOVERNMENT_OR_RULER:3},LEVEL:{LOWER:0,SAME:1,HIGHER:2},ATTITUDE:{WILLING_TO_LISTEN:0,HELP_FOR_PRICE:1,LOYAL:2}});
 
 function key(value){return String(value??"").trim().toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_|_$/g,"");}
 function nonNegativeInteger(value){return Number.isInteger(Number(value))&&Number(value)>=0;}
@@ -14,13 +16,13 @@ function blocked(reasonCode,extra={}){
 export function tb2eCirclesShadowStatus(){
   return freezeTb2e({
     phase:"M10D.13",mode:"TB2E_CIRCLES_RELATIONSHIPS_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:CIRCLES_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:CIRCLES_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.5",fullDomainReauditComplete:false,
     sourceEvidence:CIRCLES_ROW?.evidence??"QR 13, 86; CC 3, 31-35",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     circlesMutationAllowed:false,relationshipMutationAllowed:false,npcCreationAllowed:false,creationGrantAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "NO_COMPLETE_CIRCLES_OBSTACLE_FACTOR_TABLE",
+      "DH61_COMPLETE_CORE_CIRCLES_FACTOR_TABLE_AVAILABLE_AND_MAPPED_P35",
       "NO_AUTOMATIC_NPC_CREATION",
       "NO_AUTOMATIC_ALLY_ENEMY_RELATIONSHIP_WRITE",
       "NO_AUTOMATIC_CIRCLES_RATING_WRITE",
@@ -38,8 +40,9 @@ export function tb2eCirclesModel(){
     phase:"M10D.13",profileId:PROFILE_ID,
     ability:{name:"CIRCLES",ratingRange:{min:1,max:10},primaryPhase:"TOWN",purpose:["FIND_CONTACTS","FIND_FRIENDS","FIND_HELP","FIND_INFORMATION"]},
     test:{
-      completeObstacleFactorsAvailable:false,
-      obstacleAuthority:"DG_FACTORS_UNAVAILABLE_DO_NOT_INFER",
+      completeObstacleFactorsAvailable:true,
+      factors:{hirePersonnel:CIRCLES_PERSONNEL_FACTORS,findAlly:CIRCLES_ALLY_FACTORS},
+      obstacleAuthority:"DH61_CORE_VERIFIED_FACTORS",
       success:{targetFound:true,mayRecordAsNewAlly:true,futureAllySearchBonusDice:1},
       failure:{targetFound:true,mayRecordAsNewAlly:false,consequenceAuthority:"GM_MANUAL_TWIST_CONDITION_OR_POSSIBLE_ENEMY"}
     },
@@ -63,10 +66,13 @@ export function tb2eCirclesModel(){
 }
 
 export function tb2eCirclesTestOutcomePlan({
-  outcome="PASS"
+  outcome="PASS",
+  failureConsequence="CONDITION"
 }={}){
   const o=key(outcome);
   if(!["PASS","FAIL"].includes(o))return blocked("UNKNOWN_CIRCLES_TEST_OUTCOME",{outcome:o});
+  const fc=key(failureConsequence);
+  if(o==="FAIL"&&!["CONDITION","TWIST","ENMITY_CLAUSE"].includes(fc))return blocked("UNSUPPORTED_CIRCLES_FAILURE_CONSEQUENCE",{failureConsequence:fc});
   if(o==="PASS"){
     return freezeTb2e({
       ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_TEST_OUTCOME_SHADOW",outcome:o,
@@ -75,6 +81,13 @@ export function tb2eCirclesTestOutcomePlan({
       relationshipMutationCommitted:false,npcCreationCommitted:false,circlesMutationCommitted:false,liveApplication:false,writesPlanned:0
     });
   }
+  if(fc==="ENMITY_CLAUSE")return freezeTb2e({
+    ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_TEST_OUTCOME_SHADOW",outcome:o,
+    failureConsequence:fc,targetFound:false,enemyFound:true,enemyRecordPreview:true,
+    enemyDispositionBonusSuccesses:3,enemyDispositionConflicts:["DRIVE_OFF","CONVINCE","CONVINCE_CROWD"],
+    sourceEvidence:"Dungeoneers Handbook p.62",
+    relationshipMutationCommitted:false,npcCreationCommitted:false,circlesMutationCommitted:false,liveApplication:false,writesPlanned:0
+  });
   return freezeTb2e({
     ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_TEST_OUTCOME_SHADOW",outcome:o,
     targetFound:true,allyRecordPreview:false,futureAllySearchBonusDice:0,
@@ -173,8 +186,32 @@ export function tb2eRelationshipLodgingPlan({
 export function tb2eCirclesObstacleBoundaryPlan(){
   return freezeTb2e({
     ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_OBSTACLE_BOUNDARY_SHADOW",
-    completeFactorsAvailable:false,obstacle:null,
-    obstacleAuthority:"DG_FACTORS_UNAVAILABLE_DO_NOT_INFER",
+    completeFactorsAvailable:true,obstacle:null,
+    obstacleAuthority:"DH61_CORE_VERIFIED_FACTORS",
     testExecutionAllowed:false,liveApplication:false,writesPlanned:0
   });
+}
+
+/** DH 61 Circles factors. The GM supplies the requested NPC/factors and chooses the test. */
+export function tb2eCirclesFactorPlan({
+  kind="FIND_ALLY",personnel="",position="",level="",attitude=""
+}={}){
+  const k=key(kind);
+  if(k==="HIRE_PERSONNEL"){
+    const p=key(personnel),factor=CIRCLES_PERSONNEL_FACTORS[p];
+    if(factor===undefined)return blocked("UNKNOWN_CIRCLES_PERSONNEL_FACTOR",{personnel:p});
+    return freezeTb2e({ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_FACTOR_SHADOW",
+      kind:k,personnel:p,obstacle:factor,sourceEvidence:"Dungeoneers Handbook p.61",
+      rollExecuted:false,npcCreationCommitted:false,liveApplication:false,writesPlanned:0});
+  }
+  if(k!=="FIND_ALLY")return blocked("UNKNOWN_CIRCLES_FACTOR_KIND",{kind:k});
+  const p=key(position),l=key(level),a=key(attitude);
+  const positions=CIRCLES_ALLY_FACTORS.POSITION,levels=CIRCLES_ALLY_FACTORS.LEVEL,attitudes=CIRCLES_ALLY_FACTORS.ATTITUDE;
+  if(positions[p]===undefined||levels[l]===undefined||attitudes[a]===undefined)
+    return blocked("UNKNOWN_CIRCLES_ALLY_FACTOR",{position:p,level:l,attitude:a});
+  const factors={position:positions[p],level:levels[l],attitude:attitudes[a]};
+  return freezeTb2e({ok:true,phase:"M10D.13",profileId:PROFILE_ID,mode:"CIRCLES_FACTOR_SHADOW",
+    kind:k,position:p,level:l,attitude:a,factors,obstacle:factors.position+factors.level+factors.attitude,
+    sourceEvidence:"Dungeoneers Handbook p.61",rollExecuted:false,npcCreationCommitted:false,
+    liveApplication:false,writesPlanned:0});
 }
