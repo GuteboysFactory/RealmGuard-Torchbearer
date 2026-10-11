@@ -1,17 +1,16 @@
-# Realm Guard / Torchbearer v1.13.0-qa.25 — M10D.18 P3.1 Full CORE Re-Audit (targeted)
+# Realm Guard / Torchbearer v1.13.0-qa.26 — M10D.18 P3.2 (targeted full CORE re-audit)
 
-**QA candidate; Foundry Gate A–D still required. Not a complete 14-domain re-audit.**
+**QA ONLY.** P3.2 is targeted source reconciliation of Wises, Nature and Abilities/Skills, NOT 14/14 full domain parity. All results READ_ONLY_SHADOW.
 
-### Source-backed repairs (Torchbearer 2E Scholar's Guide)
-- SG p.27: GM-selected factors + additive categories yield Ob; unrelated primary categories cannot be summed. Pure `tests.factorObstaclePlan`, with caller/GMs responsible for category selection.
-- SG p.32: a situational factor in a Versus test is **-1s** rather than +1 Ob, exposed as `tests.versusFactorPlan`.
-- SG pp.32–34: `tests.tieBreakerPlan` follows the source's tiebreaker rolls and tests: no Help; initial Skill -> linked Will/Health, Will/Health -> Nature, Nature -> explicitly selected Will/Health, monsters -> Nature; original tied test gives no advancement when a tiebreaker is chosen; second tie fails unless broken in the player's favor. Never executes dice or marks advancement.
-- SG p.37: injured/sick **rating-zero** Skills or Abilities cannot provide Help. Generic Help, Beginner's Luck Help, and Conflict Help now honor explicit helper-zero flags; no Actor inspection.
-- DH pp.76–78 and SG pp.87–88 Wises rules spot-checked; full Wise-domain audit still OPEN.
+## DH/SG-backed adjustments
+- **Wises** (DH pp.76-78, SG pp.87-88): `wises.combinationPlan` checks one use per Wise, each effect only once per test, max 4 Wises, fictional relevance and ordinary Help/I Am Wise exclusivity; Wise rerolls require being planned before Fate Luck, removes assumed Of Course → Deeper ordering; four-use cycle timing adjusted.
+- **Nature** (DH pp.65-70, SG p.25): Alternative stock descriptors added; returned-from-missed-session recovery requires no conditions; end-of-adventure retirement for max Nature 0 (including voluntary conservation), conditional end-session check at Nature 7.
+- **Abilities/Skills** (DH pp.72-75 and 160-176): full source available but 33-skill factor catalogue still not mapped; `abilities.equipmentPlan` previews tool penalties and caps Supplies/Gear per test; unskilled borrowed tools and Dwarven Crafting exception; learning a 25th Skill flags replacement of an old Skill; heroic cap 7 only with level benefit.
+- Existing live rules, P3.1, P2 Traits/Armor/Conflict/Magic and original profile snapshots preserved by regression tests.
 
-### Release safety
-- New read-only API additions `game.realmGuard.core.m10d.tests.factorObstaclePlan`, `versusFactorPlan`, `tieBreakerPlan`. All write flags false, no new live authority.
-- New QA smokes plus historical QA suite, including P2.1 Traits, P2.2 Armor, P2.3 Conflict and P2.4 Magic.
-- **M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md** tracks the **14 historical adapter domains**. Full audit count remains **0/14** pending complete source/per-domain parity and Foundry QA; no premature completion.
-- Legacy Mixed live authority; global kill switch ENGAGED; M11 PAUSED; full-core re-audit required. Stable v1.12.0 unchanged.
-- Install only via protected QA manifest after tested ZIP and GitHub Release assets verify; Foundry test protocol `TEST_PROTOCOL_v1.13.0-qa.25.md`.
+## Strict safety
+- Global kill switch ENGAGED. M11 PAUSED. Legacy Mixed sole live authority. TB2E not activated.
+- No Actor/Item/Journal/Settings writes; no roll execution, advancement or equipment mutation.
+- **0/14 fully re-audited historical domains**; tracked with source citations and open work in `M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md`.
+- Foundry QA protocol: `TEST_PROTOCOL_v1.13.0-qa.26.md`. Gates A-D require manual PASS after successful CI/QA release.
+- Stable v1.12.0 frozen. QA release manifest promoted only by verified GitHub Actions after ZIP/asset checks.
