@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {tb2eAdvancementThresholdPlan,tb2eSkillInfo} from "../module/m10d-tb2e-abilities-shadow.mjs";
-import {tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementPlan,tb2eChannelNatureTaxPlan} from "../module/m10d-tb2e-nature-shadow.mjs";
+import {tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementPlan,tb2eChannelNatureTaxPlan,tb2eChannelNaturePlan,tb2eNatureSubstitutionPlan,tb2eNatureSubstitutionTaxPlan} from "../module/m10d-tb2e-nature-shadow.mjs";
 import {tb2eWiseRerollPlan,tb2eWiseAidPlan,tb2eWiseLanguageRetentionPlan,tb2eWiseCommunicationPlan} from "../module/m10d-tb2e-wise-shadow.mjs";
 import {tb2eWiseCombinationPlan as validateWiseCombos} from "../module/m10d-tb2e-wises-p32-shadow.mjs";
 import {tb2eResolveObstacleShadow,tb2eResolveVersusShadow,tb2eBeginnersLuckShadowPlan} from "../module/m10d-tb2e-test-shadow.mjs";
@@ -19,6 +19,20 @@ for(const f of [tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementP
 }
 assert.equal(tb2eNatureRecoveryPlan({method:"CONSERVE",currentNature:1,maximumNature:1}).retirementTiming,"END_OF_ADVENTURE");
 assert.equal(tb2eNatureRecoveryPlan({method:"CONSERVE",currentNature:2,maximumNature:5}).eraseNatureAdvancementRequired,true);
+
+for(const [planner,extra] of [
+ [tb2eNatureSubstitutionPlan,{targetSkillUnavailable:true}],
+ [tb2eNatureSubstitutionTaxPlan,{outcome:"FAIL",marginOfFailure:2}],
+ [tb2eChannelNaturePlan,{testName:"Scout",personaAvailable:1}],
+ [tb2eChannelNatureTaxPlan,{outcome:"FAIL",marginOfFailure:2}],
+ [tb2eNatureRecoveryPlan,{method:"RESPITE"}],
+ [tb2eNatureAdvancementPlan,{advancementTriggered:true}]
+]){
+ const p=planner({currentNature:0,maximumNature:4,...extra});
+ safe(p);assert.equal(p.reasonCode,"NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST");
+}
+assert.equal(tb2eNatureLossPlan({currentNature:0,maximumNature:4,reachedZeroDueToTax:true}).maximumAfter,3);
+
 assert.equal(tb2eNatureRecoveryPlan({method:"RESPITE",currentNature:2,maximumNature:5}).eraseNatureAdvancementRequired,false);
 assert.equal(tb2eNatureAdvancementPlan({currentNature:4,maximumNature:6,advancementTriggered:true}).retirementTiming,"END_OF_SESSION_IF_STILL_AT_SEVEN");
 const tax=tb2eChannelNatureTaxPlan({currentNature:4,maximumNature:5,outcome:"FAIL",marginOfFailure:3});
