@@ -29,6 +29,8 @@ assert.equal(tb2eWiseAidPlan({alsoProvidingHelp:true}).ok,false);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:false}).languageRetained,true);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:false}).languageForgotten,true);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:false}).gmBookkeepingRequired,true);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:false}).retentionStatus,"PENDING_RECORD");
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:false}).languageForgotten,false);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:true}).languageRetained,true);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:false}).reasonCode,"LANGUAGE_WISE_REQUIRED");
 assert.equal(tb2eWiseCommunicationPlan({peopleWiseApplies:false,otherCommunicationMethod:false}).socialVerbalTestsAllowed,false);
