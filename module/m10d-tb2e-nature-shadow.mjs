@@ -155,6 +155,7 @@ export function tb2eNatureRecoveryPlan({
   passedLifestyle=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const key=String(method??"").trim().toUpperCase();
   let nextCurrent=Number(currentNature),nextMaximum=Number(maximumNature),requirements=[],eligible=true;
   if(key==="RESPITE"){
@@ -189,6 +190,7 @@ export function tb2eNatureLossPlan({
   reachedZeroDueToTax=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(Number(currentNature)!==0||!Boolean(reachedZeroDueToTax)) return blocked("NATURE_LOSS_REQUIRES_ZERO_CURRENT_FROM_TAX");
   const nextMaximum=Math.max(0,Number(maximumNature)-1);
   return freezeTb2e({
@@ -207,6 +209,7 @@ export function tb2eNatureAdvancementPlan({
   advancementTriggered=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!Boolean(advancementTriggered)) return blocked("ADVANCEMENT_NOT_TRIGGERED");
   if(Number(maximumNature)>=7) return blocked("MAXIMUM_NATURE_AT_CAP",{maximumNature});
   const taxDifference=Number(maximumNature)-Number(currentNature);
