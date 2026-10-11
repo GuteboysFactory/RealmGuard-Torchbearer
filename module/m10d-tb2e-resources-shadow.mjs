@@ -14,7 +14,7 @@ function upper(value){return String(value??"").trim().toUpperCase();}
 export function tb2eResourceShadowStatus(){
   return freezeTb2e({
     phase:"M10D.7",mode:"TB2E_FATE_PERSONA_RESOURCES_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:RESOURCE_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:RESOURCE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.3",fullDomainReauditComplete:false,
     sourceEvidence:RESOURCE_ROW?.evidence??"QR 12, 72-76, 97-98",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     resourceSpendAllowed:false,resourceAwardAllowed:false,resourcesTaxMutationAllowed:false,advancementMutationAllowed:false,
