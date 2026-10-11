@@ -12,6 +12,7 @@ import { tb2eFactorObstaclePlan, tb2eVersusFactorPlan, tb2eTieBreakerPlan } from
 import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan } from "./m10d-tb2e-nature-shadow.mjs";
 import { tb2eAbilityInfo, tb2eAbilitySkillModel, tb2eAbilitySkillShadowStatus, tb2eAdvancementThresholdPlan, tb2eBeginnersLuckAbilityPlan, tb2eNewSkillLearningPlan, tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
 import { tb2eSkillEquipmentPlan } from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
+import { tb2eSkillIndex, tb2eSkillSourceEntry, tb2eSuggestedHelpSkillPlan } from "./m10d18-tb2e-package-a-skill-index.mjs";
 import { tb2eEndSessionAwardPlan, tb2eFateSpendPlan, tb2eLifestyleResourcesPlan, tb2ePersonaSpendPlan, tb2eResourceModel, tb2eResourceShadowStatus, tb2eResourcesTaxPlan, tb2eResourcesTestPlan } from "./m10d-tb2e-resources-shadow.mjs";
 import { tb2eConditionCapabilityPlan, tb2eConditionDeathRiskPlan, tb2eConditionInfo, tb2eConditionModel, tb2eConditionShadowStatus, tb2eConditionTestEffectPlan, tb2eConditionZeroRatingPlan, tb2eConflictDispositionConditionPlan } from "./m10d-tb2e-conditions-shadow.mjs";
 import { tb2eTownRecoveryVenuePlan, tb2eTownRecoveryVenueModel } from "./m10d-tb2e-town-recovery-p33-shadow.mjs";
@@ -126,13 +127,13 @@ export function installM10DFoundation() {
       wiseShadowStatus:tb2eWiseShadowStatus,
       wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan}),
       helpShadowStatus:tb2eHelpShadowStatus,
-      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
+      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan,suggestedSkillPlan:tb2eSuggestedHelpSkillPlan}),
       testShadowStatus:tb2eTestShadowStatus,
       tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan,factorObstaclePlan:tb2eFactorObstaclePlan,versusFactorPlan:tb2eVersusFactorPlan,tieBreakerPlan:tb2eTieBreakerPlan}),
       natureShadowStatus:tb2eNatureShadowStatus,
       nature:Object.freeze({getStatus:tb2eNatureShadowStatus,model:tb2eNatureModel,substitutionPlan:tb2eNatureSubstitutionPlan,substitutionTaxPlan:tb2eNatureSubstitutionTaxPlan,channelPlan:tb2eChannelNaturePlan,channelTaxPlan:tb2eChannelNatureTaxPlan,recoveryPlan:tb2eNatureRecoveryPlan,lossPlan:tb2eNatureLossPlan,advancementPlan:tb2eNatureAdvancementPlan}),
       abilitiesShadowStatus:tb2eAbilitySkillShadowStatus,
-      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan,equipmentPlan:tb2eSkillEquipmentPlan}),
+      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan,equipmentPlan:tb2eSkillEquipmentPlan,skillIndex:tb2eSkillIndex,skillSourceEntry:tb2eSkillSourceEntry}),
       resourcesShadowStatus:tb2eResourceShadowStatus,
       resources:Object.freeze({getStatus:tb2eResourceShadowStatus,model:tb2eResourceModel,endSessionAwardPlan:tb2eEndSessionAwardPlan,fateSpendPlan:tb2eFateSpendPlan,personaSpendPlan:tb2ePersonaSpendPlan,testPlan:tb2eResourcesTestPlan,taxPlan:tb2eResourcesTaxPlan,lifestylePlan:tb2eLifestyleResourcesPlan}),
       conditionsShadowStatus:tb2eConditionShadowStatus,
