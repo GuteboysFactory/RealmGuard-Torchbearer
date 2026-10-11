@@ -9,3 +9,4 @@
 # Audit ledger M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md
 # Foundry gates TEST_PROTOCOL_v1.13.0-qa.25.md
 # CI retry: historical Help test checks durable M10D.18 phase rather than fixed P1 marker
+# QA retry: use startsWith for historical Help phase guard after regex typo
