@@ -6,7 +6,7 @@ import {tb2eConditionModel,tb2eConditionShadowStatus,tb2eConditionTestEffectPlan
 import {tb2eRecoveryShadowStatus,tb2eStandardRecoveryPlan,tb2eHungryThirstyRecoveryPlan} from "../module/m10d-tb2e-recovery-shadow.mjs";
 import {tb2eTownRecoveryVenueModel,tb2eTownRecoveryVenuePlan} from "../module/m10d-tb2e-town-recovery-p33-shadow.mjs";
 const names=["realm-guard-legacy-mixed","realm-guard-strict","mg1e","mg2e"];
-const before=JSON.stringify(names.map(resolveRulesProfile));
+const before=JSON.stringify(names.map(id=>resolveRulesProfile(id)));
 const unchanged=p=>{assert.equal(p.liveApplication,false); if(Object.hasOwn(p,"writesPlanned"))assert.equal(p.writesPlanned,0);else assert.deepEqual(p.writes,{actors:0,items:0,journals:0,settings:0});};
 for(const status of [tb2eResourceShadowStatus(),tb2eConditionShadowStatus(),tb2eRecoveryShadowStatus()]){
   unchanged(status); assert.equal(status.coreReauditTargetedPhase,"M10D.18_P3.3");assert.equal(status.fullDomainReauditComplete,false);
@@ -73,5 +73,5 @@ for(const file of ["module/m10d-tb2e-resources-shadow.mjs","module/m10d-tb2e-con
  for(const forbidden of ["game.settings.set","Actor.create","Item.create","JournalEntry.create","createEmbeddedDocuments","deleteEmbeddedDocuments",".update(","new Roll("])
  assert.equal(source.includes(forbidden),false,file+" must remain read-only");
 }
-assert.equal(JSON.stringify(names.map(resolveRulesProfile)),before);
+assert.equal(JSON.stringify(names.map(id=>resolveRulesProfile(id))),before);
 console.log("PASS M10D.18 P3.3 Resources zero/tax/Fate, Conditions penalties, Recovery food/Town venues; zero writes");
