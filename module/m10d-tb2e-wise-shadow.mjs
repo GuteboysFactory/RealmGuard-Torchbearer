@@ -111,12 +111,15 @@ export function tb2eWiseLanguageRetentionPlan({
   if(!peopleWise)return blocked("LANGUAGE_WISE_REQUIRED",{sourceEvidence:"DH 78"});
   const changed=Boolean(wiseChanged),requested=Boolean(retainLanguage);
   const recorded=Boolean(languageRecordedWithLevelBenefit);
+  const pending=changed&&requested&&!recorded;
   const retention=changed?requested&&recorded:true;
   return freezeTb2e({
     ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
     mode:"WISE_LANGUAGE_RETENTION_SHADOW",sourceEvidence:"Dungeoneer's Handbook p.78",
     peopleWise:true,wiseChanged:changed,retainLanguageRequested:requested,
-    languageRetained:retention,languageForgotten:changed&&!retention,
+    languageRetained:retention,languageForgotten:changed&&!requested,
+    retentionPendingLevelBenefitRecord:pending,
+    retentionStatus:pending?"PENDING_RECORD":!changed?"WISE_UNCHANGED":retention?"RETAINED":"FORGOTTEN",
     retentionRequiresCurrentLevelBenefitRecord:changed&&requested,
     levelBenefitRecordConfirmed:recorded,
     gmBookkeepingRequired:changed&&requested&&!recorded,
