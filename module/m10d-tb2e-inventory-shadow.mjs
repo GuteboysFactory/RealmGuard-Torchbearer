@@ -14,14 +14,14 @@ function blocked(reasonCode,extra={}){
 export function tb2eInventoryShadowStatus(){
   return freezeTb2e({
     phase:"M10D.10",mode:"TB2E_INVENTORY_GEAR_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:INVENTORY_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:INVENTORY_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.4",fullDomainReauditComplete:false,
     sourceEvidence:INVENTORY_ROW?.evidence??"QR 23-26; CC 37-40",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     placementMutationAllowed:false,containerMutationAllowed:false,cacheMutationAllowed:false,gearGrantAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "NO_FULL_GEAR_CATALOGUE_DG148_UNAVAILABLE",
-      "NO_WEAPON_EFFECTS_DG156_157_UNAVAILABLE",
+      "DH148_PLUS_GEAR_CATALOGUE_AVAILABLE_NOT_MAPPED",
+      "DH_WEAPON_EFFECTS_AVAILABLE_NOT_MAPPED_IN_INVENTORY_DOMAIN",
       "NO_ARMOR_RULE_AUTOMATION",
       "NO_BACKPACK_FIGHTER_DUNGEONEER_PENALTY_MAGNITUDE_INFERENCE",
       "NO_NESTED_CONTAINER_ITEM_CATALOGUE_INFERENCE",
@@ -55,7 +55,7 @@ export function tb2eInventoryModel(){
       WORN:"PLACED_IN_WEARABLE_LOCATIONS",
       PACK:"PLACED_IN_BACKPACK_POUCH_SACK_SATCHEL_OR_BELT"
     },
-    specialCarried4:{carriersRequired:2,handsPerCarrier:2,totalHands:4},
+    specialCarried4:{carriersRequired:2,handsPerCarrier:2,totalHands:4,soloLaborerTestAllowed:true,ordinaryCarryRequiresAtLeastTwoPeople:true},
     containers:{
       BACKPACK:{torsoWornSlots:2,packSlots:6,mutuallyExclusiveWith:"SATCHEL",negativeTests:["FIGHTER","DUNGEONEER"],negativeModifierMagnitudeAuthority:"UNAVAILABLE"},
       SATCHEL:{torsoWornSlots:1,packSlots:3,mutuallyExclusiveWith:"BACKPACK",negativeTests:[]},
@@ -63,14 +63,14 @@ export function tb2eInventoryModel(){
       BOTTLE:{contents:["LIQUIDS","IMPROVISED_SAND_OR_GEMS"],capacityAuthority:"ITEM_CATALOGUE_UNAVAILABLE"},
       WATERSKIN:{contents:["LIQUIDS","IMPROVISED_SAND_OR_GEMS"],capacityAuthority:"ITEM_CATALOGUE_UNAVAILABLE"}
     },
-    nesting:{allowed:true,outerMustFitInnerAndContents:true,halfSlotContainersExist:true},
+    nesting:{allowed:true,outerMustFitInnerAndContents:true,halfSlotContainersExist:true,roundUpItemSlots:true},
     containerDamage:{possibleAsTwist:true,contentsMayBeLost:"SOME_OR_ALL",automation:false},
     cache:{standardSlots:12,carried:false,campBuild:{costChecks:1},townBuild:{cost:"FREE",requiresParentOrFriendWithHome:true},transferAfterBuilt:"AT_WILL"},
     startingGear:{
       wellWornClothesSlotCost:0,utilitarianBeltSlotCost:0,
       chooseOneContainer:["SATCHEL","BACKPACK"],
       magicianRequiresSpellBook:true,theurgeHolyRelics:2,
-      detailedGearAuthority:"DG148_UNAVAILABLE",
+      detailedGearAuthority:"DH148_PLUS_SOURCE_AVAILABLE_NOT_FULLY_MAPPED",
       startingGearChoiceTables:"VISUAL_SOURCE_NOT_EXECUTABLE_AUTOGRANT"
     },
     liveApplication:false,writesPlanned:0
@@ -101,7 +101,9 @@ export function tb2eGearStoragePlan({
     storage:method,slotCost:Number(slotCost),wieldHands:wieldHands===null?null:Number(wieldHands),carriers:Number(carriers),
     carried4,
     carried4Requirement:carried4?{carriersRequired:2,handsPerCarrier:2,totalHands:4}:null,
-    fullItemStorageAuthority:"DG148_UNAVAILABLE_CALLER_SUPPLIED_ONLY",
+    fullItemStorageAuthority:"DH_ITEM_LIST_AVAILABLE_BUT_CALLER_GM_SUPPLIED",
+    soloCarried4RequiresLaborerTest:carried4&&Number(carriers)===1,
+    carriersEnoughWithoutSoloTest:carried4?Number(carriers)>=2:true,
     placementMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
@@ -125,6 +127,9 @@ export function tb2eContainerPlan({
     container:id,...data,usedPackSlots:Number(usedPackSlots),capacity,
     overCapacity:capacity===null?null:Number(usedPackSlots)>capacity,
     nested:Boolean(nested),requiredNestedSlots,
+    roundedNestedSlots:Boolean(nested)?Math.ceil(requiredNestedSlots):0,
+    totalOccupiedSlots:Number(usedPackSlots)+(Boolean(nested)?Math.ceil(requiredNestedSlots):0),
+    overCapacityIncludingNested:capacity===null?null:Number(usedPackSlots)+(Boolean(nested)?Math.ceil(requiredNestedSlots):0)>capacity,
     nestingRule:Boolean(nested)?"OUTER_MUST_FIT_INNER_AND_CONTENTS":"NOT_APPLICABLE",
     placementMutationCommitted:false,containerMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
@@ -182,7 +187,8 @@ export function tb2eCachePlan({
   phase="CAMP",
   hasCheck=false,
   hasParentOrFriendWithHome=false,
-  built=false
+  built=false,
+  atCacheLocation=true
 }={}){
   const p=key(phase);
   if(!["CAMP","TOWN"].includes(p))return blocked("CACHE_BUILD_REQUIRES_CAMP_OR_TOWN",{phase:p});
@@ -194,7 +200,8 @@ export function tb2eCachePlan({
     hasCheck:Boolean(hasCheck),hasParentOrFriendWithHome:Boolean(hasParentOrFriendWithHome),
     canBuild,
     requirement:p==="CAMP"?"SPEND_ONE_CHECK":"LEAVE_WITH_PARENT_OR_FRIEND_WHO_HAS_HOME",
-    built:Boolean(built),transferAtWill:Boolean(built),
+    built:Boolean(built),atCacheLocation:Boolean(atCacheLocation),transferAtWill:Boolean(built)&&Boolean(atCacheLocation),
+    transferRequiresVisit:true,
     checkSpendCommitted:false,cacheMutationCommitted:false,itemTransferCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
@@ -216,7 +223,7 @@ export function tb2eStartingGearBoundaryPlan({
       holyRelicsRequired:cls==="THEURGE"?2:0
     },
     detailedStartingGearChoiceTableAuthority:"VISUAL_TABLE_NOT_EXECUTABLE_WITHOUT_EXPLICIT_ITEM_TRANSCRIPTION",
-    detailedItemRulesAuthority:"DG148_UNAVAILABLE",
+    detailedItemRulesAuthority:"DH148_PLUS_SOURCE_AVAILABLE_NOT_MAPPED",
     gearGrantCommitted:false,placementMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
