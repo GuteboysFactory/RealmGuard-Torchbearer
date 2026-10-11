@@ -3,6 +3,7 @@ import { freezeTb2e, TB2E_SOURCE_COVERAGE_MATRIX } from "./m10d-tb2e-source-cove
 const PROFILE_ID="torchbearer2e";
 const PROFILE_VERSION=1;
 const ADVANCEMENT_ROW=TB2E_SOURCE_COVERAGE_MATRIX.find(row=>row.id==="advancement");
+const LEVEL_INVESTMENTS=freezeTb2e([{level:1,fate:0,persona:0},{level:2,fate:3,persona:3},{level:3,fate:7,persona:6},{level:4,fate:14,persona:12},{level:5,fate:22,persona:20},{level:6,fate:31,persona:30},{level:7,fate:41,persona:42},{level:8,fate:52,persona:56},{level:9,fate:64,persona:72},{level:10,fate:78,persona:98}]);
 
 function key(value){return String(value??"").trim().toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_|_$/g,"");}
 function nonNegativeInteger(value){return Number.isInteger(Number(value))&&Number(value)>=0;}
@@ -14,7 +15,7 @@ function capFor(kind){return ["RESOURCES","CIRCLES"].includes(kind)?10:6;}
 export function tb2eAdvancementShadowStatus(){
   return freezeTb2e({
     phase:"M10D.11",mode:"TB2E_ADVANCEMENT_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:ADVANCEMENT_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:ADVANCEMENT_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.4",fullDomainReauditComplete:false,
     sourceEvidence:ADVANCEMENT_ROW?.evidence??"QR 18-19, 99-101; CC 47",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     markMutationAllowed:false,ratingMutationAllowed:false,skillLearningMutationAllowed:false,levelMutationAllowed:false,
@@ -24,8 +25,8 @@ export function tb2eAdvancementShadowStatus(){
       "NO_LIVE_RATING_ADVANCEMENT_OR_RESET",
       "NO_LIVE_NEW_SKILL_CREATION",
       "NO_LIVE_RESOURCES_CIRCLES_ZERO_TO_ONE_WRITE",
-      "LEVEL_THRESHOLD_TABLE_IS_VISUAL_AND_NOT_TRANSCRIBED",
-      "CLASS_LEVEL_BENEFITS_DG113_PLUS_UNAVAILABLE",
+      "DH112_LEVEL_INVESTMENT_TABLE_VERIFIED",
+      "DH113_PLUS_CLASS_BENEFITS_AVAILABLE_NOT_FULLY_MAPPED",
       "COUNT_LIMIT_SCOPE_PRESERVES_GUIDE_WORDING_WITH_CALLER_SUPPLIED_ALREADY_COUNTED_STATE"
     ],
     nextStep:"Verify source-bounded Pass/Fail thresholds, count eligibility, Nature advancement, new-Skill learning, Resources/Circles 0-to-1 and level boundaries only"
@@ -46,6 +47,9 @@ export function tb2eAdvancementModel(){
       obstacleZeroCounts:false,
       versusCombatCounts:true,
       campTownMaxCountedTests:1,
+      townResourcesPurchaseAndBillsSeparateMarks:true,
+      seriesNearAdvanceCanSelectNeededPassOrFail:true,
+      conflictDispositionDoesNotCount:true,
       conflictOrSeriesMaxCountedTests:1,
       groupMixedOutcome:"PLAYER_CHOOSES_PASS_OR_FAIL",
       tieCountsOnlyIfBroken:true
@@ -74,8 +78,8 @@ export function tb2eAdvancementModel(){
       benefitChoiceReversible:false,
       progressionBasis:"CUMULATIVE_SPENT_FATE_AND_PERSONA",
       levelUpPhase:"TOWN_ONLY",
-      thresholdTableAuthority:"VISUAL_TABLE_NOT_TRANSCRIBED",
-      classBenefitsAuthority:"DG113_PLUS_UNAVAILABLE"
+      thresholdTableAuthority:"DH112_VERIFIED",thresholds:LEVEL_INVESTMENTS,
+      classBenefitsAuthority:"DH113_PLUS_SOURCE_AVAILABLE_UNMAPPED"
     },
     liveApplication:false,writesPlanned:0
   });
@@ -281,9 +285,31 @@ export function tb2eLevelProgressionBoundaryPlan({
     cumulativeSpentFate:Number(spentFate),cumulativeSpentPersona:Number(spentPersona),
     progressionBasis:"CUMULATIVE_SPENT_FATE_AND_PERSONA",levelUpPhase:"TOWN_ONLY",
     afterLevelOneBenefitChoiceCount:2,benefitChoiceReversible:false,
-    thresholdTableAuthority:"VISUAL_TABLE_NOT_TRANSCRIBED",
-    exactNextThreshold:null,eligibleForExactLevelUp:null,
-    classBenefitsAuthority:"DG113_PLUS_UNAVAILABLE",
+    thresholdTableAuthority:"DH112_VERIFIED",
+    exactNextThreshold:Number(currentLevel)<10?LEVEL_INVESTMENTS[Number(currentLevel)]:null,
+    eligibleForExactLevelUp:Number(currentLevel)<10?Boolean(inTown)&&Number(spentFate)>=LEVEL_INVESTMENTS[Number(currentLevel)].fate&&Number(spentPersona)>=LEVEL_INVESTMENTS[Number(currentLevel)].persona:false,
+    classBenefitsAuthority:"DH113_PLUS_SOURCE_AVAILABLE_UNMAPPED",
     levelMutationCommitted:false,benefitChoiceMutationCommitted:false,liveApplication:false,writesPlanned:0
+  });
+}
+
+/** DH 110: a Town Resources purchase-series mark and a separate bill-paying mark.
+ * If Resources advanced on purchases, the bills mark must be suppressed.
+ */
+export function tb2eTownResourcesMarkPlan({
+  source="",alreadyCountedPurchases=false,alreadyCountedBills=false,
+  resourcesAdvancedOnPurchases=false,hasResolvedTest=true
+}={}){
+  const type=key(source);
+  if(!["PURCHASES","BILLS"].includes(type))return blocked("UNKNOWN_TOWN_RESOURCES_ADVANCEMENT_SOURCE",{source:type});
+  const duplicate=type==="PURCHASES"?Boolean(alreadyCountedPurchases):Boolean(alreadyCountedBills);
+  const afterAdvance=type==="BILLS"&&Boolean(resourcesAdvancedOnPurchases);
+  const count=Boolean(hasResolvedTest)&&!duplicate&&!afterAdvance;
+  return freezeTb2e({
+    ok:true,phase:"M10D.11",profileId:PROFILE_ID,mode:"TOWN_RESOURCES_ADVANCEMENT_SHADOW",
+    source:type,count,reasonCode:!hasResolvedTest?"NO_RESOLVED_TEST":duplicate?"SOURCE_ALREADY_COUNTED":afterAdvance?"RESOURCES_ADVANCED_FROM_PURCHASES":null,
+    distinctSourceLimit:2,onePurchaseSeriesMark:true,oneBillsMark:true,
+    sourceEvidence:"Dungeoneer's Handbook p.110",markMutationCommitted:false,
+    ratingMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }

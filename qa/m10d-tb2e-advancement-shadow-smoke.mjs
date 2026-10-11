@@ -15,7 +15,7 @@ assert.equal(model.standard.skillAbilityCap,6);assert.equal(model.standard.resou
 assert.equal(model.countEligibility.obstacleZeroCounts,false);assert.equal(model.countEligibility.versusCombatCounts,true);
 assert.equal(model.countEligibility.campTownMaxCountedTests,1);assert.equal(model.countEligibility.conflictOrSeriesMaxCountedTests,1);
 assert.equal(model.nature.thresholdBasis,"MAXIMUM_NATURE");assert.equal(model.newSkills.learnedRating,2);
-assert.equal(model.levels.totalLevels,10);assert.equal(model.levels.thresholdTableAuthority,"VISUAL_TABLE_NOT_TRANSCRIBED");
+assert.equal(model.levels.totalLevels,10);assert.equal(model.levels.thresholdTableAuthority,"DH112_VERIFIED");assert.equal(model.levels.thresholds[9].fate,78);assert.equal(model.levels.thresholds[9].persona,98);
 
 const skill4=tb2eAdvancementThresholdPlan({kind:"Skill",rating:4,passed:4,failed:3});
 assert.equal(skill4.ready,true);assert.equal(skill4.advanceTo,5);assert.equal(skill4.eraseMarksOnAdvance,true);
@@ -61,7 +61,7 @@ const resetLoss=tb2eAdvancementResetPlan({reason:"Rating Loss"});assert.equal(re
 
 const level=tb2eLevelProgressionBoundaryPlan({currentLevel:3,inTown:true,spentFate:5,spentPersona:4});
 assert.equal(level.maximumLevel,10);assert.equal(level.levelUpPhase,"TOWN_ONLY");assert.equal(level.progressionBasis,"CUMULATIVE_SPENT_FATE_AND_PERSONA");
-assert.equal(level.exactNextThreshold,null);assert.equal(level.eligibleForExactLevelUp,null);assert.equal(level.thresholdTableAuthority,"VISUAL_TABLE_NOT_TRANSCRIBED");assert.equal(level.levelMutationCommitted,false);
+assert.deepEqual(level.exactNextThreshold,{level:4,fate:14,persona:12});assert.equal(level.eligibleForExactLevelUp,false);assert.equal(level.thresholdTableAuthority,"DH112_VERIFIED");assert.equal(level.levelMutationCommitted,false);
 
 assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before);
 const source=fs.readFileSync("module/m10d-tb2e-advancement-shadow.mjs","utf8");
