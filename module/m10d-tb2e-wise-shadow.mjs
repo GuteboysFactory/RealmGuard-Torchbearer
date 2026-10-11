@@ -98,3 +98,45 @@ export function tb2eWiseCyclePlan({iAmWisePass=false,iAmWiseFail=false,deeperUnd
     automaticMutation:false,liveApplication:false,writesPlanned:0
   });
 }
+
+
+/** DH 78: creature/people-Wise grants communication with that people.
+ * When that Wise changes, language persists only if recorded alongside
+ * the character's current-level benefit. This is read-only bookkeeping.
+ */
+export function tb2eWiseLanguageRetentionPlan({
+  peopleWise=false,wiseChanged=false,retainLanguage=false,
+  languageRecordedWithLevelBenefit=false
+}={}){
+  if(!peopleWise)return blocked("LANGUAGE_WISE_REQUIRED",{sourceEvidence:"DH 78"});
+  const changed=Boolean(wiseChanged),requested=Boolean(retainLanguage);
+  const recorded=Boolean(languageRecordedWithLevelBenefit);
+  const retention=changed?requested&&recorded:true;
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"WISE_LANGUAGE_RETENTION_SHADOW",sourceEvidence:"Dungeoneer's Handbook p.78",
+    peopleWise:true,wiseChanged:changed,retainLanguageRequested:requested,
+    languageRetained:retention,languageForgotten:changed&&!retention,
+    retentionRequiresCurrentLevelBenefitRecord:changed&&requested,
+    levelBenefitRecordConfirmed:recorded,
+    gmBookkeepingRequired:changed&&requested&&!recorded,
+    languageWriteCommitted:false,wiseMutationCommitted:false,
+    liveApplication:false,writesPlanned:0
+  });
+}
+export function tb2eWiseCommunicationPlan({
+  peopleWiseApplies=false,otherCommunicationMethod=false
+}={}){
+  const permitted=Boolean(peopleWiseApplies)||Boolean(otherCommunicationMethod);
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"WISE_COMMUNICATION_SHADOW",sourceEvidence:"Dungeoneer's Handbook p.78",
+    canCommunicate:permitted,
+    socialVerbalTestsAllowed:permitted,
+    blockedWhenNoCommunication:["ARGUMENT","RIDDLE","SPEECH","NEGOTIATION"],
+    requiresGmFictionalApplicabilityConfirmation:true,
+    languageGrantedByPeopleWise:Boolean(peopleWiseApplies),
+    alternateCommunicationMethod:Boolean(otherCommunicationMethod),
+    liveApplication:false,writesPlanned:0
+  });
+}
