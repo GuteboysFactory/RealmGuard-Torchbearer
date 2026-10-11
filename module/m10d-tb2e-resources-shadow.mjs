@@ -103,7 +103,9 @@ export function tb2eFateSpendPlan({
   dice=[],
   wiseRelated=false,
   helpingAnotherPlayer=false,
-  resolvedOutcome=null
+  resolvedOutcome=null,
+  failedDiceAvailable=null,
+  fateLuckAlreadyUsed=false
 }={}){
   if(!nonNegativeInteger(fateAvailable))return blocked("INVALID_FATE_AVAILABLE",{fateAvailable});
   if(Number(fateAvailable)<1)return blocked("INSUFFICIENT_FATE",{resourceCost:"FATE",resourceAmount:1});
@@ -121,6 +123,8 @@ export function tb2eFateSpendPlan({
   }
   if(key==="DEEPER_UNDERSTANDING"){
     if(!wiseRelated)return blocked("WISE_RELATION_REQUIRED",{use:key});
+    if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{use:key});
+    if(failedDiceAvailable!==null&&(!nonNegativeInteger(failedDiceAvailable)||Number(failedDiceAvailable)<1))return blocked("NO_ELIGIBLE_FAILED_DIE",{use:key});
     return freezeTb2e({
       ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"FATE_SPEND_SHADOW",use:key,
       resourceCost:"FATE",resourceAmount:1,timing:"AFTER_TEST_ROLL",
@@ -150,7 +154,8 @@ export function tb2ePersonaSpendPlan({
   currentNature=0,
   testName="",
   wiseRelated=false,
-  failedDiceCount=0
+  failedDiceCount=0,
+  fateLuckAlreadyUsed=false
 }={}){
   if(!nonNegativeInteger(personaAvailable))return blocked("INVALID_PERSONA_AVAILABLE",{personaAvailable});
   const key=upper(use);
@@ -179,6 +184,8 @@ export function tb2ePersonaSpendPlan({
     if(Number(personaAvailable)<1)return blocked("INSUFFICIENT_PERSONA",{resourceCost:"PERSONA",resourceAmount:1});
     if(!wiseRelated)return blocked("WISE_RELATION_REQUIRED",{use:key});
     if(!nonNegativeInteger(failedDiceCount))return blocked("INVALID_FAILED_DICE_COUNT",{failedDiceCount});
+    if(Number(failedDiceCount)===0)return blocked("NO_FAILED_DICE",{use:key});
+    if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{use:key});
     return freezeTb2e({
       ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"PERSONA_SPEND_SHADOW",use:key,
       resourceCost:"PERSONA",resourceAmount:1,timing:"AFTER_TEST_ROLL",extraDice:Number(failedDiceCount),
