@@ -1,22 +1,17 @@
-# Realm Guard / Torchbearer v1.13.0-qa.24 — M10D.18 P2.4 Magic Shadow Adapter
+# Realm Guard / Torchbearer v1.13.0-qa.25 — M10D.18 P3.1 Full CORE Re-Audit (targeted)
 
-**QA candidate only — user Foundry QA required. Stable v1.12.0 unchanged.**
+**QA candidate; Foundry Gate A–D still required. Not a complete 14-domain re-audit.**
 
-Source authority: Torchbearer 2E Dungeoneer's Handbook **Arcana pp.89-97**, **Ritual pp.98-106**; Scholar's Guide **Conflict p.79**. No Mouse Guard magic rules substituted.
+### Source-backed repairs (Torchbearer 2E Scholar's Guide)
+- SG p.27: GM-selected factors + additive categories yield Ob; unrelated primary categories cannot be summed. Pure `tests.factorObstaclePlan`, with caller/GMs responsible for category selection.
+- SG p.32: a situational factor in a Versus test is **-1s** rather than +1 Ob, exposed as `tests.versusFactorPlan`.
+- SG pp.32–34: `tests.tieBreakerPlan` follows the source's tiebreaker rolls and tests: no Help; initial Skill -> linked Will/Health, Will/Health -> Nature, Nature -> explicitly selected Will/Health, monsters -> Nature; original tied test gives no advancement when a tiebreaker is chosen; second tie fails unless broken in the player's favor. Never executes dice or marks advancement.
+- SG p.37: injured/sick **rating-zero** Skills or Abilities cannot provide Help. Generic Help, Beginner's Luck Help, and Conflict Help now honor explicit helper-zero flags; no Actor inspection.
+- DH pp.76–78 and SG pp.87–88 Wises rules spot-checked; full Wise-domain audit still OPEN.
 
-## Implemented, read-only
-
-- Spell Memory Palace: slots cost spell circle; memorize in Camp/Town only, carried spell-book membership and capacity checked. Lore Master Ob = circles of selected new spells + count of spells already stored; Camp check (and no simultaneous watch); Town free with lodging/relationship, else lifestyle +1.
-- Spell-book folios: five folios per book, circle-based storage.
-- Arcanist casting plan for fixed, factors, versus or skill-swap tests. Requires speech and empty gesturing hand. Casting from memory releases the memorized spell, scroll is one use, direct spell-book casting consumes its entry — **planned only**.
-- Materials and focus each +1D; material is expended, focus reusable; collaborating arcanists normally add a turn, wises do not. Spell-specific allowed pre-disposition timing, one free non-opponent-affecting spell per round between rounds, equipped skill-swap timing and cannot disarm spell effects.
-- Temerarious discharge: Will Ob total spell circles, zero turn/check; interruptions: spell lost, caster and helpers test Will at Ob sum of stored spell circles; outcomes remain GM.
-- Ritualist invocations: fixed/factors/versus/skill-swap and speech required. Relic absence raises time, burden and obstacle (+1) or versus -1s; sacramental +1D and consumed, creed opposition +1 burden. Immortal burden and Urdr overflow require Health Ob equal to total burden, stigmata guidance, no automatic conditions/death.
-- Invocation interruptions dissipate the ritual **but burden still accrues** (plan only). Purification in Camp/Town: Theologian Ob burden, uncorrupted place, shrine +1D, no help, Camp check/Town lifestyle +1. Success reduces burden 1+MoS; fail-condition 1, fail-twist 0. No resource writes.
-- Spell-specific factors, spell/invocation effects, Scroll scribing/learning, full catalogue content, NPC/monster magic, and special class/supplement magic remain governed by their source entries / GM; not automated or marked live-complete. This P2.4 delivers a safe foundation, **not** complete per-spell live parity.
-
-Read-only API: `game.realmGuard.core.m10d.magic`: `getStatus`, `model`, `memoryPlan`, `spellbookPlan`, `castPlan`, `dischargePlan`, `spellInterruptPlan`, `invocationPlan`, `invocationInterruptPlan`, `purificationPlan`, `stigmataPlan`.
-
-Historical P2.1 Traits, P2.2 Armor and P2.3 Conflict remain verified; all four new shadow adapter domains now have QA candidates, but **14 historic domains still require full-source re-audit**. No M11 activation, TB2E profile selection, Actor/Item/Journal/Settings writes or destructive migration. Legacy Mixed remains live authority; global kill switch ENGAGED.
-
-Release flow: validate manifest/syntax/all historical and new QA smokes, ZIP, GitHub Release, download+verify assets, then update only QA manifest through Actions. Manual Foundry Gate A–D described in TEST_PROTOCOL_v1.13.0-qa.24.md. No Stable promotion.
+### Release safety
+- New read-only API additions `game.realmGuard.core.m10d.tests.factorObstaclePlan`, `versusFactorPlan`, `tieBreakerPlan`. All write flags false, no new live authority.
+- New QA smokes plus historical QA suite, including P2.1 Traits, P2.2 Armor, P2.3 Conflict and P2.4 Magic.
+- **M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md** tracks the **14 historical adapter domains**. Full audit count remains **0/14** pending complete source/per-domain parity and Foundry QA; no premature completion.
+- Legacy Mixed live authority; global kill switch ENGAGED; M11 PAUSED; full-core re-audit required. Stable v1.12.0 unchanged.
+- Install only via protected QA manifest after tested ZIP and GitHub Release assets verify; Foundry test protocol `TEST_PROTOCOL_v1.13.0-qa.25.md`.

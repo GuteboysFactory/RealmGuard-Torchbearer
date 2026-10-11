@@ -12,12 +12,13 @@ function blocked(reasonCode,extra={}){
 export function tb2eHelpShadowStatus(){
   return freezeTb2e({
     phase:"M10D.3",mode:"TB2E_HELP_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",sourceEvidence:HELP_ROW?.evidence??"QR 5, 7, 59-60, 99; CC 5, 45",
+    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P3.1_TARGETED",fullDomainReauditComplete:false,sourceEvidence:"SG pp.36-38; DH skill entries (full domain audit still open)",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,conditionMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "NO_FULL_SUGGESTED_HELP_SKILL_CATALOGUE",
+      "NO_AUTOMATIC_SUGGESTED_HELP_LOOKUP_WITHOUT_GM_CONFIRMATION",
+      "NO_HELP_FROM_RATING_ZERO_DUE_TO_INJURY_OR_SICKNESS",
       "NO_TOWN_RECOVERY_OR_TOWN_RESOURCES_HELP",
       "WISE_AID_IS_SEPARATE_ROUTE",
       "NO_AUTOMATIC_HELPER_CONSEQUENCE_WRITES"
@@ -37,7 +38,8 @@ export function tb2eHelpPlan({
   context="TEST",
   actingOnInstinct=false,
   helperActingOnInstinct=false,
-  payingTownBills=false
+  payingTownBills=false,
+  sourceRatingZeroDueToInjuryOrSickness=false
 }={}){
   const kind=norm(sourceKind);
   const source=norm(sourceName);
@@ -46,6 +48,8 @@ export function tb2eHelpPlan({
   const contextKey=String(context??"TEST").trim().toUpperCase();
 
   if(kind==="wise") return blocked("USE_WISE_AID_ROUTE",{route:"TB2E_WISE_AID",sourceKind:"WISE"});
+  if(sourceRatingZeroDueToInjuryOrSickness)
+    return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   if(contextKey==="RECOVERY" && ["will","health"].includes(test)){
     return blocked("RECOVERY_HELP_FORBIDDEN",{phaseContext:phaseKey,testContext:contextKey,testName:String(testName??"")});
   }
@@ -74,8 +78,9 @@ export function tb2eHelpPlan({
   });
 }
 
-export function tb2eBeginnersLuckHelpPlan({sourceName="",phase="ADVENTURE"}={}){
+export function tb2eBeginnersLuckHelpPlan({sourceName="",phase="ADVENTURE",sourceRatingZeroDueToInjuryOrSickness=false}={}){
   const source=norm(sourceName);
+  if(sourceRatingZeroDueToInjuryOrSickness)return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   if(!["will","health"].includes(source)) return blocked("BEGINNERS_LUCK_HELP_REQUIRES_WILL_OR_HEALTH",{sourceName:String(sourceName??"")});
   return freezeTb2e({
     ok:true,phase:"M10D.3",profileId:PROFILE_ID,mode:"BEGINNERS_LUCK_HELP",
@@ -90,8 +95,10 @@ export function tb2eConflictHelpPlan({
   helperHasRoundAction=true,
   hasRequiredSkill=false,
   relevantNatureDescriptor=false,
-  gmApprovedSkill=false
+  gmApprovedSkill=false,
+  helperRatingZeroDueToInjuryOrSickness=false
 }={}){
+  if(helperRatingZeroDueToInjuryOrSickness)return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   if(Number(partySize)<4) return blocked("CONFLICT_HELP_REQUIRES_4_PLUS_PARTY");
   if(Boolean(helperHasRoundAction)) return blocked("CONFLICT_HELP_REQUIRES_NO_ACTION_THIS_ROUND");
 
