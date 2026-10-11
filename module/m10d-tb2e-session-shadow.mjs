@@ -13,13 +13,13 @@ function blocked(reasonCode,extra={}){
 export function tb2eSessionShadowStatus(){
   return freezeTb2e({
     phase:"M10D.12",mode:"TB2E_SESSION_PHASES_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:SESSION_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:SESSION_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.4",fullDomainReauditComplete:false,
     sourceEvidence:SESSION_ROW?.evidence??"QR 3, 6, 22, 37-39, 72-82; CC 44-46",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     phaseMutationAllowed:false,turnMutationAllowed:false,checkMutationAllowed:false,townLifestyleMutationAllowed:false,rewardMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "NO_FULL_PHASE_TRANSITION_GRAPH_IN_GUIDES",
+      "SG39_41_PHASES_DEFINED_BUT_NO_AUTOMATIC_TRANSITION_GRAPH",
       "NO_CAMP_EVENT_RESULT_TABLE_AUTOMATION",
       "NO_TOWN_EVENT_RESULT_TABLE_AUTOMATION",
       "NO_FULL_CAMP_TOWN_EXCEPTION_TABLES",
@@ -50,7 +50,7 @@ export function tb2eSessionModel(){
       turnDefinition:"ONE_TEST_OR_CONFLICT_NOT_FIXED_TIME",
       gmImposedTrapTurnCost:1,
       splitPartySeparateActions:"MULTIPLE_TURNS",
-      instinctsCostTurns:0,
+      instinctsCostTurns:0,exhaustedInstinctsCostTurns:1,extremeConditionCadenceTurns:3,
       spellsInvocationsTurnCost:"VARIES_BY_EFFECT",
       conditionCadenceTurns:4
     },
@@ -142,6 +142,7 @@ export function tb2eGrindTurnPlan({
   gmImposedTrap=false,
   separatePartyActions=1,
   instinct=false,
+  exhausted=false,
   explicitSpellTurnCost=null
 }={}){
   const action=key(actionType);
@@ -150,7 +151,7 @@ export function tb2eGrindTurnPlan({
   if(explicitSpellTurnCost!==null&&(!Number.isInteger(Number(explicitSpellTurnCost))||Number(explicitSpellTurnCost)<0))return blocked("INVALID_EXPLICIT_SPELL_TURN_COST",{explicitSpellTurnCost});
   let turns;
   let authority="GUIDE";
-  if(instinct)turns=0;
+  if(instinct)turns=Boolean(exhausted)?1:0;
   else if(Boolean(gmImposedTrap)||action==="TRAP")turns=1;
   else if(["SPELL","INVOCATION"].includes(action)){
     if(explicitSpellTurnCost===null){turns=null;authority="SPELL_OR_INVOCATION_EFFECT_SOURCE_REQUIRED";}
@@ -158,7 +159,7 @@ export function tb2eGrindTurnPlan({
   } else turns=Number(separatePartyActions);
   return freezeTb2e({
     ok:true,phase:"M10D.12",profileId:PROFILE_ID,mode:"GRIND_TURN_SHADOW",
-    actionType:action,gmImposedTrap:Boolean(gmImposedTrap),separatePartyActions:Number(separatePartyActions),instinct:Boolean(instinct),
+    actionType:action,gmImposedTrap:Boolean(gmImposedTrap),separatePartyActions:Number(separatePartyActions),instinct:Boolean(instinct),exhausted:Boolean(exhausted),
     turnCostPreview:turns,turnCostAuthority:authority,
     turnCounterMutationCommitted:false,conditionCadenceMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
@@ -169,14 +170,16 @@ export function tb2eCampEntryPlan({
   survey=false,
   keepFire=false,
   setWatch=false,
-  darkCamp=false
+  darkCamp=false,
+  restSiteAvailable=true,
+  immediatePeril=false
 }={}){
   if(!nonNegativeInteger(partyChecks))return blocked("INVALID_PARTY_CHECK_COUNT",{partyChecks});
-  const canCamp=Number(partyChecks)>=1;
+  const canCamp=Number(partyChecks)>=1&&Boolean(restSiteAvailable)&&!Boolean(immediatePeril);
   return freezeTb2e({
     ok:true,phase:"M10D.12",profileId:PROFILE_ID,mode:"CAMP_ENTRY_SHADOW",
-    partyChecks:Number(partyChecks),canCamp,
-    reasonCode:canCamp?null:"CAMP_REQUIRES_AT_LEAST_ONE_PARTY_CHECK",
+    partyChecks:Number(partyChecks),canCamp,restSiteAvailable:Boolean(restSiteAvailable),immediatePeril:Boolean(immediatePeril),
+    reasonCode:canCamp?null:Number(partyChecks)<1?"CAMP_REQUIRES_AT_LEAST_ONE_PARTY_CHECK":"CAMP_REQUIRES_SAFE_REST_SITE_AND_NO_IMMEDIATE_PERIL",
     turnCounterResetPreview:canCamp?1:null,
     survey:Boolean(survey),surveyTurnCost:Boolean(survey)?1:0,surveySkill:Boolean(survey)?"SURVIVALIST":null,
     keepFire:Boolean(keepFire),setWatch:Boolean(setWatch),darkCamp:Boolean(darkCamp),
@@ -195,7 +198,8 @@ export function tb2eCampEventModifierPlan({
   settingWatch=false,
   previousDisasters=0,
   gmDiscretionPenalty=false,
-  danger="NORMAL"
+  danger="NORMAL",
+  darkCamp=false
 }={}){
   if(!nonNegativeInteger(previousDisasters))return blocked("INVALID_PREVIOUS_DISASTER_COUNT",{previousDisasters});
   const d=key(danger);
@@ -204,7 +208,8 @@ export function tb2eCampEventModifierPlan({
     ["SHELTER",shelter],["CONCEALMENT",concealment],["RANGER_IN_WILDERNESS",rangerInWilderness],
     ["OUTCAST_IN_DUNGEON_OR_DWARF_STRUCTURE",outcastInDungeonOrDwarfStructure],["SETTING_WATCH",settingWatch]
   ].filter(([,v])=>Boolean(v)).map(([id])=>id);
-  const dangerPenalty=d==="UNSAFE"?2:d==="DANGEROUS"?3:0;
+  const baseDangerPenalty=d==="UNSAFE"?2:d==="DANGEROUS"?3:0;
+  const dangerPenalty=Math.max(0,baseDangerPenalty-(Boolean(darkCamp)?1:0));
   const penalties={
     previousDisasters:Number(previousDisasters),
     gmDiscretion:Boolean(gmDiscretionPenalty)?1:0,
@@ -215,6 +220,7 @@ export function tb2eCampEventModifierPlan({
   return freezeTb2e({
     ok:true,phase:"M10D.12",profileId:PROFILE_ID,mode:"CAMP_EVENT_MODIFIER_SHADOW",
     bonuses,totalBonus,penalties,totalPenalty,netModifier:totalBonus-totalPenalty,
+    darkCamp:Boolean(darkCamp),baseDangerPenalty,
     eventResultAuthority:"CAMP_EVENT_TABLE_NOT_SUPPLIED_DO_NOT_RESOLVE",
     eventRollExecuted:false,phaseMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
@@ -224,6 +230,7 @@ export function tb2eCampCheckPlan({
   activity="TEST",
   checksAvailable=0,
   instinct=false,
+  exhausted=false,
   helping=false,
   sameCharacterActedImmediatelyBefore=false,
   memorizeOrPurifyAlreadyDone=false
@@ -234,11 +241,11 @@ export function tb2eCampCheckPlan({
   if(["EXPLORE","FIGHT"].includes(a))return blocked("CAMP_CANNOT_EXPLORE_OR_FIGHT",{activity:a});
   if(Boolean(sameCharacterActedImmediatelyBefore)&&!Boolean(helping))return blocked("NO_TWO_TESTS_IN_A_ROW_IN_CAMP");
   if(["MEMORIZE_SPELL","PURIFY_IMMORTAL_BURDEN"].includes(a)&&Boolean(memorizeOrPurifyAlreadyDone))return blocked("MEMORIZE_OR_PURIFY_LIMIT_ONCE_PER_CAMP",{activity:a});
-  const cost=Boolean(helping)||Boolean(instinct)?0:1;
+  const cost=Boolean(helping)?0:Boolean(instinct)&&!Boolean(exhausted)?0:1;
   const affordable=Number(checksAvailable)>=cost;
   return freezeTb2e({
     ok:true,phase:"M10D.12",profileId:PROFILE_ID,mode:"CAMP_CHECK_SHADOW",
-    activity:a,checksAvailable:Number(checksAvailable),instinct:Boolean(instinct),helping:Boolean(helping),
+    activity:a,checksAvailable:Number(checksAvailable),instinct:Boolean(instinct),exhausted:Boolean(exhausted),helping:Boolean(helping),
     checkCostPreview:cost,affordable,checkTransferAllowed:true,
     unspentChecksAtCampEnd:"LOST",
     checkSpendCommitted:false,checkTransferCommitted:false,phaseMutationCommitted:false,liveApplication:false,writesPlanned:0
