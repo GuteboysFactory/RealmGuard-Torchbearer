@@ -71,8 +71,8 @@ export function tb2eRecoveryModel(){
     },
     standard:STANDARD_RECOVERY,
     hungryThirsty:{
-      ADVENTURE:{requires:["RATIONS","WINE"]},
-      CAMP:{foodSkills:["SCAVENGER","SURVIVALIST","HUNTER"],requiresCookPreparation:true,obstacleAuthority:"UNAVAILABLE_NOT_IN_GUIDE"},
+      ADVENTURE:{requiresAny:["FOOD","WATER","WINE"],requiresSafePause:true},
+      CAMP:{foodSkills:["SCAVENGER","SURVIVALIST","HUNTER"],cookPreparationOptional:true,obstacleAuthority:"GM_SKILL_FACTORS_DH_AND_SG"},
       TOWN:{sources:["FRIENDS","CERTAIN_ACCOMMODATIONS"],fullFriendProcedureAuthority:"UNAVAILABLE"}
     },
     accommodations:{
@@ -128,18 +128,22 @@ export function tb2eHungryThirstyRecoveryPlan({
   phase="ADVENTURE",
   hasRations=false,
   hasWine=false,
+  hasWater=false,
+  safePause=true,
   foodSkill="",
   cookPrepared=false,
+  foodAcquired=false,
   friendAvailable=false,
   accommodation="NONE"
 }={}){
   const p=phaseId(phase);
   if(!p)return blocked("UNKNOWN_RECOVERY_PHASE",{phase});
   if(p==="ADVENTURE"){
-    const satisfied=Boolean(hasRations)&&Boolean(hasWine);
+    const satisfied=Boolean(safePause)&&(Boolean(hasRations)||Boolean(hasWine)||Boolean(hasWater));
     return freezeTb2e({
       ok:true,phase:"M10D.9",profileId:PROFILE_ID,mode:"HUNGRY_THIRSTY_RECOVERY_SHADOW",recoveryPhase:p,
-      method:"EAT_RATIONS_AND_DRINK_WINE",requirements:{hasRations:Boolean(hasRations),hasWine:Boolean(hasWine)},satisfied,
+      method:"EAT_OR_DRINK_IN_PEACE",requirements:{hasRations:Boolean(hasRations),hasWine:Boolean(hasWine),hasWater:Boolean(hasWater),safePause:Boolean(safePause)},satisfied,
+      noTurnOrCheckCost:true,
       conditionMutationCommitted:false,inventoryMutationCommitted:false,liveApplication:false,writesPlanned:0
     });
   }
@@ -149,7 +153,7 @@ export function tb2eHungryThirstyRecoveryPlan({
     return freezeTb2e({
       ok:true,phase:"M10D.9",profileId:PROFILE_ID,mode:"HUNGRY_THIRSTY_RECOVERY_SHADOW",recoveryPhase:p,
       method:"FIND_FOOD_AND_COOK",foodSkill:skill||null,foodSkillAllowed:validSkill,cookPrepared:Boolean(cookPrepared),
-      satisfied:validSkill&&Boolean(cookPrepared),obstacle:null,obstacleAuthority:"UNAVAILABLE_NOT_IN_GUIDE",
+      foodAcquired:Boolean(foodAcquired),satisfied:validSkill&&Boolean(foodAcquired),cookOptional:true,obstacle:null,obstacleAuthority:"GM_SELECT_FROM_DH_SKILL_FACTORS",
       conditionMutationCommitted:false,checkSpendCommitted:false,liveApplication:false,writesPlanned:0
     });
   }
