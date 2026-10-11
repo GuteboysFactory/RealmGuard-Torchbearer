@@ -33,3 +33,34 @@ A. Verify Legacy Mixed live rolls and M11/kill-switch/profile safety before/afte
 B. Verify Tests/Help: ordinary/Versus/BL, targeted Skill Help, correct Will/Health, bad-source rejection, rating-zero and no-Help on recovery/bills.
 C. Verify Wises/Nature/Abilities/Skills: Wise + aid sequencing, Nature descriptor/tax/recovery, all 33 Skill mappings and edge cases against rulebook.
 D. Verify multiplayer/reload, migration/document write invariants, historical P2/P3 regressions; report console errors.
+
+
+## 2026-10-11 — Package A combined implementation checkpoint
+
+The following source-backed, read-only improvements are now included in this **draft branch**:
+
+1. **SG 37 Helping Beginners:** Help from the exact trained Skill is legal; otherwise the correct mapped Will/Health is required. Target omission is explicitly flagged as unverified and remains a GM boundary.
+2. **DH pp.160–176 Suggested Help:** all 33 core Skill entries have an explicit, source-page-labelled list of suggested helping Skills. The only non-core named helper `Smith` (for Armorer) is recorded as such. One additional appropriate GM-approved skill can be declared explicitly under SG 37 / DH 73. No actor-owned Skills are inferred.
+3. **DH pp.160–176 Factor family index:** the headings for each Skill's factor table are now available for reference; **numeric choices and full context-specific factor tables remain NOT MAPPED**. These are never treated as automated Ob values.
+4. **DH 72 Heroic Skill:** ordinary advancement still caps at 6. A caller must explicitly declare `heroicRatingSevenUnlocked=true` before the read-only threshold planner recognizes cap 7.
+5. **DH 68 0/0 Nature:** recovery, loss and advancement planning in a retired 0/0 state is blocked. No real character data changes.
+6. **DH 69 Conserving Nature:** reducing Maximum Nature returns an explicit requirement to erase logged Nature advancement, still with zero changes to documents.
+7. **SG 38 Group Failure:** Hungry & Thirsty as the group alternative is represented in the Help consequence preview; no condition mutation.
+
+### Consolidated safety and automation
+- `qa/m10d18-package-a-help-regression-smoke.mjs`
+- `qa/m10d18-package-a-skill-index-smoke.mjs`
+- `qa/m10d18-package-a-five-domain-smoke.mjs`
+- `.github/workflows/package-a-smoke.yml`: read-only PR smoke workflow; executes release preflight, syntax validation, all `qa/*-smoke.mjs`, and immutable channel paths guard.
+- All additions are isolated to a **draft PR** and require source-based signoff. No version bump; no release tag; no Foundry smoke accepted yet.
+
+### Remaining acceptance gaps by domain
+- **Tests:** full skill factor value mapping; factors+tie/advancement precedence interactions; independent truth-table parity.
+- **Help:** consent/recipient selection, all context and condition restrictions, multi-helper consequences, original SG/DH rule edge tables, runtime integration beyond planners.
+- **Wises:** per-die reroll provenance, synergy resource lifecycles, all Wise effects and progress across boundary sessions.
+- **Nature:** stock/class-specific descriptors and exceptional uses, rating-zero workflows, retirement lifecycle, integration with conditions and advancement.
+- **Abilities/Skills:** all 33 factor value tables, per-skill exceptions, heroic target-number changes, full Beginner's Luck and advancement effect chain.
+- **All five:** independent full-domain test vectors and Foundry 13.351 acceptance needed before FULLY_REAUDITED can be set. Count stays **0/14**.
+
+### Release policy
+Even if CI becomes green, **CI regression PASS is not an audit certificate**. PR stays Draft until the five-domain review is complete or explicit and traceable source limitations are accepted for the combined QA test. Stable 1.12.0, M11, kill switch and Legacy Mixed constraints remain locked.
