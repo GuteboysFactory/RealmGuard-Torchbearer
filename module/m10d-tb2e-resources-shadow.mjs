@@ -15,7 +15,7 @@ export function tb2eResourceShadowStatus(){
   return freezeTb2e({
     phase:"M10D.7",mode:"TB2E_FATE_PERSONA_RESOURCES_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
     adapterReady:true,sourceClassification:RESOURCE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.3",fullDomainReauditComplete:false,
-    sourceEvidence:RESOURCE_ROW?.evidence??"QR 12, 72-76, 97-98",
+    sourceEvidence:"DH 60-61; SG 83-88, 101-105",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     resourceSpendAllowed:false,resourceAwardAllowed:false,resourcesTaxMutationAllowed:false,advancementMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -23,7 +23,7 @@ export function tb2eResourceShadowStatus(){
       "NO_LIVE_FATE_OR_PERSONA_SPEND",
       "NO_LIVE_END_SESSION_AWARD_WRITE",
       "NO_LIVE_RESOURCES_TAX_OR_TREASURE_CONSUMPTION",
-      "NO_DG148_SHOPPING_OBSTACLE_TABLES",
+      "DH_GEAR_PRICE_TABLE_SOURCE_AVAILABLE_NOT_FULLY_MAPPED",
       "LEVEL_THRESHOLDS_DEFER_TO_ADVANCEMENT_DOMAIN",
       "LIFESTYLE_FAILURE_CHOICE_REMAINS_GM_ADJUDICATION"
     ],
@@ -58,7 +58,7 @@ export function tb2eResourceModel(){
       ratingRange:{min:0,max:10},hometownBonusDice:1,beginnersLuckAllowed:false,
       treasureDiceAdded:true,treasureTaxInsulation:true,
       failureTax:"MARGIN_OF_FAILURE_AFTER_TREASURE_INSULATION",
-      obstacleAuthority:"UNAVAILABLE_DG148_CALLER_SUPPLIED_ONLY"
+      obstacleAuthority:"DH_GEAR_SOURCE_AVAILABLE_CALLER_GM_SUPPLIED"
     },
     liveApplication:false,writesPlanned:0
   });
@@ -201,7 +201,7 @@ export function tb2eResourcesTestPlan({
   const hometownDice=inHometown?1:0;
   return freezeTb2e({
     ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"RESOURCES_TEST_SHADOW",
-    rating:Number(resourcesRating),obstacle:Number(obstacle),obstacleAuthority:"CALLER_SUPPLIED_DG148_UNAVAILABLE",
+    rating:Number(resourcesRating),obstacle:Number(obstacle),obstacleAuthority:"CALLER_SUPPLIED_FROM_DH_GEAR_OR_TOWN_RULES",
     inHometown:Boolean(inHometown),hometownDice,treasureValue:Number(treasureValue),
     baseDice:Number(resourcesRating),finalDice:Number(resourcesRating)+hometownDice+Number(treasureValue),
     treasureTaxInsulation:Number(treasureValue),beginnersLuckAllowed:false,
