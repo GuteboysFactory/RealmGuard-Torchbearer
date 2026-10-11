@@ -95,8 +95,10 @@ export function tb2eConflictHelpPlan({
   helperHasRoundAction=true,
   hasRequiredSkill=false,
   relevantNatureDescriptor=false,
-  gmApprovedSkill=false
+  gmApprovedSkill=false,
+  helperRatingZeroDueToInjuryOrSickness=false
 }={}){
+  if(helperRatingZeroDueToInjuryOrSickness)return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   if(Number(partySize)<4) return blocked("CONFLICT_HELP_REQUIRES_4_PLUS_PARTY");
   if(Boolean(helperHasRoundAction)) return blocked("CONFLICT_HELP_REQUIRES_NO_ACTION_THIS_ROUND");
 
