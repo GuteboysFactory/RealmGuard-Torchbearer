@@ -12,7 +12,7 @@ assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);as
 
 const model=tb2eDiceModel();
 assert.equal(model.successThreshold,4);assert.deepEqual(model.successFaces,[4,5,6]);assert.equal(model.luck.resource,"FATE");assert.equal(model.luck.recursive,true);
-assert.equal(model.obstacleFactorsAuthority,"UNAVAILABLE_DG160_CALLER_SUPPLIED_ONLY");
+assert.equal(model.obstacleFactorsAuthority,"SG27_FACTORS_SOURCE_AVAILABLE_GM_SELECTED");
 
 const pool=tb2eTestPoolPlan({basePool:5,diceModifier:-2,successModifier:1});
 assert.equal(pool.ok,true);assert.equal(pool.finalPool,3);assert.equal(pool.successModifier,1);assert.equal(pool.writesPlanned,0);
@@ -29,7 +29,7 @@ const vsPass=tb2eResolveVersusShadow({dice:[4,5,6],opponentSuccesses:2});
 assert.equal(vsPass.outcome,"PASS");assert.equal(vsPass.margin,1);assert.equal(vsPass.tieResolutionRequired,false);
 const vsTie=tb2eResolveVersusShadow({dice:[4,5],opponentSuccesses:2});
 assert.equal(vsTie.outcome,"TIE");assert.equal(vsTie.tieResolutionRequired,true);assert.equal(vsTie.tieResolutionAutomation,false);
-assert.match(vsTie.tieBoundary,/GUIDES_DO_NOT_ESTABLISH_COMPLETE_GENERIC_TIE_PROCEDURE/);
+assert.match(vsTie.tieBoundary,/SG32_34_TIEBREAKER_PLAN_AVAILABLE/);
 
 const luck=tb2eLuckPlan({dice:[2,6,6],fateAvailable:1});
 assert.equal(luck.ok,true);assert.equal(luck.resourceCost,"FATE");assert.equal(luck.resourceAmount,1);assert.equal(luck.initialExtraDice,2);assert.equal(luck.recursiveOpenSixes,true);
