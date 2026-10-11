@@ -9,7 +9,7 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 const status=tb2eRecoveryShadowStatus();
 assert.equal(status.phase,"M10D.9");assert.equal(status.mode,"TB2E_RECOVERY_READ_ONLY_SHADOW");assert.equal(status.sourceClassification,"PARTIAL");
 assert.equal(status.adapterReady,true);assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
-assert.ok(status.unresolvedSourceBoundaries.includes("EXHAUSTED_QR44_CAMP_TEST_WORDING_VS_GENERIC_CAMP_TOWN_AND_TOWN_ACCOMMODATIONS"));
+assert.ok(status.unresolvedSourceBoundaries.includes("EXHAUSTED_SG49_CAMP_TOWN_SOURCE_VERIFIED"));
 
 const model=tb2eRecoveryModel();
 assert.deepEqual(model.order,["HUNGRY_THIRSTY","ANGRY","AFRAID","EXHAUSTED","INJURED_OR_SICK"]);
@@ -24,12 +24,12 @@ const afraidTown=tb2eStandardRecoveryPlan({condition:"Afraid",phase:"Town",accom
 assert.equal(afraidTown.obstacle,3);assert.equal(afraidTown.campCheckCost,0);assert.equal(afraidTown.townLifestyleCostPreview,1);
 assert.equal(tb2eStandardRecoveryPlan({condition:"Angry",phase:"Camp",attemptedThisPhase:true}).reasonCode,"CONDITION_RECOVERY_ALREADY_ATTEMPTED_THIS_PHASE");
 const exhausted=tb2eStandardRecoveryPlan({condition:"Exhausted",phase:"Town",accommodation:"Inn"});
-assert.match(exhausted.phaseSourceBoundary,/QR44_SAYS_CAMP_TEST/);
+assert.match(exhausted.phaseSourceBoundary,/SG49_CAMP_AND_TOWN_VERIFIED/);
 
 const hungryAdventure=tb2eHungryThirstyRecoveryPlan({phase:"Adventure",hasRations:true,hasWine:true});
-assert.equal(hungryAdventure.satisfied,true);assert.equal(hungryAdventure.method,"EAT_RATIONS_AND_DRINK_WINE");
-const hungryCamp=tb2eHungryThirstyRecoveryPlan({phase:"Camp",foodSkill:"Hunter",cookPrepared:true});
-assert.equal(hungryCamp.satisfied,true);assert.equal(hungryCamp.obstacle,null);assert.equal(hungryCamp.obstacleAuthority,"UNAVAILABLE_NOT_IN_GUIDE");
+assert.equal(hungryAdventure.satisfied,true);assert.equal(hungryAdventure.method,"EAT_OR_DRINK_IN_PEACE");
+const hungryCamp=tb2eHungryThirstyRecoveryPlan({phase:"Camp",foodSkill:"Hunter",cookPrepared:true,foodAcquired:true});
+assert.equal(hungryCamp.satisfied,true);assert.equal(hungryCamp.obstacle,null);assert.equal(hungryCamp.obstacleAuthority,"GM_SELECT_FROM_DH_SKILL_FACTORS");
 const hungryInn=tb2eHungryThirstyRecoveryPlan({phase:"Town",accommodation:"Inn"});
 assert.equal(hungryInn.supported,true);assert.equal(hungryInn.method,"ACCOMMODATION_AUTOMATIC");
 
