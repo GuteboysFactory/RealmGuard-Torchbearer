@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {tb2eAdvancementThresholdPlan,tb2eSkillInfo} from "../module/m10d-tb2e-abilities-shadow.mjs";
 import {tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementPlan,tb2eChannelNatureTaxPlan} from "../module/m10d-tb2e-nature-shadow.mjs";
-import {tb2eWiseRerollPlan,tb2eWiseAidPlan} from "../module/m10d-tb2e-wise-shadow.mjs";
+import {tb2eWiseRerollPlan,tb2eWiseAidPlan,tb2eWiseLanguageRetentionPlan,tb2eWiseCommunicationPlan} from "../module/m10d-tb2e-wise-shadow.mjs";
 import {tb2eWiseCombinationPlan as validateWiseCombos} from "../module/m10d-tb2e-wises-p32-shadow.mjs";
 import {tb2eResolveObstacleShadow,tb2eResolveVersusShadow,tb2eBeginnersLuckShadowPlan} from "../module/m10d-tb2e-test-shadow.mjs";
 import {tb2eFactorObstaclePlan,tb2eVersusFactorPlan,tb2eTieBreakerPlan} from "../module/m10d-tb2e-tests-fullcore-p31-shadow.mjs";
@@ -26,6 +26,14 @@ safe(tax);assert.equal(tax.currentAfter,1);assert.equal(tax.taxAmount,3);
 assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:2,fateLuckAlreadyUsed:true}).reasonCode,"WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:2,alreadyRerolledFailedDice:2}).reasonCode,"NO_ELIGIBLE_FAILED_DIE");
 assert.equal(tb2eWiseAidPlan({alsoProvidingHelp:true}).ok,false);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:false}).languageRetained,true);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:false}).languageForgotten,true);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:false}).gmBookkeepingRequired,true);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:true,retainLanguage:true,languageRecordedWithLevelBenefit:true}).languageRetained,true);
+assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:false}).reasonCode,"LANGUAGE_WISE_REQUIRED");
+assert.equal(tb2eWiseCommunicationPlan({peopleWiseApplies:false,otherCommunicationMethod:false}).socialVerbalTestsAllowed,false);
+assert.equal(tb2eWiseCommunicationPlan({peopleWiseApplies:false,otherCommunicationMethod:true}).canCommunicate,true);
+
 const wise=validateWiseCombos({knownWises:2,uses:[{wiseId:"a",effect:"I_AM_WISE",related:true},{wiseId:"b",effect:"OF_COURSE",related:true}]});
 safe(wise);assert.equal(wise.ok,true);
 const bl=tb2eBeginnersLuckShadowPlan({abilityDice:4,helpDice:1,gearDice:1,personaDice:1,traitsDice:1});
