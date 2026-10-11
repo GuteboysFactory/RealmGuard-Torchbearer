@@ -1,4 +1,4 @@
-1.13.0-qa.26
+1.13.0-qa.27
 # M10D.18 P3.2 targeted full-core source re-audit: Wises Nature Abilities/Skills
 # DH 58-78, 160-176; SG 25, 87-88: Wise combination/Help/Fate, Nature descriptors/recovery/retirement, Skills tools/supplies/gear/capacity
 # Historical P3.1 Foundry Gates A-D verified; P2 adapters preserved
@@ -9,3 +9,5 @@
 # Ledger M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md
 # Foundry gates TEST_PROTOCOL_v1.13.0-qa.26.md
 # CI retry: P3.2 smoke recognizes legacy writes-object and new writesPlanned=0 status formats
+
+# P3.3 source evidence M10D18_P33_SOURCE_FINDINGS.md; QA TEST_PROTOCOL_v1.13.0-qa.27.md
