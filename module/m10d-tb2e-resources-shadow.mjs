@@ -198,6 +198,7 @@ export function tb2eResourcesTestPlan({
   if(!rating(resourcesRating))return blocked("INVALID_RESOURCES_RATING",{rating:resourcesRating});
   if(!nonNegativeInteger(obstacle))return blocked("INVALID_CALLER_SUPPLIED_OBSTACLE",{obstacle});
   if(!nonNegativeInteger(treasureValue))return blocked("INVALID_TREASURE_VALUE",{treasureValue});
+  if(Number(resourcesRating)===0&&Number(treasureValue)===0)return blocked("RESOURCES_ZERO_REQUIRES_TREASURE",{rating:0,sourceEvidence:"DH 61"});
   const hometownDice=inHometown?1:0;
   return freezeTb2e({
     ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"RESOURCES_TEST_SHADOW",
@@ -205,6 +206,9 @@ export function tb2eResourcesTestPlan({
     inHometown:Boolean(inHometown),hometownDice,treasureValue:Number(treasureValue),
     baseDice:Number(resourcesRating),finalDice:Number(resourcesRating)+hometownDice+Number(treasureValue),
     treasureTaxInsulation:Number(treasureValue),beginnersLuckAllowed:false,
+    resourcesZeroSpecialRoute:Number(resourcesRating)===0,
+    helpAtZeroRequiresTreasure:Number(resourcesRating)===0,
+    onePassFromZeroAdvancesToOne:Number(resourcesRating)===0,
     treasureConsumptionCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
