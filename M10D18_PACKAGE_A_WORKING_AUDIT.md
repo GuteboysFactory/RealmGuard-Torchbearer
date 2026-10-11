@@ -47,6 +47,8 @@ The following source-backed, read-only improvements are now included in this **d
 6. **DH 69 Conserving Nature:** reducing Maximum Nature returns an explicit requirement to erase logged Nature advancement, still with zero changes to documents.
 7. **SG 38 Group Failure:** Hungry & Thirsty as the group alternative is represented in the Help consequence preview; no condition mutation.
 
+8. **DH 78 Language-Wise:** on a Wise change, retain the associated language only when recorded with the current level benefit. The planner now distinguishes PENDING_RECORD from FORGOTTEN, and separately blocks verbal social tests when there is no communication method; always shadow/manual.
+
 ### Consolidated safety and automation
 - `qa/m10d18-package-a-help-regression-smoke.mjs`
 - `qa/m10d18-package-a-skill-index-smoke.mjs`
