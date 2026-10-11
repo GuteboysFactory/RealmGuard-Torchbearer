@@ -10,6 +10,7 @@ const STOCK_DESCRIPTORS=freezeTb2e({
   halfling:["Sneaking","Riddling","Merrymaking"],
   human:["Boasting","Demanding","Running"]
 });
+const ALTERNATE_DESCRIPTORS=freezeTb2e({dwarf:"Negotiating",elf:"Enchanting",halfling:"Hoarding",human:null});
 
 function blocked(reasonCode,extra={}){
   return freezeTb2e({...extra,ok:false,phase:"M10D.5",profileId:PROFILE_ID,reasonCode,liveApplication:false,writesPlanned:0});
@@ -25,7 +26,7 @@ function taxPreview({currentNature,maximumNature,tax}){
 export function tb2eNatureShadowStatus(){
   return freezeTb2e({
     phase:"M10D.5",mode:"TB2E_NATURE_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:NATURE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",
+    adapterReady:true,sourceClassification:NATURE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",coreReauditTargetedPhase:"M10D.18_P3.2",fullDomainReauditComplete:false,
     sourceEvidence:NATURE_ROW?.evidence??"QR 14-18, 76, 99; CC 26-30",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,traitMutationAllowed:false,advancementMutationAllowed:false,resourceSpendAllowed:false,
@@ -47,12 +48,14 @@ export function tb2eNatureModel(){
     ratingRange:{min:0,max:7},startingNatureGuide:3,
     currentMaximumSeparated:true,descriptorCountGuide:3,
     stockDescriptors:STOCK_DESCRIPTORS,
+    alternateDescriptors:ALTERNATE_DESCRIPTORS,
+    descriptorEligibilityAuthority:"GM_CONFIRMS_FICTION_AND_CHARACTER_CHOICE",
     directWithinDescriptorPenalty:"NONE",
     substitutionUsesCurrentNature:true,
     channel:{resource:"PERSONA",amount:1,addsCurrentNatureDice:true,blockedTests:["RESOURCES","CIRCLES"]},
     advancementBasis:"MAXIMUM_NATURE",
     upperRetirementBoundary:{rating:7,timing:"END_OF_SESSION",automation:"MANUAL_CONFIRMATION"},
-    lowerRetirementBoundary:{maximumAfterNatureLoss:0,timing:"END_OF_CURRENT_ADVENTURE_PHASE",automation:"MANUAL_CONFIRMATION"},
+    lowerRetirementBoundary:{maximumAfterNatureLoss:0,timing:"END_OF_ADVENTURE",automation:"MANUAL_CONFIRMATION"},
     liveApplication:false,writesPlanned:0
   });
 }
@@ -160,7 +163,7 @@ export function tb2eNatureRecoveryPlan({
     requirements=["DELIVERED_PROLOGUE","NO_CONDITIONS"];eligible=Boolean(deliveredPrologue)&&Boolean(noConditions);
     if(eligible) nextCurrent=Math.min(nextMaximum,nextCurrent+1);
   }else if(key==="MISSED_SESSION_RETURN"){
-    requirements=["MISSED_LAST_SESSION"];eligible=Boolean(missedLastSession);
+    requirements=["MISSED_LAST_SESSION","NO_CONDITIONS"];eligible=Boolean(missedLastSession)&&Boolean(noConditions);
     if(eligible) nextCurrent=Math.min(nextMaximum,nextCurrent+1);
   }else if(key==="LEAVING_TOWN"){
     requirements=["NO_CONDITIONS","PASSED_LIFESTYLE"];eligible=Boolean(noConditions)&&Boolean(passedLifestyle);
@@ -175,6 +178,7 @@ export function tb2eNatureRecoveryPlan({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_RECOVERY_SHADOW",method:key,requirements,
     currentBefore:Number(currentNature),maximumBefore:Number(maximumNature),currentAfter:nextCurrent,maximumAfter:nextMaximum,
     maximumReduction:key==="CONSERVE"?1:0,traitChangeRequired:false,
+    retirementRequired:nextMaximum===0,retirementTiming:nextMaximum===0?"END_OF_ADVENTURE":null,
     mutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
@@ -210,7 +214,7 @@ export function tb2eNatureAdvancementPlan({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_ADVANCEMENT_SHADOW",
     advancementBasis:"MAXIMUM_NATURE",currentBefore:Number(currentNature),maximumBefore:Number(maximumNature),
     currentAfter:Number(currentNature)+1,maximumAfter:Number(maximumNature)+1,taxDifferenceBefore:taxDifference,taxDifferenceAfter:taxDifference,
-    retirementCheckRequired:Number(maximumNature)+1===7,retirementTiming:Number(maximumNature)+1===7?"END_OF_SESSION":null,
+    retirementCheckRequired:Number(maximumNature)+1===7,retirementTiming:Number(maximumNature)+1===7?"END_OF_SESSION_IF_STILL_AT_SEVEN":null,
     mutationCommitted:false,advancementResetCommitted:false,liveApplication:false,writesPlanned:0
   });
 }

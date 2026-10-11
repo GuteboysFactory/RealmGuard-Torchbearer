@@ -22,12 +22,12 @@ assert.equal(tb2eWiseAidPlan({context:"CONFLICT"}).conflictNoncombatantToCombata
 const deeper=tb2eWiseRerollPlan("Deeper Understanding",{failedDice:3,alreadyRerolledFailedDice:2,hasFate:true});
 assert.equal(deeper.ok,true);assert.equal(deeper.resourceCost,"FATE");assert.equal(deeper.resourceAmount,1);assert.equal(deeper.reroll,"ONE_FAILED_DIE");
 assert.equal(deeper.rerollDiceMaximum,1);assert.equal(deeper.eligibleFailedDice,1);assert.equal(deeper.alreadyRerolledDiceExcluded,true);
-assert.equal(deeper.orderRequirement,"OF_COURSE_BEFORE_DEEPER_IF_BOTH");assert.equal(deeper.resourceSpendCommitted,false);
+assert.equal(deeper.orderRequirement,"WISE_REROLLS_BEFORE_FATE_LUCK");assert.equal(deeper.resourceSpendCommitted,false);
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:3,alreadyRerolledFailedDice:3}).reasonCode,"NO_ELIGIBLE_FAILED_DIE");
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,hasFate:false}).reasonCode,"INSUFFICIENT_FATE");
 const course=tb2eWiseRerollPlan("Of Course",{failedDice:4,hasPersona:true});
 assert.equal(course.ok,true);assert.equal(course.resourceCost,"PERSONA");assert.equal(course.resourceAmount,1);assert.equal(course.reroll,"ALL_FAILED_DICE");
-assert.equal(course.rerollDiceMaximum,4);assert.equal(course.mustPrecedeDeeperUnderstandingWhenBoth,true);assert.equal(course.resourceSpendCommitted,false);
+assert.equal(course.rerollDiceMaximum,4);assert.equal(course.mustPrecedeFateLuck,true);assert.equal(course.resourceSpendCommitted,false);
 assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:0}).reasonCode,"NO_FAILED_DICE");assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:2,hasPersona:false}).reasonCode,"INSUFFICIENT_PERSONA");
 assert.equal(tb2eWiseUsePlan("I Am Wise").effect,"I_AM_WISE");assert.equal(tb2eWiseUsePlan("free reroll").reasonCode,"UNKNOWN_WISE_EFFECT");
 const partial=tb2eWiseCyclePlan({iAmWisePass:true,deeperUnderstanding:true});

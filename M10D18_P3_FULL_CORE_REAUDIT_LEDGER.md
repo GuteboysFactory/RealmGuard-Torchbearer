@@ -1,6 +1,6 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
-**Status:** IN PROGRESS. First candidate P3.1: `v1.13.0-qa.25`. This ledger is a source trace and backlog, **not** a blanket audit certificate.
+**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 candidate `v1.13.0-qa.26` in progress. This ledger is a source trace and backlog, **not** a blanket audit certificate.
 
 ## Safety invariants
 - Stable release `v1.12.0` unchanged; publish only through protected QA channel.
@@ -19,11 +19,11 @@
 ## Existing 14 domains — audit ledger
 | # | Domain | CORE evidence | P3 review state | Next acceptance requirement |
 |---|---|---|---|---|
-| 1 | Tests | SG 26–35; DH 58–75 | **P3.1 targeted fixes in QA candidate** | Verify Factors, Versus -1s, tie breakers and advancement; full skill factors source mapping remains |
-| 2 | Help | SG 36–38; DH skill entries | **P3.1 targeted fix in QA candidate** | Verify rating-zero injury/sick helper restrictions, special cases, full suggested Help skill mapping |
-| 3 | Wises | DH 76–78; SG 87–88 | **P3.1 source spot-check only** | Deep review Wise effects, reroll timing, synergy / multi-wise limits; no adapter change yet |
-| 4 | Nature | DH 65–71 | OPEN | Full channel/tax/recovery/advancement/retirement parity and exceptional abilities |
-| 5 | Abilities / Skills | DH 58–75, 160–176 | OPEN | Full factors and per-skill suggested Help, tools, Learning |
+| 1 | Tests | SG 26–35; DH 58–75 | **P3.1 targeted fixes Foundry VERIFIED** | Verify Factors, Versus -1s, tie breakers and advancement; full skill factors source mapping remains |
+| 2 | Help | SG 36–38; DH skill entries | **P3.1 targeted fix Foundry VERIFIED** | Verify rating-zero injury/sick helper restrictions, special cases, full suggested Help skill mapping |
+| 3 | Wises | DH 76–78; SG 87–88 | **P3.2 targeted Wise integration/reroll validations in QA** | Deep review Wise effects, reroll timing, synergy / multi-wise limits; no adapter change yet |
+| 4 | Nature | DH 65–71; SG 25 | **P3.2 targeted source fixes in QA** | Full channel/tax/recovery/advancement/retirement parity and exceptional abilities |
+| 5 | Abilities / Skills | DH 58–75, 160–176 | **P3.2 targeted source fixes in QA** | Full factors and per-skill suggested Help, tools, Learning |
 | 6 | Resources / Fate / Persona | DH 59–64; SG 83–89, 97–125 | OPEN | Currency/resource tests, spending, awards, timing/tie edges |
 | 7 | Conditions | SG 39–57 | OPEN | All condition effects, disposition, recovery order, conflicts and death risk |
 | 8 | Recovery | SG 46–57, 90–125 | OPEN | Camp/Town/phase recovery & healer sequencing, failure and exception boundaries |
@@ -47,5 +47,24 @@
 ## P3.1 delivery / manual Foundry QA
 - APIs: `game.realmGuard.core.m10d.tests.factorObstaclePlan`, `versusFactorPlan`, `tieBreakerPlan` plus existing Help plans with explicit `sourceRatingZeroDueToInjuryOrSickness` / `helperRatingZeroDueToInjuryOrSickness`.
 - Automated smoke: `qa/m10d-tb2e-p31-tests-help-smoke.mjs`, plus all historical QA tests.
-- Foundry gates: `TEST_PROTOCOL_v1.13.0-qa.25.md`. Hold P3.1 at QA PENDING until user confirms Gates A–D.
+- Foundry gates: `TEST_PROTOCOL_v1.13.0-qa.25.md`. User confirmed Gates A–D PASS, P3.1 VERIFIED/CLOSED.
 - Next: domain batches through remaining 14, keeping the entire list OPEN until complete evidence/edge-case QA for each. M11 remains paused until all gates are separately approved.
+
+## P3.2 — Source-backed targeted findings / decisions (candidate v1.13.0-qa.26)
+
+1. **WISE_COMBINATION_ENFORCEMENT** (DH 76-77): Up to four Wises, each Wise once per test and each effect once; multiple different effects allowed when fictionally relevant. A new `wises.combinationPlan` validates caller-supplied Wise identities/effects; no automatic inference from actors.
+2. **WISE_AID_HELP_COLLISION** (DH 77): I Am Wise aid is not ordinary Help and cannot be combined by the same character on the same test. Explicit flags on `wises.aidPlan` and `combinationPlan` block this.
+3. **WISE_REROLL_TIMING** (DH 77; SG 87-88): Of Course / Deeper Understanding must be used before Fate Luck rerolls. Historical `OF_COURSE_BEFORE_DEEPER_IF_BOTH` was not an explicitly established order in sources and is replaced with source-grounded `WISE_REROLLS_BEFORE_FATE_LUCK`.
+4. **WISE_CYCLE_TIMING** (DH 78): Completion perk becomes available on completing the four tracked uses. New Wises remain subject to Respite rules; no actual Wise changes are committed.
+5. **NATURE_ALTERNATE_DESCRIPTORS** (DH 65): Source allows Dwarf Negotiating, Elf Enchanting and Halfling Hoarding alternatives; model now includes these without assuming a choice for an Actor.
+6. **NATURE_MISSED_SESSION_PRIORITY** (SG 25; DH 69): On returning after a missed session, alleviating an existing condition precedes restoring taxed Nature. Recovery preview now requires `noConditions`; earlier general DH summary lacked this eligibility requirement.
+7. **NATURE_RETIREMENT_BOUNDARIES** (DH 68-70): Lower retirement at **end of adventure** if maximum becomes 0, including on voluntary conservation; upper retirement check at end of session **if Nature remains 7**. Still manual only.
+8. **SKILL_SOURCE_BOUNDARY_STALE** (DH 160-176): Full skill factor/source list is available, not absent; adapter still does **not** provide a complete mapped factor catalogue. Honest metadata now distinguishes SOURCE_AVAILABLE from CATALOGUE_IMPLEMENTED.
+9. **SKILL_EQUIPMENT_TOOL_RULES** (DH 73-75): Source limits use to one tool set, one supply increment and one gear item; absent/inadequate tools yield +1 Ob. New `abilities.equipmentPlan` handles GM-supplied inventory facts and the Dwarven Crafting Nature exception without writes/rolling.
+10. **SKILL_CAPACITY** (DH 72,75): At 24 known Skills, learning a 25th requires forgetting an existing one. New Skill learning plan reports `requiresForgetExistingSkill` without mutation.
+
+### P3.2 scope / release gates
+- Files: `module/m10d-tb2e-wises-p32-shadow.mjs`, `module/m10d-tb2e-skills-equipment-p32-shadow.mjs`, original Wise/Nature/Abilities metadata/plan refinements and CORE registration.
+- Automated source regression: `qa/m10d-tb2e-p32-wises-nature-skills-smoke.mjs` plus historical test suite.
+- Manual Foundry Gate A (safety), B (Wises), C (Nature + Abilities/Skills), D (regression/reload) documented in `TEST_PROTOCOL_v1.13.0-qa.26.md`.
+- **FULL DOMAIN REAUDIT remains OPEN for Wises, Nature and Abilities.** Partial source repairs are not complete mapping of all rules, exceptions or 33 skill descriptions. Domain FULL PASS remains **0/14**. M11 cannot resume on this release.

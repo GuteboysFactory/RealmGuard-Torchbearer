@@ -17,7 +17,7 @@ assert.equal(model.abilities.PRECEDENCE.kind,"FIXED_VALUE");assert.equal(model.a
 assert.equal(model.skills.maxKnown,24);assert.deepEqual(model.skills.ratingRange,{min:1,max:6});assert.equal(model.skills.names.length,33);
 assert.equal(new Set([...model.beginnersLuck.WILL,...model.beginnersLuck.HEALTH]).size,33);
 assert.equal(model.skills.names.every(name=>model.beginnersLuck.WILL.includes(name)||model.beginnersLuck.HEALTH.includes(name)),true);
-assert.equal(model.skills.fullDescriptionsAuthority,"UNAVAILABLE_DG160");
+assert.equal(model.skills.fullDescriptionsAuthority,"DH160_176_SOURCE_AVAILABLE_NOT_FULLY_MAPPED");
 
 const will=tb2eAbilityInfo("Will");assert.equal(will.ok,true);assert.equal(will.kind,"RAW");assert.equal(will.phaseContext,"ADVENTURE");assert.equal(will.recoveryReference.Anger,2);
 const resources=tb2eAbilityInfo("Resources");assert.equal(resources.ok,true);assert.equal(resources.kind,"TOWN");assert.equal(resources.specialRulesDomain,"resources");

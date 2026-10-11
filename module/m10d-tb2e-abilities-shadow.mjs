@@ -34,13 +34,13 @@ function ratingBounds(kind){
 export function tb2eAbilitySkillShadowStatus(){
   return freezeTb2e({
     phase:"M10D.6",mode:"TB2E_ABILITIES_SKILLS_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:ABILITY_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:ABILITY_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.2",fullDomainReauditComplete:false,
     sourceEvidence:ABILITY_ROW?.evidence??"QR 8-13, 19, 99; CC 7-14",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,advancementMutationAllowed:false,learningMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "NO_DG160_SKILL_DESCRIPTIONS_OR_OBSTACLE_FACTORS",
+      "DH_SKILL_LIST_SOURCE_AVAILABLE_BUT_NOT_FULLY_MAPPED_IN_ADAPTER",
       "NO_AUTOMATIC_SKILL_PROVISIONING",
       "NO_AUTOMATIC_NEW_SKILL_CREATION",
       "NO_AUTOMATIC_ADVANCEMENT_WRITE",
@@ -62,7 +62,7 @@ export function tb2eAbilitySkillModel(){
       PRECEDENCE:{kind:"FIXED_VALUE",tested:"RARE_IF_EVER",automation:"REFERENCE_ONLY"},
       MIGHT:{kind:"FIXED_VALUE",tested:"RARE_IF_EVER",automation:"REFERENCE_ONLY"}
     },
-    skills:{maxKnown:24,ratingRange:{min:1,max:6},names:SKILLS,fullDescriptionsAuthority:"UNAVAILABLE_DG160"},
+    skills:{maxKnown:24,ratingRange:{min:1,max:6},heroicRatingCapWithLevelBenefit:7,names:SKILLS,fullDescriptionsAuthority:"DH160_176_SOURCE_AVAILABLE_NOT_FULLY_MAPPED"},
     beginnersLuck:{WILL:WILL_BEGINNERS_LUCK,HEALTH:HEALTH_BEGINNERS_LUCK,resourcesAndCirclesAllowed:false},
     newSkillLearning:{method:"BEGINNERS_LUCK_ATTEMPTS",thresholdBasis:"MAXIMUM_NATURE",learnedRating:2},
     standardAdvancement:{passes:"CURRENT_RATING",fails:"CURRENT_RATING_MINUS_ONE",caps:{SKILL:6,WILL:6,HEALTH:6,RESOURCES:10,CIRCLES:10}},
@@ -82,7 +82,7 @@ export function tb2eSkillInfo(name){
   const mappedAbility=WILL_BEGINNERS_LUCK.includes(skill)?"WILL":"HEALTH";
   return freezeTb2e({
     ok:true,phase:"M10D.6",profileId:PROFILE_ID,skill,ratingRange:{min:1,max:6},beginnersLuckAbility:mappedAbility,
-    fullDescriptionAvailable:false,obstacleFactorsAvailable:false,sourceBoundary:"DG160_NOT_SUPPLIED",
+    fullDescriptionAvailable:false,obstacleFactorsAvailable:false,sourceBoundary:"DH160_176_AVAILABLE_CATALOGUE_MAPPING_PENDING",
     liveApplication:false,writesPlanned:0
   });
 }
@@ -107,12 +107,14 @@ export function tb2eNewSkillLearningPlan({
   skillName="",
   beginnersLuckAttempts=0,
   maximumNature=0,
-  skillAlreadyKnown=false
+  skillAlreadyKnown=false,
+  currentKnownSkillCount=0
 }={}){
   const skill=canonicalSkill(skillName);
   if(!skill)return blocked("UNKNOWN_OR_UNSOURCED_SKILL",{skillName:String(skillName??"")});
   if(Boolean(skillAlreadyKnown))return blocked("SKILL_ALREADY_PRESENT",{skill});
   if(!nonNegativeInteger(beginnersLuckAttempts))return blocked("INVALID_BEGINNERS_LUCK_ATTEMPTS",{beginnersLuckAttempts});
+  if(!nonNegativeInteger(currentKnownSkillCount)||Number(currentKnownSkillCount)>24)return blocked("INVALID_KNOWN_SKILL_COUNT",{currentKnownSkillCount});
   if(!integer(maximumNature)||Number(maximumNature)<0||Number(maximumNature)>7)return blocked("INVALID_MAXIMUM_NATURE",{maximumNature});
   if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{maximumNature:0});
   const requiredAttempts=Number(maximumNature);
@@ -123,6 +125,8 @@ export function tb2eNewSkillLearningPlan({
     skill,beginnersLuckAbility:WILL_BEGINNERS_LUCK.includes(skill)?"WILL":"HEALTH",
     attempts,requiredAttempts,remainingAttempts:Math.max(0,requiredAttempts-attempts),ready,
     learnedRating:ready?2:null,thresholdBasis:"MAXIMUM_NATURE",
+    currentKnownSkillCount:Number(currentKnownSkillCount),skillCapacity:24,
+    requiresForgetExistingSkill:ready&&Number(currentKnownSkillCount)>=24,
     skillCreationCommitted:false,learningMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }

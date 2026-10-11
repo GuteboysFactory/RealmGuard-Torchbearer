@@ -41,7 +41,7 @@ assert.equal(respite.currentAfter,5);assert.equal(respite.maximumAfter,5);
 const prologue=tb2eNatureRecoveryPlan({method:"PROLOGUE",currentNature:3,maximumNature:5,noConditions:true,deliveredPrologue:true});
 assert.equal(prologue.currentAfter,4);
 assert.equal(tb2eNatureRecoveryPlan({method:"PROLOGUE",currentNature:3,maximumNature:5,noConditions:false,deliveredPrologue:true}).reasonCode,"NATURE_RECOVERY_REQUIREMENTS_NOT_MET");
-const missed=tb2eNatureRecoveryPlan({method:"MISSED_SESSION_RETURN",currentNature:3,maximumNature:5,missedLastSession:true});
+const missed=tb2eNatureRecoveryPlan({method:"MISSED_SESSION_RETURN",currentNature:3,maximumNature:5,missedLastSession:true,noConditions:true});
 assert.equal(missed.currentAfter,4);
 const town=tb2eNatureRecoveryPlan({method:"LEAVING_TOWN",currentNature:3,maximumNature:5,noConditions:true,passedLifestyle:true});
 assert.equal(town.currentAfter,4);
@@ -56,7 +56,7 @@ assert.equal(finalLoss.retirementRequired,true);assert.equal(finalLoss.retiremen
 const advance=tb2eNatureAdvancementPlan({currentNature:3,maximumNature:5,advancementTriggered:true});
 assert.equal(advance.currentAfter,4);assert.equal(advance.maximumAfter,6);assert.equal(advance.taxDifferenceBefore,2);assert.equal(advance.taxDifferenceAfter,2);
 const advanceToSeven=tb2eNatureAdvancementPlan({currentNature:5,maximumNature:6,advancementTriggered:true});
-assert.equal(advanceToSeven.retirementCheckRequired,true);assert.equal(advanceToSeven.retirementTiming,"END_OF_SESSION");
+assert.equal(advanceToSeven.retirementCheckRequired,true);assert.equal(advanceToSeven.retirementTiming,"END_OF_SESSION_IF_STILL_AT_SEVEN");
 assert.equal(tb2eNatureAdvancementPlan({currentNature:7,maximumNature:7,advancementTriggered:true}).reasonCode,"MAXIMUM_NATURE_AT_CAP");
 
 assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before);

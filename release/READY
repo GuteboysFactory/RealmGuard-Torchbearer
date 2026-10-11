@@ -1,12 +1,10 @@
-1.13.0-qa.25
-# M10D.18 P3.1 targeted full CORE source re-audit
-# SG p27 Factors, p32 Versus factor -1s, pp32-34 Tiebreaker, p37 rating-zero Help
-# Full 14-domain source reconciliation remains OPEN (0/14 fully re-audited)
-# Historical P2.1 Traits, P2.2 Armor, P2.3 Conflict, P2.4 Magic preserved
-# No live write / dice / advancement / profile activation
-# Legacy Mixed live authority; global kill switch ENGAGED; M11 PAUSED
-# Stable 1.12.0 unchanged, QA only
-# Audit ledger M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md
-# Foundry gates TEST_PROTOCOL_v1.13.0-qa.25.md
-# CI retry: historical Help test checks durable M10D.18 phase rather than fixed P1 marker
-# QA retry: use startsWith for historical Help phase guard after regex typo
+1.13.0-qa.26
+# M10D.18 P3.2 targeted full-core source re-audit: Wises Nature Abilities/Skills
+# DH 58-78, 160-176; SG 25, 87-88: Wise combination/Help/Fate, Nature descriptors/recovery/retirement, Skills tools/supplies/gear/capacity
+# Historical P3.1 Foundry Gates A-D verified; P2 adapters preserved
+# Full 14-domain audit remains OPEN (0/14 fully re-audited)
+# Legacy Mixed sole live; global kill switch ENGAGED; M11 PAUSED
+# No Actor/Item/Journal/Settings writes, roll execution, skill removal or profile activation
+# Stable 1.12.0 untouched, QA only, protected GitHub Actions promotion
+# Ledger M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md
+# Foundry gates TEST_PROTOCOL_v1.13.0-qa.26.md

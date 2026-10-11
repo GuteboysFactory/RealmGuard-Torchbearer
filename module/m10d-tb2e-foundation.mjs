@@ -5,11 +5,13 @@ import { resolveRulesProfile, getRulesProfileRuntime } from "./rules-profile-ser
 import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
 import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
+import { tb2eWiseCombinationPlan } from "./m10d-tb2e-wises-p32-shadow.mjs";
 import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
 import { tb2eFactorObstaclePlan, tb2eVersusFactorPlan, tb2eTieBreakerPlan } from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
 import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan } from "./m10d-tb2e-nature-shadow.mjs";
 import { tb2eAbilityInfo, tb2eAbilitySkillModel, tb2eAbilitySkillShadowStatus, tb2eAdvancementThresholdPlan, tb2eBeginnersLuckAbilityPlan, tb2eNewSkillLearningPlan, tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
+import { tb2eSkillEquipmentPlan } from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
 import { tb2eEndSessionAwardPlan, tb2eFateSpendPlan, tb2eLifestyleResourcesPlan, tb2ePersonaSpendPlan, tb2eResourceModel, tb2eResourceShadowStatus, tb2eResourcesTaxPlan, tb2eResourcesTestPlan } from "./m10d-tb2e-resources-shadow.mjs";
 import { tb2eConditionCapabilityPlan, tb2eConditionDeathRiskPlan, tb2eConditionInfo, tb2eConditionModel, tb2eConditionShadowStatus, tb2eConditionTestEffectPlan, tb2eConditionZeroRatingPlan, tb2eConflictDispositionConditionPlan } from "./m10d-tb2e-conditions-shadow.mjs";
 import { tb2eAccommodationRecoveryPlan, tb2eExhaustedRecoveryModifierPlan, tb2eFreshEligibilityPlan, tb2eHealerFailurePlan, tb2eHealerRecoveryPlan, tb2eHungryThirstyRecoveryPlan, tb2eRecoveryModel, tb2eRecoveryShadowStatus, tb2eStandardRecoveryPlan } from "./m10d-tb2e-recovery-shadow.mjs";
@@ -121,7 +123,7 @@ export function installM10DFoundation() {
       traitsShadowStatus:tb2eTraitsShadowStatus,
       traits:Object.freeze({getStatus:tb2eTraitsShadowStatus,model:tb2eTraitModel,usePlan:tb2eTraitUsePlan,refreshPlan:tb2eTraitRefreshPlan,classTraitBoundaryPlan:tb2eClassTraitBoundaryPlan}),
       wiseShadowStatus:tb2eWiseShadowStatus,
-      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan}),
+      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan}),
       helpShadowStatus:tb2eHelpShadowStatus,
       help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
       testShadowStatus:tb2eTestShadowStatus,
@@ -129,7 +131,7 @@ export function installM10DFoundation() {
       natureShadowStatus:tb2eNatureShadowStatus,
       nature:Object.freeze({getStatus:tb2eNatureShadowStatus,model:tb2eNatureModel,substitutionPlan:tb2eNatureSubstitutionPlan,substitutionTaxPlan:tb2eNatureSubstitutionTaxPlan,channelPlan:tb2eChannelNaturePlan,channelTaxPlan:tb2eChannelNatureTaxPlan,recoveryPlan:tb2eNatureRecoveryPlan,lossPlan:tb2eNatureLossPlan,advancementPlan:tb2eNatureAdvancementPlan}),
       abilitiesShadowStatus:tb2eAbilitySkillShadowStatus,
-      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan}),
+      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan,equipmentPlan:tb2eSkillEquipmentPlan}),
       resourcesShadowStatus:tb2eResourceShadowStatus,
       resources:Object.freeze({getStatus:tb2eResourceShadowStatus,model:tb2eResourceModel,endSessionAwardPlan:tb2eEndSessionAwardPlan,fateSpendPlan:tb2eFateSpendPlan,personaSpendPlan:tb2ePersonaSpendPlan,testPlan:tb2eResourcesTestPlan,taxPlan:tb2eResourcesTaxPlan,lifestylePlan:tb2eLifestyleResourcesPlan}),
       conditionsShadowStatus:tb2eConditionShadowStatus,
