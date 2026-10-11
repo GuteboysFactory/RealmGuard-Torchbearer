@@ -20,7 +20,9 @@ export function tb2eTestShadowStatus(){
   return freezeTb2e({
     phase:"M10D.4",mode:"TB2E_TESTS_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
     adapterReady:true,sourceClassification:TEST_ROW?.status??"PARTIAL",
-    sourceEvidence:TEST_ROW?.evidence??"QR 2, 4, 7, 75; CC 5",
+    coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P3.1_TARGETED",
+    fullDomainReauditComplete:false,
+    sourceEvidence:"SG pp.26-35, DH pp.58-75 (historical QR reference retained in original source matrix)",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,resourceSpendAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
