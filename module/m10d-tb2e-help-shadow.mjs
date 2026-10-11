@@ -1,5 +1,6 @@
 import { freezeTb2e, TB2E_SOURCE_COVERAGE_MATRIX } from "./m10d-tb2e-source-coverage.mjs";
 import { tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
+import { tb2eSuggestedHelpSkillPlan } from "./m10d18-tb2e-package-a-skill-index.mjs";
 
 const PROFILE_ID="torchbearer2e";
 const PROFILE_VERSION=1;
@@ -34,6 +35,8 @@ export function tb2eHelpPlan({
   testName="",
   sameSkill=false,
   suggestedHelpSkill=false,
+  gmApprovedAdditionalSkill=false,
+  gmApprovedAdditionalSkillCount=0,
   relevantNatureDescriptor=false,
   phase="ADVENTURE",
   context="TEST",
@@ -64,6 +67,18 @@ export function tb2eHelpPlan({
     return blocked("SAME_SKILL_SOURCE_MISMATCH",{sourceKind:kind,sourceName:String(sourceName??""),testName:String(testName??"")});
   if(Boolean(suggestedHelpSkill) && (kind!=="skill" || !source || !test))
     return blocked("SUGGESTED_HELP_REQUIRES_SKILL_SOURCE");
+  let helpSourceEvidence=null;
+  if(Boolean(suggestedHelpSkill)){
+    const verified=tb2eSuggestedHelpSkillPlan({
+      testSkillName:testName,helperSkillName:sourceName,
+      gmApprovedAdditionalSkill,gmApprovedAdditionalSkillCount
+    });
+    if(!verified.ok)return blocked(verified.reasonCode,{
+      sourceName:String(sourceName??""),testName:String(testName??""),
+      skillListAuthority:"DH 160-176",verificationOnly:true
+    });
+    helpSourceEvidence=verified.sourceKind;
+  }
   if(Boolean(actingOnInstinct)){
     if(Boolean(helperActingOnInstinct)) eligibility="HELPER_ALSO_ACTING_ON_INSTINCT";
     else if(kind==="nature" && Boolean(relevantNatureDescriptor)) eligibility="RELEVANT_NATURE_DESCRIPTOR_ON_INSTINCT";
@@ -80,6 +95,7 @@ export function tb2eHelpPlan({
     testName:String(testName??""),phaseContext:phaseKey,testContext:contextKey,payingTownBills:Boolean(payingTownBills),
     helperConditionRisk:true,wiseAid:false,resourceCost:"NONE",
     suggestedHelpSkillGmPreconfirmed:eligibility==="SUGGESTED_HELP_SKILL",
+    suggestedHelpSourceEvidence:helpSourceEvidence,
     liveApplication:false,writesPlanned:0
   });
 }
