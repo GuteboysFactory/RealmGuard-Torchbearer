@@ -352,3 +352,21 @@ export function tb2eLightPlan({
     turnMutationCommitted:false,inventoryMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
+
+/** SG 41-42: every fourth Adventure turn, every third in extreme conditions.
+ * The GM determines extreme conditions and any Dead consequence.
+ */
+export function tb2eGrindCadencePlan({turn=1,extreme=false}={}){
+  if(!Number.isInteger(Number(turn))||Number(turn)<1)return blocked("INVALID_GRIND_TURN",{turn});
+  const interval=Boolean(extreme)?3:4;
+  return freezeTb2e({
+    ok:true,phase:"M10D.12",profileId:PROFILE_ID,mode:"GRIND_CADENCE_SHADOW",
+    turn:Number(turn),extreme:Boolean(extreme),conditionInterval:interval,
+    conditionTick:Number(turn)%interval===0,
+    nextConditionTurn:Number(turn)+(interval-(Number(turn)%interval)),
+    extremeDeadMayFollowExhausted:Boolean(extreme),
+    deadConsequenceRequiresGmAdjudication:true,sourceEvidence:"Scholar's Guide pp.41-42",
+    conditionMutationCommitted:false,turnCounterMutationCommitted:false,
+    liveApplication:false,writesPlanned:0
+  });
+}
