@@ -68,6 +68,8 @@ export function tb2eNatureSubstitutionPlan({
   targetSkillRatingZero=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!targetSkillUnavailable&&!targetSkillRatingZero) return blocked("NATURE_SUBSTITUTION_REQUIRES_UNAVAILABLE_OR_ZERO_SKILL");
   return freezeTb2e({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_SUBSTITUTION_SHADOW",
@@ -88,6 +90,8 @@ export function tb2eNatureSubstitutionTaxPlan({
   marginOfFailure=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const result=String(outcome??"PASS").trim().toUpperCase();
   if(!["PASS","FAIL"].includes(result)) return blocked("INVALID_TEST_OUTCOME",{outcome});
   if(!margin(marginOfFailure)) return blocked("INVALID_MARGIN_OF_FAILURE",{marginOfFailure});
@@ -109,6 +113,8 @@ export function tb2eChannelNaturePlan({
   personaAvailable=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!Number.isInteger(Number(personaAvailable))||Number(personaAvailable)<0) return blocked("INVALID_PERSONA_AVAILABLE",{personaAvailable});
   const test=String(testName??"").trim().toUpperCase();
   if(["RESOURCES","CIRCLES"].includes(test)) return blocked("CHANNEL_NATURE_FORBIDDEN_TEST",{testName:test});
@@ -132,6 +138,8 @@ export function tb2eChannelNatureTaxPlan({
   marginOfFailure=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const result=String(outcome??"PASS").trim().toUpperCase();
   if(!["PASS","FAIL"].includes(result)) return blocked("INVALID_TEST_OUTCOME",{outcome});
   if(!margin(marginOfFailure)) return blocked("INVALID_MARGIN_OF_FAILURE",{marginOfFailure});
@@ -155,6 +163,8 @@ export function tb2eNatureRecoveryPlan({
   passedLifestyle=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const key=String(method??"").trim().toUpperCase();
   let nextCurrent=Number(currentNature),nextMaximum=Number(maximumNature),requirements=[],eligible=true;
@@ -212,6 +222,8 @@ export function tb2eNatureAdvancementPlan({
   advancementTriggered=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!Boolean(advancementTriggered)) return blocked("ADVANCEMENT_NOT_TRIGGERED");
   if(Number(maximumNature)>=7) return blocked("MAXIMUM_NATURE_AT_CAP",{maximumNature});
