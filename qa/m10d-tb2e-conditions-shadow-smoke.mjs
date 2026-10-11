@@ -15,9 +15,9 @@ const model=tb2eConditionModel();
 assert.deepEqual(model.grind.order,["FRESH","HUNGRY_THIRSTY","EXHAUSTED","ANGRY","SICK","INJURED","AFRAID","DEAD"]);
 assert.equal(model.grind.newConditionEveryTurns,4);
 assert.deepEqual(model.recovery.order,["HUNGRY_THIRSTY","ANGRY","AFRAID","EXHAUSTED","INJURED_OR_SICK"]);
-assert.equal(model.conditions.DEAD.detailsAuthority,"SOURCE_INCOMPLETE_ORDER_PLACEMENT_ONLY");
-assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseText,"CAMP_TEST");
-assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseResolved,false);
+assert.equal(model.conditions.DEAD.detailsAuthority,"SG52_55_FULL_CORE");
+assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseText,"CAMP_OR_TOWN");
+assert.equal(model.conditions.EXHAUSTED.recoveryReference.phaseResolved,true);
 assert.equal(model.conflictDispositionBoundary.status,"CORE_RESOLVED");assert.equal(model.conflictDispositionBoundary.successPenalties.HUNGRY_THIRSTY,"-1s_ONCE_PER_TEAM");assert.equal(model.conflictDispositionBoundary.successPenalties.EXHAUSTED,"-1s_ONCE_PER_TEAM");assert.equal(model.conflictDispositionBoundary.automation,false);
 
 const fresh=tb2eConditionTestEffectPlan({conditions:["Fresh"],test:"Skill"});

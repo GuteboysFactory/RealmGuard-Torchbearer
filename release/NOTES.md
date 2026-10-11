@@ -1,16 +1,12 @@
-# Realm Guard / Torchbearer v1.13.0-qa.26 — M10D.18 P3.2 (targeted full CORE re-audit)
+# Realm Guard / Torchbearer v1.13.0-qa.27 — M10D.18 P3.3
 
-**QA ONLY.** P3.2 is targeted source reconciliation of Wises, Nature and Abilities/Skills, NOT 14/14 full domain parity. All results READ_ONLY_SHADOW.
+**QA candidate only.** Targeted source re-audit of Resources/Fate/Persona, Conditions and Recovery. Read-only shadow; not full source parity for all 14 domains.
 
-## DH/SG-backed adjustments
-- **Wises** (DH pp.76-78, SG pp.87-88): `wises.combinationPlan` checks one use per Wise, each effect only once per test, max 4 Wises, fictional relevance and ordinary Help/I Am Wise exclusivity; Wise rerolls require being planned before Fate Luck, removes assumed Of Course → Deeper ordering; four-use cycle timing adjusted.
-- **Nature** (DH pp.65-70, SG p.25): Alternative stock descriptors added; returned-from-missed-session recovery requires no conditions; end-of-adventure retirement for max Nature 0 (including voluntary conservation), conditional end-session check at Nature 7.
-- **Abilities/Skills** (DH pp.72-75 and 160-176): full source available but 33-skill factor catalogue still not mapped; `abilities.equipmentPlan` previews tool penalties and caps Supplies/Gear per test; unskilled borrowed tools and Dwarven Crafting exception; learning a 25th Skill flags replacement of an old Skill; heroic cap 7 only with level benefit.
-- Existing live rules, P3.1, P2 Traits/Armor/Conflict/Magic and original profile snapshots preserved by regression tests.
+- **Resources** (DH 60–61): requires treasure when rating 0; preserve special advancement route, explicit tax insulation/reset status, corrected full-book source availability.
+- **Fate/Persona** (DH 77; SG 87–88): optional failed-dice checks and correct Wise-reroll-before-Luck timing.
+- **Conditions** (SG 41–55): Injury/Sickness do not penalize Will/Health recovery; Angry uses -1s in versus; Fresh suppressed by any other condition; core Dead and extreme Grind source details now available.
+- **Recovery** (SG 47–57, 102–105): Hungry/Thirsty cured with food **or** drink during safety; Cook optional; food acquisition confirmed; Exhausted camp/town available, failure retains condition, no twist; new read-only Town recovery venue plan for Streets, Stables, Tavern, Flophouse, Inn and Hotel.
 
-## Strict safety
-- Global kill switch ENGAGED. M11 PAUSED. Legacy Mixed sole live authority. TB2E not activated.
-- No Actor/Item/Journal/Settings writes; no roll execution, advancement or equipment mutation.
-- **0/14 fully re-audited historical domains**; tracked with source citations and open work in `M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md`.
-- Foundry QA protocol: `TEST_PROTOCOL_v1.13.0-qa.26.md`. Gates A-D require manual PASS after successful CI/QA release.
-- Stable v1.12.0 frozen. QA release manifest promoted only by verified GitHub Actions after ZIP/asset checks.
+New API `game.realmGuard.core.m10d.recovery.townVenuePlan` and `townVenueModel`.
+
+**Safety:** Legacy Mixed remains sole live authority; global kill switch ENGAGED; M11 PAUSED; no live test, dice, item, condition, equipment, reward or settings mutations. Stable v1.12.0 frozen. 0/14 fully re-audited historical domains, source findings in `M10D18_P33_SOURCE_FINDINGS.md`. QA gates A–D `TEST_PROTOCOL_v1.13.0-qa.27.md`. Publish/promote QA only after CI success and verified GitHub release assets.

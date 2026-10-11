@@ -8,7 +8,7 @@ const RECOVERY_ORDER=freezeTb2e(["HUNGRY_THIRSTY","ANGRY","AFRAID","EXHAUSTED","
 const STANDARD_RECOVERY=freezeTb2e({
   ANGRY:{ability:"WILL",obstacle:2,phases:["CAMP","TOWN"]},
   AFRAID:{ability:"WILL",obstacle:3,phases:["CAMP","TOWN"]},
-  EXHAUSTED:{ability:"HEALTH",obstacle:3,phases:["CAMP","TOWN"],phaseSourceBoundary:"QR44_SAYS_CAMP_TEST_GENERIC_RECOVERY_AND_TOWN_ACCOMMODATIONS_SUPPORT_CAMP_TOWN"},
+  EXHAUSTED:{ability:"HEALTH",obstacle:3,phases:["CAMP","TOWN"],phaseSourceBoundary:"SG49_CAMP_AND_TOWN_VERIFIED"},
   INJURED:{ability:"HEALTH",obstacle:4,phases:["CAMP","TOWN"]},
   SICK:{ability:"WILL",obstacle:3,phases:["CAMP","TOWN"]}
 });
@@ -35,15 +35,15 @@ function blocked(reasonCode,extra={}){
 export function tb2eRecoveryShadowStatus(){
   return freezeTb2e({
     phase:"M10D.9",mode:"TB2E_RECOVERY_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:RECOVERY_ROW?.status??"PARTIAL",
-    sourceEvidence:RECOVERY_ROW?.evidence??"QR 10-11, 17, 41-47, 80, 83-88",
+    adapterReady:true,sourceClassification:RECOVERY_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.3",fullDomainReauditComplete:false,
+    sourceEvidence:"SG 46-57, 102-105",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     conditionMutationAllowed:false,abilityMutationAllowed:false,advancementMutationAllowed:false,
     checkSpendAllowed:false,lifestyleMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     unresolvedSourceBoundaries:[
-      "EXHAUSTED_QR44_CAMP_TEST_WORDING_VS_GENERIC_CAMP_TOWN_AND_TOWN_ACCOMMODATIONS",
-      "TOWN_ENTRY_REMAINING_CHECKS_VS_ACCOMMODATION_LIFESTYLE_SEQUENCE_NOT_FULLY_SPECIFIED",
+      "EXHAUSTED_SG49_CAMP_TOWN_SOURCE_VERIFIED",
+      "TOWN_CHECK_SPEND_AND_LODGING_PROCEDURES_REQUIRE_GM_PHASE_CONTEXT",
       "EXHAUSTED_BONUS_SOURCE_STACKING_UNSPECIFIED"
     ],
     boundaries:[
@@ -71,8 +71,8 @@ export function tb2eRecoveryModel(){
     },
     standard:STANDARD_RECOVERY,
     hungryThirsty:{
-      ADVENTURE:{requires:["RATIONS","WINE"]},
-      CAMP:{foodSkills:["SCAVENGER","SURVIVALIST","HUNTER"],requiresCookPreparation:true,obstacleAuthority:"UNAVAILABLE_NOT_IN_GUIDE"},
+      ADVENTURE:{requiresAny:["FOOD","WATER","WINE"],requiresSafePause:true},
+      CAMP:{foodSkills:["SCAVENGER","SURVIVALIST","HUNTER"],cookPreparationOptional:true,obstacleAuthority:"GM_SKILL_FACTORS_DH_AND_SG"},
       TOWN:{sources:["FRIENDS","CERTAIN_ACCOMMODATIONS"],fullFriendProcedureAuthority:"UNAVAILABLE"}
     },
     accommodations:{
@@ -118,7 +118,7 @@ export function tb2eStandardRecoveryPlan({
     townLifestyleCostPreview:townWithoutAccommodation?1:0,
     accommodation:a,
     successMeaning:"RECOVER_CONDITION",
-    failureMeaning:"STANDARD_FAILURE_CONSEQUENCE_NOT_FULLY_SPECIFIED_IN_GUIDE",
+    failureMeaning:"CONDITION_REMAINS_NO_NEW_TWIST_OR_CONDITION_SG56",
     checkSpendCommitted:false,lifestyleCostCommitted:false,conditionMutationCommitted:false,
     liveApplication:false,writesPlanned:0
   });
@@ -128,18 +128,22 @@ export function tb2eHungryThirstyRecoveryPlan({
   phase="ADVENTURE",
   hasRations=false,
   hasWine=false,
+  hasWater=false,
+  safePause=true,
   foodSkill="",
   cookPrepared=false,
+  foodAcquired=false,
   friendAvailable=false,
   accommodation="NONE"
 }={}){
   const p=phaseId(phase);
   if(!p)return blocked("UNKNOWN_RECOVERY_PHASE",{phase});
   if(p==="ADVENTURE"){
-    const satisfied=Boolean(hasRations)&&Boolean(hasWine);
+    const satisfied=Boolean(safePause)&&(Boolean(hasRations)||Boolean(hasWine)||Boolean(hasWater));
     return freezeTb2e({
       ok:true,phase:"M10D.9",profileId:PROFILE_ID,mode:"HUNGRY_THIRSTY_RECOVERY_SHADOW",recoveryPhase:p,
-      method:"EAT_RATIONS_AND_DRINK_WINE",requirements:{hasRations:Boolean(hasRations),hasWine:Boolean(hasWine)},satisfied,
+      method:"EAT_OR_DRINK_IN_PEACE",requirements:{hasRations:Boolean(hasRations),hasWine:Boolean(hasWine),hasWater:Boolean(hasWater),safePause:Boolean(safePause)},satisfied,
+      noTurnOrCheckCost:true,
       conditionMutationCommitted:false,inventoryMutationCommitted:false,liveApplication:false,writesPlanned:0
     });
   }
@@ -149,7 +153,7 @@ export function tb2eHungryThirstyRecoveryPlan({
     return freezeTb2e({
       ok:true,phase:"M10D.9",profileId:PROFILE_ID,mode:"HUNGRY_THIRSTY_RECOVERY_SHADOW",recoveryPhase:p,
       method:"FIND_FOOD_AND_COOK",foodSkill:skill||null,foodSkillAllowed:validSkill,cookPrepared:Boolean(cookPrepared),
-      satisfied:validSkill&&Boolean(cookPrepared),obstacle:null,obstacleAuthority:"UNAVAILABLE_NOT_IN_GUIDE",
+      foodAcquired:Boolean(foodAcquired),satisfied:validSkill&&Boolean(foodAcquired),cookOptional:true,obstacle:null,obstacleAuthority:"GM_SELECT_FROM_DH_SKILL_FACTORS",
       conditionMutationCommitted:false,checkSpendCommitted:false,liveApplication:false,writesPlanned:0
     });
   }

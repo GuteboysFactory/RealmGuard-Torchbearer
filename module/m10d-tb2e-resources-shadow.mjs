@@ -14,8 +14,8 @@ function upper(value){return String(value??"").trim().toUpperCase();}
 export function tb2eResourceShadowStatus(){
   return freezeTb2e({
     phase:"M10D.7",mode:"TB2E_FATE_PERSONA_RESOURCES_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:RESOURCE_ROW?.status??"PARTIAL",
-    sourceEvidence:RESOURCE_ROW?.evidence??"QR 12, 72-76, 97-98",
+    adapterReady:true,sourceClassification:RESOURCE_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.3",fullDomainReauditComplete:false,
+    sourceEvidence:"DH 60-61; SG 83-88, 101-105",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     resourceSpendAllowed:false,resourceAwardAllowed:false,resourcesTaxMutationAllowed:false,advancementMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -23,7 +23,7 @@ export function tb2eResourceShadowStatus(){
       "NO_LIVE_FATE_OR_PERSONA_SPEND",
       "NO_LIVE_END_SESSION_AWARD_WRITE",
       "NO_LIVE_RESOURCES_TAX_OR_TREASURE_CONSUMPTION",
-      "NO_DG148_SHOPPING_OBSTACLE_TABLES",
+      "DH_GEAR_PRICE_TABLE_SOURCE_AVAILABLE_NOT_FULLY_MAPPED",
       "LEVEL_THRESHOLDS_DEFER_TO_ADVANCEMENT_DOMAIN",
       "LIFESTYLE_FAILURE_CHOICE_REMAINS_GM_ADJUDICATION"
     ],
@@ -58,7 +58,7 @@ export function tb2eResourceModel(){
       ratingRange:{min:0,max:10},hometownBonusDice:1,beginnersLuckAllowed:false,
       treasureDiceAdded:true,treasureTaxInsulation:true,
       failureTax:"MARGIN_OF_FAILURE_AFTER_TREASURE_INSULATION",
-      obstacleAuthority:"UNAVAILABLE_DG148_CALLER_SUPPLIED_ONLY"
+      obstacleAuthority:"DH_GEAR_SOURCE_AVAILABLE_CALLER_GM_SUPPLIED"
     },
     liveApplication:false,writesPlanned:0
   });
@@ -103,7 +103,9 @@ export function tb2eFateSpendPlan({
   dice=[],
   wiseRelated=false,
   helpingAnotherPlayer=false,
-  resolvedOutcome=null
+  resolvedOutcome=null,
+  failedDiceAvailable=null,
+  fateLuckAlreadyUsed=false
 }={}){
   if(!nonNegativeInteger(fateAvailable))return blocked("INVALID_FATE_AVAILABLE",{fateAvailable});
   if(Number(fateAvailable)<1)return blocked("INSUFFICIENT_FATE",{resourceCost:"FATE",resourceAmount:1});
@@ -121,6 +123,8 @@ export function tb2eFateSpendPlan({
   }
   if(key==="DEEPER_UNDERSTANDING"){
     if(!wiseRelated)return blocked("WISE_RELATION_REQUIRED",{use:key});
+    if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{use:key});
+    if(failedDiceAvailable!==null&&(!nonNegativeInteger(failedDiceAvailable)||Number(failedDiceAvailable)<1))return blocked("NO_ELIGIBLE_FAILED_DIE",{use:key});
     return freezeTb2e({
       ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"FATE_SPEND_SHADOW",use:key,
       resourceCost:"FATE",resourceAmount:1,timing:"AFTER_TEST_ROLL",
@@ -150,7 +154,8 @@ export function tb2ePersonaSpendPlan({
   currentNature=0,
   testName="",
   wiseRelated=false,
-  failedDiceCount=0
+  failedDiceCount=0,
+  fateLuckAlreadyUsed=false
 }={}){
   if(!nonNegativeInteger(personaAvailable))return blocked("INVALID_PERSONA_AVAILABLE",{personaAvailable});
   const key=upper(use);
@@ -179,6 +184,8 @@ export function tb2ePersonaSpendPlan({
     if(Number(personaAvailable)<1)return blocked("INSUFFICIENT_PERSONA",{resourceCost:"PERSONA",resourceAmount:1});
     if(!wiseRelated)return blocked("WISE_RELATION_REQUIRED",{use:key});
     if(!nonNegativeInteger(failedDiceCount))return blocked("INVALID_FAILED_DICE_COUNT",{failedDiceCount});
+    if(Number(failedDiceCount)===0)return blocked("NO_FAILED_DICE",{use:key});
+    if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{use:key});
     return freezeTb2e({
       ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"PERSONA_SPEND_SHADOW",use:key,
       resourceCost:"PERSONA",resourceAmount:1,timing:"AFTER_TEST_ROLL",extraDice:Number(failedDiceCount),
@@ -198,13 +205,17 @@ export function tb2eResourcesTestPlan({
   if(!rating(resourcesRating))return blocked("INVALID_RESOURCES_RATING",{rating:resourcesRating});
   if(!nonNegativeInteger(obstacle))return blocked("INVALID_CALLER_SUPPLIED_OBSTACLE",{obstacle});
   if(!nonNegativeInteger(treasureValue))return blocked("INVALID_TREASURE_VALUE",{treasureValue});
+  if(Number(resourcesRating)===0&&Number(treasureValue)===0)return blocked("RESOURCES_ZERO_REQUIRES_TREASURE",{rating:0,sourceEvidence:"DH 61"});
   const hometownDice=inHometown?1:0;
   return freezeTb2e({
     ok:true,phase:"M10D.7",profileId:PROFILE_ID,mode:"RESOURCES_TEST_SHADOW",
-    rating:Number(resourcesRating),obstacle:Number(obstacle),obstacleAuthority:"CALLER_SUPPLIED_DG148_UNAVAILABLE",
+    rating:Number(resourcesRating),obstacle:Number(obstacle),obstacleAuthority:"CALLER_SUPPLIED_FROM_DH_GEAR_OR_TOWN_RULES",
     inHometown:Boolean(inHometown),hometownDice,treasureValue:Number(treasureValue),
     baseDice:Number(resourcesRating),finalDice:Number(resourcesRating)+hometownDice+Number(treasureValue),
     treasureTaxInsulation:Number(treasureValue),beginnersLuckAllowed:false,
+    resourcesZeroSpecialRoute:Number(resourcesRating)===0,
+    helpAtZeroRequiresTreasure:Number(resourcesRating)===0,
+    onePassFromZeroAdvancesToOne:Number(resourcesRating)===0,
     treasureConsumptionCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
@@ -228,6 +239,8 @@ export function tb2eResourcesTaxPlan({
     outcome:result,ratingBefore:Number(resourcesRating),marginOfFailure:Number(marginOfFailure),
     baseTax,treasureTaxInsulation:Number(treasureValue),taxPrevented:insulation,finalTax,
     ratingAfter:Math.max(0,Number(resourcesRating)-finalTax),
+    eraseResourceAdvancementOnTax:finalTax>0,
+    taxGmSelectedAfterFailedTest:true,
     taxMutationCommitted:false,treasureConsumptionCommitted:false,liveApplication:false,writesPlanned:0
   });
 }

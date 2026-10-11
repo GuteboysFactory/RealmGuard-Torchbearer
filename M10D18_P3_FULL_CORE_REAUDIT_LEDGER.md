@@ -1,6 +1,6 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
-**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 candidate `v1.13.0-qa.26` in progress. This ledger is a source trace and backlog, **not** a blanket audit certificate.
+**Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` QA candidate. This ledger is a source trace and backlog, **not** a blanket audit certificate.
 
 ## Safety invariants
 - Stable release `v1.12.0` unchanged; publish only through protected QA channel.
@@ -21,8 +21,8 @@
 |---|---|---|---|---|
 | 1 | Tests | SG 26–35; DH 58–75 | **P3.1 targeted fixes Foundry VERIFIED** | Verify Factors, Versus -1s, tie breakers and advancement; full skill factors source mapping remains |
 | 2 | Help | SG 36–38; DH skill entries | **P3.1 targeted fix Foundry VERIFIED** | Verify rating-zero injury/sick helper restrictions, special cases, full suggested Help skill mapping |
-| 3 | Wises | DH 76–78; SG 87–88 | **P3.2 targeted Wise integration/reroll validations in QA** | Deep review Wise effects, reroll timing, synergy / multi-wise limits; no adapter change yet |
-| 4 | Nature | DH 65–71; SG 25 | **P3.2 targeted source fixes in QA** | Full channel/tax/recovery/advancement/retirement parity and exceptional abilities |
+| 3 | Wises | DH 76–78; SG 87–88 | **P3.2 targeted Wise fixes user-verified** | Deep review Wise effects, reroll timing, synergy / multi-wise limits; no adapter change yet |
+| 4 | Nature | DH 65–71; SG 25 | **P3.2 targeted source fixes user-verified** | Full channel/tax/recovery/advancement/retirement parity and exceptional abilities |
 | 5 | Abilities / Skills | DH 58–75, 160–176 | **P3.2 targeted source fixes in QA** | Full factors and per-skill suggested Help, tools, Learning |
 | 6 | Resources / Fate / Persona | DH 59–64; SG 83–89, 97–125 | OPEN | Currency/resource tests, spending, awards, timing/tie edges |
 | 7 | Conditions | SG 39–57 | OPEN | All condition effects, disposition, recovery order, conflicts and death risk |
@@ -68,3 +68,7 @@
 - Automated source regression: `qa/m10d-tb2e-p32-wises-nature-skills-smoke.mjs` plus historical test suite.
 - Manual Foundry Gate A (safety), B (Wises), C (Nature + Abilities/Skills), D (regression/reload) documented in `TEST_PROTOCOL_v1.13.0-qa.26.md`.
 - **FULL DOMAIN REAUDIT remains OPEN for Wises, Nature and Abilities.** Partial source repairs are not complete mapping of all rules, exceptions or 33 skill descriptions. Domain FULL PASS remains **0/14**. M11 cannot resume on this release.
+
+## P3.3 — Resources / Conditions / Recovery
+
+Candidate: `v1.13.0-qa.27`; user confirmation pending. Source findings and evidence: `M10D18_P33_SOURCE_FINDINGS.md`. The three domains remain OPEN. Domain FULL PASS remains **0/14**. M11 PAUSED, global kill switch ENGAGED, Legacy Mixed live; no writes.
