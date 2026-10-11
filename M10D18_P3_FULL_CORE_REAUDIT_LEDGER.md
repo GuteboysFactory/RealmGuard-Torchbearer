@@ -80,3 +80,20 @@ See `M10D18_P34_SOURCE_FINDINGS.md` for exact DH/SG citations and test status. T
 ## P3.5 — Circles / Scales / Character Creation (candidate 1.13.0-qa.29)
 
 Detailed primary rulebook mapping and source-bounded fixes: `M10D18_P35_SOURCE_FINDINGS.md`. These are targeted validations, not FULL domain closure; all 14 historical domains remain OPEN for exhaustive source parity, including the three P3.5 subjects. **FULL PASS = 0/14**. Legacy Mixed live, M11 PAUSED, global kill switch ENGAGED, Stable v1.12.0 unchanged.
+
+
+## Package A integrated five-domain re-audit (WIP, separate Draft PR #14)
+
+**Current source checkpoint:** 2026-10-11; based on `v1.13.0-qa.29`, not a public QA candidate. Original five domain statuses remain OPEN: **0/14 FULLY REAUDITED**.
+
+| Domain | Evidence added to Package A draft | Blocking full domain closure |
+|---|---|---|
+| Tests | Existing SG 26–35 factor/versus/tie planners, cross-domain smoke added | All DH 160–176 factor value tables and complete timing/advancement interactions |
+| Help | SG 37 BL matching trained Skill / assigned Will-Health, 33 DH-listed suggested Help mappings, explicit GM alternate, SG 38 Hungry/Thirsty preview | Full consent, conditions, helper consequence and conflict/edge flow end-to-end |
+| Wises | DH 76–78 combined Wise effects and SG 87–88 timing regression integrated | Per-die reroll provenance, life-cycle progression, custom/edge Wise cases |
+| Nature | DH 68 retired 0/0 guard, DH 69 maximum-drop erases Nature marks, previous P3.2 retirement and taxed Nature plans | All stock/class exception fiction, nature and advancement end-to-end |
+| Abilities/Skills | DH 72 Heroic Skill cap 7 explicit unlock, 33 Skill BL and suggested Help catalogue, factor group metadata | Numeric skill factor catalogue, per-skill exceptions and heroic TN progression end-to-end |
+
+CI is executed in **read-only PR workflow**, not release pipeline. Stable v1.12.0 and QA channels are immutable in branch; TB2E remains shadow/read-only; Legacy Mixed stays live; kill switch ENGAGED; M11 PAUSED.
+
+Evidence and proposed one-shot Foundry test: `M10D18_PACKAGE_A_WORKING_AUDIT.md`, `TEST_PROTOCOL_M10D18_PACKAGE_A_DRAFT.md` and the three new Package A smoke suites. No release until complete review and verified protected pipeline.
