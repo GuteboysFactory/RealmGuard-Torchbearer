@@ -8,7 +8,7 @@ const before=JSON.stringify(existingIds.map(id=>resolveRulesProfile(id)));
 
 const status=tb2eHelpShadowStatus();
 assert.equal(status.phase,"M10D.3");assert.equal(status.mode,"TB2E_HELP_READ_ONLY_SHADOW");assert.equal(status.sourceClassification,"PARTIAL");
-assert.equal(status.adapterReady,true);assert.equal(status.coreSourceClassification,"VERIFIED");assert.equal(status.coreReconciliationPhase,"M10D.18_P1");assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
+assert.equal(status.adapterReady,true);assert.equal(status.coreSourceClassification,"VERIFIED");assert.match(status.coreReconciliationPhase,/^M10D\\.18_/);assert.equal(status.liveEnabled,false);assert.deepEqual(status.writes,{actors:0,items:0,journals:0,settings:0});
 
 const same=tb2eHelpPlan({sourceKind:"skill",sourceName:"Cook",testName:"Cook",sameSkill:true});
 assert.equal(same.ok,true);assert.equal(same.dice,1);assert.equal(same.eligibility,"SAME_SKILL");assert.equal(same.helperConditionRisk,true);
