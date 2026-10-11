@@ -1081,3 +1081,21 @@ Superseded by v1.0.8.2 before GOLD promotion.
 ## Version discipline
 
 Every package receives its own QA protocol. Stable 1.x work is built from the latest verified GOLD baseline and remains non-destructive wherever possible. **v1.0.8.3 is the current GOLD/public baseline; v1.0.8.44 is the active QA hotfix, then v1.1.0 remains the next major feature target.** Patch/hotfix versions may be inserted when QA requires them without changing the planned feature order.
+
+
+---
+
+## 2026-10-11 — M10D.18 P3 Full CORE Re-Audit: Three-package execution model
+
+**Baseline:** Foundry 13.351, stable `v1.12.0` unchanged, current QA `v1.13.0-qa.29`.  
+**Full 14-domain parity:** **0/14 FULLY REAUDITED**. Earlier P3.1–P3.5 targeted Foundry QA does not automatically close whole domains.
+
+**Package A — Tests / Help / Wises / Nature / Abilities & Skills:** IN PROGRESS in draft PR #14 `qa/m10d18-full-reaudit-package-a`. Existing read-only planners retained; DH pp.160–176 source-index maps 33 Skills' suggested Help, while numeric factor catalogues remain unmapped. SG 37 Help / Beginner's Luck source validation fixed. DH 68–69 Nature 0/0 and maximum-drop progression boundaries clarified. DH 72 Heroic Skill cap-7 unlocking modelled. Consolidated regression workflow added. **NOT RELEASED, no Foundry manual test yet.** Source and gaps: `M10D18_PACKAGE_A_WORKING_AUDIT.md`.
+
+**Package B — Resources/Fate/Persona / Conditions / Recovery / Inventory / Advancement:** QUEUED after A. All rulebook parity and exception chains required; no individual micro-patch QA gates.
+
+**Package C — Session / Circles / Scales / Character Creation:** QUEUED after B. All source exceptions required and non-destructive profile previews mandatory.
+
+**Release discipline:** one combined QA candidate and one consolidated Foundry 13.351 test for each package, after successful automated regression and safety checks. No intermediate check requests. No domain may become FULLY_REAUDITED without recorded source-to-adapter parity and exceptions. Pending gaps remain disclosed instead.
+
+**Hard safety gates:** Legacy Mixed only live authority; TB2E CORE shadow/read-only and not selectable; Global Kill Switch ENGAGED; M11 PAUSED; no migration/data updates; stable 1.12.0 untouched. PR branch changes must not modify `channels/`, `system.json` or `release/READY` before verified package release.
