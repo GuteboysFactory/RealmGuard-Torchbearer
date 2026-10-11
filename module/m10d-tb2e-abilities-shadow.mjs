@@ -83,6 +83,7 @@ export function tb2eSkillInfo(name){
   return freezeTb2e({
     ok:true,phase:"M10D.6",profileId:PROFILE_ID,skill,ratingRange:{min:1,max:6},beginnersLuckAbility:mappedAbility,
     fullDescriptionAvailable:false,obstacleFactorsAvailable:false,sourceBoundary:"DH160_176_AVAILABLE_CATALOGUE_MAPPING_PENDING",
+    normalRatingCap:6,heroicRatingCap:7,heroicRatingSevenRequiresBenefit:true,
     liveApplication:false,writesPlanned:0
   });
 }
@@ -131,10 +132,12 @@ export function tb2eNewSkillLearningPlan({
   });
 }
 
-export function tb2eAdvancementThresholdPlan({kind="SKILL",rating=1}={}){
+export function tb2eAdvancementThresholdPlan({kind="SKILL",rating=1,heroicRatingSevenUnlocked=false}={}){
   const key=String(kind??"SKILL").trim().toUpperCase();
-  const bounds=ratingBounds(key);
-  if(!bounds)return blocked("UNSUPPORTED_ADVANCEMENT_KIND",{kind:key});
+  const originalBounds=ratingBounds(key);
+  if(!originalBounds)return blocked("UNSUPPORTED_ADVANCEMENT_KIND",{kind:key});
+  const heroic=key==="SKILL"&&heroicRatingSevenUnlocked===true;
+  const bounds=heroic?{...originalBounds,max:7}:originalBounds;
   if(!integer(rating)||Number(rating)<bounds.min||Number(rating)>bounds.max)return blocked("INVALID_ADVANCEMENT_RATING",{kind:key,rating,bounds});
   const value=Number(rating);
   if(["RESOURCES","CIRCLES"].includes(key)&&value===0){
@@ -150,6 +153,7 @@ export function tb2eAdvancementThresholdPlan({kind="SKILL",rating=1}={}){
     ok:true,phase:"M10D.6",profileId:PROFILE_ID,mode:"ADVANCEMENT_THRESHOLD_SHADOW",kind:key,rating:value,
     route:"STANDARD_PASS_FAIL",requiredPassedTests:value,requiredFailedTests:Math.max(0,value-1),
     cap:bounds.max,atCap,advanceTo:atCap?null:value+1,resetPassFailAfterAdvance:true,
+    heroicRatingSevenUnlocked:heroic,heroicSourceEvidence:"DH 72: class/level benefit extends Skill rating cap to 7",
     advancementMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
