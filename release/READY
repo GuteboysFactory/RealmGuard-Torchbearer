@@ -8,3 +8,4 @@
 # Stable 1.12.0 untouched, QA only, protected GitHub Actions promotion
 # Ledger M10D18_P3_FULL_CORE_REAUDIT_LEDGER.md
 # Foundry gates TEST_PROTOCOL_v1.13.0-qa.26.md
+# CI retry: P3.2 smoke recognizes legacy writes-object and new writesPlanned=0 status formats
