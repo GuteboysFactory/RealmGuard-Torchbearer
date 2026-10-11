@@ -12,7 +12,7 @@ function blocked(reasonCode,extra={}){
 export function tb2eHelpShadowStatus(){
   return freezeTb2e({
     phase:"M10D.3",mode:"TB2E_HELP_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P1",sourceEvidence:HELP_ROW?.evidence??"QR 5, 7, 59-60, 99; CC 5, 45",
+    adapterReady:true,sourceClassification:HELP_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",coreReconciliationPhase:"M10D.18_P3.1_TARGETED",fullDomainReauditComplete:false,sourceEvidence:"SG pp.36-38; DH skill entries (full domain audit still open)",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     actorMutationAllowed:false,itemMutationAllowed:false,conditionMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
