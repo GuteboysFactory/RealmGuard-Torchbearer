@@ -12,11 +12,11 @@ function blocked(reasonCode,extra={}){
 
 const CLASSES=freezeTb2e({
   BURGLAR:{stock:"HALFLING",abilities:{will:5,health:3,distribution:null},skills:{COOK:3,CRIMINAL:3,FIGHTER:3,HUNTER:2,SCOUT:2,SCAVENGER:2},trait:"HIDDEN_DEPTHS",weapons:{mode:"ANY_EXCEPT",excluded:["CROSSBOW","GREATSWORD","HALBERD","POLEARM"]},armorUse:["LEATHER_ARMOR","HELMET","SHIELD"],startingArmor:["LEATHER_ARMOR"]},
-  MAGICIAN:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,capEach:6}},skills:{ARCANIST:4,LORE_MASTER:3,ALCHEMIST:2,CARTOGRAPHER:2,SCHOLAR:2},trait:"WIZARDS_SIGHT",weapons:{mode:"ONLY",allowed:["DAGGER","STAFF"]},armorUse:[],startingArmor:[]},
+  MAGICIAN:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,minEach:2,capEach:6}},skills:{ARCANIST:4,LORE_MASTER:3,ALCHEMIST:2,CARTOGRAPHER:2,SCHOLAR:2},trait:"WIZARDS_SIGHT",weapons:{mode:"ONLY",allowed:["DAGGER","STAFF"]},armorUse:[],startingArmor:[]},
   OUTCAST:{stock:"DWARF",abilities:{will:3,health:5,distribution:null},skills:{FIGHTER:4,DUNGEONEER:3,ARMORER:2,SAPPER:2,ORATOR:2,SCOUT:2},trait:"BORN_OF_EARTH_AND_STONE",weapons:{mode:"ANY_EXCEPT",excluded:["GREATSWORD"]},armorUse:["ANY"],startingArmor:["LEATHER_ARMOR"],optionalHelmetIfNoShield:true},
   RANGER:{stock:"ELF",abilities:{will:4,health:4,distribution:null},skills:{FIGHTER:3,PATHFINDER:3,SCOUT:3,HUNTER:2,LORE_MASTER:2,SURVIVALIST:2},trait:"FIRST_BORN",weapons:{mode:"ONLY",allowed:["SWORD","SPEAR","BOW","DAGGER"]},armorUse:["LEATHER_ARMOR","CHAIN_ARMOR","HELMET"],startingArmor:["LEATHER_ARMOR"]},
-  THEURGE:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,capEach:6}},skills:{FIGHTER:3,RITUALIST:3,ORATOR:3,HEALER:2,THEOLOGIAN:2},trait:"TOUCHED_BY_THE_GODS",weapons:{mode:"ANY_ONE_EXCEPT",excluded:["BOW","CROSSBOW"]},armorUse:["SHIELD"],startingArmor:[]},
-  WARRIOR:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,capEach:6}},skills:{FIGHTER:4,HUNTER:3,COMMANDER:2,MENTOR:2,RIDER:2},trait:"HEART_OF_BATTLE",weapons:{mode:"ANY"},armorUse:["ANY"],startingArmor:["LEATHER_ARMOR"],optionalHelmetIfNoShield:true}
+  THEURGE:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,minEach:2,capEach:6}},skills:{FIGHTER:3,RITUALIST:3,ORATOR:3,HEALER:2,THEOLOGIAN:2},trait:"TOUCHED_BY_THE_GODS",weapons:{mode:"ANY_ONE_EXCEPT",excluded:["BOW","CROSSBOW"]},armorUse:["SHIELD"],startingArmor:[]},
+  WARRIOR:{stock:"HUMAN",abilities:{will:null,health:null,distribution:{total:8,minEach:2,capEach:6}},skills:{FIGHTER:4,HUNTER:3,COMMANDER:2,MENTOR:2,RIDER:2},trait:"HEART_OF_BATTLE",weapons:{mode:"ANY"},armorUse:["ANY"],startingArmor:["LEATHER_ARMOR"],optionalHelmetIfNoShield:true}
 });
 
 const HOMES=freezeTb2e({
@@ -43,7 +43,7 @@ const BASE_NATURE=freezeTb2e({
 export function tb2eCreationShadowStatus(){
   return freezeTb2e({
     phase:"M10D.15",mode:"TB2E_CHARACTER_CREATION_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:CREATION_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",sourceEvidence:"Dungeoneer's Handbook Gather 'Round 25-47; guide baseline retained for historical QA",coreReconciliationPhase:"M10D.18_P1",
+    adapterReady:true,sourceClassification:CREATION_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.5",fullDomainReauditComplete:false,coreSourceClassification:"VERIFIED",sourceEvidence:"Dungeoneer's Handbook Gather 'Round 25-47; guide baseline retained for historical QA",coreReconciliationPhase:"M10D.18_P1",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     creationCommitAllowed:false,actorCreationAllowed:false,itemCreationAllowed:false,grantApplicationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -94,10 +94,10 @@ export function tb2eClassStockPlan({className="",will=null,health=null}={}){
   const c=key(className),data=CLASSES[c];
   if(!data)return blocked("UNKNOWN_CLASS",{className:c});
   if(data.abilities.distribution){
-    if(!int(will)||!int(health))return blocked("WILL_HEALTH_DISTRIBUTION_REQUIRED",{className:c,requiredTotal:8,capEach:6});
+    if(!int(will)||!int(health))return blocked("WILL_HEALTH_DISTRIBUTION_REQUIRED",{className:c,requiredTotal:8,minEach:2,capEach:6});
     const w=Number(will),h=Number(health);
-    if(w<0||h<0||w>6||h>6||w+h!==8)return blocked("INVALID_WILL_HEALTH_DISTRIBUTION",{className:c,will:w,health:h,requiredTotal:8,capEach:6});
-    return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"CLASS_STOCK_SHADOW",className:c,stock:data.stock,will:w,health:h,skills:data.skills,trait:data.trait,abilitiesAuthority:"PLAYER_DISTRIBUTES_8_CAP_6",actorMutationCommitted:false,itemMutationCommitted:false,liveApplication:false,writesPlanned:0});
+    if(w<2||h<2||w>6||h>6||w+h!==8)return blocked("INVALID_WILL_HEALTH_DISTRIBUTION",{className:c,will:w,health:h,requiredTotal:8,minEach:2,capEach:6});
+    return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"CLASS_STOCK_SHADOW",className:c,stock:data.stock,will:w,health:h,skills:data.skills,trait:data.trait,abilitiesAuthority:"DH26_27_DISTRIBUTE_8_MIN_2_MAX_6",actorMutationCommitted:false,itemMutationCommitted:false,liveApplication:false,writesPlanned:0});
   }
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"CLASS_STOCK_SHADOW",className:c,stock:data.stock,will:data.abilities.will,health:data.abilities.health,skills:data.skills,trait:data.trait,abilitiesAuthority:"FIXED_BY_CLASS",actorMutationCommitted:false,itemMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
@@ -205,8 +205,8 @@ export function tb2eRelationshipsBoundaryPlan(){
 
 export function tb2eStartingEquipmentBoundaryPlan({className=""}={}){
   const c=key(className),data=CLASSES[c];if(!data)return blocked("UNKNOWN_CLASS",{className:c});
-  const special=c==="MAGICIAN"?{spellBookRequired:true,startingFirstCircleSpells:3,memoryPalaceCapacity:1,selectionMethod:"ROLL_2D6_VISUAL_TABLE_NOT_TRANSCRIBED",spellDescriptionsAuthority:"DG183_UNAVAILABLE"}:c==="THEURGE"?{minorRelics:2,associatedInvocations:true,selectionMethod:"ROLL_3D6_VISUAL_TABLE_NOT_TRANSCRIBED",invocationDescriptionsAuthority:"DG209_UNAVAILABLE"}:null;
-  return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"STARTING_EQUIPMENT_BOUNDARY_SHADOW",className:c,slotless:["WELL_WORN_CLOTHES","UTILITARIAN_BELT"],containerChoice:["SATCHEL","BACKPACK"],weaponPolicy:data.weapons,startingArmor:data.startingArmor,optionalHelmetIfNoShield:Boolean(data.optionalHelmetIfNoShield),special,inventoryAuthority:"M10D.10_INVENTORY_SHADOW",completeGearCatalogAvailable:false,gearDetailsAuthority:"DG148_DG150_DG156_DG157_UNAVAILABLE_OR_VISUAL_TABLE_NOT_TRANSCRIBED",actorMutationCommitted:false,itemMutationCommitted:false,inventoryMutationCommitted:false,liveApplication:false,writesPlanned:0});
+  const special=c==="MAGICIAN"?{spellBookRequired:true,startingFirstCircleSpells:3,memoryPalaceCapacity:1,selectionMethod:"ROLL_2D6_VISUAL_TABLE_NOT_TRANSCRIBED",spellDescriptionsAuthority:"DH183_SOURCE_AVAILABLE_UNMAPPED"}:c==="THEURGE"?{minorRelics:2,associatedInvocations:true,selectionMethod:"ROLL_3D6_VISUAL_TABLE_NOT_TRANSCRIBED",invocationDescriptionsAuthority:"DH209_SOURCE_AVAILABLE_UNMAPPED"}:null;
+  return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"STARTING_EQUIPMENT_BOUNDARY_SHADOW",className:c,slotless:["WELL_WORN_CLOTHES","UTILITARIAN_BELT"],containerChoice:["SATCHEL","BACKPACK"],weaponPolicy:data.weapons,startingArmor:data.startingArmor,optionalHelmetIfNoShield:Boolean(data.optionalHelmetIfNoShield),special,inventoryAuthority:"M10D.10_INVENTORY_SHADOW",completeGearCatalogAvailable:false,completeGearCatalogSourceAvailable:true,gearDetailsAuthority:"DH148_159_AVAILABLE_NOT_COMPLETELY_MAPPED",actorMutationCommitted:false,itemMutationCommitted:false,inventoryMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
 export function tb2eDrivesPlan({belief="",instinct="",goal="",level=1,creed=""}={}){
@@ -225,7 +225,7 @@ export function tb2eLevelOneBenefitPlan({className=""}={}){
     THEURGE:["URDR_STARTS_1","TWO_MINOR_RELICS","ONE_WEAPON_EXCEPT_BOW_CROSSBOW","NO_ARMOR_SHIELD_ALLOWED"],
     WARRIOR:["ANY_WEAPON_OR_ARMOR","FREE_CAMP_WATCH_IF_NO_CONDITIONS"]
   }[c];
-  return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"LEVEL_ONE_BENEFIT_SHADOW",className:c,level:1,benefits,missingEffectAuthority:["SPELL_DESCRIPTIONS_DG183_UNAVAILABLE","INVOCATION_DESCRIPTIONS_DG209_UNAVAILABLE","TRAIT_DETAILS_DG_UNAVAILABLE"],benefitMutationCommitted:false,liveApplication:false,writesPlanned:0});
+  return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"LEVEL_ONE_BENEFIT_SHADOW",className:c,level:1,benefits,missingEffectAuthority:["SPELL_DESCRIPTIONS_DH183_SOURCE_UNMAPPED","INVOCATION_DESCRIPTIONS_DH209_SOURCE_UNMAPPED","TRAIT_EFFECTS_NOT_FULLY_MAPPED"],benefitMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
 export function tb2eFinalDetailsPlan({stock="",name="",raiment="",age=null}={}){
