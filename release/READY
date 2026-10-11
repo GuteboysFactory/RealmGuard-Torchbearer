@@ -1,11 +1,10 @@
-1.13.0-qa.28
-# P3.4 Inventory Advancement Session read-only source re-audit
-# DH 83-88,108-114; SG 39-42,90-96
-# Carried 4 solo Laborer, nested rounding, cache visit rules
-# DH112 Fate Persona level table, Town Resources marks
-# Exhausted Instincts, standard/extreme Grind, Camp safety and dark event danger
-# P3.1 P3.2 P3.3 user verified; 14 domain full audit OPEN 0/14
-# M11 PAUSED, global kill switch ENGAGED; Legacy Mixed sole live authority
-# Stable v1.12.0 unchanged; QA channel update only after verified release
-# Gate A-D TEST_PROTOCOL_v1.13.0-qa.28.md
-# Findings M10D18_P34_SOURCE_FINDINGS.md
+1.13.0-qa.29
+# P3.5 Circles Scales Character Creation read-only source reconciliation
+# DH 26-37 and DH 61-64; SG 62; exact factor and current Might rule fixes
+# Circles factor table and Enmity Clause +3s disposition
+# Group highest Might or Precedence comparison; human Will Health min 2 max 6
+# P3.1-P3.4 targeted QA user verified; historical FULL re-audit OPEN 0/14
+# Stable 1.12.0 unchanged, M11 PAUSED, global kill switch ENGAGED
+# Legacy Mixed sole live authority; no actor item journal settings writes
+# QA Gate A-D TEST_PROTOCOL_v1.13.0-qa.29.md
+# Source findings M10D18_P35_SOURCE_FINDINGS.md
