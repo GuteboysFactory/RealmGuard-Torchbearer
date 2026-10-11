@@ -35,7 +35,7 @@ const PRECEDENCE_SCALE=freezeTb2e({
 export function tb2eScalesShadowStatus(){
   return freezeTb2e({
     phase:"M10D.14",mode:"TB2E_MIGHT_PRECEDENCE_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:SCALES_ROW?.status??"PARTIAL",
+    adapterReady:true,sourceClassification:SCALES_ROW?.status??"PARTIAL",coreReauditTargetedPhase:"M10D.18_P3.5",fullDomainReauditComplete:false,
     sourceEvidence:SCALES_ROW?.evidence??"QR 68-71",
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     mightMutationAllowed:false,precedenceMutationAllowed:false,conflictMutationAllowed:false,scaleAssignmentAllowed:false,
@@ -61,6 +61,7 @@ export function tb2eScalesModel(){
       scale:MIGHT_SCALE,
       playerAdventurerScaleEntry:3,
       playerGoalLimits:{CAPTURE:3,KILL:4,DRIVE_OFF:5},
+      goalLimitsRelativeToCurrentMight:{CAPTURE:0,KILL:1,DRIVE_OFF:2,FLEE:"ANY"},
       bonusConflicts:["KILL","CAPTURE","DRIVE_OFF"],
       greaterMightBonus:"PLUS_ONE_SUCCESS_PER_POINT_GREATER_ON_SUCCESSFUL_OR_TIED_ACTIONS",
       mountedUse:{requires:"RIDER_SKILL_BEFORE_COMBAT",testDetailsAuthority:"NOT_SUPPLIED_BY_GUIDE"},
@@ -90,15 +91,17 @@ export function tb2eMightScalePlan({might}={}){
   });
 }
 
-export function tb2ePlayerMightGoalPlan({goal="CAPTURE",targetMight=1}={}){
+export function tb2ePlayerMightGoalPlan({goal="CAPTURE",targetMight=1,actorMight=3}={}){
   const g=key(goal);
   if(!["CAPTURE","KILL","DRIVE_OFF"].includes(g))return blocked("UNKNOWN_PLAYER_MIGHT_GOAL",{goal:g});
   if(!integerInRange(targetMight,1,8))return blocked("INVALID_TARGET_MIGHT",{targetMight});
-  const limits={CAPTURE:3,KILL:4,DRIVE_OFF:5};
-  const maxTargetMight=limits[g];
+  if(!integerInRange(actorMight,1,8))return blocked("INVALID_ACTOR_MIGHT",{actorMight});
+  const limits={CAPTURE:0,KILL:1,DRIVE_OFF:2};
+  const maxTargetMight=Math.min(8,Number(actorMight)+limits[g]);
   return freezeTb2e({
     ok:true,phase:"M10D.14",profileId:PROFILE_ID,mode:"PLAYER_MIGHT_GOAL_SHADOW",
-    goal:g,targetMight:Number(targetMight),maxTargetMight,
+    goal:g,targetMight:Number(targetMight),actorMight:Number(actorMight),maxTargetMight,
+    sourceEvidence:"Dungeoneers Handbook p.64",
     eligible:Number(targetMight)<=maxTargetMight,
     authority:"QR_PLAYER_GOAL_LIMIT",
     goalMutationCommitted:false,conflictMutationCommitted:false,liveApplication:false,writesPlanned:0
@@ -212,4 +215,24 @@ export function tb2ePrecedenceActionBonusPlan({
     appliesTo:"SUCCESSFUL_OR_TIED_ACTION",
     successModifierCommitted:false,conflictMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
+}
+
+/** SG 62: compare the highest Might or Precedence on each side, not sums/averages. */
+export function tb2eGroupScaleComparisonPlan({
+  scale="MIGHT",teamRatings=[],opponentRatings=[]
+}={}){
+  const kind=key(scale);
+  if(!["MIGHT","PRECEDENCE"].includes(kind))return blocked("UNKNOWN_SCALE_TYPE",{scale:kind});
+  const min=kind==="MIGHT"?1:0,max=kind==="MIGHT"?8:7;
+  const valid=x=>Array.isArray(x)&&x.length>0&&x.every(n=>integerInRange(n,min,max));
+  if(!valid(teamRatings)||!valid(opponentRatings))return blocked("INVALID_GROUP_SCALE_RATINGS",{scale:kind});
+  const teamHighest=Math.max(...teamRatings.map(Number));
+  const opponentHighest=Math.max(...opponentRatings.map(Number));
+  const difference=teamHighest-opponentHighest;
+  return freezeTb2e({ok:true,phase:"M10D.14",profileId:PROFILE_ID,mode:"GROUP_SCALE_COMPARISON_SHADOW",
+    scale:kind,teamHighest,opponentHighest,difference,comparisonBasis:"HIGHEST_RATING_EACH_SIDE",
+    higherSide:difference>0?"TEAM":difference<0?"OPPONENT":"TIE",
+    positiveDifference:Math.abs(difference),
+    sourceEvidence:"Scholars Guide p.62",
+    conflictMutationCommitted:false,scaleMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
