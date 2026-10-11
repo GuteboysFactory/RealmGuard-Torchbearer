@@ -8,7 +8,7 @@ import {tb2eAbilitySkillModel,tb2eSkillInfo,tb2eNewSkillLearningPlan,tb2eAbility
 import {tb2eSkillEquipmentPlan as equipment} from "../module/m10d-tb2e-skills-equipment-p32-shadow.mjs";
 const profiles=["realm-guard-legacy-mixed","realm-guard-strict","mg1e","mg2e"];
 const before=JSON.stringify(profiles.map(id=>resolveRulesProfile(id)));
-const immutable=p=>{assert.equal(p.liveApplication,false);assert.equal(p.writesPlanned,0);};
+const immutable=p=>{assert.equal(p.liveApplication,false);if(Object.hasOwn(p,"writesPlanned"))assert.equal(p.writesPlanned,0);else assert.deepEqual(p.writes,{actors:0,items:0,journals:0,settings:0});};
 for(const status of [tb2eWiseShadowStatus(),tb2eNatureShadowStatus(),tb2eAbilitySkillShadowStatus()]){
  immutable(status);assert.equal(status.coreReauditTargetedPhase,"M10D.18_P3.2");assert.equal(status.fullDomainReauditComplete,false);
 }
