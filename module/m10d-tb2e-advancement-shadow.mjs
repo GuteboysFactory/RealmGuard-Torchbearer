@@ -292,3 +292,24 @@ export function tb2eLevelProgressionBoundaryPlan({
     levelMutationCommitted:false,benefitChoiceMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
+
+/** DH 110: a Town Resources purchase-series mark and a separate bill-paying mark.
+ * If Resources advanced on purchases, the bills mark must be suppressed.
+ */
+export function tb2eTownResourcesMarkPlan({
+  source="",alreadyCountedPurchases=false,alreadyCountedBills=false,
+  resourcesAdvancedOnPurchases=false,hasResolvedTest=true
+}={}){
+  const type=key(source);
+  if(!["PURCHASES","BILLS"].includes(type))return blocked("UNKNOWN_TOWN_RESOURCES_ADVANCEMENT_SOURCE",{source:type});
+  const duplicate=type==="PURCHASES"?Boolean(alreadyCountedPurchases):Boolean(alreadyCountedBills);
+  const afterAdvance=type==="BILLS"&&Boolean(resourcesAdvancedOnPurchases);
+  const count=Boolean(hasResolvedTest)&&!duplicate&&!afterAdvance;
+  return freezeTb2e({
+    ok:true,phase:"M10D.11",profileId:PROFILE_ID,mode:"TOWN_RESOURCES_ADVANCEMENT_SHADOW",
+    source:type,count,reasonCode:!hasResolvedTest?"NO_RESOLVED_TEST":duplicate?"SOURCE_ALREADY_COUNTED":afterAdvance?"RESOURCES_ADVANCED_FROM_PURCHASES":null,
+    distinctSourceLimit:2,onePurchaseSeriesMark:true,oneBillsMark:true,
+    sourceEvidence:"Dungeoneer's Handbook p.110",markMutationCommitted:false,
+    ratingMutationCommitted:false,liveApplication:false,writesPlanned:0
+  });
+}
