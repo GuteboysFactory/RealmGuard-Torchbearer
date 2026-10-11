@@ -13,7 +13,7 @@ assert.equal(status.npcCreationAllowed,false);assert.equal(status.relationshipMu
 
 const model=tb2eCirclesModel();
 assert.deepEqual(model.ability.ratingRange,{min:1,max:10});assert.equal(model.ability.primaryPhase,"TOWN");
-assert.equal(model.test.completeObstacleFactorsAvailable,false);assert.equal(model.test.obstacleAuthority,"DG_FACTORS_UNAVAILABLE_DO_NOT_INFER");
+assert.equal(model.test.completeObstacleFactorsAvailable,true);assert.equal(model.test.obstacleAuthority,"DH61_CORE_VERIFIED_FACTORS");
 assert.equal(model.test.success.futureAllySearchBonusDice,1);assert.equal(model.reputation.unlocksAtLevel,3);
 assert.equal(model.startingRelationships.baseCircles,1);assert.equal(model.startingRelationships.maximumSelectedOptions,3);
 assert.equal(model.startingRelationships.mentorLevel,7);assert.equal(model.startingRelationships.magicianMustHaveMentor,true);
@@ -49,7 +49,7 @@ const shift=tb2eRelationshipEvolutionPlan({from:"Friend",to:"Enemy"});assert.equ
 const lodging=tb2eRelationshipLodgingPlan({parentsInTown:false,friendInTown:true});assert.equal(lodging.freeHomeLodging,true);assert.equal(lodging.lodgingSource,"FRIEND_IN_TOWN");assert.equal(lodging.accommodationMutationCommitted,false);
 const noHome=tb2eRelationshipLodgingPlan({parentsInTown:false,friendInTown:false});assert.equal(noHome.freeHomeLodging,false);
 
-const obstacle=tb2eCirclesObstacleBoundaryPlan();assert.equal(obstacle.completeFactorsAvailable,false);assert.equal(obstacle.obstacle,null);assert.equal(obstacle.testExecutionAllowed,false);
+const obstacle=tb2eCirclesObstacleBoundaryPlan();assert.equal(obstacle.completeFactorsAvailable,true);assert.equal(obstacle.obstacle,null);assert.equal(obstacle.testExecutionAllowed,false);
 
 assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before);
 const source=fs.readFileSync("module/m10d-tb2e-circles-shadow.mjs","utf8");
