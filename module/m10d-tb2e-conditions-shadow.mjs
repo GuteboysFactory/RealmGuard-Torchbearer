@@ -46,7 +46,7 @@ export function tb2eConditionShadowStatus(){
   return freezeTb2e({
     phase:"M10D.8",mode:"TB2E_CONDITIONS_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
     adapterReady:true,sourceClassification:CONDITION_ROW?.status??"PARTIAL",coreSourceClassification:"VERIFIED",
-    sourceEvidence:"Scholar's Guide Conditions 39-57; full-core reconciliation M10D.18 P1",coreReconciliationPhase:"M10D.18_P1",
+    sourceEvidence:"Scholar's Guide Conditions 39-57; full-core reconciliation M10D.18 P1",coreReconciliationPhase:"M10D.18_P1",coreReauditTargetedPhase:"M10D.18_P3.3",fullDomainReauditComplete:false,
     liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",activationAllowed:false,
     conditionMutationAllowed:false,effectMutationAllowed:false,deathMutationAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
@@ -54,8 +54,8 @@ export function tb2eConditionShadowStatus(){
     boundaries:[
       "NO_LIVE_CONDITION_APPLICATION_OR_REMOVAL",
       "CONFLICT_DISPOSITION_CORE_RULE_RESOLVED_READ_ONLY_NO_LIVE_MUTATION",
-      "DEAD_HAS_ORDER_PLACEMENT_ONLY_IN_SUPPLIED_CONDITION_SUMMARY",
-      "EXHAUSTED_RECOVERY_PHASE_TEXT_QR44_PRESERVED_AS_CAMP_TEST_UNRESOLVED",
+      "DEAD_CORE_RULES_NOW_AVAILABLE_SG52_AND_RECOVERY_PRIORITY_SG55",
+      "EXHAUSTED_RECOVERY_CAMP_OR_TOWN_SG49_VERIFIED",
       "FULL_RECOVERY_EXECUTION_DEFERRED_TO_RECOVERY_DOMAIN"
     ],
     nextStep:"Continue full-core Conditions re-audit; disposition penalty ambiguity is resolved by Scholar's Guide while live mutation remains disabled"
@@ -66,17 +66,17 @@ export function tb2eConditionModel(){
   return freezeTb2e({
     phase:"M10D.8",profileId:PROFILE_ID,
     conditionIds:CONDITION_IDS,
-    grind:{newConditionEveryTurns:4,order:GRIND_ORDER},
+    grind:{newConditionEveryTurns:4,extremeNewConditionEveryTurns:3,order:GRIND_ORDER,extremeDeathEligibleAfter:"EXHAUSTED",extremeRequiresGmEnvironmentAssessment:true},
     recovery:{order:RECOVERY_ORDER,executionAuthority:"DEFER_TO_M10D_RECOVERY_DOMAIN"},
     conditions:{
       FRESH:{testDice:+1,exceptTests:["RESOURCES","CIRCLES"]},
       HUNGRY_THIRSTY:{conflictDisposition:"-1s_TEAM_DISPOSITION_ONCE",recoverySummary:"FOOD_DRINK_OR_SOURCE_APPROPRIATE_RECOVERY"},
-      EXHAUSTED:{freeInstinct:false,freeInstinctTurnCost:1,freeInstinctObstacleModifier:+1,conflictDisposition:"-1s_TEAM_DISPOSITION_ONCE",recoveryReference:{ability:"HEALTH",obstacle:3,phaseText:"CAMP_TEST",phaseResolved:false}},
+      EXHAUSTED:{freeInstinct:false,freeInstinctTurnCost:1,freeInstinctObstacleModifier:+1,conflictDisposition:"-1s_TEAM_DISPOSITION_ONCE",recoveryReference:{ability:"HEALTH",obstacle:3,phaseText:"CAMP_OR_TOWN",phaseResolved:true}},
       ANGRY:{beneficialTraitsAllowed:false,beneficialWisesAllowed:false,precisionOrSocialObstacleGuidance:+1,recoveryExcludedFromGuidance:true,recoveryReference:{ability:"WILL",obstacle:2,phases:["CAMP","TOWN"]}},
       SICK:{diceModifier:{NATURE:-1,WILL:-1,HEALTH:-1,SKILL:-1},stacksWith:"INJURED",practiceAllowed:false,mentorLearningAllowed:false,advancementLoggingAllowed:false,recoveryReference:{ability:"WILL",obstacle:3,phases:["CAMP","TOWN"]}},
       INJURED:{diceModifier:{NATURE:-1,WILL:-1,HEALTH:-1,SKILL:-1},stacksWith:"SICK",recoveryReference:{ability:"HEALTH",obstacle:4,phases:["CAMP","TOWN"]}},
       AFRAID:{helpAllowed:false,beginnersLuckAllowed:false,natureFallbackForUnlearnedSkills:true,recoveryReference:{ability:"WILL",obstacle:3,phases:["CAMP","TOWN"]}},
-      DEAD:{detailsAuthority:"SOURCE_INCOMPLETE_ORDER_PLACEMENT_ONLY"}
+      DEAD:{detailsAuthority:"SG52_55_FULL_CORE",mayTest:false,mayHelp:false,mayUseTraits:false,mayUseWises:false,abilitiesAndSkillsReducedToZero:true,recoveryPriority:"BEFORE_OTHER_CONDITIONS",survivingDeathOptionalAuthority:"LORE_MASTERS_MANUAL_NOT_CORE"}
     },
     zeroRatingRule:{
       appliesTo:"SKILL_OR_ABILITY_REDUCED_TO_ZERO_BY_CONDITIONS",
