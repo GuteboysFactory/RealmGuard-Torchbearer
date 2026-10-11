@@ -232,6 +232,8 @@ export function tb2eResourcesTaxPlan({
     outcome:result,ratingBefore:Number(resourcesRating),marginOfFailure:Number(marginOfFailure),
     baseTax,treasureTaxInsulation:Number(treasureValue),taxPrevented:insulation,finalTax,
     ratingAfter:Math.max(0,Number(resourcesRating)-finalTax),
+    eraseResourceAdvancementOnTax:finalTax>0,
+    taxGmSelectedAfterFailedTest:true,
     taxMutationCommitted:false,treasureConsumptionCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
