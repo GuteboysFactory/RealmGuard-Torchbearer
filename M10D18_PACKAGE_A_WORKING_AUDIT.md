@@ -47,6 +47,8 @@ The following source-backed, read-only improvements are now included in this **d
 6. **DH 69 Conserving Nature:** reducing Maximum Nature returns an explicit requirement to erase logged Nature advancement, still with zero changes to documents.
 7. **SG 38 Group Failure:** Hungry & Thirsty as the group alternative is represented in the Help consequence preview; no condition mutation.
 
+9. **DH 68 Nature-zero bypass guard:** a Current Nature of 0 with positive Maximum is an unresolved tax-loss state; substitution, channel, tax, recovery and advancement previews now block until the explicit Loss procedure is resolved. All zero-write.
+
 8. **DH 78 Language-Wise:** on a Wise change, retain the associated language only when recorded with the current level benefit. The planner now distinguishes PENDING_RECORD from FORGOTTEN, and separately blocks verbal social tests when there is no communication method; always shadow/manual.
 
 ### Consolidated safety and automation
