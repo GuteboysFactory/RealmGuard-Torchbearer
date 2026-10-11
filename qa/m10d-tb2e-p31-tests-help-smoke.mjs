@@ -24,10 +24,11 @@ assert.equal(skill.noHelpAllowed,true);assert.equal(skill.advancementOnlyFromTie
 assert.equal(tie({initialSourceKind:"SKILL"}).ok,false);
 assert.equal(tie({initialSourceKind:"WILL"}).tiebreakAbility,"NATURE");
 assert.equal(tie({initialSourceKind:"HEALTH"}).tiebreakAbility,"NATURE");
-assert.equal(tie({initialSourceKind:"NATURE"}).tiebreakAbility,"WILL_OR_HEALTH_GM_SELECT");
+assert.equal(tie({initialSourceKind:"NATURE"}).reasonCode,"NATURE_TIEBREAKER_ABILITY_REQUIRED");
+assert.equal(tie({initialSourceKind:"NATURE",natureFallbackAbility:"WILL"}).tiebreakAbility,"WILL");
 assert.equal(tie({initialSourceKind:"MONSTER"}).tiebreakAbility,"NATURE");
-assert.equal(tie({initialSourceKind:"NATURE",tiebreakRollOutcome:"TIE"}).finalOutcome,"FAIL");
-assert.equal(tie({initialSourceKind:"NATURE",tiebreakRollOutcome:"TIE",secondTieBrokenInPlayerFavor:true}).finalOutcome,"PASS");
+assert.equal(tie({initialSourceKind:"NATURE",natureFallbackAbility:"HEALTH",tiebreakRollOutcome:"TIE"}).finalOutcome,"FAIL");
+assert.equal(tie({initialSourceKind:"NATURE",natureFallbackAbility:"HEALTH",tiebreakRollOutcome:"TIE",secondTieBrokenInPlayerFavor:true}).finalOutcome,"PASS");
 assert.equal(tie({initialSourceKind:"WILL",tiebreakRollOutcome:"PASS"}).finalOutcome,"PASS");
 for(const p of [
  help({sourceKind:"skill",sourceName:"Cook",testName:"Cook",sameSkill:true,sourceRatingZeroDueToInjuryOrSickness:true}),
