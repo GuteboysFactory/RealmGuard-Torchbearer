@@ -18,6 +18,8 @@ for(const f of [tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementP
  safe(p);assert.equal(p.reasonCode,"MAXIMUM_NATURE_ZERO_RETIRED_STATE");
 }
 assert.equal(tb2eNatureRecoveryPlan({method:"CONSERVE",currentNature:1,maximumNature:1}).retirementTiming,"END_OF_ADVENTURE");
+assert.equal(tb2eNatureRecoveryPlan({method:"CONSERVE",currentNature:2,maximumNature:5}).eraseNatureAdvancementRequired,true);
+assert.equal(tb2eNatureRecoveryPlan({method:"RESPITE",currentNature:2,maximumNature:5}).eraseNatureAdvancementRequired,false);
 assert.equal(tb2eNatureAdvancementPlan({currentNature:4,maximumNature:6,advancementTriggered:true}).retirementTiming,"END_OF_SESSION_IF_STILL_AT_SEVEN");
 const tax=tb2eChannelNatureTaxPlan({currentNature:4,maximumNature:5,outcome:"FAIL",marginOfFailure:3});
 safe(tax);assert.equal(tax.currentAfter,1);assert.equal(tax.taxAmount,3);
