@@ -107,6 +107,7 @@ export function tb2eHelpPlan({
  */
 export function tb2eBeginnersLuckHelpPlan({
   sourceName="",sourceKind="ability",targetSkillName="",phase="ADVENTURE",
+  helperSkillTrained=false,
   sourceRatingZeroDueToInjuryOrSickness=false
 }={}){
   const source=norm(sourceName),kind=norm(sourceKind);
@@ -117,11 +118,12 @@ export function tb2eBeginnersLuckHelpPlan({
   if(target&&!target.ok)return blocked("UNKNOWN_BEGINNERS_LUCK_TARGET_SKILL",{targetSkillName:targetName});
   if(kind==="skill"){
     if(!target)return blocked("BEGINNERS_LUCK_SKILL_TARGET_REQUIRED");
+    if(helperSkillTrained!==true)return blocked("BEGINNERS_LUCK_HELPING_SKILL_NOT_CONFIRMED_TRAINED");
     if(source!==norm(target.skill))return blocked("BEGINNERS_LUCK_HELPING_SKILL_MISMATCH",{targetSkillName:target.skill,sourceName:String(sourceName??"")});
     return freezeTb2e({
       ok:true,phase:"M10D.3",profileId:PROFILE_ID,mode:"BEGINNERS_LUCK_HELP",
       sourceKind:"SKILL",sourceName:target.skill,targetSkillName:target.skill,
-      sourceVerification:"SAME_TRAINED_SKILL",dice:1,poolStage:"PRE_HALVING",
+      sourceVerification:"GM_CONFIRMED_SAME_TRAINED_SKILL",dice:1,poolStage:"PRE_HALVING",
       phaseContext:String(phase??"ADVENTURE").trim().toUpperCase(),
       liveApplication:false,writesPlanned:0
     });
