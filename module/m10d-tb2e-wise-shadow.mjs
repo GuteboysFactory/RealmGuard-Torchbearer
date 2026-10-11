@@ -13,7 +13,7 @@ function blocked(reasonCode, extra = {}) {
 export function tb2eWiseShadowStatus() {
   return freezeTb2e({
     phase:"M10D.2",mode:"TB2E_WISES_READ_ONLY_SHADOW",profileId:PROFILE_ID,profileVersion:PROFILE_VERSION,
-    adapterReady:true,sourceClassification:WISE_ROW?.status ?? "VERIFIED",
+    adapterReady:true,sourceClassification:WISE_ROW?.status ?? "VERIFIED",coreReauditTargetedPhase:"M10D.18_P3.2",fullDomainReauditComplete:false,
     sourceEvidence:WISE_ROW?.evidence ?? "QR 20, 60, 75-76; CC 25",
     ratingMode:"NONE",maxWises:4,liveEnabled:false,liveApplication:false,automation:"SHADOW_ONLY",
     activationAllowed:false,actorMutationAllowed:false,itemMutationAllowed:false,resourceSpendAllowed:false,
@@ -31,9 +31,10 @@ export function tb2eWiseModel() {
   });
 }
 
-export function tb2eWiseAidPlan({hasWise=true,related=true,actingOnInstinct=false,context="TEST"}={}) {
+export function tb2eWiseAidPlan({hasWise=true,related=true,actingOnInstinct=false,context="TEST",alsoProvidingHelp=false}={}) {
   if(!hasWise) return blocked("WISE_REQUIRED",{effect:"I_AM_WISE"});
   if(!related) return blocked("WISE_NOT_RELATED",{effect:"I_AM_WISE"});
+  if(alsoProvidingHelp)return blocked("WISE_AID_AND_HELP_MUTUALLY_EXCLUSIVE",{effect:"I_AM_WISE",sourceEvidence:"DH 77"});
   const normalizedContext=String(context ?? "TEST").trim().toUpperCase() || "TEST";
   return freezeTb2e({
     ok:true,phase:"M10D.2",profileId:PROFILE_ID,effect:"I_AM_WISE",sourceKind:"WISE",target:"OTHER_CHARACTER",
@@ -44,12 +45,13 @@ export function tb2eWiseAidPlan({hasWise=true,related=true,actingOnInstinct=fals
   });
 }
 
-export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=0,alreadyRerolledFailedDice=0,hasFate=true,hasPersona=true}={}) {
+export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=0,alreadyRerolledFailedDice=0,hasFate=true,hasPersona=true,fateLuckAlreadyUsed=false}={}) {
   const key=normalize(effect);
   if(!hasWise) return blocked("WISE_REQUIRED",{effect:String(effect ?? "")});
   if(!related) return blocked("WISE_NOT_RELATED",{effect:String(effect ?? "")});
   const failed=clampInt(failedDice);
   const alreadyRerolled=Math.min(failed,clampInt(alreadyRerolledFailedDice));
+  if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{effect:String(effect??""),sourceEvidence:"DH 77; SG 87-88"});
 
   if(["deeperunderstanding","deeper"].includes(key)){
     if(!hasFate) return blocked("INSUFFICIENT_FATE",{effect:"DEEPER_UNDERSTANDING",resourceCost:"FATE"});
@@ -59,7 +61,7 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
       ok:true,phase:"M10D.2",profileId:PROFILE_ID,effect:"DEEPER_UNDERSTANDING",
       resourceCost:"FATE",resourceAmount:1,timing:"AFTER_TEST_ROLL",reroll:"ONE_FAILED_DIE",
       rerollDiceMaximum:1,eligibleFailedDice:eligible,alreadyRerolledDiceExcluded:true,
-      orderRequirement:"OF_COURSE_BEFORE_DEEPER_IF_BOTH",liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
+      orderRequirement:"WISE_REROLLS_BEFORE_FATE_LUCK",mustPrecedeFateLuck:true,liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
     });
   }
 
@@ -69,8 +71,8 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
     return freezeTb2e({
       ok:true,phase:"M10D.2",profileId:PROFILE_ID,effect:"OF_COURSE",
       resourceCost:"PERSONA",resourceAmount:1,timing:"AFTER_TEST_ROLL",reroll:"ALL_FAILED_DICE",
-      rerollDiceMaximum:failed,mustPrecedeDeeperUnderstandingWhenBoth:true,
-      orderRequirement:"OF_COURSE_BEFORE_DEEPER_IF_BOTH",liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
+      rerollDiceMaximum:failed,mustPrecedeFateLuck:true,
+      orderRequirement:"WISE_REROLLS_BEFORE_FATE_LUCK",liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
     });
   }
   return blocked("UNKNOWN_WISE_EFFECT",{effect:String(effect ?? "")});
@@ -91,7 +93,7 @@ export function tb2eWiseCyclePlan({iAmWisePass=false,iAmWiseFail=false,deeperUnd
   return freezeTb2e({
     phase:"M10D.2",profileId:PROFILE_ID,
     requiredUses:["I_AM_WISE_PASS","I_AM_WISE_FAIL","DEEPER_UNDERSTANDING","OF_COURSE"],
-    uses,complete:missing.length===0,missing,completionTiming:"RESPITE",
+    uses,complete:missing.length===0,missing,completionTiming:"ON_COMPLETING_FOUR_REQUIRED_USES",
     completionChoices:["CHANGE_WISE","BEGINNERS_LUCK_TEST_TOWARD_NEW_SKILL","MARK_RELATED_SKILL_ADVANCEMENT_TEST"],
     automaticMutation:false,liveApplication:false,writesPlanned:0
   });
