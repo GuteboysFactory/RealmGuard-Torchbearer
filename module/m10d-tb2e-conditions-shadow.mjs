@@ -107,7 +107,8 @@ export function tb2eConditionTestEffectPlan({
   conditions=[],
   test="SKILL",
   isRecovery=false,
-  precisionOrSocial=false
+  precisionOrSocial=false,
+  isVersus=false
 }={}){
   const active=normalizeConditions(conditions);
   if(!active)return blocked("UNKNOWN_OR_UNSOURCED_CONDITION_IN_SET",{conditions});
@@ -115,20 +116,24 @@ export function tb2eConditionTestEffectPlan({
   if(!family)return blocked("UNSUPPORTED_TEST_FAMILY",{test});
   let diceModifier=0;
   const components=[];
-  if(active.includes("FRESH")&&!["RESOURCES","CIRCLES"].includes(family)){
+  if(active.includes("FRESH")&&active.length===1&&!["RESOURCES","CIRCLES"].includes(family)){
     diceModifier+=1;components.push({condition:"FRESH",kind:"DICE",value:+1});
   }
   for(const condition of ["INJURED","SICK"]){
-    if(active.includes(condition)&&["NATURE","WILL","HEALTH","SKILL"].includes(family)){
+    if(active.includes(condition)&&["NATURE","WILL","HEALTH","SKILL"].includes(family)&&!(isRecovery&&["WILL","HEALTH"].includes(family))){
       diceModifier-=1;components.push({condition,kind:"DICE",value:-1});
     }
   }
   const angryGuidance=active.includes("ANGRY")&&Boolean(precisionOrSocial)&&!Boolean(isRecovery);
+  const angryVersusSuccessModifier=angryGuidance&&Boolean(isVersus)?-1:0;
   return freezeTb2e({
     ok:true,phase:"M10D.8",profileId:PROFILE_ID,mode:"CONDITION_TEST_EFFECT_SHADOW",
     conditions:active,testFamily:family,diceModifier,components,
     obstacleModifierAutomated:0,
-    angryObstacleGuidance:angryGuidance?{value:+1,automation:"GM_DISCRETION"}:null,
+    angryObstacleGuidance:angryGuidance&&!isVersus?{value:+1,automation:"GM_DISCRETION"}:null,
+    angryVersusSuccessModifier,angryVersusAuthority:"SG 47-48",
+    recoveryWillHealthPenaltyExempted:Boolean(isRecovery)&&["WILL","HEALTH"].includes(family),
+    freshSuppressedByOtherConditions:active.includes("FRESH")&&active.length>1,
     liveApplication:false,writesPlanned:0
   });
 }
