@@ -25,9 +25,9 @@ export function tb2eTestShadowStatus(){
     actorMutationAllowed:false,itemMutationAllowed:false,resourceSpendAllowed:false,
     writes:{actors:0,items:0,journals:0,settings:0},
     boundaries:[
-      "OBSTACLE_VALUE_MUST_BE_CALLER_SUPPLIED",
-      "NO_DG160_SKILL_FACTORS",
-      "VERSUS_TIES_REMAIN_MANUAL_SOURCE_BOUNDED",
+      "OBSTACLE_VALUE_MUST_BE_CALLER_SUPPLIED_OR_GM_SELECTED_FACTOR_PLAN",
+      "NO_AUTOMATIC_SKILL_FACTOR_CATALOGUE_LOOKUP",
+      "TIEBREAKER_ROLL_PLANNED_GM_DECIDES_OPTION_AND_ROLL",
       "NO_RANDOM_ROLL_EXECUTION",
       "NO_RESOURCE_SPEND",
       "NO_ADVANCEMENT_WRITE"
@@ -43,7 +43,7 @@ export function tb2eDiceModel(){
     marginMode:"ABSOLUTE_DIFFERENCE_WITH_KIND",
     obstaclePassRule:"FINAL_SUCCESSES_GTE_OB",
     normalObstacleGuideRange:{min:2,max:5},
-    obstacleFactorsAuthority:"UNAVAILABLE_DG160_CALLER_SUPPLIED_ONLY",
+    obstacleFactorsAuthority:"SG27_FACTORS_SOURCE_AVAILABLE_GM_SELECTED",
     luck:{resource:"FATE",timing:"AFTER_TEST_ROLL",oneNewDiePerSix:true,recursive:true},
     liveApplication:false,writesPlanned:0
   });
@@ -94,7 +94,7 @@ export function tb2eResolveVersusShadow({dice=[],opponentSuccesses,successModifi
     dice:checked.dice,successThreshold:4,rawSuccesses,successModifier:Number(successModifier),finalSuccesses,
     opponentSuccesses:target,outcome,margin,marginKind:outcome==="PASS"?"SUCCESS":outcome==="FAIL"?"FAILURE":"TIE",
     tieResolutionRequired:outcome==="TIE",tieResolutionAutomation:false,
-    tieBoundary:outcome==="TIE"?"GUIDES_DO_NOT_ESTABLISH_COMPLETE_GENERIC_TIE_PROCEDURE":null,
+    tieBoundary:outcome==="TIE"?"SG32_34_TIEBREAKER_PLAN_AVAILABLE":null,
     liveApplication:false,writesPlanned:0
   });
 }
