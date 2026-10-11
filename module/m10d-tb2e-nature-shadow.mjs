@@ -179,6 +179,9 @@ export function tb2eNatureRecoveryPlan({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_RECOVERY_SHADOW",method:key,requirements,
     currentBefore:Number(currentNature),maximumBefore:Number(maximumNature),currentAfter:nextCurrent,maximumAfter:nextMaximum,
     maximumReduction:key==="CONSERVE"?1:0,traitChangeRequired:false,
+    eraseNatureAdvancementRequired:key==="CONSERVE",
+    eraseNatureAdvancementCommitted:false,
+    advancementResetSourceEvidence:"DH 69: any Maximum Nature reduction erases advancement marks",
     retirementRequired:nextMaximum===0,retirementTiming:nextMaximum===0?"END_OF_ADVENTURE":null,
     mutationCommitted:false,liveApplication:false,writesPlanned:0
   });
