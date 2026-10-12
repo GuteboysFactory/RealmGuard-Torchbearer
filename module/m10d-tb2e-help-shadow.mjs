@@ -42,6 +42,7 @@ export function tb2eHelpPlan({
   context="TEST",
   actingOnInstinct=false,
   helperActingOnInstinct=false,
+  helperSimilarInstinct=false,
   payingTownBills=false,
   sourceRatingZeroDueToInjuryOrSickness=false
 }={}){
@@ -51,6 +52,7 @@ export function tb2eHelpPlan({
   const phaseKey=String(phase??"ADVENTURE").trim().toUpperCase();
   const contextKey=String(context??"TEST").trim().toUpperCase();
 
+  if(contextKey==="TIEBREAKER")return blocked("TIEBREAKER_HELP_FORBIDDEN",{reasonSource:"SG 33"});
   if(kind==="wise") return blocked("USE_WISE_AID_ROUTE",{route:"TB2E_WISE_AID",sourceKind:"WISE"});
   if(sourceRatingZeroDueToInjuryOrSickness)
     return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
@@ -80,7 +82,7 @@ export function tb2eHelpPlan({
     helpSourceEvidence=verified.sourceKind;
   }
   if(Boolean(actingOnInstinct)){
-    if(Boolean(helperActingOnInstinct)) eligibility="HELPER_ALSO_ACTING_ON_INSTINCT";
+    if(Boolean(helperActingOnInstinct)&&Boolean(helperSimilarInstinct)) eligibility="HELPER_ALSO_ACTING_ON_INSTINCT";
     else if(kind==="nature" && Boolean(relevantNatureDescriptor)) eligibility="RELEVANT_NATURE_DESCRIPTOR_ON_INSTINCT";
     else return blocked("INSTINCT_HELP_SOURCE_NOT_ELIGIBLE",{phaseContext:phaseKey,testContext:contextKey});
   } else if(Boolean(sameSkill)) eligibility="SAME_SKILL";
@@ -106,11 +108,12 @@ export function tb2eHelpPlan({
  * When targetSkillName is omitted, the plan is explicitly unverified.
  */
 export function tb2eBeginnersLuckHelpPlan({
-  sourceName="",sourceKind="ability",targetSkillName="",phase="ADVENTURE",
+  sourceName="",sourceKind="ability",targetSkillName="",phase="ADVENTURE",context="TEST",
   helperSkillTrained=false,
   sourceRatingZeroDueToInjuryOrSickness=false
 }={}){
   const source=norm(sourceName),kind=norm(sourceKind);
+  if(String(context??"").trim().toUpperCase()==="TIEBREAKER")return blocked("TIEBREAKER_HELP_FORBIDDEN",{reasonSource:"SG 33"});
   if(sourceRatingZeroDueToInjuryOrSickness)
     return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   const targetName=String(targetSkillName??"").trim();
@@ -147,8 +150,10 @@ export function tb2eConflictHelpPlan({
   hasRequiredSkill=false,
   relevantNatureDescriptor=false,
   gmApprovedSkill=false,
-  helperRatingZeroDueToInjuryOrSickness=false
+  helperRatingZeroDueToInjuryOrSickness=false,
+  context="CONFLICT"
 }={}){
+  if(String(context??"").trim().toUpperCase()==="TIEBREAKER")return blocked("TIEBREAKER_HELP_FORBIDDEN",{reasonSource:"SG 33"});
   if(helperRatingZeroDueToInjuryOrSickness)return blocked("ZERO_RATED_SOURCE_CANNOT_HELP",{reasonSource:"SG 37"});
   if(Number(partySize)<4) return blocked("CONFLICT_HELP_REQUIRES_4_PLUS_PARTY");
   if(Boolean(helperHasRoundAction)) return blocked("CONFLICT_HELP_REQUIRES_NO_ACTION_THIS_ROUND");
