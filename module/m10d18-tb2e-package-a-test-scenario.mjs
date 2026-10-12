@@ -23,12 +23,14 @@ const n=v=>Number.isInteger(v)&&v>=0;
 export function tb2ePackageATestScenarioPlan({
  skillName="",factor={},mode="SKILL",rating=null,
  equipment=null,environment=null,help=null,wiseAid=null,
- bonuses={},allModifiersGmReviewed=false,abilityZeroFromInjuryOrSickness=false
+ bonuses={},allModifiersGmReviewed=false,abilityZeroFromInjuryOrSickness=false,
+ beginnerAbilityName="",heroicRatingSevenUnlocked=false
 }={}){
  const type=String(mode??"").trim().toUpperCase();
  if(!["SKILL","BEGINNERS_LUCK"].includes(type))return fail("UNSUPPORTED_TEST_SCENARIO");
  if(allModifiersGmReviewed!==true)return fail("GM_FULL_MODIFIER_REVIEW_REQUIRED");
  if(!Number.isInteger(rating)||rating<1||rating>7)return fail("INVALID_SCENARIO_RATING");
+ if(rating===7&&heroicRatingSevenUnlocked!==true)return fail("HEROIC_RATING_SEVEN_NOT_UNLOCKED");
  if(!equipment||typeof equipment!=="object"||Array.isArray(equipment)||
     ["hasSkill","carriesBackpackOrSatchel","borrowedTools","dwarvenCraftingNature",
       "isCraftingTest","toolsInadequate","suppliesUsed","gearUsed"].some(k=>!Object.hasOwn(equipment,k)))
@@ -49,6 +51,9 @@ export function tb2ePackageATestScenarioPlan({
  if(!gear.ok)return fail("EQUIPMENT_"+gear.reasonCode);
  const skill=tb2eSkillInfo(skillName);
  if(!skill.ok)return fail("UNKNOWN_SKILL");
+ if(type==="BEGINNERS_LUCK"&&
+    String(beginnerAbilityName??"").trim().toUpperCase()!==skill.beginnersLuckAbility)
+   return fail("BEGINNERS_LUCK_ABILITY_MISMATCH");
  let helpResult=null,wiseResult=null;
  if(help!==null){
    if(!help||typeof help!=="object"||!help.helperId||!help.helpOptions)
@@ -57,7 +62,7 @@ export function tb2ePackageATestScenarioPlan({
    if(String(target??"").trim().toLowerCase()!==String(skillName).trim().toLowerCase())
       return fail("HELP_TARGET_SKILL_MISMATCH");
    helpResult=tb2eHelpParticipationPlan({
-     helperRoute:type==="SKILL"?"STANDARD":"BEGINNERS_LUCK",...help
+     ...help,helperRoute:type==="SKILL"?"STANDARD":"BEGINNERS_LUCK"
    });
    if(!helpResult.ok)return fail("HELP_"+helpResult.reasonCode);
  }
@@ -77,15 +82,13 @@ export function tb2ePackageATestScenarioPlan({
  const helping=helpResult?1:0,wise=wiseResult?1:0;
  let pool;
  if(type==="BEGINNERS_LUCK"){
-   if(rating===7&&bonuses?.heroicRatingSevenUnlocked!==true)
-     return fail("BEGINNERS_LUCK_HEROIC_RATING_REQUIRES_BENEFIT");
    pool=tb2eBeginnersLuckShadowPlan({
      abilityDice:rating,wisesDice:wise,helpDice:helping,
      suppliesDice:gear.supplyDice,gearDice:gear.gearDice,
      traitsDice:values.traitsDice,personaDice:values.personaDice,
      channeledNatureDice:values.channeledNatureDice,freshDice:values.freshDice,
      otherBonusDice:values.otherBonusDice,
-     abilityZeroDueToInjuryOrSickness
+     abilityZeroDueToInjuryOrSickness:abilityZeroFromInjuryOrSickness
    });
  }else{
    pool=tb2eTestPoolPlan({
