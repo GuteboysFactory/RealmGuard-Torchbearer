@@ -213,3 +213,12 @@ A.tests.rewardedRollHistoryPlan({
 ```
 
 Provide all results as GM assertions; no real Foundry D6 are rolled, no history is authenticated and the projected resource costs are never committed. Exercise failed-parent-six, duplicate-ID, insufficient Fate and post-Luck Wise rejections. For Synergy use `A.tests.synergyAdvancementPlan` with a valid accepted Help request, Fate paid before the test, and a helper source distinct from the acting character. On tie the Helper chooses either retracted Fate (no mark) or keeps Fate to mark the GM-verified tiebreaker ability/Skill without adding a tiebreaker Help die (SG p.87). Test Sick helper no-mark and Afraid helper forbidden. This remains a single comprehensive Foundry acceptance, never a small patch gate.
+
+
+### Persona cross-source budget (inside combined Gate B/C, SG p.88)
+
+On the **same** read-only Cook source scenario with exactly five non-Persona base dice, add `bonuses:{personaDice:1}` and a **sixth** explicit D6. In `A.tests.outcomeAndProgressPlan`, omit `personaAvailableAtRollStart`: it must reject `PERSONA_START_BALANCE_REQUIRED_FOR_PRE_ROLL_SPENDING`. Set it to 0: reject `INSUFFICIENT_PERSONA_BEFORE_ROLL`. Set it to 1: the plain preview may proceed while `personaStartingBalanceAuthenticated` remains false.
+
+For `A.tests.rewardedRollHistoryPlan`, confirm that `personaAvailable:1` together with `personaDice:1` and a subsequent `OF_COURSE` yields `INSUFFICIENT_PERSONA`; `personaAvailable:2` allows the *GM-declared* combined cost and exposes `projectedPersonaTotalCost:2`. With `bonuses:{channeledNatureDice:3}` plus source-valid Nature context, the starting budget must include the additional 1 Persona Channel cost. Reject 4 Advantage dice (`PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE`). Duplicate Wise names differing only in spaces or letter case must be rejected on the same test.
+
+These are GM-supplied *start-of-test balances*, not verified live Actor funds. Confirm no resource spends, rolls or mutation.
