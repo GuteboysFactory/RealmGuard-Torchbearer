@@ -286,3 +286,9 @@ OPEN: historical Actor/resource/ownership snapshots and actual consent/events, i
 ### Local verification — current participant provenance
 
 **150/150 smoke suites PASS**, module/sheet/main syntax checks and release preflight PASS. New participation suite re-run after additional stacked Sick/Injured, Dead helper/Wise helper and unsupported Instinct/Heroic regressions PASS. Independent temporary ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**. Protected system/QA/stable/READY diff against origin/main remains empty. GitHub CI evidence will be recorded after branch update; Foundry v13.351 combined acceptance remains NOT RUN.
+
+### GitHub CI verified — current participation source commit 201da6a4d69b63aa4ba28e8a35805477eebb8ea2
+
+Run https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38286617101 completed SUCCESS. Logs explicitly confirm **150/150 smoke suites PASS**, Actor-backed Skill/BL/Help/Wise-aid regression PASS, syntax/safety preflight PASS, temporary unpublished ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**, protected QA/stable/system manifest diff PASS. Local full regression and independent ZIP checks also PASS.
+
+Current participant source matching is implemented and automatically verified, not historical gameplay authentication. Actual acceptance/ownership at roll time, resource spend history, equipment and complete event/exception parity remain OPEN. Consolidated Foundry v13.351 A-D acceptance NOT RUN. **0/14 FULLY_REAUDITED**, Draft PR #14, Legacy Mixed sole live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED, stable v1.12.0 / published QA v1.13.0-qa.29 unchanged. No merge/release/tag/channel action.
