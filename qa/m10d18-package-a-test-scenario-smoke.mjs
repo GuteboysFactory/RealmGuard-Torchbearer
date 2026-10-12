@@ -11,6 +11,8 @@ const basic={skillName:"Cook",factor,mode:"SKILL",rating:4,equipment,environment
 const good=plan({...basic,help,wiseAid});
 assert.equal(good.ok,true,JSON.stringify(good));assert.equal(good.obstacle,3);
 assert.equal(good.finalDicePool,7);assert.equal(good.actorEntitlementVerified,false);
+assert.equal(good.sourceFactorPage,163);
+assert.equal(good.poolAuthority,"GM_INPUT_PREVIEW_NOT_ACTOR_VERIFIED");
 assert.equal(good.liveApplication,false);assert.equal(good.writesPlanned,0);
 const beginner=plan({...basic,mode:"BEGINNERS_LUCK",beginnerAbilityName:"WILL",
  equipment:{...equipment,hasSkill:false},
