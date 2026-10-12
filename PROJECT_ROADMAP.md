@@ -221,3 +221,9 @@ Promoted from verified qa.20. M10C.8 FULL PASS / VERIFIED / CLOSED. MG2E support
 ## v1.13.0-qa.1 — M10D.1 TB2E Foundation
 
 Source-constrained 19-domain audit, locked Rules / Creation Profile v1 and zero-write preview/status API. No later live domains. Stable remains 1.12.0. First foundation gate pending.
+
+### 2026-10-12 — Package A Actor / GM / saved-D6 evidence (Draft)
+
+Implemented a GM-only current-document read boundary and a narrow current-Actor-to-plain-D6 obstacle preview through `tests.documentEvidence` / `tests.documentOutcomePlan`. Caller assertions cannot replace session identity, document lookup, message visibility or current author ownership. Current Actor role/conditions are compared to the reviewed scenario. Stored plain native D6 results have bounded, unique per-message IDs; modified/rerolled/exploded histories fail closed. No RNG, writes, spends or advancement.
+
+NEXT: execute the combined Foundry v13.351 A-D protocol, then design historical Actor/resource snapshots and a verified Wise/Fate event ledger without enabling live CORE. Current mutable client evidence is not historical/server attestation. BL/helpers/Heroic/token routes and complete exception parity remain OPEN. CI/local regression evidence is in the Package A audit checkpoint. 0/14 FULLY_REAUDITED; Legacy Mixed only live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED. No release, version/channel/tag change.
