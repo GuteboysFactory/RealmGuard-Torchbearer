@@ -23,6 +23,7 @@ const allowedProgress=new Set(["skillAlreadyKnown","previousLearningAttempts","m
 export function tb2ePackageAOutcomeAndProgressPlan({
  scenarioInput=null,dice=null,gmDiceReviewed=false,
  gmConfirmsNoRerolls=false,heroicTn3BenefitUnlocked=false,
+ personaAvailableAtRollStart=null,
  progressFacts=null
 }={}){
  if(!scenarioInput||typeof scenarioInput!=="object"||Array.isArray(scenarioInput))
@@ -34,6 +35,14 @@ export function tb2ePackageAOutcomeAndProgressPlan({
    return blocked("INVALID_EXTERNAL_D6_LIST");
  const plan=tb2ePackageATestScenarioPlan(scenarioInput);
  if(!plan.ok)return blocked("SCENARIO_"+plan.reasonCode,{scenarioReasonCode:plan.reasonCode});
+ if(plan.projectedPersonaBeforeRollCost>0){
+   if(!Number.isInteger(personaAvailableAtRollStart)||personaAvailableAtRollStart<0)
+     return blocked("PERSONA_START_BALANCE_REQUIRED_FOR_PRE_ROLL_SPENDING");
+   if(plan.projectedPersonaBeforeRollCost>personaAvailableAtRollStart)
+     return blocked("INSUFFICIENT_PERSONA_BEFORE_ROLL",{
+       required:plan.projectedPersonaBeforeRollCost,available:personaAvailableAtRollStart
+     });
+ }
  if(dice.length!==plan.finalDicePool)
    return blocked("SUPPLIED_DICE_DO_NOT_MATCH_SCENARIO_POOL",{
      expectedPool:plan.finalDicePool,actualDice:dice.length});
@@ -73,6 +82,8 @@ export function tb2ePackageAOutcomeAndProgressPlan({
    obstacle:resolved.obstacle,outcome:resolved.outcome,
    margin:resolved.margin,marginKind:resolved.marginKind,
    advancementPreview:advancement,
+   projectedPersonaBeforeRollCost:plan.projectedPersonaBeforeRollCost,
+   personaStartingBalanceAuthenticated:false,
    gmInputsReviewed:true,gmNoRerollsAsserted:true,
    noAdvanceAuthorized:true,finalRollEventNotRead:true,
    playerPermissionNotVerified:true
