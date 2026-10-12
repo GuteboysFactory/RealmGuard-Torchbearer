@@ -86,6 +86,7 @@ export function tb2ePackageATestScenarioPlan({
     Object.keys(bonuses).some(k=>!knownBonusKeys.includes(k))||
     Object.values(bonuses).some(v=>!n(v)))return fail("INVALID_SCENARIO_BONUS_DICE");
  const values=Object.fromEntries(knownBonusKeys.map(k=>[k,bonuses[k]??0]));
+ if(values.personaDice>3)return fail("PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE");
  const conditions=tb2ePackageAConditionBoundaryPlan({
    skillName,scenarioType:type,actingCharacterId,actingConditions,conditionsGmReviewed,
    help,wiseAid,bonusTraitsDice:values.traitsDice,bonusFreshDice:values.freshDice,
@@ -136,6 +137,10 @@ export function tb2ePackageATestScenarioPlan({
    advancementAuthorized:false,conditionChangesAuthorized:false,
    noFoundryDocumentReads:true,resourceAuthorizationStillRequired:
      values.personaDice>0||values.channeledNatureDice>0,
+   projectedPersonaAdvantageCost:values.personaDice,
+   projectedPersonaNatureChannelCost:values.channeledNatureDice>0?1:0,
+   projectedPersonaBeforeRollCost:values.personaDice+(values.channeledNatureDice>0?1:0),
+   personaBudgetAuthenticated:false,
    sourceFactorPage:tb2eNumericalFactorEntry({
      skillName,tableName:factor?.tableName
    }).sourcePage??null,
