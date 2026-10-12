@@ -95,7 +95,7 @@ export const TB2E_SKILL_FACTOR_VALUES=freezeTb2e({
  },
  "Scholar":{
    scholarly:F(C("read",false,[["journals_letters",1],["inscriptions",2],["histories",3],["playtest_docs",4]]),C("write",false,[["copy_inscriptions",1],["directions",2],["essays_letters",3],["memoirs",4]])),
-   scribe:X("HIGHEST_SPELL_CIRCLE_PLUS_ONE_PER_ADDITIONAL"),
+   scribe:X("HIGHEST_CIRCLE_SPELL_SCRIBING_OB_PLUS_ONE_PER_ADDITIONAL"),
    knowledge:F(C("subject",false,[["misconceptions",1],["superficial",2],["expertise",3],["comprehensive",4],["complete",5]]),C("area",false,[["geography",1],["recent",2],["lineages",3],["ancient",4],["obscure",5]]))
  },
  "Scout":{
@@ -200,7 +200,7 @@ export function tb2eNumericalFactorObstaclePlan({skillName="",tableName="",selec
 /** Explicit non-table DH formulas; no implicit actor/nature lookups. */
 export function tb2eNumericalFactorFormulaPlan({skillName="",tableName="",
   gmAuthorized=false,studentNature=null,beastNature=null,use="",
-  extraSlots=null,trap="",material="",highestSpellCircle=null,spellCount=null}={}){
+  extraSlots=null,trap="",material="",highestSpellScribingObstacle=null,spellCount=null}={}){
  const entry=tb2eNumericalFactorEntry({skillName,tableName});
  if(!entry.ok)return entry;
  if(gmAuthorized!==true)return deny("GM_SOURCE_SELECTION_REQUIRED");
@@ -226,10 +226,10 @@ export function tb2eNumericalFactorFormulaPlan({skillName="",tableName="",
    if(trap==="pit"&&!selected)return deny("PIT_MATERIAL_FACTOR_REQUIRED");
    if(trap!=="pit"&&material)return deny("MATERIAL_ONLY_FOR_PIT");
    obstacle=pit.value+(selected?.value??0);inputs={trap,material:trap==="pit"?material:null};
- }else if(id==="HIGHEST_SPELL_CIRCLE_PLUS_ONE_PER_ADDITIONAL"){
-   if(!whole(highestSpellCircle,1,20)||!whole(spellCount,1,100))
-     return deny("SPELL_CIRCLE_AND_COUNT_REQUIRED");
-   obstacle=highestSpellCircle+(spellCount-1);inputs={highestSpellCircle,spellCount};
+ }else if(id==="HIGHEST_CIRCLE_SPELL_SCRIBING_OB_PLUS_ONE_PER_ADDITIONAL"){
+   if(!whole(highestSpellScribingObstacle,1,100)||!whole(spellCount,1,100))
+     return deny("SOURCE_SCRIBING_OBSTACLE_AND_COUNT_REQUIRED");
+   obstacle=highestSpellScribingObstacle+(spellCount-1);inputs={highestSpellScribingObstacle,spellCount};
  }else return deny("UNMAPPED_SPECIAL_FORMULA",{formula:id});
  return safe({ok:true,skillName:entry.skillName,tableName:entry.tableName,formula:id,
    obstacle,formulaInputs:inputs,factorsSelectedBy:"GM",
