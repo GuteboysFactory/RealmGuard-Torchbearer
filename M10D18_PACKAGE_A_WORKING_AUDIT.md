@@ -160,3 +160,14 @@ Test evidence: `qa/m10d18-package-a-condition-provenance-smoke.mjs`, alongside t
 ### Important limits
 
 Declaring `conditionsGmReviewed:true`, helper IDs, resource counts and Nature values does **not** prove that a real Foundry Actor currently has those values or that the client is a privileged GM. Full Actor-backed provenance, permission controls, real roll history, end-to-end Nature Tax/advancement, spell/conflict exceptions and multiplayer acceptance remain OPEN. `FULLY_REAUDITED` stays 0/14. No protected QA release, live CORE switch, or M11 resumption is justified by this checkpoint.
+
+
+### 2026-10-12 — Skill/Beginner's Luck progression and zero-rating consequences
+
+The source-linked, read-only `tests.progressAfterTestPlan` now distinguishes **trained Skill Pass/Fail marks** from **untrained Beginner's Luck learning attempts**. Dungeoneer's Handbook p.75 establishes that attempts count regardless of success against a threshold equal to Maximum Nature, grant skill rating 2 when complete and never advance the underlying Will/Health. Scholar's Guide p.51 forbids logging advancement while Sick; p.34 assigns post-tiebreaker advancement to the tiebreaking Ability/Skill, not the initial tied roll. An untrained BL route is blocked for Afraid, and Dead prevents all progress.
+
+Scholar's Guide p.52 additionally prohibits rolling a Skill or Ability when its effective rating reaches 0 through conditions; the scenario now rejects a 0-rated trained Skill **even when Persona, gear or Help would otherwise add dice**. Nature substitution remains a distinct GM-adjudicated mechanism, not an automatic fallback.
+
+The new progress planner returns only projected marks/readiness and expressly commits **no** Actor mutations, advancement counts, new Skills, Nature changes or Will/Health marks. An actual completed roll and Actor state are still **GM-supplied assertions**; ownership, roll history and resource spend provenance are not verified by this adapter.
+
+Regression coverage: `qa/m10d18-package-a-progress-boundary-smoke.mjs`, plus new 0-rating cases in `qa/m10d18-package-a-condition-provenance-smoke.mjs`. Domain A is **not FULLY REAUDITED**; 0/14 unchanged.
