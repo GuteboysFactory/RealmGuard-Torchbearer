@@ -257,3 +257,9 @@ OPEN: historical Actor/ownership and Wise snapshots; trustworthy starting balanc
 ### Local verification — saved-message reward chain
 
 **149/149 smoke suites PASS**, syntax checks and release preflight PASS. Independent temporary ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**. Protected system.json / QA / stable / READY comparison against origin/main shows no differences. Focused saved-document and reward-history suites re-run after final response/source-label cleanup PASS. GitHub CI evidence will be recorded after the branch update. Foundry v13.351 combined acceptance remains NOT RUN.
+
+### GitHub CI verified — saved-message Wise/Fate source commit cfab9483194f19c8d76a988518584857cf1d033a
+
+Run https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38284931885 completed SUCCESS. Logs explicitly confirm **149/149 smoke suites PASS**, saved-document reward chain regression PASS, syntax/safety preflight PASS, temporary unpublished ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**, protected QA/stable/system manifest diff PASS. Local full regression and independent ZIP checks also PASS.
+
+The Angry Wise guard is a verified source-bound correction; the new document timeline remains evidence read from mutable current session records and GM-declared associations, not authenticated or complete historical gameplay. Foundry v13.351 A-D acceptance NOT RUN. All remaining gaps above remain OPEN; 0/14 FULLY_REAUDITED, Legacy Mixed only live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED, stable v1.12.0 / published QA v1.13.0-qa.29 unchanged. No release/merge/tag/channel action.
