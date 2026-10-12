@@ -55,6 +55,8 @@ export function tb2ePackageASynergyAdvancementPlan({
  });
  if(!capability.ok)return no("INVALID_HELPER_CONDITIONS");
  if(capability.conditions.includes("DEAD"))return no("DEAD_HELPER_CANNOT_USE_SYNERGY");
+ const helping=tb2eConditionCapabilityPlan({conditions:helperConditions,capability:"HELP"});
+ if(!helping.ok||!helping.allowed)return no(helping.reasonCode??"HELPER_CONDITION_BLOCKS_HELP");
  const result=String(helpedTestOutcome??"").trim().toUpperCase();
  if(!["PASS","FAIL","TIE"].includes(result))return no("UNRESOLVED_ACTOR_TEST_OUTCOME");
  const markAllowed=capability.allowed!==false;
