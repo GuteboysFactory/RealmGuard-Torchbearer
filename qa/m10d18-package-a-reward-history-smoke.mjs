@@ -87,7 +87,7 @@ deny({scenarioInput:personaAdvantageScenario,initialDice:moreDice,
  rewardEvents:[],personaAvailable:0},"INSUFFICIENT_PERSONA_BEFORE_ROLL");
 deny({scenarioInput:{...scenarioInput,bonuses:{personaDice:4}},
  rewardEvents:[]},"SCENARIO_PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE");
-const natureContext={currentNature:3,maximumNature:5,personaAvailable:2,
+const natureContext={currentNature:3,maximumNature:5,personaAvailable:1,
  testName:"Cook",descriptorApplies:false,gmReviewed:true};
 const natureScenario={...scenarioInput,bonuses:{channeledNatureDice:3},
  channelNatureFacts:natureContext};
@@ -99,6 +99,8 @@ assert.equal(naturePreview.projectedPersonaBeforeRollCost,1);
 assert.equal(naturePreview.projectedPersonaTotalCost,1);
 deny({scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
  personaAvailable:0},"INSUFFICIENT_PERSONA_BEFORE_ROLL");
+deny({scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
+ personaAvailable:2},"NATURE_PERSONA_BALANCE_MISMATCH");
 
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"DEEPER_MUST_PRECEDE_FATE_LUCK");
 assert.equal(tb2eWiseDeeperDiePlan({dice:[{dieId:"one",face:2,alreadyRerolled:false}],
