@@ -46,6 +46,9 @@ export function tb2ePackageARewardedRollHistoryPlan({
    return deny("INVALID_REWARD_EVENT_LIST");
  const preview=tb2ePackageATestScenarioPlan(scenarioInput);
  if(!preview.ok)return deny("SCENARIO_"+preview.reasonCode,{sourceReasonCode:preview.reasonCode});
+ const preRollPersona=preview.projectedPersonaBeforeRollCost;
+ if(preRollPersona>personaAvailable)
+   return deny("INSUFFICIENT_PERSONA_BEFORE_ROLL",{required:preRollPersona,available:personaAvailable});
  if(initialDice.length!==preview.finalDicePool)
    return deny("INITIAL_DICE_POOL_MISMATCH",{
      expectedPool:preview.finalDicePool,receivedDice:initialDice.length});
@@ -68,9 +71,10 @@ export function tb2ePackageARewardedRollHistoryPlan({
      if(seenLuck)return deny("WISE_REWARD_MUST_PRECEDE_FATE_LUCK",{eventIndex,sourceEvidence:"SG pp.87-88"});
      if(!validId(event.wiseId)||event.related!==true)
        return deny("GM_CONFIRMED_RELATED_WISE_REQUIRED",{eventIndex});
-     if(seenWise.has(event.wiseId)||seenEffects.has(type))
+     const normalizedWiseId=event.wiseId.trim().toLowerCase();
+     if(seenWise.has(normalizedWiseId)||seenEffects.has(type))
        return deny("WISE_OR_EFFECT_ALREADY_USED_ON_ROLL",{eventIndex});
-     seenWise.add(event.wiseId);seenEffects.add(type);
+     seenWise.add(normalizedWiseId);seenEffects.add(type);
    }
    if(type==="DEEPER_UNDERSTANDING"){
      if(!validId(event.dieId)||!Number.isInteger(event.newFace)||
@@ -92,7 +96,8 @@ export function tb2ePackageARewardedRollHistoryPlan({
      if(new Set(ordered).size!==ordered.length||ordered.length!==eligible.length||
         !eligible.every(d=>ordered.includes(d.dieId)))
        return deny("OF_COURSE_MUST_REROLL_ALL_FAILED_DICE",{eventIndex});
-     if(spentPersona>=personaAvailable)return deny("INSUFFICIENT_PERSONA",{eventIndex});
+     if(preRollPersona+spentPersona>=personaAvailable)return deny("INSUFFICIENT_PERSONA",{eventIndex,
+       totalRequired:preRollPersona+spentPersona+1,available:personaAvailable});
      for(const rolled of event.rerolls){
        const d=dice.get(rolled.dieId.trim());d.face=rolled.face;d.rerollCount+=1;
      }
@@ -166,6 +171,9 @@ export function tb2ePackageARewardedRollHistoryPlan({
    obstacle:resolved.obstacle,outcome:resolved.outcome,
    margin:resolved.margin,marginKind:resolved.marginKind,
    projectedFateCost:spentFate,projectedPersonaCost:spentPersona,
+   projectedPersonaBeforeRollCost:preRollPersona,
+   projectedPersonaTotalCost:preRollPersona+spentPersona,
+   projectedPersonaRemainingFromGmBalance:personaAvailable-preRollPersona-spentPersona,
    resourceBalancesDeclaredByGmOnly:true,resourcesRemainingUnverified:true,
    advancementPreview:advancement,finalRollEventNotRead:true,
    newDiceNeverActuallyRolled:true,noAdvanceAuthorized:true
