@@ -119,7 +119,7 @@ The separate source catalogue `module/m10d18-tb2e-package-a-factor-values.mjs` n
 
 ### 2026-10-12 — Source correction to historical P3.2 Wise timing and Scholar Scribe
 
-Historical P3.2's generic `WISE_REROLLS_BEFORE_FATE_LUCK` statement must **not** be read as applying to every Wise effect. DH p.77 orders **Of Course! before Fate Luck**, but **Deeper Understanding** instead forbids rerolling any die which has already been rerolled and can be combined with other expenditures. The new per-die shadow planner verifies die IDs and prior-reroll history; the old count-only API is advisory and explicitly requires per-die confirmation. No live reroll sequence has been changed.
+**Corrected against SG p.87 and DH p.77:** Both **Of Course!** and **Deeper Understanding** must precede Fate Luck. The Deeper effect separately forbids re-rolling the same die twice. An earlier checkpoint wrongly interpreted SG p.87 as applying only to Of Course!; it is superseded. All count-based and per-die read-only Wise planners now enforce this source-specific timing. The per-die planner checks individual die identities; no live-roll sequence is modified.
 
 DH p.172 Scholar Scribe: a multi-spell obstacle is the spell-specific *scribing Ob* of the highest-circle spell **plus 1 per additional spell**. It is **not** numerically equivalent to spell circle. The dynamic catalogue now rejects missing source-supplied scribing Ob.
 
@@ -150,3 +150,16 @@ Trained Skill advancement marks, untrained Beginner's Luck learning attempts bas
 The GM-supplied source-factor + equipment + condition + Help/Wise + Beginner's Luck test preview is now linked to an externally supplied **plain, non-rerolled** D6 result list in `tests.outcomeAndProgressPlan`. The guard validates exact pool/dice count, D6 faces, fixed Obstacle resolution and derived PASS/FAIL before any read-only proposed Skill or untrained BL learning mark. Post-test metadata cannot change Skill identity, Ob, conditions or outcome. Source: SG pp.31–35,46–52; DH pp.59,75.
 
 No live-roll execution, no proof of real roll provenance and no writes. Real Actor and GM authorization, Fate/Persona/Wise reroll event history and complete Domain A exception coverage remain OPEN. FULLY_REAUDITED **0/14**; stable v1.12.0 frozen, Legacy Mixed sole live authority, M11 paused, kill switch engaged.
+
+
+## 2026-10-12 — Fate/Wise event chronology and Helper Synergy source correction
+
+Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Understanding and Of Course to precede Fate Luck; SG p.87 explicitly requires Deeper-before-Luck, while DH p.77 additionally forbids rerolling an already-rerolled die. Old statements permitting Deeper after Luck are superseded.
+
+`module/m10d18-tb2e-package-a-rewarded-roll-history.mjs` now previews one GM-asserted test with uniquely identified base dice, per-die Wise rerolls (related Wise, at most one per effect/wise) and a Fate Luck event holding recursive rounds with explicit parent-six associations. Every six must produce exactly one follow-up die; new sixes continue until exhausted. Unrelated/duplicated Wise effects, late Wise actions, incomplete 6-chains, fake parent die IDs, repeated new IDs and insufficient declared Fate/Persona balances fail closed. The preview sums *potential* resource cost without spending resources, and derives an uncommitted outcome and optional advancement from the enriched results. No Foundry roll log, actor/GM credentials or resource balance is authenticated.
+
+`module/m10d18-tb2e-package-a-synergy.mjs` separately implements SG p.87 Helper Fate Synergy as a read-only advancement proposal: helper must have accepted eligible ordinary Help, declared Fate pre-roll, and a verified helping Skill/Ability. The Helper marks their own helping source on PASS/FAIL; on an initial tie ending in tiebreaker, either retract Fate/no mark or keep Fate and mark the tiebreaker source without giving Help on that roll. Sick and Afraid/Dead conditions remain in force. No reward or advancement is committed.
+
+New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
+
+**Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
