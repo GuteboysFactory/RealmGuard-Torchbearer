@@ -4,7 +4,7 @@ import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-found
 import { resolveRulesProfile, getRulesProfileRuntime } from "./rules-profile-service.mjs";
 import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
-import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan, tb2eWiseLanguageRetentionPlan, tb2eWiseCommunicationPlan } from "./m10d-tb2e-wise-shadow.mjs";
+import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan, tb2eWiseLanguageRetentionPlan, tb2eWiseCommunicationPlan, tb2eWiseDeeperDiePlan } from "./m10d-tb2e-wise-shadow.mjs";
 import { tb2eWiseCombinationPlan } from "./m10d-tb2e-wises-p32-shadow.mjs";
 import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpParticipationPlan, tb2eHelpGroupOutcomePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
@@ -126,7 +126,7 @@ export function installM10DFoundation() {
       traitsShadowStatus:tb2eTraitsShadowStatus,
       traits:Object.freeze({getStatus:tb2eTraitsShadowStatus,model:tb2eTraitModel,usePlan:tb2eTraitUsePlan,refreshPlan:tb2eTraitRefreshPlan,classTraitBoundaryPlan:tb2eClassTraitBoundaryPlan}),
       wiseShadowStatus:tb2eWiseShadowStatus,
-      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan,languageRetentionPlan:tb2eWiseLanguageRetentionPlan,communicationPlan:tb2eWiseCommunicationPlan}),
+      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan,languageRetentionPlan:tb2eWiseLanguageRetentionPlan,communicationPlan:tb2eWiseCommunicationPlan,deeperDiePlan:tb2eWiseDeeperDiePlan}),
       helpShadowStatus:tb2eHelpShadowStatus,
       help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan,participationPlan:tb2eHelpParticipationPlan,groupOutcomePlan:tb2eHelpGroupOutcomePlan,suggestedSkillPlan:tb2eSuggestedHelpSkillPlan}),
       testShadowStatus:tb2eTestShadowStatus,
