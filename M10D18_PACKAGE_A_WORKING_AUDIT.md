@@ -119,3 +119,19 @@ Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the glo
 **DH p.77:** `Of Course!` explicitly precedes Fate Luck. `Deeper Understanding` may be used in conjunction with other rewards, but the selected die must **never already have been rerolled**. The earlier blanket pre-Luck gate for Deeper was stricter than the book. It has been removed from both legacy count-based shadow preview and the source-verified per-die preview. The count-based preview remains GM-unverified on die identities; the per-die preview enforces unique history IDs.
 
 **DH p.172:** Scholar's multiple-spell Scribe Ob uses the **spell-specific scribing Ob** of the highest-circle spell, then adds 1 per additional spell. Spell circle itself is not an Ob. Formula now requires `highestSpellScribingObstacle` sourced from the spell's own entry. Existing tests ensure `highestSpellCircle` alone cannot yield an Ob.
+
+
+## 2026-10-12 — Integrated source-factor guard and five-component GM scenario preview
+
+**Rule authority:** DH p.59 (Beginner's Luck pre-/post-halving); DH pp.73–75 and SG p.27 (GM chooses applicable primary / + factors and equipment modifiers); DH pp.76–77 (Wise aid is separate from ordinary Help); SG pp.32–38 (situational factor modifiers and offered/accepted Help).
+
+**New audit guards:**
+- The existing `tests.sourceBoundFactorPlan` now passes `tb2eSourceFactorInputGuard` before inspecting prerequisites or computing any Ob. The guard requires every applicable additive category to be selected or expressly excluded by the GM with a reason, so missing `+` factors cannot silently lower Ob. The optional Survivalist camp amenities remain genuinely optional (DH p.175).
+- Nested `preconditionFacts` may contain **only** a known allowlist of source facts. They cannot override `skillName`, `tableName`, `selections`, `gmAuthorized` or factor mode, closing a potential input-routing mismatch.
+- `tests.scenarioPlan` assembles one immutable, GM-supplied independent Skill/Beginner's Luck scenario: source table or special formula → situational +Ob → equipment +Ob → accepted Help / distinct Wise aid → normal dice pool or BL halving. It requires explicit gear and environment facts, GM full-modifier review, correct Beginner's Luck Will/Health, and explicitly unlocked heroic rating seven.
+- If a helper attempts to provide ordinary Help and Wise aid from the same declared character ID, the scenario fails closed. Both may contribute if the characters are distinct and their independent Help/Wise plans permit it.
+- No Foundry document, Actor or resource lookup, no automatic entitlement, roll or condition/advancement mutation. `poolAuthority: GM_INPUT_PREVIEW_NOT_ACTOR_VERIFIED` is an explicit safety label; a successful preview is NOT an authorization for a live test.
+
+**Evidence:** `module/m10d18-tb2e-package-a-factor-guard.mjs`, `module/m10d18-tb2e-package-a-test-scenario.mjs`, `qa/m10d18-package-a-factor-input-guard-smoke.mjs`, `qa/m10d18-package-a-test-scenario-smoke.mjs`. Existing read-only APIs remain available and Legacy Mixed runtime is unchanged.
+
+**Current parity gaps:** the underlying source selections are still caller-supplied and not derived from an authenticated GM or Actor; bonus sources, condition modifiers, real roll event provenance, spells, conflicts and advancement remain uncommitted, externally adjudicated, or separate shadow domains. Independent verification of each source exception and Foundry v13.351 multiplayer acceptance is outstanding. **0/14 FULLY REAUDITED; do not release or activate CORE.**
