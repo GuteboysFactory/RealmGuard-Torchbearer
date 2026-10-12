@@ -35,8 +35,9 @@ export function tb2ePackageALegacyObservationProbe(options={}){
       return response(false,"OBSERVATION_LEGACY_WORLD_REQUIRED");
     const worldId=g.world.id,gmId=initial.currentGmId;
     let status="OPEN",base=null,expectedRewards={...initial.currentRewards};
-    const spends=[];
-    const failure=reason=>{status="INCOMPLETE";base=null;spends.length=0;return response(false,reason,{status});};
+    const spends=[],history=[],resolved=new Map(),observedRolls=new WeakSet();
+    let wiseObserved=false,luckStarted=false,luckRounds=0;
+    const failure=reason=>{status="INCOMPLETE";base=null;spends.length=0;history.length=0;resolved.clear();return response(false,reason,{status});};
     const refresh=()=>{
       if(status!=="OPEN")return response(false,"OBSERVATION_SESSION_TERMINAL",{status});
       const current=tb2ePackageAActorEvidence({actorId:options.actorId});
@@ -47,11 +48,7 @@ export function tb2ePackageALegacyObservationProbe(options={}){
       if(!same(withoutRewards(current),withoutRewards(initial)))return failure("OBSERVATION_ACTOR_CONTEXT_CHANGED");
       return current;
     };
-    const observeBaseRoll=roll=>{
-      try{
-        const current=refresh();if(!current.ok)return current;
-        if(base)return failure("OBSERVATION_BASE_ALREADY_RECORDED");
-        if(!same(current.currentRewards,expectedRewards))return failure("OBSERVATION_UNRECORDED_RESOURCE_CHANGE");
+    const readNative= (roll,recordId)=>{
         const RollClass=globalThis.Roll,DieClass=globalThis.foundry?.dice?.terms?.Die;
         if(typeof RollClass!=="function"||roll?.constructor!==RollClass||roll._evaluated!==true||
           !Array.isArray(roll.terms)||roll.terms.length!==1)return failure("OBSERVATION_NATIVE_PLAIN_D6_REQUIRED");
@@ -63,10 +60,62 @@ export function tb2ePackageALegacyObservationProbe(options={}){
             !d.discarded&&!d.rerolled&&!d.exploded))return failure("OBSERVATION_NATIVE_PLAIN_D6_REQUIRED");
         const faces=term.results.map(d=>d.result);
         if(roll.total!==faces.reduce((sum,face)=>sum+face,0))return failure("OBSERVATION_NATIVE_ROLL_TOTAL_MISMATCH");
-        base=freezeTb2e({recordId:`${options.testId}:base`,formula:roll.formula,total:roll.total,
-          dice:faces.map((face,index)=>({dieId:`${options.testId}:base:${index}`,face}))});
+        if(observedRolls.has(roll))return failure("OBSERVATION_NATIVE_ROLL_REUSED");
+        observedRolls.add(roll);
+        return freezeTb2e({recordId,formula:roll.formula,total:roll.total,
+          dice:faces.map((face,index)=>({dieId:`${recordId}:${index}`,face}))});
+    };
+    const observeBaseRoll=roll=>{
+      try{
+        const current=refresh();if(!current.ok)return current;
+        if(base)return failure("OBSERVATION_BASE_ALREADY_RECORDED");
+        if(!same(current.currentRewards,expectedRewards))return failure("OBSERVATION_UNRECORDED_RESOURCE_CHANGE");
+        const record=readNative(roll,`${options.testId}:base`);if(record.ok===false)return record;
+        base=record;for(const d of base.dice)resolved.set(d.dieId,{...d,opened:false,lastResultDieId:d.dieId});
         return response(true,null,{status,nativePlainD6ObjectObserved:true});
       }catch{return failure("OBSERVATION_ROLL_READ_FAILED");}
+    };
+    const observeLegacyWiseRoll=event=>{
+      try{
+        const current=refresh();if(!current.ok)return current;
+        if(!base||wiseObserved||luckStarted)return failure("OBSERVATION_LEGACY_WISE_STAGE_INVALID");
+        if(!same(current.currentRewards,expectedRewards))return failure("OBSERVATION_UNRECORDED_RESOURCE_CHANGE");
+        if(!fields(event,["roll","targetDieIds","wiseItemId"])||!id(event.wiseItemId)||
+          initial.currentWiseItems.filter(i=>i.itemId===event.wiseItemId).length!==1)
+          return failure("OBSERVATION_CURRENT_WISE_REQUIRED");
+        // Legacy Mixed rerolls ALL failed indexes for its Wise effect. Do not
+        // relabel this free Legacy effect as TB Deeper/Of Course or charge it.
+        const targets=[...resolved.values()].filter(d=>d.face<4).map(d=>d.dieId);
+        if(!targets.length||!same(event.targetDieIds,targets))return failure("OBSERVATION_LEGACY_WISE_TARGET_SET_MISMATCH");
+        const record=readNative(event.roll,`${options.testId}:legacyWise`);if(record.ok===false)return record;
+        if(record.dice.length!==targets.length)return failure("OBSERVATION_REROLL_RESULT_COUNT_MISMATCH");
+        history.push(freezeTb2e({kind:"LEGACY_MIXED_WISE_REROLL",wiseItemId:event.wiseItemId,
+          record,links:record.dice.map((d,i)=>({resultDieId:d.dieId,targetDieId:targets[i]})),
+          torchbearerWiseEffectEquivalent:false}));
+        targets.forEach((target,i)=>{resolved.get(target).face=record.dice[i].face;
+          resolved.get(target).lastResultDieId=record.dice[i].dieId;});wiseObserved=true;
+        return response(true,null,{status,legacyWiseTargetsObserved:true,torchbearerWiseEffectEquivalent:false});
+      }catch{return failure("OBSERVATION_WISE_READ_FAILED");}
+    };
+    const unopenedSixes=()=>[...resolved.values()].filter(d=>d.face===6&&!d.opened).map(d=>d.dieId);
+    const observeFateRound=event=>{
+      try{
+        const current=refresh();if(!current.ok)return current;
+        if(!base||luckRounds>=30)return failure("OBSERVATION_FATE_STAGE_INVALID");
+        if(!same(current.currentRewards,expectedRewards))return failure("OBSERVATION_UNRECORDED_RESOURCE_CHANGE");
+        const parents=unopenedSixes();
+        if(!fields(event,["roll","parentDieIds"])||!parents.length||!same(event.parentDieIds,parents))
+          return failure("OBSERVATION_FATE_PARENT_SET_MISMATCH");
+        const record=readNative(event.roll,`${options.testId}:luck${luckRounds}`);if(record.ok===false)return record;
+        if(record.dice.length!==parents.length)return failure("OBSERVATION_FATE_RESULT_COUNT_MISMATCH");
+        if(resolved.size+record.dice.length>500)return failure("OBSERVATION_DICE_HISTORY_LIMIT");
+        history.push(freezeTb2e({kind:"LEGACY_FATE_ROUND",record,
+          links:record.dice.map((d,i)=>({resultDieId:d.dieId,parentDieId:parents[i],
+            parentResultDieId:resolved.get(parents[i]).lastResultDieId}))}));
+        parents.forEach(parent=>{resolved.get(parent).opened=true;});
+        record.dice.forEach(d=>resolved.set(d.dieId,{...d,opened:false,lastResultDieId:d.dieId}));luckStarted=true;luckRounds++;
+        return response(true,null,{status,fateParentsObserved:true,recursiveContinuationRequired:unopenedSixes().length>0});
+      }catch{return failure("OBSERVATION_FATE_READ_FAILED");}
     };
     const observeResourceChange=receipt=>{
       try{
@@ -89,12 +138,19 @@ export function tb2ePackageALegacyObservationProbe(options={}){
         const current=refresh();if(!current.ok)return current;
         if(!base)return failure("OBSERVATION_NATIVE_BASE_MISSING");
         if(!same(current.currentRewards,expectedRewards))return failure("OBSERVATION_UNRECORDED_RESOURCE_CHANGE");
+        if(luckStarted&&unopenedSixes().length)return failure("OBSERVATION_FATE_CHAIN_INCOMPLETE");
+        if(luckStarted&&!spends.some(s=>s.resource==="fate"&&s.amount===1))
+          return failure("OBSERVATION_FATE_DELTA_MISSING");
+        if(luckStarted&&spends.filter(s=>s.resource==="fate").length!==1)
+          return failure("OBSERVATION_FATE_DELTA_AMBIGUOUS");
         status="OBSERVED_UNPERSISTED";
         return response(true,null,{status,testIdentity:{worldId,testId:options.testId,actorId:options.actorId},
           currentGmId:gmId,startingActorSnapshot:initial,skillSource:source[0],baseRecord:base,
           resourceChanges:spends.slice(),observedEndingRewards:{...expectedRewards},
-          observationStorage:"IN_MEMORY_ONLY",observationCoverage:"BASE_ROLL_AND_ACTING_RESOURCE_DELTAS_ONLY",
-          captureOfLegacyExecutionProven:false,rerollParentHistoryCaptured:false,
+          observationStorage:"IN_MEMORY_ONLY",observationCoverage:"BASE_OPTIONAL_LEGACY_WISE_FATE_AND_ACTING_DELTAS",
+          nativeEventHistory:history.slice(),resolvedObservedDice:[...resolved.values()].map(({dieId,face,lastResultDieId})=>({dieId,face,lastResultDieId})),
+          captureOfLegacyExecutionProven:false,rerollParentHistoryCaptured:history.length>0,
+          spendCauseAuthenticated:false,torchbearerWiseEffectEquivalent:false,
           finalOutcomeDerived:false,compatibleWithCompleteProspectiveTrace:false});
       }catch{return failure("OBSERVATION_FINISH_READ_FAILED");}
     };
@@ -105,6 +161,6 @@ export function tb2ePackageALegacyObservationProbe(options={}){
       }catch{return failure("OBSERVATION_ABORT_READ_FAILED");}
     };
     return Object.freeze({...response(true,null,{status,startingScope:"CURRENT_GM_LEGACY_WORLD_TRAINED_SKILL"}),
-      observeBaseRoll,observeResourceChange,finish,abort});
+      observeBaseRoll,observeLegacyWiseRoll,observeFateRound,observeResourceChange,finish,abort});
   }catch{return response(false,"OBSERVATION_START_READ_FAILED");}
 }
