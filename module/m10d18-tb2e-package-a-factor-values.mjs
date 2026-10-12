@@ -122,6 +122,22 @@ export const TB2E_SKILL_FACTOR_VALUES=freezeTb2e({
  "Weaver":{weaving:F(C("type",false,[["net",1],["basket_hat",2],["cloak_blanket",3],["clothing_basket",4],["tapestry",5]]),C("style",true,[["plain",0],["ornamental",1],["fashionable",2],["stunning",3]]))}
 });
 
+const FACTOR_PAGE_BY_SKILL=freezeTb2e({
+ "Alchemist":160,"Arcanist":161,"Armorer":161,"Carpenter":161,
+ "Cartographer":162,"Commander":162,"Cook":163,"Criminal":163,
+ "Dungeoneer":164,"Fighter":164,"Haggler":165,"Healer":165,
+ "Hunter":166,"Laborer":166,"Lore Master":167,"Manipulator":167,
+ "Mentor":168,"Orator":168,"Pathfinder":168,"Peasant":169,
+ "Persuader":169,"Rider":170,"Ritualist":170,"Sailor":171,
+ "Sapper":171,"Scavenger":172,"Scholar":172,"Scout":173,
+ "Steward":174,"Stonemason":174,"Survivalist":175,
+ "Theologian":176,"Weaver":176
+});
+const FACTOR_TABLE_PAGE_OVERRIDE=freezeTb2e({
+ "Laborer":{hauling:167},
+ "Scholar":{knowledge:173}
+});
+
 const safe=data=>freezeTb2e({phase:"M10D.18_PACKAGE_A",profileId:"torchbearer2e",
  mode:"READ_ONLY_SHADOW",sourceEvidence:"Dungeoneer's Handbook pp.160-176",
  writesPlanned:0,liveApplication:false,rollExecuted:false,
@@ -129,7 +145,7 @@ const safe=data=>freezeTb2e({phase:"M10D.18_PACKAGE_A",profileId:"torchbearer2e"
 const deny=(reasonCode,details={})=>safe({ok:false,reasonCode,...details});
 export function tb2eNumericalFactorCatalogueStatus(){
  const skills=Object.keys(TB2E_SKILL_FACTOR_VALUES);
- return safe({ok:true,skillCount:skills.length,
+ return safe({ok:true,skillCount:skills.length,skillNames:skills,
    tableCount:skills.reduce((n,k)=>n+Object.keys(TB2E_SKILL_FACTOR_VALUES[k]).length,0),
    tableCoverage:"DH_160_176_STRUCTURED_VALUES",
    specialFormulasAndVersusRequireContext:true,
@@ -141,7 +157,7 @@ export function tb2eNumericalFactorEntry({skillName="",tableName=""}={}){
  if(!skill)return deny("UNKNOWN_SKILL");
  const table=Object.keys(TB2E_SKILL_FACTOR_VALUES[skill]).find(n=>n.toLowerCase()===String(tableName??"").trim().toLowerCase());
  if(!table)return deny("UNKNOWN_FACTOR_TABLE",{availableTables:Object.keys(TB2E_SKILL_FACTOR_VALUES[skill])});
- return safe({ok:true,skillName:skill,tableName:table,table:TB2E_SKILL_FACTOR_VALUES[skill][table]});
+ return safe({ok:true,skillName:skill,tableName:table,table:TB2E_SKILL_FACTOR_VALUES[skill][table],sourcePage:FACTOR_TABLE_PAGE_OVERRIDE[skill]?.[table]??FACTOR_PAGE_BY_SKILL[skill]});
 }
 /** GM-confirmed, strictly keyed numeric factor preview. The key names do
  * not select fiction, equipment, action legality or conflict routing.
