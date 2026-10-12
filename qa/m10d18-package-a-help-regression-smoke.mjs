@@ -30,7 +30,7 @@ for(const [p,reason] of failures){assert.equal(p.ok,false);assert.equal(p.reason
 assert.equal(tb2eBeginnersLuckHelpPlan({sourceName:"Will"}).sourceVerification,"TARGET_SKILL_UNSPECIFIED_GM_MUST_VERIFY");
 assert.equal(tb2eSkillInfo("Fighter").beginnersLuckAbility,"HEALTH");
 assert.equal(tb2eBeginnersLuckAbilityPlan({skillName:"Cook"}).ability,"WILL");
-const hungry=tb2eHelpConsequencePlan({testFailed:true,conditionApplied:true,everyoneHungryChosen:true});
+const hungry=tb2eHelpConsequencePlan({testFailed:true,conditionApplied:true,everyoneHungryChosen:true,primaryCondition:"HUNGRY_AND_THIRSTY"});
 assert.equal(hungry.helperConsequence,"HUNGRY_AND_THIRSTY");
 assert.equal(hungry.automaticConditionWrite,false);
 assert.equal(profileActivationAvailable("torchbearer2e"),false);
