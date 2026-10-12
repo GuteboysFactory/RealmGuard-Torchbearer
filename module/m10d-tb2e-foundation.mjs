@@ -10,6 +10,7 @@ import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePla
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
 import { tb2eFactorObstaclePlan, tb2eVersusFactorPlan, tb2eTieBreakerPlan, tb2eSourceBoundFactorPlan } from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
 import { tb2eEnvironmentalTestFactorPlan } from "./m10d18-tb2e-package-a-environment.mjs";
+import { tb2ePackageATestScenarioPlan } from "./m10d18-tb2e-package-a-test-scenario.mjs";
 import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan, tb2eNatureDescriptorContextPlan } from "./m10d-tb2e-nature-shadow.mjs";
 import { tb2eAbilityInfo, tb2eAbilitySkillModel, tb2eAbilitySkillShadowStatus, tb2eAdvancementThresholdPlan, tb2eBeginnersLuckAbilityPlan, tb2eNewSkillLearningPlan, tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
 import { tb2eSkillEquipmentPlan } from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
@@ -132,7 +133,7 @@ export function installM10DFoundation() {
       helpShadowStatus:tb2eHelpShadowStatus,
       help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan,participationPlan:tb2eHelpParticipationPlan,groupOutcomePlan:tb2eHelpGroupOutcomePlan,suggestedSkillPlan:tb2eSuggestedHelpSkillPlan}),
       testShadowStatus:tb2eTestShadowStatus,
-      tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan,factorObstaclePlan:tb2eFactorObstaclePlan,sourceBoundFactorPlan:tb2eSourceBoundFactorPlan,versusFactorPlan:tb2eVersusFactorPlan,tieBreakerPlan:tb2eTieBreakerPlan,environmentalFactorPlan:tb2eEnvironmentalTestFactorPlan}),
+      tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan,factorObstaclePlan:tb2eFactorObstaclePlan,sourceBoundFactorPlan:tb2eSourceBoundFactorPlan,versusFactorPlan:tb2eVersusFactorPlan,tieBreakerPlan:tb2eTieBreakerPlan,environmentalFactorPlan:tb2eEnvironmentalTestFactorPlan,scenarioPlan:tb2ePackageATestScenarioPlan}),
       natureShadowStatus:tb2eNatureShadowStatus,
       nature:Object.freeze({getStatus:tb2eNatureShadowStatus,model:tb2eNatureModel,substitutionPlan:tb2eNatureSubstitutionPlan,substitutionTaxPlan:tb2eNatureSubstitutionTaxPlan,channelPlan:tb2eChannelNaturePlan,channelTaxPlan:tb2eChannelNatureTaxPlan,recoveryPlan:tb2eNatureRecoveryPlan,lossPlan:tb2eNatureLossPlan,advancementPlan:tb2eNatureAdvancementPlan,descriptorContextPlan:tb2eNatureDescriptorContextPlan}),
       abilitiesShadowStatus:tb2eAbilitySkillShadowStatus,
