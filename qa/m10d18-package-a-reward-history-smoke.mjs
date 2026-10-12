@@ -42,13 +42,13 @@ const deny=(opts,reason)=>{
  const p=plan({...base,...opts});safe(p);assert.equal(p.ok,false,JSON.stringify(p));
  assert.equal(p.reasonCode,reason,JSON.stringify(p));
 };
-deny({rewardEvents:[l,d]},"WISE_REWARD_MUST_PRECEDE_FATE_LUCK");
+deny({rewardEvents:[{type:"FATE_LUCK",rounds:[[{dieId:"x",parentDieId:"a",face:4}]]},d]},"WISE_REWARD_MUST_PRECEDE_FATE_LUCK");
 deny({rewardEvents:[d,l,o]},"WISE_REWARD_MUST_PRECEDE_FATE_LUCK");
 deny({rewardEvents:[d,d]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,{...o,wiseId:"cook-wise"}]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,{...d,wiseId:"other-wise"}]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,l],fateAvailable:1},"INSUFFICIENT_FATE");
-deny({rewardEvents:[o],personaAvailable:0},"INSUFFICIENT_PERSONA");
+deny({rewardEvents:[{...o,rerolls:[{dieId:"b",face:4},{dieId:"c",face:5}]}],personaAvailable:0},"INSUFFICIENT_PERSONA");
 deny({rewardEvents:[d],fateAvailable:0},"INSUFFICIENT_FATE");
 deny({rewardEvents:[{...d,dieId:"a"}]},"DEEPER_REQUIRES_UNREROLLED_FAILED_DIE");
 deny({rewardEvents:[{...d,dieId:"missing"}]},"DEEPER_REQUIRES_UNREROLLED_FAILED_DIE");
