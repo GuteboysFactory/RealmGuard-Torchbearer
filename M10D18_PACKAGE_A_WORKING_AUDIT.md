@@ -135,3 +135,8 @@ Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the glo
 **Evidence:** `module/m10d18-tb2e-package-a-factor-guard.mjs`, `module/m10d18-tb2e-package-a-test-scenario.mjs`, `qa/m10d18-package-a-factor-input-guard-smoke.mjs`, `qa/m10d18-package-a-test-scenario-smoke.mjs`. Existing read-only APIs remain available and Legacy Mixed runtime is unchanged.
 
 **Current parity gaps:** the underlying source selections are still caller-supplied and not derived from an authenticated GM or Actor; bonus sources, condition modifiers, real roll event provenance, spells, conflicts and advancement remain uncommitted, externally adjudicated, or separate shadow domains. Independent verification of each source exception and Foundry v13.351 multiplayer acceptance is outstanding. **0/14 FULLY REAUDITED; do not release or activate CORE.**
+
+
+### Isolated Foundry archive readiness check (Package A Draft)
+
+The Package A PR workflow now stages a **temporary**, unpublished Foundry system ZIP after the complete smoke suite. It validates ZIP integrity, byte-for-byte agreement of the packaged root `system.json`, inclusion of all runtime paths referenced by the manifest and exclusion of internal release/channel directories. `qa/m10d18-package-a-archive-check.mjs` checks the listing against `system.json` and ensures the version matches `release/READY`. The temporary archive is **never uploaded or tagged**, and no release workflow is invoked. This is a packaging preflight only; it is not a completed protected release or Foundry acceptance.
