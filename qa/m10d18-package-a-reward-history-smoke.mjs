@@ -98,7 +98,7 @@ safe(naturePreview);assert.equal(naturePreview.ok,true,JSON.stringify(naturePrev
 assert.equal(naturePreview.projectedPersonaBeforeRollCost,1);
 assert.equal(naturePreview.projectedPersonaTotalCost,1);
 deny({scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
- personaAvailable:0},"INSUFFICIENT_PERSONA_BEFORE_ROLL");
+ personaAvailable:0},"NATURE_PERSONA_BALANCE_MISMATCH");
 deny({scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
  personaAvailable:2},"NATURE_PERSONA_BALANCE_MISMATCH");
 
