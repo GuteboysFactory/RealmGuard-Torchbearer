@@ -1,4 +1,5 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
+import { tb2eNumericalFactorObstaclePlan, tb2eNumericalFactorFormulaPlan } from "./m10d18-tb2e-package-a-factor-values.mjs";
 const SOURCE="Scholar's Guide pp.27, 32-34";
 const ACTIONS=Object.freeze(["SKILL","WILL","HEALTH","NATURE","MONSTER"]);
 const number=v=>Number.isInteger(v)&&v>=0;
@@ -61,4 +62,16 @@ export function tb2eTieBreakerPlan({initialSourceKind="",beginnersLuckAbility=""
   monsterOpponent:Boolean(playerVersusMonster),
   finalOutcomeGmAdjudicationRequired:result==="TIE",
   advancementCommitted:false,rollExecuted:false});
+}
+
+/** Source-bound factors route through the DH table catalogue. Original GM-supplied
+ * factors route remains available separately for historical read-only tools.
+ */
+export function tb2eSourceBoundFactorPlan(options={}){
+ const kind=String(options?.factorMode??"TABLE").trim().toUpperCase();
+ if(kind==="TABLE")return tb2eNumericalFactorObstaclePlan(options);
+ if(kind==="FORMULA")return tb2eNumericalFactorFormulaPlan(options);
+ return freezeTb2e({ok:false,reasonCode:"UNKNOWN_SOURCE_FACTOR_MODE",
+   profileId:"torchbearer2e",mode:"READ_ONLY_SHADOW",
+   liveApplication:false,writesPlanned:0});
 }
