@@ -138,3 +138,8 @@ Tests, Help, Wises, Nature and Abilities/Skills remain **OPEN** pending complete
 Added a read-only, explicitly GM-asserted participant/Condition gate to `tests.scenarioPlan` (*Scholar's Guide* pp.46–52; *Dungeoneer's Handbook* p.59). The preview blocks Afraid Beginner's Luck / ordinary Help, Angry beneficial Traits / Wise aid, Dead participation, and unreconciled or missing actor/helper condition data. It applies Fresh at the correct post-halving stage, stacks Sick and Injured dice penalties, requires an explicit Angry precision/social Ob choice and spent turn for exhausted Instinct, and previews GM-reviewed channeled Nature and possible Tax without writing resources. Same Actor ID cannot act and Help itself.
 
 **Not a full Conditions audit certificate:** all input facts remain caller-declared, not authenticated from real Actors, and advanced lifecycle effects are not applied. Full five-domain source-to-runtime and Foundry v13.351 acceptance remain OPEN. **0/14 FULLY REAUDITED**; stable 1.12.0 frozen, Legacy Mixed sole live authority, M11 PAUSED, kill switch ENGAGED.
+
+
+### 2026-10-12 — Source-linked advancement boundary, still read-only
+
+Trained Skill advancement marks, untrained Beginner's Luck learning attempts based on Maximum Nature, the 24-Skill capacity decision and loss of ability advancement from BL are previewed separately (DH p.75). Sick prevents the proposed log (SG p.51); original ties resolved through a tiebreaker do not mark the initial Skill (SG p.34). Rating zero from conditions prevents an ordinary test despite available bonus dice (SG p.52). No Actual Actor/roll/GM authority has yet been bound; therefore Tests, Abilities/Skills, Nature and cross-domain advancement remain OPEN. FULLY_REAUDITED **0/14**.
