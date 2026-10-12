@@ -48,6 +48,8 @@ const rejection=[
  [{...case0,dice:[1,2,3,4,2],gmConfirmsNoRerolls:false},"REROLL_AND_FATE_HISTORY_NOT_SUPPORTED_IN_THIS_PREVIEW"],
  [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,outcome:"FAIL"}},"INVALID_POST_TEST_FACT_FIELDS"],
  [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,skillName:"Fighter"}},"INVALID_POST_TEST_FACT_FIELDS"],
+ [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,context:"CONFLICT"}},"INDEPENDENT_TEST_PROGRESS_CONTEXT_MISMATCH"],
+ [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,context:"TIEBREAKER"}},"INDEPENDENT_TEST_PROGRESS_CONTEXT_MISMATCH"],
  [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,actingConditions:["SICK"]}},"INVALID_POST_TEST_FACT_FIELDS"],
  [{...case0,dice:[1,2,3,4,2],progressFacts:{...progressFacts,gmConfirmedLegalTest:false}},"GM_MUST_CONFIRM_PROGRESSION_ELIGIBILITY"],
  [{...case0,dice:[1,2,3,4,2],scenarioInput:{...scenarioInput,actingConditions:["DEAD"]}},"SCENARIO_CONDITION_DEAD_ACTOR_CANNOT_TEST"],
