@@ -2,6 +2,10 @@ import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageAActorEvidence} from "./m10d18-tb2e-package-a-actor-evidence.mjs";
 import {tb2ePackageAParticipationOutcomePlan} from "./m10d18-tb2e-package-a-participation-provenance.mjs";
 
+const issuedEquipment = new WeakMap();
+export const isIssuedPackageAEquipment = (value, scenario) => issuedEquipment.has(value) &&
+  (scenario === undefined || issuedEquipment.get(value) === JSON.stringify(scenario));
+const issue = (value, scenario) => { issuedEquipment.set(value, JSON.stringify(scenario)); return value; };
 const state=(ok,reasonCode=null,data={})=>freezeTb2e({
   ok,reasonCode,phase:"M10D.18_PACKAGE_A",profileId:"torchbearer2e",
   mode:"CURRENT_EQUIPMENT_SAVED_OUTCOME_READ_ONLY",sourceEvidence:"DH 59,73-75; SG 31,36-38",
@@ -114,11 +118,11 @@ export function tb2ePackageAEquipmentOutcomePlan(options={}){
       const item=stock(acting,ref.itemId),path=accessible(item,ownPack);
       bind(acting.actorId,item,role,path);
     }
-    return state(true,null,{participationEvidence:participation,ownPackEvidence:ownPack,toolLoanEvidence:loan,
+    return issue(state(true,null,{participationEvidence:participation,ownPackEvidence:ownPack,toolLoanEvidence:loan,
       equipmentBindings:bindings,currentItemQuantityAndPlacementObserved:true,
       toolAdequacyGmAsserted:true,itemSkillClassificationGmAsserted:true,physicalUsabilityGmAsserted:true,
       projectedSupplyIncrementsUsed:e.suppliesUsed,projectedGearUses:e.gearUsed,
       inventoryCapacityAndEncumbranceVerified:false,completeEquipmentRuleParityVerified:false,
-      outcomePreview:participation.outcomePreview,quantityDecrementPlanned:false});
+      outcomePreview:participation.outcomePreview,quantityDecrementPlanned:false}),s);
   }catch(error){return fail(error instanceof EquipmentError?error.message:"EQUIPMENT_DOCUMENT_READ_FAILED");}
 }

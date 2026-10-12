@@ -1,3 +1,6 @@
+import {tb2ePackageAEquipmentOutcomePlan} from "./m10d18-tb2e-package-a-equipment-provenance.mjs";
+import {tb2ePackageAActorEvidence} from "./m10d18-tb2e-package-a-actor-evidence.mjs";
+import {tb2ePackageAEquipmentRewardHistoryPlan} from "./m10d18-tb2e-package-a-document-reward-history.mjs";
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageAParticipationOutcomePlan} from "./m10d18-tb2e-package-a-participation-provenance.mjs";
 import {tb2ePackageAProgressAfterTestPlan} from "./m10d18-tb2e-package-a-progress-boundary.mjs";
@@ -49,6 +52,9 @@ export function tb2ePackageAParticipationProgressPlan(options={}){
     messageId:options?.messageId,scenarioInput:options?.scenarioInput,
     helpSourceItemId:options?.helpSourceItemId,wiseAidItemId:options?.wiseAidItemId});
   if(!participation.ok)return fail(participation.reasonCode);
+  return projectProgress(options,participation);
+}
+function projectProgress(options,participation,finalOutcome=participation.outcomePreview){
   try {
     if(!fields(options,["actorId","messageId","scenarioInput","helpSourceItemId","wiseAidItemId",
       "progressReview","synergyReview"]))return fail("UNSUPPORTED_PARTICIPATION_PROGRESS_FIELDS");
@@ -60,7 +66,7 @@ export function tb2ePackageAParticipationProgressPlan(options={}){
     if(review.gmConfirmsCountersExcludeThisTest!==true)return fail("CURRENT_COUNTERS_MAY_ALREADY_INCLUDE_TEST");
     if(review.context!=="ADVENTURE")return fail("INDEPENDENT_ADVENTURE_PROGRESS_ONLY");
     const s=options.scenarioInput,acting=participation.participantEvidence[0],
-      outcome=participation.outcomePreview.outcome,obstacle=participation.outcomePreview.obstacle;
+      outcome=finalOutcome.outcome,obstacle=finalOutcome.obstacle;
     const common={skillName:s.skillName,mode:s.mode,outcome,obstacle,
       gmConfirmedLegalTest:true,actingConditions:acting.conditions,conditionsGmReviewed:true,
       context:"ADVENTURE",alreadyCountedInContext:false,wentToTiebreaker:false};
@@ -130,4 +136,38 @@ export function tb2ePackageAParticipationProgressPlan(options={}){
       countersExcludeThisTestGmAsserted:true,historicalEligibilityGmAsserted:true,
       countersHistoricalRuleEligibilityUnverified:true,duplicateMarksCommitted:false});
   }catch(error){return fail(error instanceof CounterError?error.message:"PARTICIPATION_PROGRESS_READ_FAILED");}
+}
+
+/** DH 59,73-77,108-110; SG 36-38,47,51,87-88. One saved test,
+ * one participant/equipment snapshot, one reward-derived final result.
+ * Historical balances, links, relevance and eligibility remain GM assertions.
+ */
+export function tb2ePackageAIntegratedTestPlan(options={}){
+  const equipment=tb2ePackageAEquipmentOutcomePlan({actorId:options?.actorId,messageId:options?.messageId,
+    scenarioInput:options?.scenarioInput,helpSourceItemId:options?.helpSourceItemId,
+    wiseAidItemId:options?.wiseAidItemId,equipmentReview:options?.equipmentReview});
+  if(!equipment.ok)return fail(equipment.reasonCode);
+  if(!fields(options,["actorId","messageId","scenarioInput","helpSourceItemId","wiseAidItemId",
+    "equipmentReview","rewardReview","progressReview","synergyReview"]))return fail("UNSUPPORTED_INTEGRATED_TEST_FIELDS");
+  const r=options.rewardReview;
+  if(!fields(r,["events","gmEventLinksReviewed","fateAtRollStartGmAsserted","personaAtRollStartGmAsserted"]))
+    return fail("EXPLICIT_REWARD_REVIEW_REQUIRED");
+  const history=tb2ePackageAEquipmentRewardHistoryPlan(equipment,{actorId:options.actorId,
+    initialMessageId:options.messageId,scenarioInput:options.scenarioInput,...r});
+  if(!history.ok)return fail(history.reasonCode);
+  for(const snapshot of [...equipment.participationEvidence.participantEvidence,
+    ...(equipment.toolLoanEvidence?[equipment.toolLoanEvidence.lenderEvidence]:[])]){
+    const current=tb2ePackageAActorEvidence({actorId:snapshot.actorId});
+    if(!current.ok||JSON.stringify(current)!==JSON.stringify(snapshot))return fail("CURRENT_PARTICIPANT_CONTEXT_CHANGED");
+  }
+  const progress=projectProgress({actorId:options.actorId,messageId:options.messageId,
+    scenarioInput:options.scenarioInput,helpSourceItemId:options.helpSourceItemId,
+    wiseAidItemId:options.wiseAidItemId,progressReview:options.progressReview,
+    synergyReview:options.synergyReview},equipment.participationEvidence,history.rewardTimelinePreview);
+  if(!progress.ok)return progress;
+  return result(true,null,{...progress,mode:"INTEGRATED_SAVED_TEST_READ_ONLY",
+    testIdentity:{actorId:options.actorId,initialMessageId:options.messageId},
+    equipmentEvidence:equipment,rewardHistoryEvidence:history,
+    initialOutcome:equipment.outcomePreview.outcome,finalOutcome:progress.derivedOutcome,
+    sameFinalOutcomeUsedForAllProgress:true,completeTestHistoryVerified:false});
 }

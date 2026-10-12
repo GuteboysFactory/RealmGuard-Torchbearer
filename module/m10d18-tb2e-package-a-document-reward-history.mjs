@@ -1,3 +1,4 @@
+import {isIssuedPackageAEquipment} from "./m10d18-tb2e-package-a-equipment-provenance.mjs";
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageADocumentEvidence,tb2ePackageADocumentOutcomePlan} from "./m10d18-tb2e-package-a-document-provenance.mjs";
 import {tb2ePackageARewardedRollHistoryPlan} from "./m10d18-tb2e-package-a-rewarded-roll-history.mjs";
@@ -26,8 +27,16 @@ const ids=(xs,max=250)=>Array.isArray(xs)&&xs.length>0&&xs.length<=max&&
  * No HTML/flag inference, capture hooks, messages, RNG, or live mutations.
  */
 export function tb2ePackageADocumentRewardHistoryPlan(options={}){
+  return documentHistory(options);
+}
+// Only a frozen result issued by the equipment reader can supply shared evidence.
+export function tb2ePackageAEquipmentRewardHistoryPlan(equipment,options={}){
+  if(!isIssuedPackageAEquipment(equipment,options.scenarioInput))return fail("ISSUED_EQUIPMENT_CONTEXT_REQUIRED");
+  return documentHistory(options,equipment.participationEvidence);
+}
+function documentHistory(options={},participation=null){
   // Check session/document permission before inspecting any event declarations.
-  const first=tb2ePackageADocumentEvidence({actorId:options?.actorId,messageId:options?.initialMessageId});
+  const first=participation?.documentEvidence ?? tb2ePackageADocumentEvidence({actorId:options?.actorId,messageId:options?.initialMessageId});
   if(!first.ok)return fail(first.reasonCode);
   try {
     if(!fields(options,["actorId","initialMessageId","scenarioInput","events",
@@ -40,10 +49,11 @@ export function tb2ePackageADocumentRewardHistoryPlan(options={}){
     if(!Number.isSafeInteger(fateAtRollStartGmAsserted)||fateAtRollStartGmAsserted<0||
        !Number.isSafeInteger(personaAtRollStartGmAsserted)||personaAtRollStartGmAsserted<0)
       return fail("GM_ASSERTED_HISTORICAL_REWARDS_REQUIRED");
-    const initialCheck=tb2ePackageADocumentOutcomePlan({actorId,messageId:initialMessageId,scenarioInput});
+    if(participation && (actorId!==first.actorId || initialMessageId!==first.messageId))return fail("SHARED_TEST_ID_MISMATCH");
+    const initialCheck=participation ?? tb2ePackageADocumentOutcomePlan({actorId,messageId:initialMessageId,scenarioInput});
     if(!initialCheck.ok)return fail("INITIAL_"+initialCheck.reasonCode);
     if(first.messageTimestamp===null)return fail("SAVED_MESSAGE_TIMESTAMP_REQUIRED");
-    const actor=globalThis.game.actors.get(actorId);
+    const actor=first.actorEvidence;
     const usedMessages=new Set([initialMessageId]),usedWiseNames=new Set();
     const documents=[first],eventEvidence=[],rewardEvents=[];
     let previousTimestamp=first.messageTimestamp;
@@ -51,6 +61,8 @@ export function tb2ePackageADocumentRewardHistoryPlan(options={}){
       if(usedMessages.has(messageId))throw new EvidenceReadError("DOCUMENT_MESSAGE_REUSED");
       const doc=tb2ePackageADocumentEvidence({actorId,messageId});
       if(!doc.ok)throw new EvidenceReadError("EVENT_"+doc.reasonCode);
+      if(JSON.stringify(doc.actorEvidence)!==JSON.stringify(first.actorEvidence))
+        throw new EvidenceReadError("CURRENT_ACTOR_CONTEXT_CHANGED");
       if(doc.currentGmId!==first.currentGmId||doc.messageAuthorId!==first.messageAuthorId)
         throw new EvidenceReadError("DOCUMENT_HISTORY_USER_MISMATCH");
       if(doc.messageTimestamp===null)throw new EvidenceReadError("SAVED_MESSAGE_TIMESTAMP_REQUIRED");
@@ -82,7 +94,7 @@ export function tb2ePackageADocumentRewardHistoryPlan(options={}){
           ["type","messageId","wiseItemId","related","targetDieIds"];
         if(!fields(event,keys)||event.related!==true||typeof event.wiseItemId!=="string")
           return fail("GM_RELATED_CURRENT_WISE_REQUIRED");
-        const wises=actor.items.filter(i=>i.type==="wise"&&i.id===event.wiseItemId);
+        const wises=actor.currentWiseItems.filter(i=>i.itemId===event.wiseItemId);
         if(wises.length!==1||typeof wises[0].name!=="string"||!wises[0].name.trim())
           return fail("CURRENT_ACTOR_WISE_ITEM_REQUIRED");
         const wiseName=wises[0].name.trim().toLowerCase();
