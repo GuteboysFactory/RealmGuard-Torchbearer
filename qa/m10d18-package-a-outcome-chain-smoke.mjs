@@ -76,6 +76,18 @@ const withPersona=chain({...case0,scenarioInput:personaScenario,dice:personaDice
 safe(withPersona);assert.equal(withPersona.ok,true,JSON.stringify(withPersona));
 assert.equal(withPersona.projectedPersonaBeforeRollCost,1);
 assert.equal(withPersona.personaStartingBalanceAuthenticated,false);
+const natureContext={currentNature:3,maximumNature:5,personaAvailable:1,
+ testName:"Cook",descriptorApplies:false,gmReviewed:true};
+const natureInput={...scenarioInput,bonuses:{channeledNatureDice:3},channelNatureFacts:natureContext};
+const natureDice=[1,2,3,4,2,5,3,4];
+const natureOk=chain({...case0,scenarioInput:natureInput,dice:natureDice,
+ personaAvailableAtRollStart:1});
+safe(natureOk);assert.equal(natureOk.ok,true,JSON.stringify(natureOk));
+assert.equal(natureOk.projectedPersonaBeforeRollCost,1);
+const natureMismatch=chain({...case0,scenarioInput:natureInput,dice:natureDice,
+ personaAvailableAtRollStart:2});
+safe(natureMismatch);assert.equal(natureMismatch.reasonCode,"NATURE_PERSONA_BALANCE_MISMATCH");
+
 const tooMuch=chain({...case0,scenarioInput:{...scenarioInput,bonuses:{personaDice:4}},
  dice:personaDice,personaAvailableAtRollStart:4});
 safe(tooMuch);assert.equal(tooMuch.reasonCode,
