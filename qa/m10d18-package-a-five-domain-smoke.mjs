@@ -11,7 +11,8 @@ safe(heroic);assert.equal(heroic.cap,7);assert.equal(heroic.advanceTo,7);
 const end=tb2eAdvancementThresholdPlan({kind:"SKILL",rating:7,heroicRatingSevenUnlocked:true});
 safe(end);assert.equal(end.atCap,true);assert.equal(end.advanceTo,null);
 assert.equal(tb2eAdvancementThresholdPlan({kind:"SKILL",rating:7}).reasonCode,"INVALID_ADVANCEMENT_RATING");
-assert.equal(tb2eAdvancementThresholdPlan({kind:"WILL",rating:6,heroicRatingSevenUnlocked:true}).cap,6);
+assert.equal(tb2eAdvancementThresholdPlan({kind:"WILL",rating:6,heroicRatingSevenUnlocked:true}).cap,7);
+assert.equal(tb2eAdvancementThresholdPlan({kind:"HEALTH",rating:7,heroicRatingSevenUnlocked:true}).atCap,true);
 assert.equal(tb2eSkillInfo("Cook").heroicRatingCap,7);
 for(const f of [tb2eNatureRecoveryPlan,tb2eNatureLossPlan,tb2eNatureAdvancementPlan]){
  const p=f({currentNature:0,maximumNature:0,reachedZeroDueToTax:true,advancementTriggered:true,method:"RESPITE"});
