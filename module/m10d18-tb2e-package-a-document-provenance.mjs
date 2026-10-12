@@ -1,6 +1,6 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageAOutcomeAndProgressPlan} from "./m10d18-tb2e-package-a-outcome-chain.mjs";
-import {tb2eConditionInfo} from "./m10d-tb2e-conditions-shadow.mjs";
+import {tb2ePackageAActorEvidence} from "./m10d18-tb2e-package-a-actor-evidence.mjs";
 
 const result=(ok,reasonCode=null,data={})=>freezeTb2e({
   ok,reasonCode,phase:"M10D.18_PACKAGE_A",mode:"FOUNDRY_DOCUMENT_EVIDENCE_READ_ONLY",
@@ -64,21 +64,8 @@ export function tb2ePackageADocumentEvidence({actorId=null,messageId=null}={}){
       dieId:`${messageId}:0:0:${index}`,face:d.result,source:"SAVED_PLAIN_D6_RESULT"
     }));
     if(roll.total!==dice.reduce((sum,d)=>sum+d.face,0))return deny("SAVED_ROLL_TOTAL_MISMATCH");
-    const conditions=[];
-    for(const item of actor.items){
-      if(item.type!=="condition")continue;
-      if(typeof item.system?.active!=="boolean")return deny("INVALID_ACTOR_CONDITION_STATE");
-      if(!item.system.active)continue;
-      // Legacy names must not silently acquire TB CORE semantics.
-      if(!["fresh","hungry & thirsty","hungry and thirsty","exhausted","angry",
-        "sick","injured","afraid","dead"].includes(String(item.name).trim().toLowerCase()))
-        return deny("UNMAPPED_ACTOR_CONDITION");
-      const info=tb2eConditionInfo(item.name);
-      if(!info.ok)return deny("UNMAPPED_ACTOR_CONDITION");
-      conditions.push(item.name);
-    }
-    const fate=actor.system?.resources?.fate?.value,persona=actor.system?.resources?.persona?.value;
-    if(!nonnegative(fate)||!nonnegative(persona))return deny("INVALID_CURRENT_ACTOR_REWARDS");
+    const actorEvidence=tb2ePackageAActorEvidence({actorId});
+    if(!actorEvidence.ok)return deny(actorEvidence.reasonCode);
     return result(true,null,{
       currentSessionGmObserved:true,currentGmId:gm.id,
       actorDocumentObserved:true,actorId,actorUuid:actor.uuid,
@@ -86,7 +73,7 @@ export function tb2ePackageADocumentEvidence({actorId=null,messageId=null}={}){
       messageTimestamp:Number.isSafeInteger(message.timestamp)&&message.timestamp>=0?
         message.timestamp:null,
       authorPermissionScope:"CURRENT_PERMISSION_ONLY_NOT_PERMISSION_AT_ROLL_TIME",
-      dice,conditions:[...new Set(conditions)],currentRewards:{fate,persona},
+      dice,conditions:actorEvidence.conditions,currentRewards:actorEvidence.currentRewards,actorEvidence,
       evidenceScope:"CURRENT_MUTABLE_CLIENT_DOCUMENTS_NOT_IMMUTABLE_HISTORY",
       wiseFateChronologyVerified:false,scenarioAtRollTimeVerified:false
     });

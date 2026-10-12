@@ -269,3 +269,26 @@ Gate C rejection cases: extra caller faces/newFace/result/progress fields; unown
 Gate D: use both GM/player clients, verify player denial before data reads, no private result leakage, no RNG/socket/document/resource mutations and no live authority changes. Change current Fate/Persona independently of declared historical start values: current balances must remain observation only. Returned `historicalRewardBalanceVerified`, `rollTimeActorStateVerified`, `immutableChronologyVerified`, `completeTestHistoryVerified`, `rollSourceAuthenticated`, `actorSourceAuthenticated` and `gmPermissionAuthenticated` stay false. Editing a saved message changes later observations, not an immutable historical ledger; previously returned frozen evidence must remain detached.
 
 Status: mock/automated coverage only; real Foundry v13.351 combined acceptance NOT RUN. The same-test association, fictional Wise relatedness, parent/target associations and historical resources remain GM assertions. Legacy HTML-only cards remain rejected. Keep release blocked and 0/14 FULLY_REAUDITED until all full gates actually pass.
+
+### Current participant Actor facts — combined Gates A-D, v13.351 (NOT RUN)
+
+Keep this within the SAME complete Package A acceptance. Record exact commit/build/user IDs, acting/helper/Wise-helper Actor IDs, selected Item IDs, conditions, pool inputs, native saved message ID/faces and all before/after documents/resources. `A.tests.actorEvidence({actorId})` must reject a player before reading Actor data; a current active GM may observe scalar snapshots only. No helper consent or historical state is authenticated.
+
+Gate B ordinary Skill: acting Cook rating4, tool/supplies +1D as in the existing source scenario; actual helper Cook Item rating3; distinct Wise helper with one actual Wise Item. Reviewed, accepted ordinary Help and related Wise aid add 1D each. Use a saved native 7d6 message linked to the world acting Actor; the API must not create or evaluate it. Call:
+
+```js
+A.tests.participationOutcomePlan({
+  actorId, messageId, scenarioInput,
+  helpSourceItemId, wiseAidItemId
+});
+```
+
+In scenarioInput, include the exact acting/helper/Wise-helper Actor IDs and complete current condition sets, with the previously required `conditionsGmReviewed`, described action, accepted Help and approved relevance. Helper helpOptions must identify its source Skill name and source-based Help route. Wise aid must explicitly declare relatedness. Confirm current participant/source IDs, computed pool7, saved faces/outcome and no advancement preview.
+
+Gate B/C Beginner's Luck: acting Cook absent OR unique rating0, current Will4, hasSkill:false, source-valid supplies1. Without Help/Wise/Fresh expect ceil((4+1)/2)=3 dice. Fresh alone adds AFTER halving, for 4 dice. With trained Cook Help and distinct Wise aid expect ceil((4+1+1+1)/2)+Fresh1=5 dice. For BL helping Skill set targetSkillName:"Cook", helperSkillTrained:true. A helper lacking trained Cook may use current Will; a helper with trained Cook must use that Skill (SG37). Independently test Dungeoneer BL with current Health3, source-factor delve vertical/one, supplies1: expect 2 dice and Ob2.
+
+Gate C reject: claimed wrong acting ID/rating/Will-Health, learned Skill used as BL, duplicate/malformed Skill IDs, unowned or mismatched helping Item, duplicate named source Skill/Wise, missing helper, helper token/synthetic Actor, same helper for ordinary Help and Wise aid, mismatched/omitted conditions, declined Help or missing described/relevant action, helper Skill1 + Injured or helper Will1 + Sick (effective 0), Afraid ordinary helper/BL actor, Angry Wise helper, Dead participant, actor zero-rated through conditions. Reject unused source IDs, caller faces/results/progression, paid bonus dice, Nature Channel, Heroic and Instinct routes. Current Actor resources are never a historical start ledger.
+
+Gate D: simultaneous GM/player checks, no private document data on denial, no socket/RNG/Actor/Item/Journal/Settings/resource/learning/advancement changes, no duplicate hooks and unchanged live-authority/kill-switch controls. All historical/authentication flags remain false, including playerConsentAuthenticated and participationAtRollTimeVerified. Changing a current Skill/Ability/condition/Wise affects only a new observation; prior frozen snapshots remain detached. Actual player acceptance, fictional relevance and same-test identity remain GM assertions. Run all prior A-D source/dice/reward cases together before reporting acceptance.
+
+Status: automated mock coverage; real combined Foundry v13.351 acceptance NOT RUN. Separate participation API has no Wise/Fate reroll timeline or advancement integration; the older documentRewardHistoryPlan retains its narrower Skill-only/no-helper scope. Release remains blocked, 0/14 FULLY_REAUDITED.
