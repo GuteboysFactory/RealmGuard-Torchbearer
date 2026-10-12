@@ -115,3 +115,12 @@ Evidence and proposed one-shot Foundry test: `M10D18_PACKAGE_A_WORKING_AUDIT.md`
 The separate source catalogue `module/m10d18-tb2e-package-a-factor-values.mjs` now contains structured numeric factor choices for all **33 Skills** from DH pp.160–176, including source-page provenance for split-page tables. Specialized entries use explicit Formula, Versus and Deferred rule classifications; no numeric Ob is fabricated when a spell, invocation, separate monster roll or missing context supplies the obstacle. `tests.sourceBoundFactorPlan` is read-only, validates factor combination and selected source-backed values, and enforces explicit GM provenance checks for known Scholar/Weaver/Sailor/Mentor/Rider special cases. Advanced Nature stock descriptors (DH pp.65,70–71) also have targeted read-only validation.
 
 **This is full numerical cataloguing, NOT complete runtime or exhaustive exception-rule parity.** Tests/Help/Wises/Nature/Abilities & Skills remain OPEN. Other resource, spell, equipment, actor identity and conflict interactions remain GM-controlled/manual. Manual Foundry 13.351 acceptance is still pending. **0/14 FULLY REAUDITED** remains the only honest domain certification. Legacy Mixed sole live; TB2E CORE read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 frozen.
+
+
+### 2026-10-12 — Source correction to historical P3.2 Wise timing and Scholar Scribe
+
+Historical P3.2's generic `WISE_REROLLS_BEFORE_FATE_LUCK` statement must **not** be read as applying to every Wise effect. DH p.77 orders **Of Course! before Fate Luck**, but **Deeper Understanding** instead forbids rerolling any die which has already been rerolled and can be combined with other expenditures. The new per-die shadow planner verifies die IDs and prior-reroll history; the old count-only API is advisory and explicitly requires per-die confirmation. No live reroll sequence has been changed.
+
+DH p.172 Scholar Scribe: a multi-spell obstacle is the spell-specific *scribing Ob* of the highest-circle spell **plus 1 per additional spell**. It is **not** numerically equivalent to spell circle. The dynamic catalogue now rejects missing source-supplied scribing Ob.
+
+These corrections are source-reviewed and regression-tested in the Draft Package A branch; five-domain full parity and manual Foundry acceptance remain OPEN, 0/14 FULLY_REAUDITED. Stable v1.12.0 frozen; no profile activation.
