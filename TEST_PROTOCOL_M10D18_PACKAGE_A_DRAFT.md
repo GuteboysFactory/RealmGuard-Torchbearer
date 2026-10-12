@@ -82,3 +82,27 @@ Confirm each plan advertises read-only, no actual dice rolls, zero resource spen
 4. No script errors, profile changes, system settings modifications, new Actor/Item/Journal records or unexpected character changes.
 
 **Acceptance:** Report PASS/FAIL for A–D and any console errors. A domain remains OPEN if its source-to-rule exceptions are not fully covered by the delivered package. No FULLY_REAUDITED status or M11 authorization is inferred merely from this test.
+
+
+## Additional Package A consolidated scenario gate (staged until release)
+
+After the other tests in Gate B, use this **read-only** scenario to validate that a complete GM selection combines multiple systems consistently:
+
+```js
+const gearA={hasSkill:true,carriesBackpackOrSatchel:true,borrowedTools:false,
+  dwarvenCraftingNature:false,isCraftingTest:false,toolsInadequate:false,
+  suppliesUsed:1,gearUsed:0};
+const scenario=A.tests.scenarioPlan({
+  skillName:"Cook",mode:"SKILL",rating:4,
+  factor:{tableName:"meals",gmAuthorized:true,
+    selections:{ingredients:"fresh",amount:"small_group"}},
+  environment:{light:"DIM_LIGHT",additionalGmHindrances:0},
+  equipment:gearA,allModifiersGmReviewed:true
+});
+[scenario.ok,scenario.obstacle,scenario.finalDicePool,scenario.sourceFactorPage];
+// [true,3,5,163]
+```
+
+An absent additive category must now fail with `ADDITIVE_FACTOR_CONFIRMATION_REQUIRED`. A non-applicable additive category may be omitted **only with** an explicitly declared `gmExcludedAdditives` list and `gmExclusionReason`. Omitting optional Survivalist camp amenities requires neither. Any `preconditionFacts` containing `skillName`, `tableName` or `gmAuthorized` must be rejected.
+
+The scenario is **not an Actor lookup or authorization** and commits no dice, conditions, resource spending or advancement. Report it alongside the existing A–D gates during the one combined Foundry session, not in a separate micro-test.
