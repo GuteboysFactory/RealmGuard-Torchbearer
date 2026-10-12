@@ -124,3 +124,10 @@ Historical P3.2's generic `WISE_REROLLS_BEFORE_FATE_LUCK` statement must **not**
 DH p.172 Scholar Scribe: a multi-spell obstacle is the spell-specific *scribing Ob* of the highest-circle spell **plus 1 per additional spell**. It is **not** numerically equivalent to spell circle. The dynamic catalogue now rejects missing source-supplied scribing Ob.
 
 These corrections are source-reviewed and regression-tested in the Draft Package A branch; five-domain full parity and manual Foundry acceptance remain OPEN, 0/14 FULLY_REAUDITED. Stable v1.12.0 frozen; no profile activation.
+
+
+### 2026-10-12 — Package A cross-domain source review and input safety
+
+Historical P3.1–P3.5 targeted checks, the 33-skill/64-table catalogue, and 53 Help routes are retained. The new `tests.sourceBoundFactorPlan` guard prevents additive category undercount and nested provenance from changing the declared source Skill or table. The new `tests.scenarioPlan` preview composes source Ob, light, tools, Help, Wise aid and Beginner's Luck according to printed DH 59,73–77 and SG 27,32–38 using explicit GM-supplied facts. It records the printed factor page and identifies itself as **not Actor-authoritative**.
+
+Tests, Help, Wises, Nature and Abilities/Skills remain **OPEN** pending complete actor-to-source rule parity, original per-roll data provenance, all cross-domain exceptions and a combined Foundry 13.351 acceptance. **0/14 FULLY REAUDITED**. Kill switch ENGAGED, M11 PAUSED, Legacy Mixed live, stable 1.12.0 immutable. No QA release authorized by this milestone.
