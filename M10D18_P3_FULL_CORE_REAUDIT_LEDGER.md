@@ -108,3 +108,10 @@ Evidence and proposed one-shot Foundry test: `M10D18_PACKAGE_A_WORKING_AUDIT.md`
 - **Abilities/Skills** — DH 59,72 heroic Will/Health/Skill rating 7 with explicit unlock. Mapping for all 33 Skill names/suggested Help routes is present; numeric factor tables remain unmapped.
 - CI: all-suite PR smoke and channel immutability check, **not** protected release pipeline. No release candidate or manual Foundry gate authorized by this checkpoint.
 - **FULLY_REAUDITED remains 0/14.** None of the five Package A domains has earned complete certification. Stable 1.12.0 untouched, Legacy Mixed sole live authority, TB2E shadow/read-only, M11 paused, kill switch engaged.
+
+
+## Package A 2026-10-12 — DH numeric Skill factors checkpoint
+
+The separate source catalogue `module/m10d18-tb2e-package-a-factor-values.mjs` now contains structured numeric factor choices for all **33 Skills** from DH pp.160–176, including source-page provenance for split-page tables. Specialized entries use explicit Formula, Versus and Deferred rule classifications; no numeric Ob is fabricated when a spell, invocation, separate monster roll or missing context supplies the obstacle. `tests.sourceBoundFactorPlan` is read-only, validates factor combination and selected source-backed values, and enforces explicit GM provenance checks for known Scholar/Weaver/Sailor/Mentor/Rider special cases. Advanced Nature stock descriptors (DH pp.65,70–71) also have targeted read-only validation.
+
+**This is full numerical cataloguing, NOT complete runtime or exhaustive exception-rule parity.** Tests/Help/Wises/Nature/Abilities & Skills remain OPEN. Other resource, spell, equipment, actor identity and conflict interactions remain GM-controlled/manual. Manual Foundry 13.351 acceptance is still pending. **0/14 FULLY REAUDITED** remains the only honest domain certification. Legacy Mixed sole live; TB2E CORE read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 frozen.
