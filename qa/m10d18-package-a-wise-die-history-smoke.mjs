@@ -13,9 +13,8 @@ assert.equal(p.selectedDieId,"fresh");assert.equal(p.diceToReroll,1);
 assert.equal(p.resourceAmount,1);assert.equal(p.resourceSpendCommitted,false);
 assert.equal(p.rollExecuted,false);
 const afterLuck=plan({...params,fateLuckAlreadyUsed:true});
-assert.equal(afterLuck.ok,true);
-assert.deepEqual(afterLuck.eligibleFailedDieIds,["fresh"]);
-assert.equal(afterLuck.fateLuckAlreadyUsed,true);assert.equal(p.actorWrite,false);
+assert.equal(afterLuck.ok,false);
+assert.equal(afterLuck.reasonCode,"DEEPER_MUST_PRECEDE_FATE_LUCK");assert.equal(p.actorWrite,false);
 assert.equal(p.writesPlanned,0);assert.equal(p.liveApplication,false);
 for(const [opts,reason] of [
  [{...params,chosenDieId:"old"},"SELECTED_DIE_NOT_ELIGIBLE"],
