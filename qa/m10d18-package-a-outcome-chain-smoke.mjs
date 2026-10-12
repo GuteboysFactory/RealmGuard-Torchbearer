@@ -61,5 +61,25 @@ for(const [request,reason] of rejection){
  const p=chain(request);safe(p);assert.equal(p.ok,false,JSON.stringify(p));
  assert.equal(p.reasonCode,reason,JSON.stringify(p));
 }
+
+const personaScenario={...scenarioInput,bonuses:{personaDice:1}};
+const personaDice=[1,2,3,4,2,6];
+const absentPersona=chain({...case0,scenarioInput:personaScenario,dice:personaDice});
+safe(absentPersona);assert.equal(absentPersona.reasonCode,
+ "PERSONA_START_BALANCE_REQUIRED_FOR_PRE_ROLL_SPENDING");
+const insufficientPersona=chain({...case0,scenarioInput:personaScenario,dice:personaDice,
+ personaAvailableAtRollStart:0});
+safe(insufficientPersona);assert.equal(insufficientPersona.reasonCode,
+ "INSUFFICIENT_PERSONA_BEFORE_ROLL");
+const withPersona=chain({...case0,scenarioInput:personaScenario,dice:personaDice,
+ personaAvailableAtRollStart:1});
+safe(withPersona);assert.equal(withPersona.ok,true,JSON.stringify(withPersona));
+assert.equal(withPersona.projectedPersonaBeforeRollCost,1);
+assert.equal(withPersona.personaStartingBalanceAuthenticated,false);
+const tooMuch=chain({...case0,scenarioInput:{...scenarioInput,bonuses:{personaDice:4}},
+ dice:personaDice,personaAvailableAtRollStart:4});
+safe(tooMuch);assert.equal(tooMuch.reasonCode,
+ "SCENARIO_PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE");
+
 assert.deepEqual(good.resolvedDice,[1,2,3,4,2]);
 console.log("PASS Package A immutable chain: GM-reviewed pool-sized supplied D6 -> outcome -> source-bound BL/Skill marks, no roll or Actor writes");
