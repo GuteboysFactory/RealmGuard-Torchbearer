@@ -1099,3 +1099,10 @@ Every package receives its own QA protocol. Stable 1.x work is built from the la
 **Release discipline:** one combined QA candidate and one consolidated Foundry 13.351 test for each package, after successful automated regression and safety checks. No intermediate check requests. No domain may become FULLY_REAUDITED without recorded source-to-adapter parity and exceptions. Pending gaps remain disclosed instead.
 
 **Hard safety gates:** Legacy Mixed only live authority; TB2E CORE shadow/read-only and not selectable; Global Kill Switch ENGAGED; M11 PAUSED; no migration/data updates; stable 1.12.0 untouched. PR branch changes must not modify `channels/`, `system.json` or `release/READY` before verified package release.
+
+
+### 2026-10-12 – Package A full numerical factor mapping, pre-release checkpoint
+
+All 33 DH skill entries now have a keyed read-only numeric factor catalogue and source-page references; special formulas and Versus/deferred entries are explicitly separated. `tests.sourceBoundFactorPlan` validates GM selections and selected skill prerequisites, alongside Heroic, Wises, Help and advanced Nature source fixes. The draft Package A regression suite and one consolidated Foundry protocol have been expanded.
+
+**Still blocked for full QA release:** validated end-to-end actor/GM authorization, source exceptions across all domains, external spells/magic and conflicts, complete Wise reroll provenance across actual real rolls, integrated advancement/condition interactions and one combined Foundry 13.351 manual QA. PR #14 stays DRAFT; Full Re-Audit 0/14; stable v1.12.0 and Legacy Mixed unaffected.
