@@ -40,15 +40,21 @@ const dynamic=[
  [{skillName:"Laborer",tableName:"carrying",extraSlots:3},3],
  [{skillName:"Sapper",tableName:"setTrap",trap:"pit",material:"stone"},3],
  [{skillName:"Sapper",tableName:"setTrap",trap:"tripwire"},2],
- [{skillName:"Scholar",tableName:"scribe",highestSpellCircle:3,spellCount:2},4]
+ [{skillName:"Scholar",tableName:"scribe",highestSpellScribingObstacle:3,spellCount:2},4]
 ];
 for(const [opts,ob] of dynamic){const x=formula({...opts,gmAuthorized:true});safe(x);assert.equal(x.ok,true,JSON.stringify(x));assert.equal(x.obstacle,ob);}
+const scribing=formula({skillName:"Scholar",tableName:"scribe",
+ highestSpellScribingObstacle:6,spellCount:3,gmAuthorized:true});
+safe(scribing);assert.equal(scribing.obstacle,8);
+assert.equal(formula({skillName:"Scholar",tableName:"scribe",highestSpellCircle:6,spellCount:3,gmAuthorized:true}).reasonCode,
+ "SOURCE_SCRIBING_OBSTACLE_AND_COUNT_REQUIRED");
+
 for(const [opts,reason] of [
  [{skillName:"Mentor",tableName:"teaching",studentNature:0},"STUDENT_NATURE_REQUIRED"],
  [{skillName:"Sapper",tableName:"setTrap",trap:"pit"},"PIT_MATERIAL_FACTOR_REQUIRED"],
  [{skillName:"Sapper",tableName:"setTrap",trap:"tripwire",material:"stone"},"MATERIAL_ONLY_FOR_PIT"],
  [{skillName:"Rider",tableName:"training",beastNature:3,use:"unknown"},"INVALID_RIDER_USE"],
- [{skillName:"Scholar",tableName:"scribe",highestSpellCircle:3,spellCount:0},"SPELL_CIRCLE_AND_COUNT_REQUIRED"],
+ [{skillName:"Scholar",tableName:"scribe",highestSpellScribingObstacle:3,spellCount:0},"SOURCE_SCRIBING_OBSTACLE_AND_COUNT_REQUIRED"],
  [{skillName:"Weaver",tableName:"weaving"},"NOT_A_SPECIAL_FACTOR_FORMULA"]
 ]){const x=formula({...opts,gmAuthorized:true});safe(x);assert.equal(x.reasonCode,reason,JSON.stringify(x));}
 console.log("PASS M10D.18 Paket A DH160-176: 33 skills, "+meta.tableCount+" source factor tables; GM keys, dynamic formulas, special/deferred routes and zero writes");
