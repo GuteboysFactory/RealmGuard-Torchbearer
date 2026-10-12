@@ -94,3 +94,22 @@ New code and QA smoke additions cover Help participation and group failure (`SG 
 Added read-only `wises.deeperDiePlan`, verifying a chosen failed D6 has not already been rerolled. Inputs carry explicit die IDs, face values, prior-reroll markers and resource availability. Existing Wise reroll entry point remains backward compatible. No Fate spend, no second roll, no Actor write. New regression: `qa/m10d18-package-a-wise-die-history-smoke.mjs`.
 
 This **does not** complete Wise parity: other reroll-effect sequencing and exact real roll-record binding remain open. It does close a specific untracked-die selection risk in shadow previews.
+
+
+## 2026-10-12 — 33-Skill Numerical Source Catalogue and Consolidated Tests Integration
+
+A new source-parsed **33/33 DH skill numerical factor catalogue** is committed as `module/m10d18-tb2e-package-a-factor-values.mjs`. It encodes page-labelled factor options from printed DH pp.160–176 as structured read-only metadata, **not verbatim rulebook pages**. One primary alternative and applicable additive categories are explicitly selected by the GM. Runtime must never assume a player owns tools, Skill benefits or situational eligibility from this catalogue.
+
+- Core APIs: `abilities.numericalFactorStatus/Entry/ObstaclePlan/FormulaPlan`, `abilities.skillFactorPrerequisitePlan`, `tests.sourceBoundFactorPlan`.
+- Source-bound mode rejects unsourced category/choice names, missing or multiple unrelated primary factors, and conflicting additive modifiers; no dice are rolled and no Actor/Item/Journal/Settings writes are made.
+- **Dedicated formulas** calculate Mentor current student Nature, Rider beast Nature + selected training use, Laborer additional carrying slots, Sapper pit/material and trap level, and Scholar highest-circle spell plus extra spells, always from explicit GM-provided values.
+- **Non-Ob pathways** remain deliberately blocked from automatic numeric Ob: Fighter/Orator/Persuader/Criminal/etc. Versus routes; Arcanist individual spells, Ritualist invocations and Lore Master spell memorization delegate to their proper source domains.
+- **Skill-specific source constraints** require confirmed reading language (Scholar), loom (Weaver tapestries), vessel or crew (Sailor), higher instructor Skill (Mentor) and trained/controlled mount (Rider), without false Actor ownership inference.
+- Advanced Nature stock/descriptor policy from DH pp.65, 70–71 now covers written dwarven grudge goals, group-only Merrymaking with its **suggested**, not mandatory +1 Ob, non-persuasive Demanding, GM-approved new Elven Remembering lore and alternate descriptor ownership.
+- Regression coverage: `qa/m10d18-package-a-numerical-factors-smoke.mjs`, `qa/m10d18-package-a-factor-prerequisite-smoke.mjs`, `qa/m10d18-package-a-nature-descriptors-smoke.mjs`, plus full historical suite.
+
+### Explicit remaining truthfulness boundary
+
+**Mapping the published DH source's numerical factor options does NOT mean full end-to-end Skill or Tests parity.** The catalogue does not itself authorize a player's action, automatically evaluate all fiction/conditions/tools or resolve all spells, monsters, conflict tests, spell memorization, magic exceptions, Traits, Wise provenance, original context-dependent modifiers or real advancement. The older generic GM-factor plan is preserved for compatibility and remains an untrusted caller-supplied preview. Actor-backed provenance and complete end-to-end test sequences still need independent review, plus one combined Foundry v13.351 manual QA.
+
+Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the global kill switch engaged, M11 PAUSED and stable v1.12.0 unchanged.
