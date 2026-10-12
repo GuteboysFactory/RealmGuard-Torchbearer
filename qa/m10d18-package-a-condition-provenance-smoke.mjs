@@ -20,6 +20,14 @@ const injured=scenario({...base,actingConditions:["INJURED"]});ok(injured);
 assert.equal(injured.finalDicePool,4);assert.equal(injured.actingConditionPenaltyDice,-1);
 const sickInjured=scenario({...base,actingConditions:["INJURED","SICK"]});ok(sickInjured);
 assert.equal(sickInjured.finalDicePool,3);assert.equal(sickInjured.actingConditionPenaltyDice,-2);
+denied(scenario({...base,rating:1,actingConditions:["INJURED"],bonuses:{personaDice:3}}),
+ "CONDITION_ZERO_RATED_SKILL_CANNOT_TEST");
+denied(scenario({...base,rating:2,actingConditions:["INJURED","SICK"],help:{
+ helperId:"actorB",helperConditions:[],conditionsGmReviewed:true,describedRelevantAction:true,
+ actingPlayerAccepted:true,gmApprovedRelevance:true,
+ helpOptions:{sourceKind:"skill",sourceName:"Cook",testName:"Cook",sameSkill:true}
+}}),"CONDITION_ZERO_RATED_SKILL_CANNOT_TEST");
+
 denied(scenario({...base,actingConditions:null}),"CONDITION_GM_ACTING_CONDITIONS_REQUIRED");
 denied(scenario({...base,conditionsGmReviewed:false}),"CONDITION_GM_ACTING_CONDITIONS_REQUIRED");
 denied(scenario({...base,testContext:"RECOVERY"}),"SCENARIO_ONLY_SUPPORTS_INDEPENDENT_TESTS");
