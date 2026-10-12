@@ -1106,3 +1106,10 @@ Every package receives its own QA protocol. Stable 1.x work is built from the la
 All 33 DH skill entries now have a keyed read-only numeric factor catalogue and source-page references; special formulas and Versus/deferred entries are explicitly separated. `tests.sourceBoundFactorPlan` validates GM selections and selected skill prerequisites, alongside Heroic, Wises, Help and advanced Nature source fixes. The draft Package A regression suite and one consolidated Foundry protocol have been expanded.
 
 **Still blocked for full QA release:** validated end-to-end actor/GM authorization, source exceptions across all domains, external spells/magic and conflicts, complete Wise reroll provenance across actual real rolls, integrated advancement/condition interactions and one combined Foundry 13.351 manual QA. PR #14 stays DRAFT; Full Re-Audit 0/14; stable v1.12.0 and Legacy Mixed unaffected.
+
+
+### 2026-10-12 — Package A integration milestone (Draft PR #14)
+
+The 33-Skill numeric catalogue now feeds an additional read-only `tests.scenarioPlan`: factor choices, optional/environment modifiers, equipment, Help, Wise aid and Beginner's Luck are assembled for **GM scenario inspection only**. All additive factor omissions need explicit GM review; nested prerequisite facts cannot replace top-level source identity. Test vectors cover normal pools, pre-halving BL, distinct helper identities, GM authorization, source pages and zero-write assertions.
+
+**Next package readiness tasks:** independently validate numeric choice tables and all domain-specific exceptions against original PDFs; exercise Actor/level-condition and actual dice-history provenance with no live writes; finish comprehensive five-domain cross-tests; confirm protected CI, build/package verification and one final consolidated Foundry v13.351 manual QA. Do not equate PASS smoke suites with FULLY REAUDITED. Full audit 0/14, M11 PAUSED, kill switch ENGAGED, stable v1.12.0 unaffected.
