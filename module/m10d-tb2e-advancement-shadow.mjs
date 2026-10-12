@@ -6,7 +6,9 @@ const ADVANCEMENT_ROW=TB2E_SOURCE_COVERAGE_MATRIX.find(row=>row.id==="advancemen
 const LEVEL_INVESTMENTS=freezeTb2e([{level:1,fate:0,persona:0},{level:2,fate:3,persona:3},{level:3,fate:7,persona:6},{level:4,fate:14,persona:12},{level:5,fate:22,persona:20},{level:6,fate:31,persona:30},{level:7,fate:41,persona:42},{level:8,fate:52,persona:56},{level:9,fate:64,persona:72},{level:10,fate:78,persona:98}]);
 
 function key(value){return String(value??"").trim().toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_|_$/g,"");}
-function nonNegativeInteger(value){return Number.isInteger(Number(value))&&Number(value)>=0;}
+// DH 108-110: distinct whole test counts. Never coerce missing/boolean/text
+// evidence into numerical marks; this still does not authenticate history.
+function nonNegativeInteger(value){return Number.isSafeInteger(value)&&value>=0;}
 function blocked(reasonCode,extra={}){
   return freezeTb2e({...extra,ok:false,phase:"M10D.11",profileId:PROFILE_ID,reasonCode,liveApplication:false,writesPlanned:0});
 }
@@ -93,7 +95,7 @@ export function tb2eAdvancementThresholdPlan({
 }={}){
   const k=key(kind);
   if(!["SKILL","WILL","HEALTH","RESOURCES","CIRCLES"].includes(k))return blocked("UNKNOWN_ADVANCEMENT_KIND",{kind:k});
-  if(!Number.isInteger(Number(rating))||Number(rating)<0||Number(rating)>capFor(k))return blocked("RATING_OUT_OF_RANGE",{kind:k,rating,cap:capFor(k)});
+  if(!nonNegativeInteger(rating)||rating>capFor(k))return blocked("RATING_OUT_OF_RANGE",{kind:k,rating,cap:capFor(k)});
   if(!nonNegativeInteger(passed)||!nonNegativeInteger(failed))return blocked("INVALID_ADVANCEMENT_MARK_COUNT",{passed,failed});
   if(["SKILL","WILL","HEALTH"].includes(k)&&Number(rating)<1)return blocked("STANDARD_ADVANCEMENT_REQUIRES_RATING_AT_LEAST_ONE",{kind:k,rating});
   if(["RESOURCES","CIRCLES"].includes(k)&&Number(rating)===0)return freezeTb2e({
@@ -128,7 +130,9 @@ export function tb2eAdvancementMarkPlan({
 }={}){
   const result=key(outcome);
   if(!["PASS","FAIL","TIE"].includes(result))return blocked("INVALID_TEST_OUTCOME",{outcome:result});
-  if(!Number.isInteger(Number(obstacle))||Number(obstacle)<0)return blocked("INVALID_OBSTACLE",{obstacle});
+  if(!nonNegativeInteger(obstacle))return blocked("INVALID_OBSTACLE",{obstacle});
+  if([versusCombat,alreadyCountedInContext,tieBroken].some(v=>typeof v!=="boolean"))
+    return blocked("INVALID_ADVANCEMENT_REVIEW_FLAGS");
   const ctx=key(context);
   if(!["ADVENTURE","CAMP","TOWN","CONFLICT","SERIES"].includes(ctx))return blocked("UNKNOWN_ADVANCEMENT_CONTEXT",{context:ctx});
   let mark=result;
@@ -196,10 +200,12 @@ export function tb2eNatureAdvancementShadowPlan({
   passed=0,
   failed=0
 }={}){
-  if(!Number.isInteger(Number(currentNature))||!Number.isInteger(Number(maximumNature))||Number(currentNature)<0||Number(maximumNature)<0||Number(currentNature)>Number(maximumNature)||Number(maximumNature)>7)return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(!nonNegativeInteger(currentNature)||!nonNegativeInteger(maximumNature)||currentNature>maximumNature||maximumNature>7)return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
   if(!nonNegativeInteger(passed)||!nonNegativeInteger(failed))return blocked("INVALID_ADVANCEMENT_MARK_COUNT",{passed,failed});
   const basis=Number(maximumNature);
   if(basis===0)return blocked("MAXIMUM_NATURE_ZERO_RETIREMENT_BOUNDARY");
+  // DH 68: resolve taxed-to-zero Nature loss before advancement (DH 109).
+  if(currentNature===0)return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST");
   const requiredPasses=basis;
   const requiredFails=Math.max(0,basis-1);
   const atCap=basis>=7;
@@ -224,7 +230,8 @@ export function tb2eNewSkillLearningAdvancementPlan({
   alreadyKnown=false
 }={}){
   if(!nonNegativeInteger(attempts))return blocked("INVALID_BEGINNERS_LUCK_ATTEMPTS",{attempts});
-  if(!Number.isInteger(Number(maximumNature))||Number(maximumNature)<1||Number(maximumNature)>7)return blocked("INVALID_MAXIMUM_NATURE_FOR_LEARNING",{maximumNature});
+  if(!nonNegativeInteger(maximumNature)||maximumNature<1||maximumNature>7)return blocked("INVALID_MAXIMUM_NATURE_FOR_LEARNING",{maximumNature});
+  if(typeof alreadyKnown!=="boolean")return blocked("INVALID_KNOWN_SKILL_FLAG");
   if(alreadyKnown)return blocked("SKILL_ALREADY_KNOWN");
   const requiredAttempts=Number(maximumNature);
   const ready=Number(attempts)>=requiredAttempts;
@@ -277,7 +284,7 @@ export function tb2eLevelProgressionBoundaryPlan({
   spentFate=0,
   spentPersona=0
 }={}){
-  if(!Number.isInteger(Number(currentLevel))||Number(currentLevel)<1||Number(currentLevel)>10)return blocked("INVALID_CLASS_LEVEL",{currentLevel});
+  if(!nonNegativeInteger(currentLevel)||currentLevel<1||currentLevel>10)return blocked("INVALID_CLASS_LEVEL",{currentLevel});
   if(!nonNegativeInteger(spentFate)||!nonNegativeInteger(spentPersona))return blocked("INVALID_SPENT_RESOURCE_COUNT",{spentFate,spentPersona});
   return freezeTb2e({
     ok:true,phase:"M10D.11",profileId:PROFILE_ID,mode:"LEVEL_PROGRESSION_BOUNDARY_SHADOW",
