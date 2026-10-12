@@ -136,7 +136,7 @@ export function tb2eAdvancementThresholdPlan({kind="SKILL",rating=1,heroicRating
   const key=String(kind??"SKILL").trim().toUpperCase();
   const originalBounds=ratingBounds(key);
   if(!originalBounds)return blocked("UNSUPPORTED_ADVANCEMENT_KIND",{kind:key});
-  const heroic=key==="SKILL"&&heroicRatingSevenUnlocked===true;
+  const heroic=["SKILL","WILL","HEALTH"].includes(key)&&heroicRatingSevenUnlocked===true;
   const bounds=heroic?{...originalBounds,max:7}:originalBounds;
   if(!integer(rating)||Number(rating)<bounds.min||Number(rating)>bounds.max)return blocked("INVALID_ADVANCEMENT_RATING",{kind:key,rating,bounds});
   const value=Number(rating);
