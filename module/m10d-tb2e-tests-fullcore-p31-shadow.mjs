@@ -1,5 +1,6 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import { tb2eNumericalFactorObstaclePlan, tb2eNumericalFactorFormulaPlan } from "./m10d18-tb2e-package-a-factor-values.mjs";
+import { tb2eSkillFactorPrerequisitePlan } from "./m10d18-tb2e-package-a-skill-prerequisites.mjs";
 const SOURCE="Scholar's Guide pp.27, 32-34";
 const ACTIONS=Object.freeze(["SKILL","WILL","HEALTH","NATURE","MONSTER"]);
 const number=v=>Number.isInteger(v)&&v>=0;
@@ -69,8 +70,15 @@ export function tb2eTieBreakerPlan({initialSourceKind="",beginnersLuckAbility=""
  */
 export function tb2eSourceBoundFactorPlan(options={}){
  const kind=String(options?.factorMode??"TABLE").trim().toUpperCase();
- if(kind==="TABLE")return tb2eNumericalFactorObstaclePlan(options);
- if(kind==="FORMULA")return tb2eNumericalFactorFormulaPlan(options);
+ if(["TABLE","FORMULA"].includes(kind)){
+  const prereq=tb2eSkillFactorPrerequisitePlan({...options,...(options?.preconditionFacts??{})});
+  if(!prereq.ok)return prereq;
+  const candidate=kind==="TABLE"?
+    tb2eNumericalFactorObstaclePlan(options):tb2eNumericalFactorFormulaPlan(options);
+  if(!candidate.ok)return candidate;
+  return freezeTb2e({...candidate,sourcePreconditionsValidated:prereq.specialRequirementsChecked,
+    gameplayAuthorizationGranted:false,requiresGMFictionJudgment:true});
+ }
  return freezeTb2e({ok:false,reasonCode:"UNKNOWN_SOURCE_FACTOR_MODE",
    profileId:"torchbearer2e",mode:"READ_ONLY_SHADOW",
    liveApplication:false,writesPlanned:0});
