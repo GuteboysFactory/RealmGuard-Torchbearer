@@ -14,7 +14,12 @@ function validateDice(dice){
   if(dice.some(die=>!Number.isInteger(Number(die))||Number(die)<1||Number(die)>6)) return {ok:false,reasonCode:"INVALID_D6_RESULT"};
   return {ok:true,dice:dice.map(Number)};
 }
-function countSuccesses(dice){return dice.filter(die=>die>=4).length;}
+function countSuccesses(dice,threshold=4){return dice.filter(die=>die>=threshold).length;}
+function heroicThreshold({heroicTn3BenefitUnlocked=false,sourceKind=""}={}){
+  const kind=String(sourceKind??"").trim().toUpperCase();
+  if(heroicTn3BenefitUnlocked===true&& !["SKILL","WILL","HEALTH"].includes(kind))return null;
+  return heroicTn3BenefitUnlocked===true?3:4;
+}
 
 export function tb2eTestShadowStatus(){
   return freezeTb2e({
@@ -64,36 +69,40 @@ export function tb2eTestPoolPlan({basePool=0,diceModifier=0,successModifier=0}={
   });
 }
 
-export function tb2eResolveObstacleShadow({dice=[],obstacle,successModifier=0}={}){
+export function tb2eResolveObstacleShadow({dice=[],obstacle,successModifier=0,sourceKind="",heroicTn3BenefitUnlocked=false}={}){
   const checked=validateDice(dice);if(!checked.ok)return blocked(checked.reasonCode);
   if(!nonNegativeInteger(obstacle)) return blocked("INVALID_OBSTACLE",{obstacle});
   if(!integer(successModifier)) return blocked("INVALID_SUCCESS_MODIFIER",{successModifier});
-  const rawSuccesses=countSuccesses(checked.dice);
+  const threshold=heroicThreshold({heroicTn3BenefitUnlocked,sourceKind});
+  if(threshold===null)return blocked("HEROIC_TN3_REQUIRES_ELIGIBLE_SKILL_OR_ABILITY",{sourceKind});
+  const rawSuccesses=countSuccesses(checked.dice,threshold);
   const finalSuccesses=Math.max(0,rawSuccesses+Number(successModifier));
   const target=Number(obstacle);
   const outcome=finalSuccesses>=target?"PASS":"FAIL";
   const margin=Math.abs(finalSuccesses-target);
   return freezeTb2e({
     ok:true,phase:"M10D.4",profileId:PROFILE_ID,mode:"OBSTACLE_SHADOW",
-    dice:checked.dice,successThreshold:4,rawSuccesses,successModifier:Number(successModifier),finalSuccesses,
+    dice:checked.dice,successThreshold:threshold,heroicBenefitGmPreconfirmed:heroicTn3BenefitUnlocked===true,rawSuccesses,successModifier:Number(successModifier),finalSuccesses,
     obstacle:target,obstacleAuthority:"CALLER_SUPPLIED",normalGuideRange:target>=2&&target<=5,
     outcome,margin,marginKind:outcome==="PASS"?"SUCCESS":"FAILURE",
     obstacleFactorsAutomated:false,liveApplication:false,writesPlanned:0
   });
 }
 
-export function tb2eResolveVersusShadow({dice=[],opponentSuccesses,successModifier=0}={}){
+export function tb2eResolveVersusShadow({dice=[],opponentSuccesses,successModifier=0,sourceKind="",heroicTn3BenefitUnlocked=false}={}){
   const checked=validateDice(dice);if(!checked.ok)return blocked(checked.reasonCode);
   if(!nonNegativeInteger(opponentSuccesses)) return blocked("INVALID_OPPONENT_SUCCESSES",{opponentSuccesses});
   if(!integer(successModifier)) return blocked("INVALID_SUCCESS_MODIFIER",{successModifier});
-  const rawSuccesses=countSuccesses(checked.dice);
+  const threshold=heroicThreshold({heroicTn3BenefitUnlocked,sourceKind});
+  if(threshold===null)return blocked("HEROIC_TN3_REQUIRES_ELIGIBLE_SKILL_OR_ABILITY",{sourceKind});
+  const rawSuccesses=countSuccesses(checked.dice,threshold);
   const finalSuccesses=Math.max(0,rawSuccesses+Number(successModifier));
   const target=Number(opponentSuccesses);
   const outcome=finalSuccesses>target?"PASS":finalSuccesses<target?"FAIL":"TIE";
   const margin=Math.abs(finalSuccesses-target);
   return freezeTb2e({
     ok:true,phase:"M10D.4",profileId:PROFILE_ID,mode:"VERSUS_SHADOW",
-    dice:checked.dice,successThreshold:4,rawSuccesses,successModifier:Number(successModifier),finalSuccesses,
+    dice:checked.dice,successThreshold:threshold,heroicBenefitGmPreconfirmed:heroicTn3BenefitUnlocked===true,rawSuccesses,successModifier:Number(successModifier),finalSuccesses,
     opponentSuccesses:target,outcome,margin,marginKind:outcome==="PASS"?"SUCCESS":outcome==="FAIL"?"FAILURE":"TIE",
     tieResolutionRequired:outcome==="TIE",tieResolutionAutomation:false,
     tieBoundary:outcome==="TIE"?"SG32_34_TIEBREAKER_PLAN_AVAILABLE":null,
