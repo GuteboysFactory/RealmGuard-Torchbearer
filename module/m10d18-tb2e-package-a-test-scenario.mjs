@@ -93,6 +93,8 @@ export function tb2ePackageATestScenarioPlan({
    gmAngryObstacleDecision,actingOnInstinct,instinctTurnSpent
  });
  if(!conditions.ok)return fail("CONDITION_"+conditions.reasonCode);
+ if(type==="SKILL"&&rating+conditions.abilityOrSkillConditionDice<=0)
+   return fail("CONDITION_ZERO_RATED_SKILL_CANNOT_TEST");
  const helping=helpResult?1:0,wise=wiseResult?1:0;
  let pool;
  if(type==="BEGINNERS_LUCK"){
