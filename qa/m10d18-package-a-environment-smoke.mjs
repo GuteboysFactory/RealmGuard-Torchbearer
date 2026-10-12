@@ -7,7 +7,7 @@ const cases=[
  [{},0,0],
  [{light:"DIM_LIGHT",testMode:"OBSTACLE"},1,0],
  [{light:"DARKNESS",actionPossibleInDarkness:true},1,0],
- [{light:"DARKNESS",actionPossibleInDarkness:true,darknessFactorExempt:true},0,0],
+ [{light:"DARKNESS",actionPossibleInDarkness:true,darknessFactorExempt:true,actionIsRiddling:true},0,0],
  [{light:"CLEAR",testMode:"OBSTACLE",additionalGmHindrances:2},2,0],
  [{light:"DIM_LIGHT",testMode:"VERSUS"},0,-1],
  [{light:"DARKNESS",actionPossibleInDarkness:true,testMode:"VERSUS",additionalGmHindrances:2},0,-3]
@@ -17,6 +17,7 @@ for(const [opts,reason] of [
  [{light:"DARKNESS"},"DARKNESS_ACTION_NOT_CONFIRMED_POSSIBLE"],
  [{light:"FOG"},"INVALID_LIGHT_STATE"],
  [{light:"DIM_LIGHT",darknessFactorExempt:true},"DARKNESS_EXEMPTION_WITHOUT_DARKNESS"],
+ [{light:"DARKNESS",actionPossibleInDarkness:true,darknessFactorExempt:true},"DARKNESS_EXEMPTION_REQUIRES_RIDDLING"],
  [{testMode:"SKILL"},"INVALID_TEST_MODE"],
  [{additionalGmHindrances:-1},"INVALID_GM_HINDRANCE_COUNT"],
  [{additionalGmHindrances:1.25},"INVALID_GM_HINDRANCE_COUNT"]
