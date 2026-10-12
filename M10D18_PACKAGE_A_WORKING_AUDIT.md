@@ -140,3 +140,23 @@ Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the glo
 ### Isolated Foundry archive readiness check (Package A Draft)
 
 The Package A PR workflow now stages a **temporary**, unpublished Foundry system ZIP after the complete smoke suite. It validates ZIP integrity, byte-for-byte agreement of the packaged root `system.json`, inclusion of all runtime paths referenced by the manifest and exclusion of internal release/channel directories. `qa/m10d18-package-a-archive-check.mjs` checks the listing against `system.json` and ensures the version matches `release/READY`. The temporary archive is **never uploaded or tagged**, and no release workflow is invoked. This is a packaging preflight only; it is not a completed protected release or Foundry acceptance.
+
+
+## 2026-10-12 — Package A integrated Actor/Condition provenance boundary (read-only)
+
+**Source evidence:** *Scholar's Guide*, printed pp.46–52 (Fresh, Hungry, Angry, Afraid, Exhausted, Injured, Sick, Dead, multiple conditions), *Dungeoneer's Handbook* p.59 (Beginner's Luck dice staging) and Nature channel rules (DH 65–71).
+
+The new `module/m10d18-tb2e-package-a-condition-boundary.mjs` requires the GM to identify an acting character and to explicitly review the actor's Condition set; where Help or Wise aid is used, it also requires separately reviewed helper Conditions and distinct character identifiers. This is not a Foundry Actor lookup or entitlement validation.
+
+- Fresh contributes +1D for ordinary independent tests, and **after halving** for Beginner's Luck.
+- Injured and Sick impose stackable -1D each on Skill/Will/Health tests. A Beginner's Luck Ability reduced to zero is rejected.
+- Afraid blocks Beginner's Luck and ordinary Help offered by that helper. Angry blocks beneficial Traits for the actor and Wise aid from an angry helper. Dead characters cannot participate in tests or Help in any capacity.
+- The GM explicitly chooses whether to apply the Angry +1 Ob for an independent precision/social Skill; listed source Skills are recognized. Exhausted free Instinct is not accepted: the acting player must spend a turn and +1 Ob applies.
+- Channeled Nature requires the source test to match the current scenario, a GM-reviewed current/maximum Nature and Persona availability, and an exact match between channel dice and Current Nature; potential Tax is returned as guidance only.
+- Independent-test preview refuses recovery, Versus, conflict and other contexts; these require their own rule pathways. No Condition, Nature, resource or Actor values are changed.
+
+Test evidence: `qa/m10d18-package-a-condition-provenance-smoke.mjs`, alongside the existing scenario, factor, Help and Wise smoke suites. **CI 143 smoke suites PASS** on branch at the time of the checkpoint. Its unpublished ZIP preflight still verifies 21 manifest dependencies and no live channel changes.
+
+### Important limits
+
+Declaring `conditionsGmReviewed:true`, helper IDs, resource counts and Nature values does **not** prove that a real Foundry Actor currently has those values or that the client is a privileged GM. Full Actor-backed provenance, permission controls, real roll history, end-to-end Nature Tax/advancement, spell/conflict exceptions and multiplayer acceptance remain OPEN. `FULLY_REAUDITED` stays 0/14. No protected QA release, live CORE switch, or M11 resumption is justified by this checkpoint.
