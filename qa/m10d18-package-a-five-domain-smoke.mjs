@@ -38,7 +38,7 @@ assert.equal(tb2eNatureRecoveryPlan({method:"RESPITE",currentNature:2,maximumNat
 assert.equal(tb2eNatureAdvancementPlan({currentNature:4,maximumNature:6,advancementTriggered:true}).retirementTiming,"END_OF_SESSION_IF_STILL_AT_SEVEN");
 const tax=tb2eChannelNatureTaxPlan({currentNature:4,maximumNature:5,outcome:"FAIL",marginOfFailure:3});
 safe(tax);assert.equal(tax.currentAfter,1);assert.equal(tax.taxAmount,3);
-assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:2,fateLuckAlreadyUsed:true}).reasonCode,"WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
+assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:2,fateLuckAlreadyUsed:true}).reasonCode,"OF_COURSE_MUST_PRECEDE_FATE_LUCK");
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:2,alreadyRerolledFailedDice:2}).reasonCode,"NO_ELIGIBLE_FAILED_DIE");
 assert.equal(tb2eWiseAidPlan({alsoProvidingHelp:true}).ok,false);
 assert.equal(tb2eWiseLanguageRetentionPlan({peopleWise:true,wiseChanged:false}).languageRetained,true);
