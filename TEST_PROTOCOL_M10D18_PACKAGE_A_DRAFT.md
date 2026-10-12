@@ -156,3 +156,33 @@ A.tests.progressAfterTestPlan({
 ```
 
 Also verify SG52: Skill rating 1 with Injured (or rating 2 with Sick + Injured) returns `CONDITION_ZERO_RATED_SKILL_CANNOT_TEST` from `tests.scenarioPlan`, even when equipment, Help or Persona would otherwise supply dice. These remain **pure previews**. Confirm no log, Actor write, new Skill, resource deduction or roll is performed.
+
+
+### Integrated plain-D6 outcome / advancement gate (staged, not runnable as live dice)
+
+This supplements Gate B and C in the **same** eventual Foundry test, not as a separate micro-gate. Construct `scenarioInput` with all explicitly GM-reviewed Conditions, tools, light and factor selections as already shown, then:
+
+```js
+const scenarioInput={
+  skillName:"Cook",mode:"SKILL",rating:4,
+  factor:{tableName:"meals",gmAuthorized:true,selections:{ingredients:"fresh",amount:"one"}},
+  equipment:{hasSkill:true,carriesBackpackOrSatchel:true,borrowedTools:false,
+    dwarvenCraftingNature:false,isCraftingTest:false,toolsInadequate:false,
+    suppliesUsed:1,gearUsed:0},
+  environment:{light:"CLEAR",additionalGmHindrances:0},
+  allModifiersGmReviewed:true,actingCharacterId:"qa-actor",
+  actingConditions:[],conditionsGmReviewed:true
+};
+A.tests.outcomeAndProgressPlan({
+  scenarioInput,dice:[1,2,3,4,2],gmDiceReviewed:true,
+  gmConfirmsNoRerolls:true,progressFacts:{
+    skillAlreadyKnown:true,gmConfirmedLegalTest:true,context:"ADVENTURE"
+  }
+}).advancementPreview.proposedMark; // "PASS"
+A.tests.outcomeAndProgressPlan({
+  scenarioInput,dice:[1,2,3,4],gmDiceReviewed:true,
+  gmConfirmsNoRerolls:true
+}).reasonCode; // "SUPPLIED_DICE_DO_NOT_MATCH_SCENARIO_POOL"
+```
+
+The provided D6s are **not actually rolled or imported from Foundry**. No Fate Luck or Wise reroll history is accepted by this limited preview; set `gmConfirmsNoRerolls:true` only for a genuinely plain pool. Treat all proposed marks as uncommitted. This does not authenticate the GM, Actor, class benefits or dice and does not authorize a QA release.
