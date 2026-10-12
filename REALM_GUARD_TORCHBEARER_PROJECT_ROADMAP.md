@@ -1148,3 +1148,8 @@ Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Und
 New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
 
 **Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
+
+
+### 2026-10-12 – Package A Persona provenance guard (source: SG 88)
+
+One cross-domain resource guard reconciles the pre-roll Persona Advantage (maximum 3) and Nature Channel (+1 Persona cost) with the later Wise Of Course expense against the **same GM-asserted starting balance**. Both rewarded-dice and plain-roll previews fail closed on insufficient or unknown required Persona. This corrects a double-counting risk but is **not** an authenticated Foundry resource ledger or live spend. Remaining blockers: trustworthy Actor data/permissions, real roll-event/reward provenance, all other source exceptions and one consolidated v13.351 multiplayer Foundry QA. No QA release or channel promotion; 0/14 FULLY_REAUDITED.
