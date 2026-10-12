@@ -1,5 +1,6 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2eSourceBoundFactorPlan} from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
+import {tb2eNumericalFactorEntry} from "./m10d18-tb2e-package-a-factor-values.mjs";
 import {tb2eEnvironmentalTestFactorPlan} from "./m10d18-tb2e-package-a-environment.mjs";
 import {tb2eSkillEquipmentPlan} from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
 import {tb2eHelpParticipationPlan} from "./m10d-tb2e-help-shadow.mjs";
@@ -109,5 +110,9 @@ export function tb2ePackageATestScenarioPlan({
    advancementAuthorized:false,conditionChangesAuthorized:false,
    noFoundryDocumentReads:true,resourceAuthorizationStillRequired:
      values.personaDice>0||values.channeledNatureDice>0,
-   sourceFactorPage:source.sourcePage??null});
+   sourceFactorPage:tb2eNumericalFactorEntry({
+     skillName,tableName:factor?.tableName
+   }).sourcePage??null,
+   poolAuthority:"GM_INPUT_PREVIEW_NOT_ACTOR_VERIFIED",
+   sourceFactorReview:"GM_SELECTED_NO_LIVE_TEST_AUTHORIZATION"});
 }
