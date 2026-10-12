@@ -46,6 +46,10 @@ export function tb2ePackageARewardedRollHistoryPlan({
    return deny("INVALID_REWARD_EVENT_LIST");
  const preview=tb2ePackageATestScenarioPlan(scenarioInput);
  if(!preview.ok)return deny("SCENARIO_"+preview.reasonCode,{sourceReasonCode:preview.reasonCode});
+ if(Number.isInteger(personaAvailable)&&
+   scenarioInput?.bonuses?.channeledNatureDice>0&&
+   scenarioInput?.channelNatureFacts?.personaAvailable!==personaAvailable)
+   return deny("NATURE_PERSONA_BALANCE_MISMATCH");
  const preRollPersona=preview.projectedPersonaBeforeRollCost;
  if(preRollPersona>personaAvailable)
    return deny("INSUFFICIENT_PERSONA_BEFORE_ROLL",{required:preRollPersona,available:personaAvailable});
