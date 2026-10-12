@@ -29,7 +29,10 @@ export function tb2ePackageAActorEvidence({actorId=null}={}){
        actor.inCompendium||actor.type!=="character")return fail("WORLD_CHARACTER_ACTOR_REQUIRED");
     const conditions=[],skills=[],wises=[];
     for(const item of actor.items){
-      if(item.type==="role")skills.push({itemId:str(item.id),name:str(item.name),rating:numeric(item.system?.rating)});
+      if(item.type==="role")skills.push({itemId:str(item.id),name:str(item.name),rating:numeric(item.system?.rating),
+        beginnerAttempts:numeric(item.system?.beginnerAttempts),
+        learning:{passed:numeric(item.system?.learning?.passed),failed:numeric(item.system?.learning?.failed),
+          passNeeded:numeric(item.system?.learning?.passNeeded),failNeeded:numeric(item.system?.learning?.failNeeded)}});
       if(item.type==="wise")wises.push({itemId:str(item.id),name:str(item.name)});
       if(item.type!=="condition")continue;
       if(typeof item.system?.active!=="boolean")return fail("INVALID_ACTOR_CONDITION_STATE");
@@ -46,6 +49,8 @@ export function tb2ePackageAActorEvidence({actorId=null}={}){
       conditions:[...new Set(conditions)],currentSkillItems:skills,currentWiseItems:wises,
       currentAbilities:{will:numeric(actor.system?.attributes?.will?.value),
         health:numeric(actor.system?.attributes?.health?.value)},
+      currentNature:{current:numeric(actor.system?.attributes?.nature?.value),
+        maximum:numeric(actor.system?.attributes?.nature?.maximum)},
       currentRewards:{fate,persona},evidenceScope:"CURRENT_MUTABLE_CLIENT_ACTOR_NOT_HISTORICAL_ATTESTATION"});
   }catch{return fail("ACTOR_EVIDENCE_READ_FAILED");}
 }

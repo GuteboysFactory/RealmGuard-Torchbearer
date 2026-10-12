@@ -292,3 +292,31 @@ Gate C reject: claimed wrong acting ID/rating/Will-Health, learned Skill used as
 Gate D: simultaneous GM/player checks, no private document data on denial, no socket/RNG/Actor/Item/Journal/Settings/resource/learning/advancement changes, no duplicate hooks and unchanged live-authority/kill-switch controls. All historical/authentication flags remain false, including playerConsentAuthenticated and participationAtRollTimeVerified. Changing a current Skill/Ability/condition/Wise affects only a new observation; prior frozen snapshots remain detached. Actual player acceptance, fictional relevance and same-test identity remain GM assertions. Run all prior A-D source/dice/reward cases together before reporting acceptance.
 
 Status: automated mock coverage; real combined Foundry v13.351 acceptance NOT RUN. Separate participation API has no Wise/Fate reroll timeline or advancement integration; the older documentRewardHistoryPlan retains its narrower Skill-only/no-helper scope. Release remains blocked, 0/14 FULLY_REAUDITED.
+
+### Saved participant outcome → current progression / Helper Synergy — combined Gates B/C/D (v13.351; NOT RUN)
+
+Keep inside the same consolidated Package A acceptance and use its current Skill/BL/Help source fixtures. Record Actor Item counters, Current/Maximum Nature, configured Legacy requirements, current helper resources, exact native message/faces and tested commit. There must be no actual marks, counters, ratings, resets, learned/forgotten Skills or spends.
+
+```js
+A.tests.participationProgressPlan({
+  actorId, messageId, scenarioInput, helpSourceItemId, wiseAidItemId,
+  progressReview:{
+    gmConfirmedLegalTest:true, gmConfirmsCountersExcludeThisTest:true,
+    gmConfirmsHistoricalEligibility:true, context:"ADVENTURE"
+  },
+  // Optional, ONLY for the observed ordinary helper (never Wise aid):
+  synergyReview:{fateAtRollStartGmAsserted:1,committedBeforeRollGmAsserted:true}
+});
+```
+
+Gate B/C trained Cook4 with current counters3P/3F and a source-valid saved PASS: projected4P/3F, source readiness for5. With4P/2F and saved FAIL: same projected4P/3F. A caller-selected outcome/counter/obstacle/source must be rejected. Verify configured Legacy passNeeded/failNeeded are displayed but not changed. Normal rating6 remains capped. Repeating the preview must not accumulate marks. Remove or corrupt a counter: reject, never infer0. Sick with already-ready4P/3F: no new mark, no advancement readiness or proposed rating increase.
+
+Gate B/C BL Cook at an existing rating0 learning record, attempts3, Current Nature2/Maximum4: after a legal saved PASS OR FAIL, show attempts4 and learned-rating2 readiness, with NO acting Will/Health advancement. Repeat with24 actual known roles: require an explicit future choice to forget a Skill; no deletion. Count25, ambiguous roles, absent/missing learning counter or invalid Nature state must reject. A missing Skill may pass the separate TEST bridge, but not this counter bridge. Sick adds no attempt.
+
+Gate B/C Helper Synergy: helper Alchemist2 with1P/1F provides source-listed Help to Cook, with explicit accepted action and source Item ID. On the acting PASS, project HELPER Alchemist2P/1F; on FAIL, project their own failed mark. Require historical helper Fate≥1 and GM-declared commitment before the roll. Current helper Fate0 must remain0 and must NOT override the separately asserted historical1. Sick helper cannot mark or advance even when old counters are ready. Wise aid alone has no Synergy route. Reject late/unreviewed Synergy, caller mark/source/result overrides, and conflict/series/tiebreaker/Camp/Town progression contexts.
+
+Gate B/C helper lacking trained Cook may use actual Will to Help the actor's BL test. Synergy can propose that HELPER Will mark while the ACTING character gains only the BL attempt. The current model has no Will/Health P/F fields: helperAbilityCountersObserved must be false and helperCounterProjection null. Do not claim a verified Ability advancement counter chain.
+
+Gate D: two-client GM/player rejection/privacy and before/after source documents/resources unchanged; player denied before reads; repeated snapshots remain detached. HistoricalEligibility/starting Fate/counters-exclude-test are explicit GM assertions. historicalProgressCountsAuthenticated, duplicateTestCheckAuthenticated, rollTimeActorStateVerified and all Actor/roll/GM/consent authentication flags remain false. No hooks, RNG, sockets, updates or actual logging. Repeat all prior A-D source/factor/conditions/dice/reward/participant cases together.
+
+Status: automated mock coverage only; real Foundry v13.351 combined acceptance NOT RUN. No mark/spend/learning/advancement authorization; no full-domain certification (0/14), release still blocked.
