@@ -171,3 +171,14 @@ Scholar's Guide p.52 additionally prohibits rolling a Skill or Ability when its 
 The new progress planner returns only projected marks/readiness and expressly commits **no** Actor mutations, advancement counts, new Skills, Nature changes or Will/Health marks. An actual completed roll and Actor state are still **GM-supplied assertions**; ownership, roll history and resource spend provenance are not verified by this adapter.
 
 Regression coverage: `qa/m10d18-package-a-progress-boundary-smoke.mjs`, plus new 0-rating cases in `qa/m10d18-package-a-condition-provenance-smoke.mjs`. Domain A is **not FULLY REAUDITED**; 0/14 unchanged.
+
+
+## 2026-10-12 — Read-only outcome chain: final D6 pool → Obstacle → advancement preview
+
+**Independent-test source basis:** *Scholar's Guide* printed pp.31–35 (independent Obstacle pass/fail, tie advancement boundary); *Dungeoneer's Handbook* pp.59,75 (ordinary/heroic success TN, Beginner's Luck halving and untrained learning); SG pp.46–52 (Condition constraints).
+
+Added `module/m10d18-tb2e-package-a-outcome-chain.mjs` and public shadow API `tests.outcomeAndProgressPlan`. The new planner reuses the reviewed `tests.scenarioPlan`, rejects dice that don't exactly match the resulting pool size, validates individual D6 faces (1–6), derives Obstacle outcome using the existing read-only test engine (default TN4 or explicitly GM-claimed Heroic TN3) and optionally delegates that **derived** outcome to `tests.progressAfterTestPlan`. Post-test input can only contain an allowlisted set of GM-declared learning and counting facts; it cannot override Skill identity, mode, result, Obstacle or Conditions.
+
+The new API requires explicit assertions that supplied final dice are reviewed and that **no Fate Luck, Wise rerolls or other exploded-die chains occurred**. Those features are deliberately excluded, rather than pretending the Dice array proves per-die provenance. Returned `rollSourceAuthenticated:false`, `actorSourceAuthenticated:false` and `gmPermissionAuthenticated:false` prevent the preview from being confused with live Foundry authority. There are no rolls, resources, Actor/Item/Journal/Settings writes, advancement marks, newly learned Skills or other side effects. Focused regression: `qa/m10d18-package-a-outcome-chain-smoke.mjs`.
+
+**Remaining audit blocker:** real authenticated Actor/GM identity, trusted Foundry roll history and source-linked Fate/Persona/Deeper Understanding/Of Course sequencing, source-to-Actor heroic benefits, complete rule exception parity and combined Foundry 13.351 multiplayer QA. This is another verified **read-only integration boundary**, not a fully reaudited domain. **0/14 FULLY REAUDITED**, stable `v1.12.0` untouched, Legacy Mixed sole live authority, M11 PAUSED, global kill switch ENGAGED.
