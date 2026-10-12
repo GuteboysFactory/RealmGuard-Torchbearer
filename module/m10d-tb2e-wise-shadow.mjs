@@ -143,3 +143,41 @@ export function tb2eWiseCommunicationPlan({
     liveApplication:false,writesPlanned:0
   });
 }
+
+
+/**
+ * DH 77 Deeper Understanding: choose exactly one failed, never-rerolled
+ * die on a related test. Numeric rolled faces are caller supplied.
+ * No Fate point is spent or any die rolled by this planner.
+ */
+export function tb2eWiseDeeperDiePlan({
+  dice=[],chosenDieId="",hasWise=true,related=true,
+  fateAvailable=0,fateLuckAlreadyUsed=false,successThreshold=4
+}={}){
+  const state={phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"DEEPER_UNDERSTANDING_DIE_SELECTION_SHADOW",
+    sourceEvidence:"Dungeoneer's Handbook p.77",
+    liveApplication:false,writesPlanned:0,rollExecuted:false,
+    resourceSpendCommitted:false,actorWrite:false};
+  const fail=(reasonCode)=>freezeTb2e({...state,ok:false,reasonCode});
+  if(!hasWise||!related)return fail("RELEVANT_WISE_REQUIRED");
+  if(!Number.isInteger(fateAvailable)||fateAvailable<1)return fail("INSUFFICIENT_FATE");
+  if(fateLuckAlreadyUsed)return fail("WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
+  if(![3,4].includes(successThreshold))return fail("UNSUPPORTED_SUCCESS_THRESHOLD");
+  if(!Array.isArray(dice)||dice.some(d=>!d||typeof d.dieId!=="string"||!d.dieId.trim()||
+     !Number.isInteger(d.face)||d.face<1||d.face>6||
+     typeof d.alreadyRerolled!=="boolean"))
+    return fail("INVALID_DIE_HISTORY");
+  if(new Set(dice.map(d=>d.dieId.trim())).size!==dice.length)
+    return fail("DUPLICATE_DIE_ID");
+  const failedDice=dice.filter(d=>d.face<successThreshold);
+  const eligible=failedDice.filter(d=>!d.alreadyRerolled).map(d=>d.dieId.trim());
+  if(!eligible.length)return fail("NO_ELIGIBLE_FAILED_DIE");
+  const chosen=String(chosenDieId??"").trim();
+  if(!chosen)return fail("DIE_SELECTION_REQUIRED");
+  if(!eligible.includes(chosen))return fail("SELECTED_DIE_NOT_ELIGIBLE");
+  return freezeTb2e({...state,ok:true,successThreshold,
+    eligibleFailedDieIds:eligible,previouslyRerolledDiceExcluded:true,
+    selectedDieId:chosen,diceToReroll:1,
+    resourceCost:"FATE",resourceAmount:1,rerollCommitted:false});
+}
