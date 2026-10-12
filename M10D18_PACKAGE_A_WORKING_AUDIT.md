@@ -206,3 +206,6 @@ Source: *Scholar's Guide* p.88: **Advantage** spends no more than three Persona 
 Wise ownership IDs are normalized for duplicate-use prevention: leading/trailing spaces and case changes cannot make the same Wise appear distinct in a reward timeline.
 
 Evidence: `qa/m10d18-package-a-reward-history-smoke.mjs`, `qa/m10d18-package-a-outcome-chain-smoke.mjs`; regression vectors cover insufficient Persona before the roll, insufficient remaining Persona for Wise Of Course, Nature channel cost, over-three Advantage and duplicate Wise aliases. **This remains strictly GM-asserted, no real Actor holdings or transactional resource usage is verified.** No Actor/Item/Journal/settings writes, rolls, or release change. No domain upgraded; **0/14 FULLY REAUDITED**.
+
+
+Further provenance check: both the rewarded and plain-D6 outcome planners now reject `NATURE_PERSONA_BALANCE_MISMATCH` when Nature Channel's claimed `personaAvailable` differs from the claimed start-of-test Persona ledger. This is internal consistency of GM assertions, **not** evidence of an authenticated Actor balance.
