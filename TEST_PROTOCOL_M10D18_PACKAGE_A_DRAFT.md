@@ -53,9 +53,9 @@ Values come from DH 160–176, but spell/Versus routing and all fictional permis
 ## Gate C — Wises / Nature / Skills
 ```js
 A.wises.combinationPlan({knownWises:2,uses:[{wiseId:"cooking-wise",effect:"I_AM_WISE",related:true},{wiseId:"bread-wise",effect:"OF_COURSE",related:true}]}).ok; // true
-A.wises.rerollPlan("Deeper Understanding",{failedDice:2,fateLuckAlreadyUsed:true}).ok; // true, subject to per-die history verification
+A.wises.rerollPlan("Deeper Understanding",{failedDice:2,fateLuckAlreadyUsed:true}).ok; // false: SG87 requires before Fate Luck
 A.wises.deeperDiePlan({dice:[{dieId:"a",face:2,alreadyRerolled:true},{dieId:"b",face:3,alreadyRerolled:false}],chosenDieId:"b",fateAvailable:1}).selectedDieId; // "b"
-A.wises.deeperDiePlan({dice:[{dieId:"a",face:2,alreadyRerolled:true},{dieId:"b",face:3,alreadyRerolled:false}],chosenDieId:"b",fateAvailable:1,fateLuckAlreadyUsed:true}).ok; // true, chosen b not previously rerolled
+A.wises.deeperDiePlan({dice:[{dieId:"a",face:2,alreadyRerolled:true},{dieId:"b",face:3,alreadyRerolled:false}],chosenDieId:"b",fateAvailable:1,fateLuckAlreadyUsed:true}).ok; // false: Deeper must come before Fate Luck
 A.wises.deeperDiePlan({dice:[{dieId:"a",face:2,alreadyRerolled:true},{dieId:"b",face:3,alreadyRerolled:false}],chosenDieId:"a",fateAvailable:1}).ok; // false
 A.nature.recoveryPlan({method:"CONSERVE",currentNature:2,maximumNature:5}).eraseNatureAdvancementRequired; // true
 A.nature.recoveryPlan({method:"RESPITE",currentNature:0,maximumNature:0}).ok; // false
@@ -186,3 +186,30 @@ A.tests.outcomeAndProgressPlan({
 ```
 
 The provided D6s are **not actually rolled or imported from Foundry**. No Fate Luck or Wise reroll history is accepted by this limited preview; set `gmConfirmsNoRerolls:true` only for a genuinely plain pool. Treat all proposed marks as uncommitted. This does not authenticate the GM, Actor, class benefits or dice and does not authorize a QA release.
+
+
+### Reward event chronology and Synergy (additional checks within combined Gate B/C)
+
+For the already configured `scenarioInput` (with Cook, Skill rating 4, tool +1D, Ob 1), verify the *read-only* reward sequence:
+
+```js
+A.tests.rewardedRollHistoryPlan({
+  scenarioInput,
+  initialDice:[{dieId:"a",face:6},{dieId:"b",face:2},
+    {dieId:"c",face:3},{dieId:"d",face:4},{dieId:"e",face:5}],
+  rewardEvents:[
+    {type:"DEEPER_UNDERSTANDING",wiseId:"cook-wise",related:true,dieId:"b",newFace:6},
+    {type:"OF_COURSE",wiseId:"bread-wise",related:true,
+      rerolls:[{dieId:"c",face:5}]},
+    {type:"FATE_LUCK",rounds:[
+      [{dieId:"luck1",parentDieId:"a",face:6},
+       {dieId:"luck2",parentDieId:"b",face:4}],
+      [{dieId:"luck3",parentDieId:"luck1",face:5}]
+    ]}
+  ],
+  fateAvailable:2,personaAvailable:1,
+  gmDiceReviewed:true,gmEventHistoryReviewed:true
+}).finalDiceCount; // 8
+```
+
+Provide all results as GM assertions; no real Foundry D6 are rolled, no history is authenticated and the projected resource costs are never committed. Exercise failed-parent-six, duplicate-ID, insufficient Fate and post-Luck Wise rejections. For Synergy use `A.tests.synergyAdvancementPlan` with a valid accepted Help request, Fate paid before the test, and a helper source distinct from the acting character. On tie the Helper chooses either retracted Fate (no mark) or keeps Fate to mark the GM-verified tiebreaker ability/Skill without adding a tiebreaker Help die (SG p.87). Test Sick helper no-mark and Afraid helper forbidden. This remains a single comprehensive Foundry acceptance, never a small patch gate.
