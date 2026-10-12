@@ -50,6 +50,8 @@ export function tb2ePackageAOutcomeAndProgressPlan({
    if(!progressFacts||typeof progressFacts!=="object"||Array.isArray(progressFacts)||
       Object.keys(progressFacts).some(key=>!allowedProgress.has(key)))
      return blocked("INVALID_POST_TEST_FACT_FIELDS");
+   if(["CONFLICT","SERIES","TIEBREAKER"].includes(String(progressFacts.context??"ADVENTURE").trim().toUpperCase()))
+     return blocked("INDEPENDENT_TEST_PROGRESS_CONTEXT_MISMATCH");
    if(progressFacts.gmConfirmedLegalTest!==true)
      return blocked("GM_MUST_CONFIRM_PROGRESSION_ELIGIBILITY");
    advancement=tb2ePackageAProgressAfterTestPlan({
