@@ -97,7 +97,8 @@ const scenario=A.tests.scenarioPlan({
   factor:{tableName:"meals",gmAuthorized:true,
     selections:{ingredients:"fresh",amount:"small_group"}},
   environment:{light:"DIM_LIGHT",additionalGmHindrances:0},
-  equipment:gearA,allModifiersGmReviewed:true
+  equipment:gearA,allModifiersGmReviewed:true,
+  actingCharacterId:"qa-acting-character",actingConditions:[],conditionsGmReviewed:true
 });
 [scenario.ok,scenario.obstacle,scenario.finalDicePool,scenario.sourceFactorPage];
 // [true,3,5,163]
@@ -106,3 +107,28 @@ const scenario=A.tests.scenarioPlan({
 An absent additive category must now fail with `ADDITIVE_FACTOR_CONFIRMATION_REQUIRED`. A non-applicable additive category may be omitted **only with** an explicitly declared `gmExcludedAdditives` list and `gmExclusionReason`. Omitting optional Survivalist camp amenities requires neither. Any `preconditionFacts` containing `skillName`, `tableName` or `gmAuthorized` must be rejected.
 
 The scenario is **not an Actor lookup or authorization** and commits no dice, conditions, resource spending or advancement. Report it alongside the existing A–D gates during the one combined Foundry session, not in a separate micro-test.
+
+
+### Condition and Nature cross-domain boundary (SG pp.46-52; DH p.59)
+
+For the exact `scenario` shown above, `actingConditions:[]` explicitly means the GM reviewed and confirmed **no Conditions**. Removing `conditionsGmReviewed:true` must return `CONDITION_GM_ACTING_CONDITIONS_REQUIRED`. These are input assertions, **not** genuine document reads.
+
+```js
+A.tests.scenarioPlan({
+  skillName:"Cook",mode:"SKILL",rating:4,
+  factor:{tableName:"meals",gmAuthorized:true,selections:{ingredients:"fresh",amount:"small_group"}},
+  environment:{light:"DIM_LIGHT",additionalGmHindrances:0},
+  equipment:gearA,allModifiersGmReviewed:true,
+  actingCharacterId:"qa-acting-character",actingConditions:["INJURED","SICK"],conditionsGmReviewed:true
+}).finalDicePool; // 3 (-2D from stacked conditions)
+A.tests.scenarioPlan({
+  skillName:"Cook",mode:"SKILL",rating:4,
+  factor:{tableName:"meals",gmAuthorized:true,selections:{ingredients:"fresh",amount:"small_group"}},
+  environment:{light:"DIM_LIGHT",additionalGmHindrances:0},
+  equipment:gearA,allModifiersGmReviewed:true,
+  actingCharacterId:"qa-acting-character",actingConditions:["ANGRY"],conditionsGmReviewed:true,
+  gmAngryObstacleDecision:"APPLY"
+}).conditionObstacleIncrease; // 1, explicitly GM-selected option
+```
+
+Check also that Afraid rejects Beginner's Luck; an Afraid helper cannot contribute ordinary Help; an Angry character cannot give beneficial Wise aid or use beneficial traits; Dead characters cannot test or help; Fresh contributes at the post-halving step in Beginner's Luck. Channeled Nature requires confirmed current/maximum Nature, Persona availability, exact test name and matching added dice, and reports possible Nature tax without applying it. An exhausted Instinct requires a spent turn and adds +1 Ob. Recovery, conflict and Versus are **not** supported by the independent scenario preview. Do not use this draft protocol until the combined QA release is approved.
