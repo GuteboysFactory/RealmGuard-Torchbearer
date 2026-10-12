@@ -236,3 +236,54 @@ export function tb2eNatureAdvancementPlan({
     mutationCommitted:false,advancementResetCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
+
+/** DH 65,70-71 advanced Nature uses. GM and actor source facts are
+ * mandatory; no stock is inferred, and this does not auto-apply an Ob.
+ */
+export function tb2eNatureDescriptorContextPlan({
+ stock="",descriptor="",hasAlternateDescriptor=false,
+ gmConfirmsRelevance=false,writtenGrudgeGoal=false,
+ merrymakingGroupSize=0,merrymakingTargetCondition="",
+ humanAction="",rememberedLoreNotEstablished=false,
+ gmApprovedNewLore=false
+}={}){
+ const stockKey=String(stock??"").trim().toLowerCase();
+ const primary=STOCK_DESCRIPTORS[stockKey];
+ if(!primary)return blocked("UNKNOWN_NATURE_STOCK");
+ const name=String(descriptor??"").trim().toLowerCase();
+ const standard=primary.find(d=>d.toLowerCase()===name);
+ const alt=ALTERNATE_DESCRIPTORS[stockKey];
+ if(!standard&&!(alt&&alt.toLowerCase()===name&&hasAlternateDescriptor===true))
+   return blocked("DESCRIPTOR_NOT_HELD_OR_UNKNOWN");
+ if(gmConfirmsRelevance!==true)return blocked("GM_DESCRIPTOR_RELEVANCE_REQUIRED");
+ if(stockKey==="dwarf"&&name==="avenging grudges"&&writtenGrudgeGoal!==true)
+   return blocked("WRITTEN_GRUDGE_GOAL_REQUIRED");
+ if(stockKey==="halfling"&&name==="merrymaking"){
+   if(!Number.isInteger(merrymakingGroupSize)||merrymakingGroupSize<2)
+     return blocked("MERRYMAKING_REQUIRES_GROUP");
+   const target=String(merrymakingTargetCondition??"").trim().toUpperCase();
+   if(!["ANGRY","AFRAID"].includes(target))return blocked("MERRYMAKING_TARGET_MUST_BE_ANGRY_OR_AFRAID");
+   return freezeTb2e({
+     ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+     mode:"NATURE_ADVANCED_DESCRIPTOR_SHADOW",sourceEvidence:"DH pp.70-71",
+     stock:stockKey,descriptor:"Merrymaking",recoveryAction:false,
+     groupMinimum:2,merrymakingTargetCondition:target,
+     recommendedGroupObstacleIncrease:1,
+     obstacleIncreaseIsGmGuidanceNotMandatory:true,usableOutOfRecoveryOrder:true,
+     gmFictionConfirmationRequired:true,rollExecuted:false,liveApplication:false,writesPlanned:0
+   });
+ }
+ if(stockKey==="human"&&name==="demanding"&&["PERSUADE","MANIPULATE","LIE"].includes(String(humanAction??"").trim().toUpperCase()))
+   return blocked("DEMANDING_CANNOT_REPLACE_PERSUASION_OR_MANIPULATION");
+ if(stockKey==="elf"&&name==="remembering"&&rememberedLoreNotEstablished===true&&gmApprovedNewLore!==true)
+   return blocked("NEW_REMEMBERED_LORE_REQUIRES_GM_APPROVAL");
+ return freezeTb2e({
+   ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+   mode:"NATURE_ADVANCED_DESCRIPTOR_SHADOW",sourceEvidence:"DH pp.65,70-71",
+   stock:stockKey,descriptor:standard??alt,
+   gmFictionConfirmationRequired:true,
+   specificTaskConfirmedByGm:true,
+   newRememberedLoreRequiresSettingRecord:Boolean(rememberedLoreNotEstablished),
+   settingRecordCommitted:false,rollExecuted:false,liveApplication:false,writesPlanned:0
+ });
+}
