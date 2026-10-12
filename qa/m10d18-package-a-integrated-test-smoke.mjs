@@ -50,8 +50,9 @@ try{
  assert.equal(plan({...base,outcome:"PASS"}).reasonCode,"UNSUPPORTED_INTEGRATED_TEST_FIELDS");
  assert.equal(plan({...base,rewardReview:{...base.rewardReview,initialMessageId:"other"}}).ok,false);
  assert.equal(plan({...base,rewardReview:{...base.rewardReview,fateAtRollStartGmAsserted:0}}).ok,false);
- assert.equal(bridge({...good.equipmentEvidence},{}).reasonCode,"ISSUED_EQUIPMENT_CONTEXT_REQUIRED");
- assert.equal(bridge(good.equipmentEvidence,{scenarioInput:{...scenario,rating:5}}).ok,false);
+ const bridgeInput={actorId:acting.id,initialMessageId:first.id,scenarioInput:scenario,...base.rewardReview};
+ assert.equal(bridge({...good.equipmentEvidence},bridgeInput).reasonCode,"ISSUED_EQUIPMENT_CONTEXT_REQUIRED");
+ assert.equal(bridge(good.equipmentEvidence,{...bridgeInput,scenarioInput:{...scenario,rating:5}}).ok,false);
  const plain=plan({...base,rewardReview:{...base.rewardReview,events:[]}});
  assert.equal(plain.finalOutcome,"FAIL");assert.equal(plain.helperCounterProjection.proposedMark,"FAIL");
  // DH 59,75 and SG 87: BL attempt follows this same final result; helper
@@ -72,5 +73,6 @@ try{
  assert.equal(plan({...blInput,rewardReview:{...blInput.rewardReview,fateAtRollStartGmAsserted:1}}).ok,false);
  assert.equal(plan({...blInput,progressReview:{...base.progressReview,gmConfirmsCountersExcludeThisTest:false}}).ok,false);
  globalThis.game.user=player;assert.equal(plan(base).ok,false);
+ assert.equal(bridge(good.equipmentEvidence,bridgeInput).reasonCode,"CURRENT_SESSION_GM_REQUIRED");
 }finally{globalThis.game=oldGame;globalThis.foundry=oldFoundry;}
 console.log("PASS integrated equipment/participants/saved reward FAIL->PASS/acting+helper marks; shared context, no writes or caller outcome override");

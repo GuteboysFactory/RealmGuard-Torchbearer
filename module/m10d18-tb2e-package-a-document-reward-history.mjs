@@ -31,7 +31,11 @@ export function tb2ePackageADocumentRewardHistoryPlan(options={}){
 }
 // Only a frozen result issued by the equipment reader can supply shared evidence.
 export function tb2ePackageAEquipmentRewardHistoryPlan(equipment,options={}){
+  const current=tb2ePackageADocumentEvidence({actorId:options?.actorId,messageId:options?.initialMessageId});
+  if(!current.ok)return fail(current.reasonCode);
   if(!isIssuedPackageAEquipment(equipment,options.scenarioInput))return fail("ISSUED_EQUIPMENT_CONTEXT_REQUIRED");
+  if(JSON.stringify(current)!==JSON.stringify(equipment.participationEvidence.documentEvidence))
+    return fail("CURRENT_BASE_DOCUMENT_CONTEXT_CHANGED");
   return documentHistory(options,equipment.participationEvidence);
 }
 function documentHistory(options={},participation=null){
