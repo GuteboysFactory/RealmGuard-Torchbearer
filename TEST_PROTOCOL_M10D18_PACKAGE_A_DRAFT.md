@@ -132,3 +132,27 @@ A.tests.scenarioPlan({
 ```
 
 Check also that Afraid rejects Beginner's Luck; an Afraid helper cannot contribute ordinary Help; an Angry character cannot give beneficial Wise aid or use beneficial traits; Dead characters cannot test or help; Fresh contributes at the post-halving step in Beginner's Luck. Channeled Nature requires confirmed current/maximum Nature, Persona availability, exact test name and matching added dice, and reports possible Nature tax without applying it. An exhausted Instinct requires a spent turn and adds +1 Ob. Recovery, conflict and Versus are **not** supported by the independent scenario preview. Do not use this draft protocol until the combined QA release is approved.
+
+
+### Post-test advancement preview (within the same consolidated Gate C)
+
+```js
+A.tests.progressAfterTestPlan({
+ skillName:"Cook",mode:"SKILL",outcome:"PASS",obstacle:2,
+ skillAlreadyKnown:true,gmConfirmedLegalTest:true,
+ actingConditions:[],conditionsGmReviewed:true
+}).proposedMark; // "PASS" (preview only)
+A.tests.progressAfterTestPlan({
+ skillName:"Cook",mode:"BEGINNERS_LUCK",outcome:"FAIL",
+ skillAlreadyKnown:false,gmConfirmedLegalTest:true,
+ actingConditions:[],conditionsGmReviewed:true,
+ previousLearningAttempts:2,maximumNature:3,currentKnownSkillCount:24
+}).requiresForgetExistingSkill; // true (learned rating 2, no Will/Health mark)
+A.tests.progressAfterTestPlan({
+ skillName:"Cook",mode:"SKILL",outcome:"PASS",obstacle:2,
+ skillAlreadyKnown:true,gmConfirmedLegalTest:true,
+ actingConditions:["SICK"],conditionsGmReviewed:true
+}).wouldRecordMark; // false
+```
+
+Also verify SG52: Skill rating 1 with Injured (or rating 2 with Sick + Injured) returns `CONDITION_ZERO_RATED_SKILL_CANNOT_TEST` from `tests.scenarioPlan`, even when equipment, Help or Persona would otherwise supply dice. These remain **pure previews**. Confirm no log, Actor write, new Skill, resource deduction or roll is performed.
