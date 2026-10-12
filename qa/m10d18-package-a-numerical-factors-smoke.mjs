@@ -6,7 +6,10 @@ const idx=tb2eSkillIndex(), meta=status();
 assert.equal(meta.skillCount,33);
 assert.ok(meta.tableCount>=55);
 assert.equal(meta.fullSourceToRuntimeParity,false);
-assert.deepEqual(idx.skillNames.slice().sort(),idx.skillNames.slice().sort());
+assert.equal(entry({skillName:"Laborer",tableName:"hauling"}).sourcePage,167);
+assert.equal(entry({skillName:"Scholar",tableName:"knowledge"}).sourcePage,173);
+assert.equal(entry({skillName:"Hunter",tableName:"trapping"}).sourcePage,166);
+assert.deepEqual(idx.skillNames.slice().sort(),meta.skillNames.slice().sort());
 const sourceEntries=idx.skillNames;
 for(const skillName of sourceEntries){
  assert.ok(["FIXED","FORMULA","VERSUS","DEFERRED"].includes(entry({skillName,tableName:({Alchemist:"process",Arcanist:"spells",Armorer:"armor",Carpenter:"boats",Cartographer:"map",Commander:"command",Cook:"meals",Criminal:"crime",Dungeoneer:"delve",Fighter:"brawl",Haggler:"market",Healer:"healing",Hunter:"stalking",Laborer:"labor", "Lore Master":"lore",Manipulator:"intimidate",Mentor:"teaching",Orator:"sway",Pathfinder:"journey",Peasant:"field",Persuader:"influence",Rider:"mounted",Ritualist:"officiant",Sailor:"sailing",Sapper:"tunnel",Scavenger:"scavenging",Scholar:"scholarly",Scout:"search",Stonemason:"building",Steward:"legal",Survivalist:"camp",Theologian:"immortal",Weaver:"weaving"})[skillName]}).table.kind));
