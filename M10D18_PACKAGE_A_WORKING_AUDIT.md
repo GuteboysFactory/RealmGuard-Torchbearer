@@ -80,4 +80,10 @@ Even if CI becomes green, **CI regression PASS is not an audit certificate**. PR
 
 New smokes: `qa/m10d18-package-a-help-consent-outcome-smoke.mjs` and `qa/m10d18-package-a-environment-smoke.mjs`. CI check is required after all changes.
 
-**Additional rule gap flagged:** DH pp.59 and 72 expressly permit *Will/Health*, as well as Skills, to reach a heroic maximum rating of 7 with the appropriate level benefit; special benefits may reduce the die success target to 3. The existing generic Ability advancement planner still needs this explicitly keyed benefit and test-resolution parity. Do not promote the current planner's Skill-only cap-7 handling as complete rule coverage.
+**Heroic progression correction implemented (DH 59,72):** A GM-confirmed unlocked benefit now extends Will/Health as well as Skills to cap 7, while explicitly unlocked TN3 changes read-only obstacle/Versus success counting. No real rolls or level benefits are granted. Full ownership/provenance and live benefit integration remain separate unverified requirements.
+
+## Package A latest code audit scope and release boundary
+
+New code and QA smoke additions cover Help participation and group failure (`SG 36–38`), environmental and Versus factors (`SG 32–34`), and the GM-locked Heroic Ability/Skill cap/TN exceptions (`DH 59,72`). All source-backed previews remain explicitly read-only. CI PASS, if reported, certifies syntax/regression safety only; it does **not** certify complete source-to-code parity, actor-derived entitlement or all 33 numeric factor tables.
+
+**Outstanding barriers to closing Package A:** (1) full numeric factor source-to-planner coverage; (2) actor-backed beneficial-level provenance and per-die Wise reroll provenance; (3) life-cycle Nature/Advancement interactions and all stock edge cases; (4) multiplayer Foundry 13.351 QA. No promotion while these are unverified; historical 0/14 count remains.
