@@ -179,3 +179,44 @@ export function tb2eNumericalFactorObstaclePlan({skillName="",tableName="",selec
   obstacle:ob,chosenFactors:matched,factorsSelectedBy:"GM",sourceFactorCatalogueLookup:true,
   obstacleWrite:false,requiresGMFictionJudgment:true});
 }
+
+
+/** Explicit non-table DH formulas; no implicit actor/nature lookups. */
+export function tb2eNumericalFactorFormulaPlan({skillName="",tableName="",
+  gmAuthorized=false,studentNature=null,beastNature=null,use="",
+  extraSlots=null,trap="",material="",highestSpellCircle=null,spellCount=null}={}){
+ const entry=tb2eNumericalFactorEntry({skillName,tableName});
+ if(!entry.ok)return entry;
+ if(gmAuthorized!==true)return deny("GM_SOURCE_SELECTION_REQUIRED");
+ if(entry.table.kind!=="FORMULA")return deny("NOT_A_SPECIAL_FACTOR_FORMULA");
+ const id=entry.table.formula;
+ const whole=(v,min=0,max=100)=>Number.isInteger(v)&&v>=min&&v<=max;
+ let obstacle=null,inputs={};
+ if(id==="STUDENT_CURRENT_NATURE"){
+   if(!whole(studentNature,1,7))return deny("STUDENT_NATURE_REQUIRED");
+   obstacle=studentNature;inputs={studentNature};
+ }else if(id==="BEAST_NATURE_PLUS_USE"){
+   if(!whole(beastNature,1,7))return deny("BEAST_NATURE_REQUIRED");
+   const c=entry.table.columns[0].choices.find(c=>c.key===use);
+   if(!c)return deny("INVALID_RIDER_USE");
+   obstacle=beastNature+c.value;inputs={beastNature,use,useFactor:c.value};
+ }else if(id==="ZERO_PLUS_ONE_PER_EXTRA_SLOT"){
+   if(!whole(extraSlots,0,100))return deny("EXTRA_SLOTS_REQUIRED");
+   obstacle=extraSlots;inputs={extraSlots,base:0};
+ }else if(id==="PIT_REQUIRES_MATERIAL_FACTOR"){
+   const pit=entry.table.columns[0].choices.find(c=>c.key===trap);
+   if(!pit)return deny("INVALID_SAPPER_TRAP");
+   const selected=entry.table.columns[1].choices.find(c=>c.key===material);
+   if(trap==="pit"&&!selected)return deny("PIT_MATERIAL_FACTOR_REQUIRED");
+   if(trap!=="pit"&&material)return deny("MATERIAL_ONLY_FOR_PIT");
+   obstacle=pit.value+(selected?.value??0);inputs={trap,material:trap==="pit"?material:null};
+ }else if(id==="HIGHEST_SPELL_CIRCLE_PLUS_ONE_PER_ADDITIONAL"){
+   if(!whole(highestSpellCircle,1,20)||!whole(spellCount,1,100))
+     return deny("SPELL_CIRCLE_AND_COUNT_REQUIRED");
+   obstacle=highestSpellCircle+(spellCount-1);inputs={highestSpellCircle,spellCount};
+ }else return deny("UNMAPPED_SPECIAL_FORMULA",{formula:id});
+ return safe({ok:true,skillName:entry.skillName,tableName:entry.tableName,formula:id,
+   obstacle,formulaInputs:inputs,factorsSelectedBy:"GM",
+   sourceFactorCatalogueLookup:true,requiresGMFictionJudgment:true,
+   obstacleWrite:false});
+}
