@@ -35,6 +35,10 @@ export function tb2ePackageAOutcomeAndProgressPlan({
    return blocked("INVALID_EXTERNAL_D6_LIST");
  const plan=tb2ePackageATestScenarioPlan(scenarioInput);
  if(!plan.ok)return blocked("SCENARIO_"+plan.reasonCode,{scenarioReasonCode:plan.reasonCode});
+ if(Number.isInteger(personaAvailableAtRollStart)&&
+   scenarioInput?.bonuses?.channeledNatureDice>0&&
+   scenarioInput?.channelNatureFacts?.personaAvailable!==personaAvailableAtRollStart)
+   return blocked("NATURE_PERSONA_BALANCE_MISMATCH");
  if(plan.projectedPersonaBeforeRollCost>0){
    if(!Number.isInteger(personaAvailableAtRollStart)||personaAvailableAtRollStart<0)
      return blocked("PERSONA_START_BALANCE_REQUIRED_FOR_PRE_ROLL_SPENDING");
