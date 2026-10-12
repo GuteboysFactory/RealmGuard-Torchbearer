@@ -340,3 +340,9 @@ OPEN: historical inventory state/spends, trusted Skill-specific item semantics/p
 ### Local verification — current equipment provenance
 
 **152/152 smoke suites PASS**, module/sheet/main syntax checks and release preflight PASS. Focused equipment suite re-run after explicit wrong-type/missing-quantity regressions PASS. Independent temporary ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**. Protected system/QA/stable/READY comparison against origin/main remains empty. GitHub CI checkpoint follows after branch update; real Foundry v13.351 combined A-D remains NOT RUN.
+
+### GitHub CI verified — current equipment source commit 5298dea7c672b5d5e67d2b47e938bc38a539ff21
+
+Run https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38290534291 completed SUCCESS. Logs explicitly confirm **152/152 smoke suites PASS**, Gear/pack/supply/quantity/carried-path/trained-lender regression PASS, syntax/safety preflight PASS, unpublished ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**, protected QA/stable/system manifest guard PASS. Local full regression and independent ZIP checks also PASS.
+
+Current Item/quantity/placement bindings are automatically verified; historical equipment, physical adequacy/classification, supply-unit semantics, actual loan consent and consumption remain unverified. Full inventory capacity/custom/nested paths, stock/crafting exceptions, complete integration and real Foundry v13.351 A-D remain OPEN / NOT RUN; **0/14 FULLY_REAUDITED**. Legacy Mixed only live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 / published QA v1.13.0-qa.29 unchanged. No merge/release/tag/channel action.
