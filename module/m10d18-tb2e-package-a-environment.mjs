@@ -17,7 +17,7 @@ const nonNegInt=v=>Number.isInteger(v)&&v>=0;
  */
 export function tb2eEnvironmentalTestFactorPlan({
   light="CLEAR",testMode="OBSTACLE",actionPossibleInDarkness=false,
-  darknessFactorExempt=false,additionalGmHindrances=0
+  darknessFactorExempt=false,actionIsRiddling=false,additionalGmHindrances=0
 }={}){
  const mode=String(testMode??"").trim().toUpperCase();
  const lighting=String(light??"").trim().toUpperCase();
@@ -28,6 +28,8 @@ export function tb2eEnvironmentalTestFactorPlan({
   return invalid("DARKNESS_ACTION_NOT_CONFIRMED_POSSIBLE",{gmAdjudicationRequired:true});
  if(lighting!=="DARKNESS"&&darknessFactorExempt===true)
   return invalid("DARKNESS_EXEMPTION_WITHOUT_DARKNESS");
+ if(darknessFactorExempt===true&&actionIsRiddling!==true)
+  return invalid("DARKNESS_EXEMPTION_REQUIRES_RIDDLING",{sourceEvidence:"SG 34"});
  const lightFactors=lighting==="DIM_LIGHT"?1:lighting==="DARKNESS"&&!darknessFactorExempt?1:0;
  const factorCount=lightFactors+additionalGmHindrances;
  return shadow({ok:true,testMode:mode,light:lighting,lightFactorCount:lightFactors,
