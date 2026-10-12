@@ -163,7 +163,7 @@ export function tb2eNumericalFactorEntry({skillName="",tableName=""}={}){
  * not select fiction, equipment, action legality or conflict routing.
  * Formula & Versus are intentionally delegated to the named external source.
  */
-export function tb2eNumericalFactorObstaclePlan({skillName="",tableName="",selections={},gmAuthorized=false}={}){
+export function tb2eNumericalFactorObstaclePlan({skillName="",tableName="",selections={},gmAuthorized=false,gmExcludedAdditives=[],exclusionReason=""}={}){
  const entry=tb2eNumericalFactorEntry({skillName,tableName});
  if(!entry.ok)return entry;
  if(gmAuthorized!==true)return deny("GM_SOURCE_SELECTION_REQUIRED");
