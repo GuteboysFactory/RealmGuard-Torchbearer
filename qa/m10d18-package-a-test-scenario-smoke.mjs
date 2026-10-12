@@ -17,7 +17,7 @@ const beginner=plan({...basic,mode:"BEGINNERS_LUCK",beginnerAbilityName:"WILL",
  help:{...help,helpOptions:{sourceKind:"skill",sourceName:"Cook",targetSkillName:"Cook",helperSkillTrained:true}},
  bonuses:{traitsDice:1}});
 assert.equal(beginner.ok,true,JSON.stringify(beginner));
-assert.equal(beginner.obstacle,4);assert.equal(beginner.finalDicePool,5);
+assert.equal(beginner.obstacle,4);assert.equal(beginner.finalDicePool,4); // ceil((Will4+Help1+Supplies1)/2) + Trait1
 assert.equal(plan({...basic,allModifiersGmReviewed:false}).reasonCode,"GM_FULL_MODIFIER_REVIEW_REQUIRED");
 assert.equal(plan({...basic,rating:7}).reasonCode,"HEROIC_RATING_SEVEN_NOT_UNLOCKED");
 assert.equal(plan({...basic,help,wiseAid:{...wiseAid,helperId:"helperA"}}).reasonCode,"SAME_HELPER_CANNOT_HELP_AND_WISE_AID");
