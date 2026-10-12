@@ -229,3 +229,11 @@ Remaining gaps: historical Actor snapshots and reward spends; immutable/server-v
 ### Verification checkpoint — current-document boundary, 2026-10-12
 
 Local full regression: **148/148 smoke suites PASS** (147 existing plus new document-provenance suite), module/sheet/main syntax checks PASS, release preflight PASS, frozen manifest/QA/stable diff against origin/main PASS. Focused document-provenance suite re-run after native-Die and Legacy-condition hardening PASS. GitHub CI and unpublished ZIP verification are recorded below once completed. Foundry v13.351 manual acceptance remains NOT RUN. No domain certification or release.
+
+### GitHub CI verified — source commit 59831c341a805fa9ca1cb459e760707784512965
+
+Run https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38282096333 completed SUCCESS. Job logs explicitly confirm **148/148 smoke suites PASS**, parse/safety preflight PASS, unpublished ZIP integrity/manifest equality and **21/21 manifest dependencies PASS**, frozen QA/stable/manifest guard PASS. Local ZIP checks independently passed. No release actions ran.
+
+Confirmed compatibility finding from `module/documents.mjs`: Legacy ChatMessage creation stores rendered `content` without native `rolls`. These existing HTML-only cards are outside the evidence adapter's accepted scope; reconstructing dice or Wise/Fate chronology from their HTML is not permitted. The new native-message bridge is implemented and mock-tested, not certified compatible with all live Legacy cards.
+
+Audit documents and the consolidated Foundry v13.351 protocol are updated. Manual A-D execution, historical resources/Actor provenance, complete Wise/Fate event lineage and remaining full CORE domain exceptions are still OPEN. **0/14 FULLY_REAUDITED**, Draft PR #14, no merge/release, unchanged stable v1.12.0 and published QA v1.13.0-qa.29; Legacy Mixed sole live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED.
