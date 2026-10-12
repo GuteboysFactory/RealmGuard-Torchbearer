@@ -1116,3 +1116,10 @@ The 33-Skill numeric catalogue now feeds an additional read-only `tests.scenario
 
 
 **Package A packaging preflight:** Draft PR CI stages an unpublished ZIP, checks manifest file availability, version and internal-directory exclusions after automated smokes. Release workflow and channel promotion remain locked pending full source parity, independent runtime safety and the one consolidated Foundry v13.351 acceptance. No separate micro-release.
+
+
+### 2026-10-12 — Paket A source-backed Conditions and Nature integration (Draft PR #14)
+
+The integrated read-only test scenario now requires reviewed Actor and helper condition sets and actor identifiers before any trustworthy independent pool preview. It composes Fresh, Sick/Injured, Angry optional precision Ob, exhausted Instinct turn/Ob, Help/Wise restrictions, Beginner's Luck post-halving stages and explicitly GM-supplied Nature channel/Tax guidance. Source: SG 46–52 and DH 59,65–71. Regression suite includes the new `qa/m10d18-package-a-condition-provenance-smoke.mjs` and the historical 142 suites; dry-run Foundry archive verification remains required.
+
+**Remaining:** real authenticated Actor-data binding, complete permission constraints, all levels/Conditions/Traits/Wises/Nature interactions, cross-domain spell/conflict cases, full source exception table and one consolidated Foundry v13.351 manual QA. PR #14 stays Draft. M11 PAUSED, kill switch ENGAGED, Legacy Mixed live authority, stable v1.12.0 unaffected, full audit 0/14.
