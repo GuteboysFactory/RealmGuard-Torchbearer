@@ -46,6 +46,8 @@ deny({rewardEvents:[{type:"FATE_LUCK",rounds:[[{dieId:"x",parentDieId:"a",face:4
 deny({rewardEvents:[d,l,o]},"WISE_REWARD_MUST_PRECEDE_FATE_LUCK");
 deny({rewardEvents:[d,d]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,{...o,wiseId:"cook-wise"}]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
+deny({rewardEvents:[{...d,wiseId:" cook-wise "},{...o,wiseId:"COOK-WISE"}]},
+ "WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,{...d,wiseId:"other-wise"}]},"WISE_OR_EFFECT_ALREADY_USED_ON_ROLL");
 deny({rewardEvents:[d,l],fateAvailable:1},"INSUFFICIENT_FATE");
 deny({rewardEvents:[{...o,rerolls:[{dieId:"b",face:4},{dieId:"c",face:5}]}],personaAvailable:0},"INSUFFICIENT_PERSONA");
@@ -67,6 +69,37 @@ deny({initialDice:initialDice.slice(0,4),rewardEvents:[]},"INITIAL_DICE_POOL_MIS
 deny({gmDiceReviewed:false,rewardEvents:[]},"GM_DICE_AND_EVENT_REVIEW_REQUIRED");
 deny({rewardEvents:[],progressFacts:{skillAlreadyKnown:true,gmConfirmedLegalTest:true,outcome:"FAIL"}},"INVALID_POST_TEST_FACT_FIELDS");
 deny({rewardEvents:[],progressFacts:{skillAlreadyKnown:true,gmConfirmedLegalTest:true,context:"CONFLICT"}},"INDEPENDENT_TEST_PROGRESS_CONTEXT_MISMATCH");
+
+const personaAdvantageScenario={...scenarioInput,bonuses:{personaDice:1}};
+const moreDice=[...initialDice,{dieId:"advantage1",face:5}];
+const paidBefore=plan({...base,scenarioInput:personaAdvantageScenario,
+ initialDice:moreDice,rewardEvents:[{...o,rerolls:[
+ {dieId:"b",face:4},{dieId:"c",face:5}]}],personaAvailable:1});
+safe(paidBefore);assert.equal(paidBefore.reasonCode,"INSUFFICIENT_PERSONA");
+const enough=plan({...base,scenarioInput:personaAdvantageScenario,
+ initialDice:moreDice,rewardEvents:[{...o,rerolls:[
+ {dieId:"b",face:4},{dieId:"c",face:5}]}],personaAvailable:2});
+safe(enough);assert.equal(enough.ok,true,JSON.stringify(enough));
+assert.equal(enough.projectedPersonaBeforeRollCost,1);
+assert.equal(enough.projectedPersonaTotalCost,2);
+assert.equal(enough.projectedPersonaRemainingFromGmBalance,0);
+deny({scenarioInput:personaAdvantageScenario,initialDice:moreDice,
+ rewardEvents:[],personaAvailable:0},"INSUFFICIENT_PERSONA_BEFORE_ROLL");
+deny({scenarioInput:{...scenarioInput,bonuses:{personaDice:4}},
+ rewardEvents:[]},"SCENARIO_PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE");
+const natureContext={currentNature:3,maximumNature:5,personaAvailable:2,
+ testName:"Cook",descriptorApplies:false,gmReviewed:true};
+const natureScenario={...scenarioInput,bonuses:{channeledNatureDice:3},
+ channelNatureFacts:natureContext};
+const natureDice=[...initialDice,{dieId:"n1",face:5},{dieId:"n2",face:4},{dieId:"n3",face:3}];
+const naturePreview=plan({...base,scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
+ personaAvailable:1});
+safe(naturePreview);assert.equal(naturePreview.ok,true,JSON.stringify(naturePreview));
+assert.equal(naturePreview.projectedPersonaBeforeRollCost,1);
+assert.equal(naturePreview.projectedPersonaTotalCost,1);
+deny({scenarioInput:natureScenario,initialDice:natureDice,rewardEvents:[],
+ personaAvailable:0},"INSUFFICIENT_PERSONA_BEFORE_ROLL");
+
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"DEEPER_MUST_PRECEDE_FATE_LUCK");
 assert.equal(tb2eWiseDeeperDiePlan({dice:[{dieId:"one",face:2,alreadyRerolled:false}],
  chosenDieId:"one",fateAvailable:1,fateLuckAlreadyUsed:true}).reasonCode,"DEEPER_MUST_PRECEDE_FATE_LUCK");
