@@ -1,6 +1,7 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2eSourceBoundFactorPlan} from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
 import {tb2eNumericalFactorEntry} from "./m10d18-tb2e-package-a-factor-values.mjs";
+import {tb2ePackageAConditionBoundaryPlan} from "./m10d18-tb2e-package-a-condition-boundary.mjs";
 import {tb2eEnvironmentalTestFactorPlan} from "./m10d18-tb2e-package-a-environment.mjs";
 import {tb2eSkillEquipmentPlan} from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
 import {tb2eHelpParticipationPlan} from "./m10d-tb2e-help-shadow.mjs";
@@ -25,10 +26,14 @@ export function tb2ePackageATestScenarioPlan({
  skillName="",factor={},mode="SKILL",rating=null,
  equipment=null,environment=null,help=null,wiseAid=null,
  bonuses={},allModifiersGmReviewed=false,abilityZeroFromInjuryOrSickness=false,
- beginnerAbilityName="",heroicRatingSevenUnlocked=false
+ beginnerAbilityName="",heroicRatingSevenUnlocked=false,
+ testContext="INDEPENDENT",actingCharacterId="",actingConditions=null,
+ conditionsGmReviewed=false,channelNatureFacts=null
 }={}){
  const type=String(mode??"").trim().toUpperCase();
  if(!["SKILL","BEGINNERS_LUCK"].includes(type))return fail("UNSUPPORTED_TEST_SCENARIO");
+ if(String(testContext??"").trim().toUpperCase()!=="INDEPENDENT")
+   return fail("SCENARIO_ONLY_SUPPORTS_INDEPENDENT_TESTS");
  if(allModifiersGmReviewed!==true)return fail("GM_FULL_MODIFIER_REVIEW_REQUIRED");
  if(!Number.isInteger(rating)||rating<1||rating>7)return fail("INVALID_SCENARIO_RATING");
  if(rating===7&&heroicRatingSevenUnlocked!==true)return fail("HEROIC_RATING_SEVEN_NOT_UNLOCKED");
@@ -80,20 +85,28 @@ export function tb2ePackageATestScenarioPlan({
     Object.keys(bonuses).some(k=>!knownBonusKeys.includes(k))||
     Object.values(bonuses).some(v=>!n(v)))return fail("INVALID_SCENARIO_BONUS_DICE");
  const values=Object.fromEntries(knownBonusKeys.map(k=>[k,bonuses[k]??0]));
+ const conditions=tb2ePackageAConditionBoundaryPlan({
+   skillName,scenarioType:type,actingCharacterId,actingConditions,conditionsGmReviewed,
+   help,wiseAid,bonusTraitsDice:values.traitsDice,bonusFreshDice:values.freshDice,
+   channelNatureDice:values.channeledNatureDice,channelNatureFacts
+ });
+ if(!conditions.ok)return fail("CONDITION_"+conditions.reasonCode);
  const helping=helpResult?1:0,wise=wiseResult?1:0;
  let pool;
  if(type==="BEGINNERS_LUCK"){
    pool=tb2eBeginnersLuckShadowPlan({
-     abilityDice:rating,wisesDice:wise,helpDice:helping,
+     abilityDice:Math.max(0,rating+conditions.abilityOrSkillConditionDice),wisesDice:wise,helpDice:helping,
      suppliesDice:gear.supplyDice,gearDice:gear.gearDice,
      traitsDice:values.traitsDice,personaDice:values.personaDice,
-     channeledNatureDice:values.channeledNatureDice,freshDice:values.freshDice,
+     channeledNatureDice:values.channeledNatureDice,freshDice:conditions.freshDiceAfterHalving,
      otherBonusDice:values.otherBonusDice,
-     abilityZeroDueToInjuryOrSickness:abilityZeroFromInjuryOrSickness
+     abilityZeroDueToInjuryOrSickness:abilityZeroFromInjuryOrSickness||
+       (rating+conditions.abilityOrSkillConditionDice<=0&&conditions.abilityOrSkillConditionDice<0)
    });
  }else{
    pool=tb2eTestPoolPlan({
      basePool:rating,diceModifier:gear.bonusDice+helping+wise+
+       conditions.abilityOrSkillConditionDice+conditions.freshDiceAfterHalving+
        Object.values(values).reduce((a,b)=>a+b,0)
    });
  }
@@ -104,6 +117,12 @@ export function tb2ePackageATestScenarioPlan({
    equipmentObstacleIncrease:gear.obstacleIncrease,
    finalDicePool:pool.finalPool,poolStage:type==="BEGINNERS_LUCK"?"HALVE_THEN_ADD":"ADD",
    helpingDice:helping,wiseAidDice:wise,
+   actingCharacterId:conditions.actingCharacterId,
+   actingConditionPenaltyDice:conditions.abilityOrSkillConditionDice,
+   derivedFreshDice:conditions.freshDiceAfterHalving,
+   actingConditionsGmReviewed:true,
+   channelTaxOnPass:conditions.channelTaxOnPass,
+   channelTaxOnFail:conditions.channelTaxOnFail,
    helpAndWiseFromDifferentCharacters:!(helpResult&&wiseResult)||
      String(help.helperId)!==String(wiseAid.helperId),
    gmScenarioInputsReviewed:true,actorEntitlementVerified:false,
