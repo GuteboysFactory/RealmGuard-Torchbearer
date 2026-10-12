@@ -320,3 +320,38 @@ Gate B/C helper lacking trained Cook may use actual Will to Help the actor's BL 
 Gate D: two-client GM/player rejection/privacy and before/after source documents/resources unchanged; player denied before reads; repeated snapshots remain detached. HistoricalEligibility/starting Fate/counters-exclude-test are explicit GM assertions. historicalProgressCountsAuthenticated, duplicateTestCheckAuthenticated, rollTimeActorStateVerified and all Actor/roll/GM/consent authentication flags remain false. No hooks, RNG, sockets, updates or actual logging. Repeat all prior A-D source/factor/conditions/dice/reward/participant cases together.
 
 Status: automated mock coverage only; real Foundry v13.351 combined acceptance NOT RUN. No mark/spend/learning/advancement authorization; no full-domain certification (0/14), release still blocked.
+
+### Current equipment Item evidence — combined Gates B/C/D, v13.351 (NOT RUN)
+
+Use the same real world-character/saved native-D6 participant fixture. Record actual Gear Item IDs/quantities and raw inventory placements, Skill Item IDs and before/after quantities. The bridge supports a pack/satchel equipped on Torso, directly equipped Gear and one-level contents of that pack; custom/nested/hand-carried pack interpretations require separate QA and must not be inferred here.
+
+```js
+A.tests.equipmentOutcomePlan({
+  actorId, messageId, scenarioInput, helpSourceItemId, wiseAidItemId,
+  equipmentReview:{
+    pack:{itemId:packItemId,usableGmAsserted:true},
+    borrowedTools:null,
+    supply:{itemId:supplyItemId,skillName:"Cook",accessibleGmAsserted:true,
+      usableGmAsserted:true,oneIncrementAvailableGmAsserted:true},
+    gear:{itemId:gearItemId,skillName:"Cook",accessibleGmAsserted:true,usableGmAsserted:true},
+    adequacyGmReviewed:true
+  }
+});
+```
+
+Gate B trained Cook4, real worn Torso pack, supply quantity2 directly in that pack, gear quantity1 on belt, suppliesUsed1/gearUsed1: expect six saved D6, source Ob1 and the same derived outcome as the participant chain. Inspect bound Item IDs, quantity2 and pack→supply path. Repeat: quantity stays2, no increment/spend/update occurs. Quantities are not native supply-unit proof; projectedSupplyIncrementsUsed1 is a preview only.
+
+Gate C reject missing/duplicate/wrong-type Item, quantity0/fractional/missing, injected quantity/face fields, wrong Skill relation, missing access/usability/increment review, wrong/unassigned pack location, multiple carried packs, orphan/malformed/custom/nested container paths, same Item reused for Pack/Supply/Gear, unused reference for a zero-use category and unsupported Dwarf/crafting exception. A positive quantity alone does not prove accessibility or old pre-roll stock.
+
+Gate B/C damaged/unusable pack: declare usableGmAsserted:false and carriesBackpackOrSatchel:false, with zero bonuses; basic tools are absent and source Ob increases1. This is a physical-state assertion, not an authenticated damage field. For BL with no own trained tools, borrowedTools may reference a distinct current lender Actor, actual trained matching Skill Item and its worn pack:
+
+```js
+borrowedTools:{lenderActorId,skillItemId:lenderSkillItemId,packItemId:lenderPackItemId,
+  accessGmAsserted:true,lenderConsentGmAsserted:true,packUsableGmAsserted:true}
+```
+
+Reject self/missing/untrained lender, missing/empty/unsupported pack, declined/omitted consent or contradictory scenario loan flags. With Will4 BL, no bonuses and borrowed tools: two saved D6 at source Cook Ob1. Without loan/basic tools: same two D6 but Ob2. No tools are created/transferred and lender inventory stays unchanged.
+
+Gate D: two-client GM/player access guard, unchanged Actor/Item/Journal/Settings/resources/counters/quantities, no RNG/socket/update hooks and no release/authority changes. historicalEquipmentVerified, physicalConditionAuthenticated, equipmentRelevanceAuthenticated, supplyIncrementAuthenticated and lenderConsentAuthenticated remain false. inventoryCapacityAndEncumbranceVerified and completeEquipmentRuleParityVerified remain false. Existing frozen equipment evidence remains detached after later current Item changes. Run all prior A-D factor/condition/dice/reward/participant/progress cases together.
+
+Status: automated mocks only; real Foundry v13.351 combined acceptance NOT RUN. This adds CURRENT equipment evidence, not past stock/consumption or full inventory certification. No release; 0/14 FULLY_REAUDITED.

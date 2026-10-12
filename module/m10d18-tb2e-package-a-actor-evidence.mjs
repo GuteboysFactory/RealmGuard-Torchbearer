@@ -27,13 +27,16 @@ export function tb2ePackageAActorEvidence({actorId=null}={}){
     const actor=g.actors?.get(actorId);
     if(!actor||actor.id!==actorId||actor.documentName!=="Actor"||actor.isToken||
        actor.inCompendium||actor.type!=="character")return fail("WORLD_CHARACTER_ACTOR_REQUIRED");
-    const conditions=[],skills=[],wises=[];
+    const conditions=[],skills=[],wises=[],gear=[];
     for(const item of actor.items){
       if(item.type==="role")skills.push({itemId:str(item.id),name:str(item.name),rating:numeric(item.system?.rating),
         beginnerAttempts:numeric(item.system?.beginnerAttempts),
         learning:{passed:numeric(item.system?.learning?.passed),failed:numeric(item.system?.learning?.failed),
           passNeeded:numeric(item.system?.learning?.passNeeded),failNeeded:numeric(item.system?.learning?.failNeeded)}});
       if(item.type==="wise")wises.push({itemId:str(item.id),name:str(item.name)});
+      if(item.type==="gear")gear.push({itemId:str(item.id),name:str(item.name),quantity:numeric(item.system?.quantity),
+        inventory:{mode:str(item.system?.inventory?.mode),location:str(item.system?.inventory?.location),
+          containerId:str(item.system?.inventory?.containerId),containerType:str(item.system?.inventory?.containerType)}});
       if(item.type!=="condition")continue;
       if(typeof item.system?.active!=="boolean")return fail("INVALID_ACTOR_CONDITION_STATE");
       if(!item.system.active)continue;
@@ -46,7 +49,7 @@ export function tb2ePackageAActorEvidence({actorId=null}={}){
     if(fate===null||persona===null)return fail("INVALID_CURRENT_ACTOR_REWARDS");
     return state(true,null,{actorId,actorUuid:str(actor.uuid),currentGmId:gm.id,
       currentSessionGmObserved:true,actorDocumentObserved:true,
-      conditions:[...new Set(conditions)],currentSkillItems:skills,currentWiseItems:wises,
+      conditions:[...new Set(conditions)],currentSkillItems:skills,currentWiseItems:wises,currentGearItems:gear,
       currentAbilities:{will:numeric(actor.system?.attributes?.will?.value),
         health:numeric(actor.system?.attributes?.health?.value)},
       currentNature:{current:numeric(actor.system?.attributes?.nature?.value),
