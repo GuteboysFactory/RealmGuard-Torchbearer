@@ -314,3 +314,9 @@ OPEN: actual historical counter eligibility, duplicate-test ledger, player conse
 ### Local verification — current counters and derived Helper Synergy
 
 **151/151 smoke suites PASS**, syntax checks and release preflight PASS. Focused progression suite re-run after final evidence-label cleanup PASS. Independent temporary ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**. Protected system/QA/stable/READY comparison against origin/main remains empty. GitHub CI checkpoint follows after branch update; real Foundry v13.351 combined A-D remains NOT RUN.
+
+### GitHub CI verified — saved participant outcome / current progress counters source commit 8631c7d6e8dc2c46f1ecef0fb284555b8286187e
+
+Run https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38288506035 completed SUCCESS. Logs explicitly confirm **151/151 smoke suites PASS**, saved-outcome/current Skill-BL counter/Helper Synergy regression PASS, syntax/safety preflight PASS, unpublished ZIP integrity/manifest byte equality and **21/21 manifest dependencies PASS**, protected QA/stable/system manifest guard PASS. Local full regression and independent ZIP checks also PASS.
+
+Counter arithmetic and source-bound suppression/thresholds are automatically verified. Historical rule eligibility, duplicate-test exclusion, actual Helper Fate commitment/consent and immutable event provenance remain GM assertions. Will/Health Helper Synergy still has no observed P/F counter model. Complete CORE exceptions and combined Foundry v13.351 A-D acceptance remain OPEN / NOT RUN; **0/14 FULLY_REAUDITED**. Legacy Mixed only live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 / published QA v1.13.0-qa.29 unchanged. No merge/release/tag/channel action.
