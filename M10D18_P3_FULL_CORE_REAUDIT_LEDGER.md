@@ -143,3 +143,10 @@ Added a read-only, explicitly GM-asserted participant/Condition gate to `tests.s
 ### 2026-10-12 — Source-linked advancement boundary, still read-only
 
 Trained Skill advancement marks, untrained Beginner's Luck learning attempts based on Maximum Nature, the 24-Skill capacity decision and loss of ability advancement from BL are previewed separately (DH p.75). Sick prevents the proposed log (SG p.51); original ties resolved through a tiebreaker do not mark the initial Skill (SG p.34). Rating zero from conditions prevents an ordinary test despite available bonus dice (SG p.52). No Actual Actor/roll/GM authority has yet been bound; therefore Tests, Abilities/Skills, Nature and cross-domain advancement remain OPEN. FULLY_REAUDITED **0/14**.
+
+
+### 2026-10-12 — Independent outcome and advancement integrity checkpoint
+
+The GM-supplied source-factor + equipment + condition + Help/Wise + Beginner's Luck test preview is now linked to an externally supplied **plain, non-rerolled** D6 result list in `tests.outcomeAndProgressPlan`. The guard validates exact pool/dice count, D6 faces, fixed Obstacle resolution and derived PASS/FAIL before any read-only proposed Skill or untrained BL learning mark. Post-test metadata cannot change Skill identity, Ob, conditions or outcome. Source: SG pp.31–35,46–52; DH pp.59,75.
+
+No live-roll execution, no proof of real roll provenance and no writes. Real Actor and GM authorization, Fate/Persona/Wise reroll event history and complete Domain A exception coverage remain OPEN. FULLY_REAUDITED **0/14**; stable v1.12.0 frozen, Legacy Mixed sole live authority, M11 paused, kill switch engaged.
