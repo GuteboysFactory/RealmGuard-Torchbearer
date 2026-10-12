@@ -51,7 +51,6 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
   if(!related) return blocked("WISE_NOT_RELATED",{effect:String(effect ?? "")});
   const failed=clampInt(failedDice);
   const alreadyRerolled=Math.min(failed,clampInt(alreadyRerolledFailedDice));
-  if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{effect:String(effect??""),sourceEvidence:"DH 77; SG 87-88"});
 
   if(["deeperunderstanding","deeper"].includes(key)){
     if(!hasFate) return blocked("INSUFFICIENT_FATE",{effect:"DEEPER_UNDERSTANDING",resourceCost:"FATE"});
@@ -61,11 +60,14 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
       ok:true,phase:"M10D.2",profileId:PROFILE_ID,effect:"DEEPER_UNDERSTANDING",
       resourceCost:"FATE",resourceAmount:1,timing:"AFTER_TEST_ROLL",reroll:"ONE_FAILED_DIE",
       rerollDiceMaximum:1,eligibleFailedDice:eligible,alreadyRerolledDiceExcluded:true,
-      orderRequirement:"WISE_REROLLS_BEFORE_FATE_LUCK",mustPrecedeFateLuck:true,liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
+      orderRequirement:"NO_DIE_MAY_BE_REROLLED_TWICE",mustPrecedeFateLuck:false,
+      fateLuckAlreadyUsed:Boolean(fateLuckAlreadyUsed),perDieRerollHistoryRequiresConfirmation:true,
+      liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
     });
   }
 
   if(["ofcourse","ahofcourse","course"].includes(key)){
+    if(fateLuckAlreadyUsed)return blocked("OF_COURSE_MUST_PRECEDE_FATE_LUCK",{sourceEvidence:"DH 77"});
     if(!hasPersona) return blocked("INSUFFICIENT_PERSONA",{effect:"OF_COURSE",resourceCost:"PERSONA"});
     if(failed<1) return blocked("NO_FAILED_DICE",{effect:"OF_COURSE",resourceCost:"PERSONA"});
     return freezeTb2e({
@@ -162,7 +164,6 @@ export function tb2eWiseDeeperDiePlan({
   const fail=(reasonCode)=>freezeTb2e({...state,ok:false,reasonCode});
   if(!hasWise||!related)return fail("RELEVANT_WISE_REQUIRED");
   if(!Number.isInteger(fateAvailable)||fateAvailable<1)return fail("INSUFFICIENT_FATE");
-  if(fateLuckAlreadyUsed)return fail("WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
   if(![3,4].includes(successThreshold))return fail("UNSUPPORTED_SUCCESS_THRESHOLD");
   if(!Array.isArray(dice)||dice.some(d=>!d||typeof d.dieId!=="string"||!d.dieId.trim()||
      !Number.isInteger(d.face)||d.face<1||d.face>6||
@@ -179,5 +180,7 @@ export function tb2eWiseDeeperDiePlan({
   return freezeTb2e({...state,ok:true,successThreshold,
     eligibleFailedDieIds:eligible,previouslyRerolledDiceExcluded:true,
     selectedDieId:chosen,diceToReroll:1,
+    fateLuckAlreadyUsed:Boolean(fateLuckAlreadyUsed),
+    timingBoundary:"SELECTED_DIE_NEVER_BEFORE_REROLLED",
     resourceCost:"FATE",resourceAmount:1,rerollCommitted:false});
 }
