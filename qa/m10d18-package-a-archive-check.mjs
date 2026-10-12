@@ -8,7 +8,7 @@ const manifest=JSON.parse(fs.readFileSync("system.json","utf8"));
 const required=["system.json","realm-guard.mjs",...(manifest.esmodules??[]),
  ...(manifest.styles??[]),...(manifest.languages??[]).map(x=>x.path).filter(Boolean)];
 assert.equal(manifest.id,"realm-guard");
-assert.match(manifest.version,/^1\.13\.0-qa\.29$/);
+assert.equal(manifest.version,fs.readFileSync("release/READY","utf8").split(/\r?\n/)[0].trim(),"Candidate manifest/READY mismatch");
 for(const p of required){
  assert.ok(entries.has(p),"Foundry archive missing manifest dependency: "+p);
  assert.ok(!p.startsWith("/"),"Unexpected absolute manifest path: "+p);
