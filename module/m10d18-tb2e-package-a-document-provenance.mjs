@@ -83,6 +83,8 @@ export function tb2ePackageADocumentEvidence({actorId=null,messageId=null}={}){
       currentSessionGmObserved:true,currentGmId:gm.id,
       actorDocumentObserved:true,actorId,actorUuid:actor.uuid,
       messageDocumentObserved:true,messageId,messageAuthorId:author.id,
+      messageTimestamp:Number.isSafeInteger(message.timestamp)&&message.timestamp>=0?
+        message.timestamp:null,
       authorPermissionScope:"CURRENT_PERMISSION_ONLY_NOT_PERMISSION_AT_ROLL_TIME",
       dice,conditions:[...new Set(conditions)],currentRewards:{fate,persona},
       evidenceScope:"CURRENT_MUTABLE_CLIENT_DOCUMENTS_NOT_IMMUTABLE_HISTORY",

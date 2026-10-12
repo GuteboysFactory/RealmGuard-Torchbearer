@@ -33,6 +33,14 @@ assert.equal(good.advancementPreview.writesPlanned,0);
 assert.deepEqual(good.dieHistory.filter(x=>x.source==="FATE_LUCK").map(x=>x.parentDieId),["a","b","luck1"]);
 assert.equal(good.reviewedTimeline[2].generatedDice,3);
 const normal=plan({...base,rewardEvents:[]});safe(normal);assert.equal(normal.ok,true);
+const angryScenario={...scenarioInput,actingConditions:["Angry"],gmAngryObstacleDecision:"WAIVE"};
+for(const wiseEvent of [d,{...o,rerolls:[{dieId:"b",face:5},{dieId:"c",face:4}]}]){
+ const blocked=plan({...base,scenarioInput:angryScenario,rewardEvents:[wiseEvent]});
+ safe(blocked);assert.equal(blocked.reasonCode,"ANGRY_BLOCKS_WISE_REWARDS");
+}
+const angryLuck=plan({...base,scenarioInput:angryScenario,rewardEvents:[{type:"FATE_LUCK",
+ rounds:[[{dieId:"angryLuck",parentDieId:"a",face:4}]]}]});
+safe(angryLuck);assert.equal(angryLuck.ok,true,JSON.stringify(angryLuck));
 assert.equal(normal.finalDiceCount,5);assert.equal(normal.rawSuccesses,3);
 const luckOnly=plan({...base,rewardEvents:[{type:"FATE_LUCK",rounds:[
  [{dieId:"extra",parentDieId:"a",face:4}]]}]});

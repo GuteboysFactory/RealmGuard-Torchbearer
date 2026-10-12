@@ -237,3 +237,35 @@ This is part of the same consolidated acceptance, not a separate publication gat
 5. Gate D: run GM/player clients together, check no socket/write/spend/advancement changes, no private dice leakage, no authority changes and no duplicate runtime hooks. Re-run complete A-D acceptance for existing Package A scenarios. Attach results and failures before claiming Foundry acceptance.
 
 Status: automated mocks only until this checklist is executed in Foundry v13.351. No server attestation, immutable historical ledger or full-domain certification is claimed. Release remains blocked; 0/14 FULLY_REAUDITED.
+
+### Saved Wise/Fate event results — combined Gates B/C/D, v13.351 (NOT RUN)
+
+Use the same GM/player world character, ordinary Cook rating-4/tool+1D/Ob1 fixture as the current-document gate. Add two actual Wise Items with different subjects and record their Item IDs. Prepare existing native plain-D6 ChatMessages for base (5d6), Deeper (1d6), Of Course (one D6 per remaining failed base die), then Luck (one new die per six, with a separate message for each subsequent six round). Each speaker must be that world Actor without scene/token; author must match; record exact message timestamps and reject ambiguous/tied ordering. Manual fixture preparation is separate from the API; the API never rolls or creates messages.
+
+Read base evidence to obtain exact `dieId` values (`messageId:0:0:index`). Supply only message references and semantic target/parent links:
+
+```js
+A.tests.documentRewardHistoryPlan({
+  actorId, initialMessageId, scenarioInput,
+  gmEventLinksReviewed:true,
+  fateAtRollStartGmAsserted:2, personaAtRollStartGmAsserted:1,
+  events:[
+    {type:"DEEPER_UNDERSTANDING",messageId:deeperMessageId,
+      wiseItemId:firstWiseItemId,related:true,targetDieId:failedBaseDieId},
+    {type:"OF_COURSE",messageId:ofCourseMessageId,
+      wiseItemId:secondWiseItemId,related:true,targetDieIds:remainingFailedDieIds},
+    {type:"FATE_LUCK",rounds:[
+      {messageId:luckMessageId,parentDieIds:sixDieIds}
+      // Add a round for EACH remaining six, until no six remains.
+    ]}
+  ]
+});
+```
+
+For deterministic recorded faces base [6,2,3,4,5], Deeper replaces the 2 with 6, Of Course replaces the 3 with 5, first Luck results [6,4], second Luck result [5]: expect 8 final successes, 2 Fate and 1 Persona projected; no spend, advancement or learning. Link Luck parent IDs to the initial two sixes, then the first Luck six. Inspect returned `eventEvidence` to relate the Deeper/Of Course result-message die IDs to their targeted original die IDs.
+
+Gate C rejection cases: extra caller faces/newFace/result/progress fields; unowned Wise Item; duplicate normalized Wise subjects; Angry actor using either Wise effect (SG47); repeated/reused message; different author/Actor; unreadable/deleted message; missing/equal/reversed timestamps; modified native die; target not a failed original die; incomplete Of Course failed set; fake/extra parent six, unfinished or extra Luck round; insufficient/omitted GM-declared historical balance; Wise after Luck. Angry ordinary Luck without Wise remains permitted if the rest of the scenario is legal.
+
+Gate D: use both GM/player clients, verify player denial before data reads, no private result leakage, no RNG/socket/document/resource mutations and no live authority changes. Change current Fate/Persona independently of declared historical start values: current balances must remain observation only. Returned `historicalRewardBalanceVerified`, `rollTimeActorStateVerified`, `immutableChronologyVerified`, `completeTestHistoryVerified`, `rollSourceAuthenticated`, `actorSourceAuthenticated` and `gmPermissionAuthenticated` stay false. Editing a saved message changes later observations, not an immutable historical ledger; previously returned frozen evidence must remain detached.
+
+Status: mock/automated coverage only; real Foundry v13.351 combined acceptance NOT RUN. The same-test association, fictional Wise relatedness, parent/target associations and historical resources remain GM assertions. Legacy HTML-only cards remain rejected. Keep release blocked and 0/14 FULLY_REAUDITED until all full gates actually pass.

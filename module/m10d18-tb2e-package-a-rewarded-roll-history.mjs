@@ -2,11 +2,12 @@ import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageATestScenarioPlan} from "./m10d18-tb2e-package-a-test-scenario.mjs";
 import {tb2eResolveObstacleShadow} from "./m10d-tb2e-test-shadow.mjs";
 import {tb2ePackageAProgressAfterTestPlan} from "./m10d18-tb2e-package-a-progress-boundary.mjs";
+import {tb2eConditionInfo} from "./m10d-tb2e-conditions-shadow.mjs";
 
 const state=(ok,reasonCode=null,extra={})=>freezeTb2e({
  ok,reasonCode,phase:"M10D.18_PACKAGE_A",profileId:"torchbearer2e",
  mode:"GM_ASSERTED_WISE_FATE_TIMELINE_SHADOW",
- sourceEvidence:"DH pp.76-78; SG pp.87-88",
+ sourceEvidence:"DH pp.76-78; SG p.47, pp.87-88",
  liveApplication:false,writesPlanned:0,rollExecuted:false,actorWrite:false,
  itemWrite:false,journalWrite:false,settingsWrite:false,
  resourceSpendCommitted:false,advancementWrite:false,learningWrite:false,
@@ -72,6 +73,8 @@ export function tb2ePackageARewardedRollHistoryPlan({
    if(!["DEEPER_UNDERSTANDING","OF_COURSE","FATE_LUCK"].includes(type))
      return deny("UNSUPPORTED_REWARD_EVENT",{eventIndex});
    if(type!=="FATE_LUCK"){
+     if(scenarioInput.actingConditions.some(c=>tb2eConditionInfo(c).condition==="ANGRY"))
+       return deny("ANGRY_BLOCKS_WISE_REWARDS",{eventIndex,sourceEvidence:"SG p.47"});
      if(seenLuck)return deny("WISE_REWARD_MUST_PRECEDE_FATE_LUCK",{eventIndex,sourceEvidence:"SG pp.87-88"});
      if(!validId(event.wiseId)||event.related!==true)
        return deny("GM_CONFIRMED_RELATED_WISE_REQUIRED",{eventIndex});
