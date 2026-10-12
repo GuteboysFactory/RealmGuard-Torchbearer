@@ -22,7 +22,7 @@ assert.equal(tb2eWiseAidPlan({context:"CONFLICT"}).conflictNoncombatantToCombata
 const deeper=tb2eWiseRerollPlan("Deeper Understanding",{failedDice:3,alreadyRerolledFailedDice:2,hasFate:true});
 assert.equal(deeper.ok,true);assert.equal(deeper.resourceCost,"FATE");assert.equal(deeper.resourceAmount,1);assert.equal(deeper.reroll,"ONE_FAILED_DIE");
 assert.equal(deeper.rerollDiceMaximum,1);assert.equal(deeper.eligibleFailedDice,1);assert.equal(deeper.alreadyRerolledDiceExcluded,true);
-assert.equal(deeper.orderRequirement,"WISE_REROLLS_BEFORE_FATE_LUCK");assert.equal(deeper.resourceSpendCommitted,false);
+assert.equal(deeper.orderRequirement,"NO_DIE_MAY_BE_REROLLED_TWICE");assert.equal(deeper.resourceSpendCommitted,false);
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:3,alreadyRerolledFailedDice:3}).reasonCode,"NO_ELIGIBLE_FAILED_DIE");
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,hasFate:false}).reasonCode,"INSUFFICIENT_FATE");
 const course=tb2eWiseRerollPlan("Of Course",{failedDice:4,hasPersona:true});
