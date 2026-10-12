@@ -168,3 +168,6 @@ New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m1
 ### 2026-10-12 — SG88 Persona double-count guard
 
 Independent Package A read-only planners now share source-backed Persona accounting: a maximum three pre-roll Advantage dice, one pre-roll point for Nature Channel, plus post-roll Of Course. The reward-timeline preview compares the combined cost against one GM-stated balance at the *beginning* of the test; the plain-D6 outcome preview requires an explicit sufficient starting balance before allowing an outcome based on Persona bonus dice. Duplicate Wise IDs with whitespace/case aliases are rejected. The code makes **no** real resources available, spends none and authenticates no Actor/GM identity. Full source and live proof remain OPEN; 0/14 FULLY REAUDITED.
+
+
+Nature Channel's claimed Persona balance must now agree with the same GM-declared starting balance used by post-roll Wise rewards (`NATURE_PERSONA_BALANCE_MISMATCH` if it differs). No Foundry Actor or ledger is consulted.
