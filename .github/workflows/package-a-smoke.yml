@@ -51,7 +51,7 @@ jobs:
           set -euo pipefail
           STAGE="$(mktemp -d)"
           mkdir -p "$STAGE/system"
-          rsync -a ./ "$STAGE/system/" --exclude '.git/' --exclude '.github/' --exclude 'channels/' --exclude 'release/' --exclude 'dist/'
+          rsync -a ./ "$STAGE/system/" --exclude '.git/' --exclude '.github/' --exclude 'channels/' --exclude 'release/' --exclude 'dist/' --exclude 'realm-guard-foundry-v*.zip'
           (cd "$STAGE/system" && zip -qr "$STAGE/package-a.zip" .)
           unzip -t "$STAGE/package-a.zip" > /dev/null
           unzip -p "$STAGE/package-a.zip" system.json | cmp - system.json
