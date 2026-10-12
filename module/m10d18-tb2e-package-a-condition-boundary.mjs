@@ -19,7 +19,8 @@ export function tb2ePackageAConditionBoundaryPlan({
   skillName="",scenarioType="SKILL",actingCharacterId="",
   actingConditions=null,conditionsGmReviewed=false,
   help=null,wiseAid=null,bonusTraitsDice=0,bonusFreshDice=0,
-  channelNatureDice=0,channelNatureFacts=null
+  channelNatureDice=0,channelNatureFacts=null,
+  gmAngryObstacleDecision="",actingOnInstinct=false,instinctTurnSpent=false
 }={}){
  const type=String(scenarioType??"").trim().toUpperCase();
  if(!["SKILL","BEGINNERS_LUCK"].includes(type))return no("UNSUPPORTED_CONDITION_SCENARIO_TYPE");
@@ -29,13 +30,25 @@ export function tb2ePackageAConditionBoundaryPlan({
  const skill=tb2eSkillInfo(skillName);
  if(!skill.ok)return no("UNKNOWN_SKILL");
  const test=type==="SKILL"?"SKILL":skill.beginnersLuckAbility;
- const actor=tb2eConditionTestEffectPlan({conditions:actingConditions,test});
+ const affectedByAnger=["Alchemist","Cartographer","Commander","Cook","Dungeoneer","Haggler",
+  "Healer","Lore Master","Manipulator","Mentor","Orator","Pathfinder","Persuader",
+  "Scholar","Survivalist"].includes(skill.skill);
+ const actor=tb2eConditionTestEffectPlan({conditions:actingConditions,test,precisionOrSocial:affectedByAnger});
  if(!actor.ok)return no("ACTOR_"+actor.reasonCode);
+ if(actor.conditions.includes("DEAD"))return no("DEAD_ACTOR_CANNOT_TEST");
+ if(actor.conditions.includes("ANGRY")&&affectedByAnger&&
+  !["APPLY","WAIVE"].includes(String(gmAngryObstacleDecision).trim().toUpperCase()))
+   return no("ANGRY_OBSTACLE_GM_DECISION_REQUIRED");
+ const angryObstacleIncrease=actor.angryObstacleGuidance&&
+   String(gmAngryObstacleDecision).trim().toUpperCase()==="APPLY"?1:0;
+ if(actingOnInstinct===true&&actor.conditions.includes("EXHAUSTED")&&instinctTurnSpent!==true)
+   return no("EXHAUSTED_INSTINCT_REQUIRES_SPENT_TURN");
+ const instinctObstacleIncrease=actingOnInstinct===true&&actor.conditions.includes("EXHAUSTED")?1:0;
  if(type==="BEGINNERS_LUCK"){
    const bl=tb2eConditionCapabilityPlan({conditions:actingConditions,capability:"BEGINNERS_LUCK"});
    if(!bl.ok||!bl.allowed)return no(bl.reasonCode??"BEGINNERS_LUCK_CONDITION_BLOCKED");
  }
- if((bonusTraitsDice>0||wiseAid!==null)&&actingConditions.includes("ANGRY")&&bonusTraitsDice>0)
+ if(actor.conditions.includes("ANGRY")&&bonusTraitsDice>0)
    return no("ANGRY_BLOCKS_BENEFICIAL_TRAITS");
  if(!Number.isInteger(bonusFreshDice)||bonusFreshDice!==0)
    return no("FRESH_DICE_MUST_BE_DERIVED_FROM_CONDITIONS");
@@ -43,8 +56,6 @@ export function tb2ePackageAConditionBoundaryPlan({
    .reduce((n,x)=>n+x.value,0);
  const actorConditionPenalty=actor.components.filter(x=>x.condition!=="FRESH"&&x.kind==="DICE")
    .reduce((n,x)=>n+x.value,0);
- if(actor.angryObstacleGuidance)
-   return no("ANGRY_PRECISION_OBSTACLE_NEEDS_GM_DECISION");
  if(help!==null){
    if(!ident(help?.helperId)||help.helperId.trim()===actingCharacterId.trim())
      return no("HELP_REQUIRES_DISTINCT_CHARACTER");
@@ -52,6 +63,7 @@ export function tb2ePackageAConditionBoundaryPlan({
      return no("GM_HELPER_CONDITIONS_REQUIRED");
    const cap=tb2eConditionCapabilityPlan({conditions:help.helperConditions,capability:"HELP"});
    if(!cap.ok||!cap.allowed)return no(cap.reasonCode??"HELPER_CONDITION_BLOCKED");
+   if(cap.conditions.includes("DEAD"))return no("DEAD_HELPER_CANNOT_HELP");
  }
  if(wiseAid!==null){
    if(!ident(wiseAid?.helperId)||wiseAid.helperId.trim()===actingCharacterId.trim())
@@ -60,6 +72,7 @@ export function tb2ePackageAConditionBoundaryPlan({
      return no("GM_WISE_HELPER_CONDITIONS_REQUIRED");
    const cap=tb2eConditionCapabilityPlan({conditions:wiseAid.helperConditions,capability:"BENEFICIAL_WISE"});
    if(!cap.ok||!cap.allowed)return no(cap.reasonCode??"WISE_HELPER_CONDITION_BLOCKED");
+   if(cap.conditions.includes("DEAD"))return no("DEAD_WISE_HELPER_CANNOT_AID");
    if(help!==null&&wiseAid.helperId.trim()===help.helperId.trim())
      return no("SAME_HELPER_CANNOT_HELP_AND_WISE_AID");
  }
@@ -78,6 +91,8 @@ export function tb2ePackageAConditionBoundaryPlan({
    actingCharacterId:actingCharacterId.trim(),conditionSource:"GM_REVIEWED_NOT_ACTOR_VERIFIED",
    actingConditions:actor.conditions,abilityOrSkillConditionDice:actorConditionPenalty,
    freshDiceAfterHalving:actorFreshDice,actingConditionModifiersGmReviewed:true,
+   angryObstacleIncrease,instinctObstacleIncrease,
+   exhaustedInstinctRequiresSpentTurn:instinctObstacleIncrease>0,
    helperConditionRiskConfirmed:help!==null,
    wiseHelperConditionRiskConfirmed:wiseAid!==null,
    channeledNatureDice:channel?.diceAdded??0,
