@@ -55,14 +55,14 @@ export function tb2eAbilitySkillModel(){
   return freezeTb2e({
     phase:"M10D.6",profileId:PROFILE_ID,
     abilities:{
-      WILL:{kind:"RAW",phaseContext:"ADVENTURE",ratingRange:{min:1,max:6},tieUse:"MENTAL_STRENGTH_OR_INSIGHT",recoveryReference:{Anger:2,Fear:3,Sickness:3}},
-      HEALTH:{kind:"RAW",phaseContext:"ADVENTURE",ratingRange:{min:1,max:6},tieUse:"PHYSICAL_EXERTION",recoveryReference:{Exhaustion:3,Injury:4}},
+      WILL:{kind:"RAW",phaseContext:"ADVENTURE",ratingRange:{min:1,max:6},heroicRatingCapWithLevelBenefit:7,heroicTargetNumberWithLevelBenefit:3,tieUse:"MENTAL_STRENGTH_OR_INSIGHT",recoveryReference:{Anger:2,Fear:3,Sickness:3}},
+      HEALTH:{kind:"RAW",phaseContext:"ADVENTURE",ratingRange:{min:1,max:6},heroicRatingCapWithLevelBenefit:7,heroicTargetNumberWithLevelBenefit:3,tieUse:"PHYSICAL_EXERTION",recoveryReference:{Exhaustion:3,Injury:4}},
       RESOURCES:{kind:"TOWN",phaseContext:"TOWN",ratingRange:{min:0,normalMin:1,max:10},specialRulesDomain:"resources"},
       CIRCLES:{kind:"TOWN",phaseContext:"TOWN",ratingRange:{min:0,normalMin:1,max:10},specialRulesDomain:"circles"},
       PRECEDENCE:{kind:"FIXED_VALUE",tested:"RARE_IF_EVER",automation:"REFERENCE_ONLY"},
       MIGHT:{kind:"FIXED_VALUE",tested:"RARE_IF_EVER",automation:"REFERENCE_ONLY"}
     },
-    skills:{maxKnown:24,ratingRange:{min:1,max:6},heroicRatingCapWithLevelBenefit:7,names:SKILLS,fullDescriptionsAuthority:"DH160_176_SOURCE_AVAILABLE_NOT_FULLY_MAPPED"},
+    skills:{maxKnown:24,ratingRange:{min:1,max:6},heroicRatingCapWithLevelBenefit:7,heroicTargetNumberWithLevelBenefit:3,names:SKILLS,fullDescriptionsAuthority:"DH160_176_SOURCE_AVAILABLE_NOT_FULLY_MAPPED"},
     beginnersLuck:{WILL:WILL_BEGINNERS_LUCK,HEALTH:HEALTH_BEGINNERS_LUCK,resourcesAndCirclesAllowed:false},
     newSkillLearning:{method:"BEGINNERS_LUCK_ATTEMPTS",thresholdBasis:"MAXIMUM_NATURE",learnedRating:2},
     standardAdvancement:{passes:"CURRENT_RATING",fails:"CURRENT_RATING_MINUS_ONE",caps:{SKILL:6,WILL:6,HEALTH:6,RESOURCES:10,CIRCLES:10}},
@@ -153,7 +153,7 @@ export function tb2eAdvancementThresholdPlan({kind="SKILL",rating=1,heroicRating
     ok:true,phase:"M10D.6",profileId:PROFILE_ID,mode:"ADVANCEMENT_THRESHOLD_SHADOW",kind:key,rating:value,
     route:"STANDARD_PASS_FAIL",requiredPassedTests:value,requiredFailedTests:Math.max(0,value-1),
     cap:bounds.max,atCap,advanceTo:atCap?null:value+1,resetPassFailAfterAdvance:true,
-    heroicRatingSevenUnlocked:heroic,heroicSourceEvidence:"DH 72: class/level benefit extends Skill rating cap to 7",
+    heroicRatingSevenUnlocked:heroic,heroicSourceEvidence:"DH 59/72: level benefit extends Will, Health, or Skill rating cap to 7",
     advancementMutationCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
