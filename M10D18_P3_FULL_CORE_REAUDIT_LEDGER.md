@@ -163,3 +163,8 @@ Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Und
 New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
 
 **Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
+
+
+### 2026-10-12 — SG88 Persona double-count guard
+
+Independent Package A read-only planners now share source-backed Persona accounting: a maximum three pre-roll Advantage dice, one pre-roll point for Nature Channel, plus post-roll Of Course. The reward-timeline preview compares the combined cost against one GM-stated balance at the *beginning* of the test; the plain-D6 outcome preview requires an explicit sufficient starting balance before allowing an outcome based on Persona bonus dice. Duplicate Wise IDs with whitespace/case aliases are rejected. The code makes **no** real resources available, spends none and authenticates no Actor/GM identity. Full source and live proof remain OPEN; 0/14 FULLY REAUDITED.
