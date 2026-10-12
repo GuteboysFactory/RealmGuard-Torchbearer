@@ -222,3 +222,6 @@ On the **same** read-only Cook source scenario with exactly five non-Persona bas
 For `A.tests.rewardedRollHistoryPlan`, confirm that `personaAvailable:1` together with `personaDice:1` and a subsequent `OF_COURSE` yields `INSUFFICIENT_PERSONA`; `personaAvailable:2` allows the *GM-declared* combined cost and exposes `projectedPersonaTotalCost:2`. With `bonuses:{channeledNatureDice:3}` plus source-valid Nature context, the starting budget must include the additional 1 Persona Channel cost. Reject 4 Advantage dice (`PERSONA_ADVANTAGE_MAXIMUM_THREE_DICE`). Duplicate Wise names differing only in spaces or letter case must be rejected on the same test.
 
 These are GM-supplied *start-of-test balances*, not verified live Actor funds. Confirm no resource spends, rolls or mutation.
+
+
+When the scenario channels Nature, deliberately set `channelNatureFacts.personaAvailable` to a different value from `personaAvailableAtRollStart` (plain chain) or `personaAvailable` (reward chain). Both must fail with `NATURE_PERSONA_BALANCE_MISMATCH` before any result is authorized. They do not read the actual Actor.
