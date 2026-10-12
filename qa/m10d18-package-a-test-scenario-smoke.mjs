@@ -4,10 +4,10 @@ const equipment={hasSkill:true,carriesBackpackOrSatchel:true,borrowedTools:false
  dwarvenCraftingNature:false,isCraftingTest:false,toolsInadequate:false,suppliesUsed:1,gearUsed:0};
 const environment={light:"DIM_LIGHT",additionalGmHindrances:0};
 const factor={tableName:"meals",gmAuthorized:true,selections:{ingredients:"fresh",amount:"small_group"}};
-const help={helperId:"helperA",describedRelevantAction:true,actingPlayerAccepted:true,gmApprovedRelevance:true,
+const help={helperId:"helperA",helperConditions:[],conditionsGmReviewed:true,describedRelevantAction:true,actingPlayerAccepted:true,gmApprovedRelevance:true,
  helpOptions:{sourceKind:"skill",sourceName:"Cook",testName:"Cook",sameSkill:true}};
-const wiseAid={helperId:"helperB",hasWise:true,related:true};
-const basic={skillName:"Cook",factor,mode:"SKILL",rating:4,equipment,environment,allModifiersGmReviewed:true};
+const wiseAid={helperId:"helperB",helperConditions:[],conditionsGmReviewed:true,hasWise:true,related:true};
+const basic={skillName:"Cook",factor,mode:"SKILL",rating:4,equipment,environment,allModifiersGmReviewed:true,actingCharacterId:"actor",actingConditions:[],conditionsGmReviewed:true};
 const good=plan({...basic,help,wiseAid});
 assert.equal(good.ok,true,JSON.stringify(good));assert.equal(good.obstacle,3);
 assert.equal(good.finalDicePool,7);assert.equal(good.actorEntitlementVerified,false);
