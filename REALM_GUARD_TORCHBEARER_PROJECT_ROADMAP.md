@@ -1135,3 +1135,16 @@ The independent-test shadow flow now includes `tests.progressAfterTestPlan`, dis
 New `tests.outcomeAndProgressPlan` composes read-only source-based independent test parameters with reviewed **plain D6 results**, derives PASS/FAIL and optionally previews Skill Pass/Fail or untrained BL learning progression from the same result. It refuses mismatched pool counts, invalid D6s, unreviewed dice, reroll/Fate histories and mismatching or injected post-test metadata. No actor/doc updates or release switches. CI covers this new chain as part of the combined Package A suite.
 
 **Not yet release-authorized:** complete source / actor entitlement parity, verified roll-event history, full reward/wise sequencing, real Conditions/Advancement lifetime audit, multiplayer Foundry v13.351 acceptance. PR #14 stays DRAFT; 0/14 domain closures. Stable v1.12.0 and QA channels unchanged.
+
+
+## 2026-10-12 — Fate/Wise event chronology and Helper Synergy source correction
+
+Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Understanding and Of Course to precede Fate Luck; SG p.87 explicitly requires Deeper-before-Luck, while DH p.77 additionally forbids rerolling an already-rerolled die. Old statements permitting Deeper after Luck are superseded.
+
+`module/m10d18-tb2e-package-a-rewarded-roll-history.mjs` now previews one GM-asserted test with uniquely identified base dice, per-die Wise rerolls (related Wise, at most one per effect/wise) and a Fate Luck event holding recursive rounds with explicit parent-six associations. Every six must produce exactly one follow-up die; new sixes continue until exhausted. Unrelated/duplicated Wise effects, late Wise actions, incomplete 6-chains, fake parent die IDs, repeated new IDs and insufficient declared Fate/Persona balances fail closed. The preview sums *potential* resource cost without spending resources, and derives an uncommitted outcome and optional advancement from the enriched results. No Foundry roll log, actor/GM credentials or resource balance is authenticated.
+
+`module/m10d18-tb2e-package-a-synergy.mjs` separately implements SG p.87 Helper Fate Synergy as a read-only advancement proposal: helper must have accepted eligible ordinary Help, declared Fate pre-roll, and a verified helping Skill/Ability. The Helper marks their own helping source on PASS/FAIL; on an initial tie ending in tiebreaker, either retract Fate/no mark or keep Fate and mark the tiebreaker source without giving Help on that roll. Sick and Afraid/Dead conditions remain in force. No reward or advancement is committed.
+
+New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
+
+**Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
