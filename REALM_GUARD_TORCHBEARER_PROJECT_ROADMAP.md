@@ -1123,3 +1123,8 @@ The 33-Skill numeric catalogue now feeds an additional read-only `tests.scenario
 The integrated read-only test scenario now requires reviewed Actor and helper condition sets and actor identifiers before any trustworthy independent pool preview. It composes Fresh, Sick/Injured, Angry optional precision Ob, exhausted Instinct turn/Ob, Help/Wise restrictions, Beginner's Luck post-halving stages and explicitly GM-supplied Nature channel/Tax guidance. Source: SG 46–52 and DH 59,65–71. Regression suite includes the new `qa/m10d18-package-a-condition-provenance-smoke.mjs` and the historical 142 suites; dry-run Foundry archive verification remains required.
 
 **Remaining:** real authenticated Actor-data binding, complete permission constraints, all levels/Conditions/Traits/Wises/Nature interactions, cross-domain spell/conflict cases, full source exception table and one consolidated Foundry v13.351 manual QA. PR #14 stays Draft. M11 PAUSED, kill switch ENGAGED, Legacy Mixed live authority, stable v1.12.0 unaffected, full audit 0/14.
+
+
+### 2026-10-12 — Paket A Learning/Advancement integrity checkpoint
+
+The independent-test shadow flow now includes `tests.progressAfterTestPlan`, distinguishing DH p.75 BL attempts (Maximum Nature threshold, learned Skill 2, no Will/Health advancement) from ordinary Skill Pass/Fail marks. Sick and Afraid/Dead restrictions, tiebreaker routing and effective Skill rating zero are guarded against SG pp.34,51–52. No document writes. Acceptance still requires authenticated Actor facts, permission and live-roll provenance, real end-to-end integration and one consolidated Foundry v13.351 QA; PR #14 remains DRAFT, 0/14 domains fully reaudited, stable v1.12.0 untouched.
