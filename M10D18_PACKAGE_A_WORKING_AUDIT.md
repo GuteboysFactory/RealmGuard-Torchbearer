@@ -195,3 +195,14 @@ Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Und
 New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
 
 **Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
+
+
+## 2026-10-12 — SG p.88 Persona budget reconciliation across all Package A independent-test previews
+
+Source: *Scholar's Guide* p.88: **Advantage** spends no more than three Persona per roll before the dice; **Channeling Nature** spends one Persona; **Of Course** may spend a further Persona on a related Wise test before Fate Luck.
+
+`tests.scenarioPlan` now rejects `bonuses.personaDice>3` and exposes explicitly uncommitted `projectedPersonaAdvantageCost`, `projectedPersonaNatureChannelCost` and `projectedPersonaBeforeRollCost`. `tests.rewardedRollHistoryPlan` reconciles those **pre-roll** costs against the same GM-declared **starting Persona balance** as later `OF_COURSE` events. If one Persona is used for Advantage or Nature and only one was declared at test start, an additional Of Course fails with `INSUFFICIENT_PERSONA`; no point can be double-booked. `tests.outcomeAndProgressPlan` (plain dice) now requires an explicit sufficient starting balance whenever pre-roll Persona spending is present and continues to leave resource provenance unauthenticated.
+
+Wise ownership IDs are normalized for duplicate-use prevention: leading/trailing spaces and case changes cannot make the same Wise appear distinct in a reward timeline.
+
+Evidence: `qa/m10d18-package-a-reward-history-smoke.mjs`, `qa/m10d18-package-a-outcome-chain-smoke.mjs`; regression vectors cover insufficient Persona before the roll, insufficient remaining Persona for Wise Of Course, Nature channel cost, over-three Advantage and duplicate Wise aliases. **This remains strictly GM-asserted, no real Actor holdings or transactional resource usage is verified.** No Actor/Item/Journal/settings writes, rolls, or release change. No domain upgraded; **0/14 FULLY REAUDITED**.
