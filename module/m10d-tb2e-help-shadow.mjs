@@ -165,23 +165,94 @@ export function tb2eConflictHelpPlan({
   });
 }
 
+/**
+ * SG 36-38. Help is offered through an in-fiction action and is accepted
+ * or declined by the acting player. Eligibility does not itself commit aid.
+ */
+export function tb2eHelpParticipationPlan({
+  helperRoute="STANDARD",helpOptions={},
+  describedRelevantAction=false,actingPlayerAccepted=false,
+  gmApprovedRelevance=false
+}={}){
+  const route=String(helperRoute??"").trim().toUpperCase();
+  if(route!=="STANDARD"&&route!=="BEGINNERS_LUCK"&&route!=="CONFLICT")
+    return blocked("UNSUPPORTED_HELP_ROUTE");
+  if(describedRelevantAction!==true)return blocked("RELEVANT_HELP_ACTION_REQUIRED",{sourceEvidence:"SG 36"});
+  if(actingPlayerAccepted!==true)return blocked("ACTING_PLAYER_DID_NOT_ACCEPT_HELP",{sourceEvidence:"SG 36"});
+  if(gmApprovedRelevance!==true)return blocked("GM_MUST_VALIDATE_HELP_RELEVANCE",{sourceEvidence:"SG 37"});
+  const options=helpOptions&&typeof helpOptions==="object"&&!Array.isArray(helpOptions)?helpOptions:{};
+  const candidate=route==="BEGINNERS_LUCK"?tb2eBeginnersLuckHelpPlan(options):
+    route==="CONFLICT"?tb2eConflictHelpPlan(options):tb2eHelpPlan(options);
+  if(!candidate.ok)return blocked(candidate.reasonCode,{sourceEvidence:"SG 36-38",helpRoute:route});
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,mode:"ACCEPTED_HELP_READ_ONLY_PREVIEW",
+    sourceEvidence:"Scholar's Guide pp.36-38",route,
+    candidateSourceVerification:candidate.sourceVerification??candidate.suggestedHelpSourceEvidence??candidate.eligibility,
+    acceptedByActingPlayer:true,helpActionDescribed:true,gmRelevanceConfirmed:true,
+    dice:1,helperConditionRisk:true,helperTwistRisk:true,
+    resourceSpendCommitted:false,helpDieCommitted:false,actorWrite:false,
+    liveApplication:false,writesPlanned:0
+  });
+}
+
+/** Group outcome: a twist affects all helpers, while a failure with a
+ * condition gives the actor the primary condition and helpers lesser ones.
+ * Hungry & Thirsty is the special floor (SG 38), not a GM alternative for
+ * unrelated primary conditions. Wises using I Am Wise only risk twists.
+ */
+export function tb2eHelpGroupOutcomePlan({
+  outcome="PASS",primaryCondition="",helperHasSelectedCondition=false,
+  helperIsWiseAid=false
+}={}){
+  const state=String(outcome??"").trim().toUpperCase();
+  if(!["PASS","TWIST","CONDITION"].includes(state))return blocked("INVALID_HELP_OUTCOME");
+  const primary=String(primaryCondition??"").trim().toUpperCase().replace(/[ -]/g,"_");
+  if(state==="CONDITION"&&!primary)return blocked("PRIMARY_CONDITION_REQUIRED");
+  if(state!=="CONDITION"&&primary)return blocked("PRIMARY_CONDITION_ONLY_ON_CONDITION_OUTCOME");
+  const hungry=primary==="HUNGRY_AND_THIRSTY";
+  const isWise=Boolean(helperIsWiseAid);
+  const already=Boolean(helperHasSelectedCondition);
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,mode:"GROUP_HELP_OUTCOME_SHADOW",
+    sourceEvidence:"Scholar's Guide pp.36-38; Dungeoneer's Handbook p.77",
+    outcome:state,primaryCondition:primary||null,
+    primaryCharacterSharesSuccess:state==="PASS",
+    allParticipantsAffectedByTwist:state==="TWIST",
+    helperConsequence:state!=="CONDITION"?"NONE":isWise?"WISE_AID_EXEMPT":
+      already?"NO_ADDITIONAL_CONDITION":hungry?"HUNGRY_AND_THIRSTY":"GM_CHOSES_LESSER_CONDITION",
+    helperConditionRisk:!isWise,helperTwistRisk:true,
+    helperHasSelectedCondition:already,hungryAndThirstyException:hungry,
+    conditionChangesCommitted:false,actorWrite:false,
+    liveApplication:false,writesPlanned:0
+  });
+}
+
+/** Backward compatible preview with explicit primary-condition verification. */
 export function tb2eHelpConsequencePlan({
   testFailed=false,
   conditionApplied=false,
   helperAlreadyHasCondition=false,
-  everyoneHungryChosen=false
+  everyoneHungryChosen=false,
+  primaryCondition=""
 }={}){
-  if(!testFailed || !conditionApplied){
+  const primary=String(primaryCondition??"").trim().toUpperCase().replace(/[ -]/g,"_");
+  const hungry=primary==="HUNGRY_AND_THIRSTY";
+  if(Boolean(everyoneHungryChosen)&&!hungry)
+    return blocked("HUNGRY_GROUP_RULE_REQUIRES_PRIMARY_HUNGRY_AND_THIRSTY",{sourceEvidence:"SG 38"});
+  if(!testFailed||!conditionApplied){
     return freezeTb2e({
       ok:true,phase:"M10D.3",profileId:PROFILE_ID,applies:false,helperConsequence:"NONE",
       liveApplication:false,automaticConditionWrite:false,writesPlanned:0
     });
   }
+  const helperConsequence=helperAlreadyHasCondition?"NO_ADDITIONAL_CONDITION":
+    hungry?"HUNGRY_AND_THIRSTY":"LESSER_CONDITION";
   return freezeTb2e({
-    ok:true,phase:"M10D.3",profileId:PROFILE_ID,applies:true,
-    helperConsequence:helperAlreadyHasCondition?"NO_ADDITIONAL_CONDITION":
-      everyoneHungryChosen?"HUNGRY_AND_THIRSTY":"LESSER_CONDITION",
-    everyoneHungryAlternative:true,everyoneHungryChosen:Boolean(everyoneHungryChosen),
+    ok:true,phase:"M10D.3",profileId:PROFILE_ID,applies:true,primaryCondition:primary||null,
+    helperConsequence,everyoneHungryAlternative:hungry,
+    everyoneHungryChosen:hungry,sourceEvidence:"SG 38",
+    primaryConditionConfirmed:Boolean(primary),
+    gmMustSelectLesserCondition:!hungry&&!helperAlreadyHasCondition,
     adjudication:"TABLE_GUIDANCE",liveApplication:false,automaticConditionWrite:false,writesPlanned:0
   });
 }
