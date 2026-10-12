@@ -116,7 +116,7 @@ Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the glo
 
 ## 2026-10-12 — Correction to earlier provisional Wise and Scholar assumptions
 
-**DH p.77:** `Of Course!` explicitly precedes Fate Luck. `Deeper Understanding` may be used in conjunction with other rewards, but the selected die must **never already have been rerolled**. The earlier blanket pre-Luck gate for Deeper was stricter than the book. It has been removed from both legacy count-based shadow preview and the source-verified per-die preview. The count-based preview remains GM-unverified on die identities; the per-die preview enforces unique history IDs.
+**Corrected source reconciliation (DH p.77 + SG p.87):** Both `Of Course!` and `Deeper Understanding` must precede Fate Luck; Deeper additionally cannot reroll a previously rerolled die. A prior checkpoint incorrectly removed Deeper's explicit pre-Luck restriction, overlooking SG p.87. That statement is superseded. The adapters once again reject Deeper after Fate Luck, and the per-die preview also enforces non-repeated die IDs.
 
 **DH p.172:** Scholar's multiple-spell Scribe Ob uses the **spell-specific scribing Ob** of the highest-circle spell, then adds 1 per additional spell. Spell circle itself is not an Ob. Formula now requires `highestSpellScribingObstacle` sourced from the spell's own entry. Existing tests ensure `highestSpellCircle` alone cannot yield an Ob.
 
@@ -182,3 +182,16 @@ Added `module/m10d18-tb2e-package-a-outcome-chain.mjs` and public shadow API `te
 The new API requires explicit assertions that supplied final dice are reviewed and that **no Fate Luck, Wise rerolls or other exploded-die chains occurred**. Those features are deliberately excluded, rather than pretending the Dice array proves per-die provenance. Returned `rollSourceAuthenticated:false`, `actorSourceAuthenticated:false` and `gmPermissionAuthenticated:false` prevent the preview from being confused with live Foundry authority. There are no rolls, resources, Actor/Item/Journal/Settings writes, advancement marks, newly learned Skills or other side effects. Focused regression: `qa/m10d18-package-a-outcome-chain-smoke.mjs`.
 
 **Remaining audit blocker:** real authenticated Actor/GM identity, trusted Foundry roll history and source-linked Fate/Persona/Deeper Understanding/Of Course sequencing, source-to-Actor heroic benefits, complete rule exception parity and combined Foundry 13.351 multiplayer QA. This is another verified **read-only integration boundary**, not a fully reaudited domain. **0/14 FULLY REAUDITED**, stable `v1.12.0` untouched, Legacy Mixed sole live authority, M11 PAUSED, global kill switch ENGAGED.
+
+
+## 2026-10-12 — Fate/Wise event chronology and Helper Synergy source correction
+
+Original references: DH pp.76–78, SG pp.87–88. **Corrected** both Deeper Understanding and Of Course to precede Fate Luck; SG p.87 explicitly requires Deeper-before-Luck, while DH p.77 additionally forbids rerolling an already-rerolled die. Old statements permitting Deeper after Luck are superseded.
+
+`module/m10d18-tb2e-package-a-rewarded-roll-history.mjs` now previews one GM-asserted test with uniquely identified base dice, per-die Wise rerolls (related Wise, at most one per effect/wise) and a Fate Luck event holding recursive rounds with explicit parent-six associations. Every six must produce exactly one follow-up die; new sixes continue until exhausted. Unrelated/duplicated Wise effects, late Wise actions, incomplete 6-chains, fake parent die IDs, repeated new IDs and insufficient declared Fate/Persona balances fail closed. The preview sums *potential* resource cost without spending resources, and derives an uncommitted outcome and optional advancement from the enriched results. No Foundry roll log, actor/GM credentials or resource balance is authenticated.
+
+`module/m10d18-tb2e-package-a-synergy.mjs` separately implements SG p.87 Helper Fate Synergy as a read-only advancement proposal: helper must have accepted eligible ordinary Help, declared Fate pre-roll, and a verified helping Skill/Ability. The Helper marks their own helping source on PASS/FAIL; on an initial tie ending in tiebreaker, either retract Fate/no mark or keep Fate and mark the tiebreaker source without giving Help on that roll. Sick and Afraid/Dead conditions remain in force. No reward or advancement is committed.
+
+New regression suites: `qa/m10d18-package-a-reward-history-smoke.mjs` and `qa/m10d18-package-a-synergy-smoke.mjs`.
+
+**Limitations:** all dice and event histories are GM asserted, not read from immutable Foundry roll records; the code must not be treated as actual runtime authority. External reward provenance, per-Actor Fate/Persona state, token ownership, all bonus interactions and complete end-to-end Foundry QA remain blockers. 0/14 FULLY REAUDITED; Kill Switch engaged; M11 paused; stable v1.12.0 untouched.
