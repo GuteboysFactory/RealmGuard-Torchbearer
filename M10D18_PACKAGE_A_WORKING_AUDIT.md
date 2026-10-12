@@ -102,7 +102,7 @@ A new source-parsed **33/33 DH skill numerical factor catalogue** is committed a
 
 - Core APIs: `abilities.numericalFactorStatus/Entry/ObstaclePlan/FormulaPlan`, `abilities.skillFactorPrerequisitePlan`, `tests.sourceBoundFactorPlan`.
 - Source-bound mode rejects unsourced category/choice names, missing or multiple unrelated primary factors, and conflicting additive modifiers; no dice are rolled and no Actor/Item/Journal/Settings writes are made.
-- **Dedicated formulas** calculate Mentor current student Nature, Rider beast Nature + selected training use, Laborer additional carrying slots, Sapper pit/material and trap level, and Scholar highest-circle spell plus extra spells, always from explicit GM-provided values.
+- **Dedicated formulas** calculate Mentor current student Nature, Rider beast Nature + selected training use, Laborer additional carrying slots, Sapper pit/material and trap level, and Scholar's source-listed scribing Ob for the highest-circle spell plus +1 per additional spell (not the spell-circle number), always from explicit GM-provided values.
 - **Non-Ob pathways** remain deliberately blocked from automatic numeric Ob: Fighter/Orator/Persuader/Criminal/etc. Versus routes; Arcanist individual spells, Ritualist invocations and Lore Master spell memorization delegate to their proper source domains.
 - **Skill-specific source constraints** require confirmed reading language (Scholar), loom (Weaver tapestries), vessel or crew (Sailor), higher instructor Skill (Mentor) and trained/controlled mount (Rider), without false Actor ownership inference.
 - Advanced Nature stock/descriptor policy from DH pp.65, 70–71 now covers written dwarven grudge goals, group-only Merrymaking with its **suggested**, not mandatory +1 Ob, non-persuasive Demanding, GM-approved new Elven Remembering lore and alternate descriptor ownership.
@@ -113,3 +113,9 @@ A new source-parsed **33/33 DH skill numerical factor catalogue** is committed a
 **Mapping the published DH source's numerical factor options does NOT mean full end-to-end Skill or Tests parity.** The catalogue does not itself authorize a player's action, automatically evaluate all fiction/conditions/tools or resolve all spells, monsters, conflict tests, spell memorization, magic exceptions, Traits, Wise provenance, original context-dependent modifiers or real advancement. The older generic GM-factor plan is preserved for compatibility and remains an untrusted caller-supplied preview. Actor-backed provenance and complete end-to-end test sequences still need independent review, plus one combined Foundry v13.351 manual QA.
 
 Do not release just because CI passes; keep **FULLY_REAUDITED at 0/14**, the global kill switch engaged, M11 PAUSED and stable v1.12.0 unchanged.
+
+## 2026-10-12 — Correction to earlier provisional Wise and Scholar assumptions
+
+**DH p.77:** `Of Course!` explicitly precedes Fate Luck. `Deeper Understanding` may be used in conjunction with other rewards, but the selected die must **never already have been rerolled**. The earlier blanket pre-Luck gate for Deeper was stricter than the book. It has been removed from both legacy count-based shadow preview and the source-verified per-die preview. The count-based preview remains GM-unverified on die identities; the per-die preview enforces unique history IDs.
+
+**DH p.172:** Scholar's multiple-spell Scribe Ob uses the **spell-specific scribing Ob** of the highest-circle spell, then adds 1 per additional spell. Spell circle itself is not an Ob. Formula now requires `highestSpellScribingObstacle` sourced from the spell's own entry. Existing tests ensure `highestSpellCircle` alone cannot yield an Ob.
