@@ -97,3 +97,14 @@ Detailed primary rulebook mapping and source-bounded fixes: `M10D18_P35_SOURCE_F
 CI is executed in **read-only PR workflow**, not release pipeline. Stable v1.12.0 and QA channels are immutable in branch; TB2E remains shadow/read-only; Legacy Mixed stays live; kill switch ENGAGED; M11 PAUSED.
 
 Evidence and proposed one-shot Foundry test: `M10D18_PACKAGE_A_WORKING_AUDIT.md`, `TEST_PROTOCOL_M10D18_PACKAGE_A_DRAFT.md` and the three new Package A smoke suites. No release until complete review and verified protected pipeline.
+
+
+### 2026-10-12 Package A source reconciliation checkpoint (Draft, not released)
+
+- **Tests** — SG 32-34: added read-only GM-confirmed clear/dim/darkness and situational factors with independent +Ob versus Versus -1s. SG 33 tiebreakers cannot accept Help. DH 59,72: explicitly unlocked heroic TN 3 changes success faces for Will/Health/Skill read-only resolutions.
+- **Help** — SG 36-38: acting player's acceptance and fictionally meaningful assistance are verified before a Help participation preview. Similar Instinct vs any Instinct is distinguished. Failed test helper effects include group Twists, selected lesser Conditions, Hungry & Thirsty exception, and condition-exempt (but twist-vulnerable) Wise aid.
+- **Wises** — DH 78 language retention/communication preview and existing reroll/usage checks remain subject to full per-die provenance and lifecycle audit.
+- **Nature** — DH 68 zero-tax loss handling and DH 69 maximum Nature reduction advancement reset are protected by shadow guards. Full Nature stock edge coverage is still open.
+- **Abilities/Skills** — DH 59,72 heroic Will/Health/Skill rating 7 with explicit unlock. Mapping for all 33 Skill names/suggested Help routes is present; numeric factor tables remain unmapped.
+- CI: all-suite PR smoke and channel immutability check, **not** protected release pipeline. No release candidate or manual Foundry gate authorized by this checkpoint.
+- **FULLY_REAUDITED remains 0/14.** None of the five Package A domains has earned complete certification. Stable 1.12.0 untouched, Legacy Mixed sole live authority, TB2E shadow/read-only, M11 paused, kill switch engaged.
