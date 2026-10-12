@@ -28,7 +28,8 @@ export function tb2ePackageATestScenarioPlan({
  bonuses={},allModifiersGmReviewed=false,abilityZeroFromInjuryOrSickness=false,
  beginnerAbilityName="",heroicRatingSevenUnlocked=false,
  testContext="INDEPENDENT",actingCharacterId="",actingConditions=null,
- conditionsGmReviewed=false,channelNatureFacts=null
+ conditionsGmReviewed=false,channelNatureFacts=null,
+ gmAngryObstacleDecision="",actingOnInstinct=false,instinctTurnSpent=false
 }={}){
  const type=String(mode??"").trim().toUpperCase();
  if(!["SKILL","BEGINNERS_LUCK"].includes(type))return fail("UNSUPPORTED_TEST_SCENARIO");
@@ -88,7 +89,8 @@ export function tb2ePackageATestScenarioPlan({
  const conditions=tb2ePackageAConditionBoundaryPlan({
    skillName,scenarioType:type,actingCharacterId,actingConditions,conditionsGmReviewed,
    help,wiseAid,bonusTraitsDice:values.traitsDice,bonusFreshDice:values.freshDice,
-   channelNatureDice:values.channeledNatureDice,channelNatureFacts
+   channelNatureDice:values.channeledNatureDice,channelNatureFacts,
+   gmAngryObstacleDecision,actingOnInstinct,instinctTurnSpent
  });
  if(!conditions.ok)return fail("CONDITION_"+conditions.reasonCode);
  const helping=helpResult?1:0,wise=wiseResult?1:0;
@@ -112,9 +114,11 @@ export function tb2ePackageATestScenarioPlan({
  }
  if(!pool.ok)return fail("POOL_"+pool.reasonCode);
  return safe({ok:true,skillName:skill.skill,scenarioType:type,
-   baseRating:rating,obstacle:source.obstacle+env.obstacleIncrease+gear.obstacleIncrease,
+   baseRating:rating,obstacle:source.obstacle+env.obstacleIncrease+gear.obstacleIncrease+
+     conditions.angryObstacleIncrease+conditions.instinctObstacleIncrease,
    factorObstacle:source.obstacle,lightAndSituationalOb:env.obstacleIncrease,
    equipmentObstacleIncrease:gear.obstacleIncrease,
+   conditionObstacleIncrease:conditions.angryObstacleIncrease+conditions.instinctObstacleIncrease,
    finalDicePool:pool.finalPool,poolStage:type==="BEGINNERS_LUCK"?"HALVE_THEN_ADD":"ADD",
    helpingDice:helping,wiseAidDice:wise,
    actingCharacterId:conditions.actingCharacterId,
@@ -123,6 +127,7 @@ export function tb2ePackageATestScenarioPlan({
    actingConditionsGmReviewed:true,
    channelTaxOnPass:conditions.channelTaxOnPass,
    channelTaxOnFail:conditions.channelTaxOnFail,
+   actingOnInstinct:Boolean(actingOnInstinct),exhaustedInstinctTurnSpent:Boolean(instinctTurnSpent),
    helpAndWiseFromDifferentCharacters:!(helpResult&&wiseResult)||
      String(help.helperId)!==String(wiseAid.helperId),
    gmScenarioInputsReviewed:true,actorEntitlementVerified:false,
