@@ -68,3 +68,16 @@ The following source-backed, read-only improvements are now included in this **d
 
 ### Release policy
 Even if CI becomes green, **CI regression PASS is not an audit certificate**. PR stays Draft until the five-domain review is complete or explicit and traceable source limitations are accepted for the combined QA test. Stable 1.12.0, M11, kill switch and Legacy Mixed constraints remain locked.
+
+
+## 2026-10-12 — Additional source-based Package A reconciliation
+
+1. **Help acceptance / group outcomes (SG 33, 36–38):** added explicit acting-player acceptance, in-fiction relevant action and GM-confirmed relevance; ordinary Help now rejects tiebreaker contexts in all three entry routes. Instinct Help requires a *similar* Instinct (or applicable Nature descriptor), not merely that both characters happen to be acting on Instinct.
+2. **Group failure (SG 38):** Hungry & Thirsty can only propagate to all helpers when it is the primary condition; it is not an arbitrary choice for an unrelated failure. Existing-condition duplicates are suppressed when confirmed for the selected condition. I Am Wise aid exempts the wise participant from failure conditions but never from twists.
+3. **Environmental factors (SG 32, 34):** clear/dim/darkness and GM hindrances can be combined read-only. Dark actions require GM confirmation; factors add Ob on an independent test but subtract successes (-1s per factor) in a Versus test. No automatic environment scan or roll.
+4. **Skill list and licensing boundary:** DH pp.160–176 factor *families* are mapped; full numerical tables remain unmapped, and book text is not reproduced wholesale in the public repository. Core complete parity cannot be declared from this metadata alone.
+5. **New core API:** `help.participationPlan`, `help.groupOutcomePlan`, and `tests.environmentalFactorPlan`. Older APIs remain available as zero-write planners.
+
+New smokes: `qa/m10d18-package-a-help-consent-outcome-smoke.mjs` and `qa/m10d18-package-a-environment-smoke.mjs`. CI check is required after all changes.
+
+**Additional rule gap flagged:** DH pp.59 and 72 expressly permit *Will/Health*, as well as Skills, to reach a heroic maximum rating of 7 with the appropriate level benefit; special benefits may reduce the die success target to 3. The existing generic Ability advancement planner still needs this explicitly keyed benefit and test-resolution parity. Do not promote the current planner's Skill-only cap-7 handling as complete rule coverage.
