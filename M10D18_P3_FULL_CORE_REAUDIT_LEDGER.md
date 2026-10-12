@@ -1,5 +1,7 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
+**Current Package A completion plan:** [five-gate closure checklist](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12). Historical NEXT/checkpoint sections below preserve earlier evidence; use the current list to avoid opening unrelated incremental packages. G1 integrated final outcome, G2 five-domain source/model closure, G3 historical provenance contract/data, G4 unpublished-candidate Foundry A-D, G5 final safety/release decision remain OPEN. Current automated baseline: 152/152, ZIP21/21; manual acceptance NOT RUN; 0/14 domain certificates.
+
 **Status:** IN PROGRESS. P3.1 `v1.13.0-qa.25` Foundry VERIFIED/CLOSED; P3.2 `v1.13.0-qa.26` user-verified; P3.3 `v1.13.0-qa.27` Foundry Gates A-D user-verified; P3.4 `v1.13.0-qa.28` Foundry Gates A-D user-verified; P3.5 candidate `v1.13.0-qa.29`. This ledger is a source trace and backlog, **not** a blanket audit certificate.
 
 ## Safety invariants

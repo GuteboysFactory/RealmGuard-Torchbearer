@@ -1,8 +1,20 @@
 # Realm Guard / Torchbearer — Package A consolidated Foundry 13.351 QA (DRAFT)
 
-**Status:** STAGED ONLY. Do not run before verified QA release is published.  
+**Status:** DRAFT / NOT RUN. Full acceptance uses an unpublished final candidate in an isolated copy of the test World BEFORE any release.
 **Baseline:** stable v1.12.0; latest published QA v1.13.0-qa.29.  
 **Branch:** qa/m10d18-full-reaudit-package-a (draft PR #14).
+
+## Current entry and completion gates
+
+Use the five-gate checklist in [M10D18_PACKAGE_A_WORKING_AUDIT.md](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12) as the completion authority. G1-G3 must be ready for FINAL acceptance; early diagnostics are partial and cannot close G4. This is one consolidated A-D acceptance, not a release gate per small patch.
+
+**Ordering:** finish scoped integration/source/evidence requirements → create an unpublished candidate from an exact source commit → install only in an isolated test data directory and copied World → execute ALL A-D cases → final reproducibility/safety review → protected release decision. Do not publish QA or modify production to make testing possible. Published QA.29 and stable remain untouched. Never infer installed candidate identity from version text alone: record Git SHA, artifact hash and actual installed source identity.
+
+For the test report, record candidate/source SHA, archive SHA-256, installed-source verification, Foundry13.351 build, GM/player/browser identities, baseline QA.29 control, scenario/Actor/Item/message IDs, A-D results, all unexpected errors and before/after values. Missing/unfinished required cases are OPEN or FAIL, not PASS. The same version label as published QA.29 does not make the candidate that release.
+
+Separate **manual fixture preparation**, **read-only API calls** and **Legacy control gameplay** in the report. Snapshots for zero-write checks start after fixtures are prepared. Read-only CORE calls must have zero Actor/Item/Journal/Settings/resource/rating/counter changes and no RNG/spend. Legacy control rolls may perform their normal Legacy-owned mutations; compare these with the separate published QA.29 control and reject extra CORE-origin writes or behavior differences. No live campaign documents are used.
+
+Old HTML-only cards are not historical roll evidence. G3 needs prospective records and a documented trust model. Do not retrofit current Actor values or parsed HTML as verified pre-roll facts. Authentication and FULLY_REAUDITED flags stay unconfirmed until their actual requirements have been demonstrated.
 
 ## Safety prerequisites
 Use a copy of the test World. Do not switch Rules Profiles, reactivate M11, disable the global kill switch, or edit live campaign documents to make a planner work. Legacy Mixed must remain the sole live authority; TB2E CORE is shadow/read-only.
@@ -84,7 +96,7 @@ Confirm each plan advertises read-only, no actual dice rolls, zero resource spen
 **Acceptance:** Report PASS/FAIL for A–D and any console errors. A domain remains OPEN if its source-to-rule exceptions are not fully covered by the delivered package. No FULLY_REAUDITED status or M11 authorization is inferred merely from this test.
 
 
-## Additional Package A consolidated scenario gate (staged until release)
+## Additional Package A consolidated scenario gate (inside unpublished-candidate acceptance)
 
 After the other tests in Gate B, use this **read-only** scenario to validate that a complete GM selection combines multiple systems consistently:
 
@@ -131,7 +143,7 @@ A.tests.scenarioPlan({
 }).conditionObstacleIncrease; // 1, explicitly GM-selected option
 ```
 
-Check also that Afraid rejects Beginner's Luck; an Afraid helper cannot contribute ordinary Help; an Angry character cannot give beneficial Wise aid or use beneficial traits; Dead characters cannot test or help; Fresh contributes at the post-halving step in Beginner's Luck. Channeled Nature requires confirmed current/maximum Nature, Persona availability, exact test name and matching added dice, and reports possible Nature tax without applying it. An exhausted Instinct requires a spent turn and adds +1 Ob. Recovery, conflict and Versus are **not** supported by the independent scenario preview. Do not use this draft protocol until the combined QA release is approved.
+Check also that Afraid rejects Beginner's Luck; an Afraid helper cannot contribute ordinary Help; an Angry character cannot give beneficial Wise aid or use beneficial traits; Dead characters cannot test or help; Fresh contributes at the post-halving step in Beginner's Luck. Channeled Nature requires confirmed current/maximum Nature, Persona availability, exact test name and matching added dice, and reports possible Nature tax without applying it. An exhausted Instinct requires a spent turn and adds +1 Ob. Recovery, conflict and Versus are **not** supported by the independent scenario preview. Use this protocol only for the isolated unpublished candidate; release remains blocked until the complete source/evidence/runtime and protected release gates pass.
 
 
 ### Post-test advancement preview (within the same consolidated Gate C)

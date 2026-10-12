@@ -1,5 +1,7 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
+**Current Package A completion plan:** [five-gate closure checklist](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12). Historical NEXT/checkpoint sections below preserve earlier evidence; use the current list to avoid opening unrelated incremental packages. G1 integrated final outcome, G2 five-domain source/model closure, G3 historical provenance contract/data, G4 unpublished-candidate Foundry A-D, G5 final safety/release decision remain OPEN. Current automated baseline: 152/152, ZIP21/21; manual acceptance NOT RUN; 0/14 domain certificates.
+
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.0.8.3  
 **Current build:** v1.0.8.44 - Roll & Conflict Readability Polish - QA  

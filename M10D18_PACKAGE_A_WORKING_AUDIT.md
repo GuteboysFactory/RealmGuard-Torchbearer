@@ -4,6 +4,39 @@
 **Base:** `433cbb4b4261a9dad6ba2ba10744008ea923f47a` (`v1.13.0-qa.29`)  
 **Status:** IN PROGRESS / NOT RELEASED. Do not treat this branch as a completed 5-domain re-audit.
 
+## Current closure checklist — 2026-10-12
+
+This section is the current completion plan. Later sections preserve chronological findings; their older NEXT/remaining statements are not separate new work packages. Package A remains IN PROGRESS / NOT RELEASED. The completed current-document adapters are engineering progress, not a completed re-audit.
+
+**Verified baseline:** source implementation through `5298dea7c672b5d5e67d2b47e938bc38a539ff21`, recorded head `6bb77e8dcde9e837e06b81e505347f08da9026a1`; [CI run 38290798764](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38290798764) SUCCESS, 152/152 smoke suites, ZIP 21/21, syntax/preflight and frozen manifest/channel checks PASS. Foundry v13.351 combined acceptance: NOT RUN. Full domain certifications: 0/14.
+
+### Definition of done and fixed scope
+
+Package A covers Tests, Help, Wises, Nature and Abilities/Skills, with Resources/Conditions/Inventory/Advancement boundaries needed for those flows. Completing Package A does not automatically complete the other nine domain audits or resume M11. Its five source domains cannot be certified by CI alone. All five gates below must be supported by evidence for the FINAL tested candidate before declaring Package A complete; required cases cannot silently be dropped to make a gate green.
+
+| Gate | Current status | What must finish | Evidence required to close |
+|---|---|---|---|
+| G1 — One integrated read-only test chain | OPEN: separate chains implemented, joint final outcome missing | Join current participant/equipment facts, base dice, Wise/Fate events and acting/helper progress under one test identity/context. Current rewarded document bridge excludes Help/BL, whereas progress uses the plain initial outcome. | Combined regression: source-bound acting Skill/BL and actual helper/equipment IDs; original FAIL changed to PASS by validated reward events; actor mark/BL attempt and Helper Synergy all derive from the SAME final result; contradictory test/source/cost/counter/result inputs rejected; no writes/RNG/spends. Calling three independent previews is not sufficient. |
+| G2 — Complete five-domain source/exception and model review | OPEN: targeted cases/source tables verified, full rule closure missing | Finish one rule-to-code-to-test matrix for all five Package A domains using uploaded DH/SG. Cover or explicitly resolve Nature/Instinct, Heroic/class/stock benefits, Versus/ties/conflict/series boundaries, equipment/crafting/container exceptions and advancement lifetime. Resolve the absent Will/Health P/F counter representation and supply-unit/item semantics. | Every required rule/exception has a source page, implemented behavior or reviewed safe boundary, regression and applicable runtime case. Any rejected/out-of-scope required rule still blocks full domain certification; reject-only documentation must not be relabeled complete parity. Missing counters cannot be invented as 0 or inferred from current rating. |
+| G3 — Historical/test identity provenance | OPEN: current observations only; old data unavailable | Establish the prospective evidence contract/trust model and obtain actual roll-time Actor/Item/owner/condition/resource/counter and per-die event records, including one test ID and resource chronology. Legacy chat creation currently stores HTML without native Roll records. | Reviewed prospective capture path owned by Legacy's existing live authority, plus a read-only CORE consumer; native base/reward result records, target/parent IDs, author/role scope, observed start balances and spending events tied to the same test; tamper/replay/incomplete/unauthorized rejection tests. Clearly state what the trust model proves; client flags/timestamps/GM declarations cannot alone set authentication=true. Past records without original data are UNRECOVERABLE FROM CURRENT EVIDENCE and must be retested prospectively, not reconstructed from HTML/current holdings. No capture/storage change is implemented by this checklist. |
+| G4 — One consolidated Foundry v13.351 A-D acceptance | NOT RUN: real runtime evidence needed | After the required candidate code/source/evidence cases are ready, execute the whole consolidated protocol on an isolated copy of the test World using an unpublished candidate from an exact Git SHA. Include GM/player, private messages, real Legacy control rolls, source exceptions, rerolls/resources, participant/equipment/progress, reload and no-write checks. | Exact Foundry build, installed candidate source SHA/artifact hash, separate published QA.29 control, complete A-D PASS/FAIL, actual Actor/message/Item IDs and before/after read-only snapshots, console errors and multiplayer results. Earlier published P2/P3 confirmations and mocks do not certify this candidate. Any diagnostic run before G1-G3 completion remains partial. |
+| G5 — Final reproducibility / frozen safety / protected release decision | Baseline automated checks PASS; FINAL gate OPEN | Re-run all required checks on the final candidate AFTER G1-G4; review all final exceptions and evidence, then apply the existing protected release requirements. | Final-head CI, complete smokes/syntax/preflight, ZIP integrity/manifest equality/dependencies, unchanged stable/QA/manifests/READY unless a later protected release step is actually authorized, verified rollback/control comparison and reviewed G1-G4 evidence. No auto-merge, version bump, tag or release from this checklist. |
+
+### Immediate execution order
+
+1. **Next bounded code task: G1.** One shared context and final-result chain, with the combined regression described above. Keep all adapters shadow/read-only and all unauthenticated fields truthful. This replaces further unrelated small planner additions.
+2. Complete G2's single source/exception matrix and G3's evidence contract alongside the G1 chain. A historical proof cannot be supplied by more current-state readers. Any required model/capture change needs its own concrete reviewed design and tests before implementation; keep Legacy as sole writer and never grant CORE live authority.
+3. Build an unpublished FINAL candidate and perform G4 in an isolated test environment. Do not change published QA/stable to obtain permission to test. Label all diagnostics and manual fixture preparation separately from read-only adapter execution.
+4. Only after G1-G4 evidence is complete, finish G5. Until then keep Draft PR #14, M11 PAUSED, kill switch ENGAGED and 0/14 FULLY_REAUDITED.
+
+### Limits on the completion claim
+
+There is no defensible completion percentage or ETA from the smoke count. G1/G2 are repository/source work; G3 also needs a trustworthy prospective data path and test records; G4 needs actual Foundry execution evidence. The current snapshots cannot authenticate past state or recover missing original dice/resource events. No protected release or domain closure is authorized by the current evidence.
+
+### Test-before-release ordering correction
+
+The previous protocol headline said not to test before a published QA release, while Package A blocked release pending full gates. That was a circular dependency. The corrected order is: scoped source/code/evidence work → isolated unpublished candidate → full Foundry acceptance → final checks → protected release decision. The manifest may still display QA.29 because versions/channels are frozen; record the installed SOURCE SHA and ARTIFACT HASH so a candidate is never mistaken for the published QA.29 build.
+
 ## Frozen safety contract
 - Stable **v1.12.0** stays untouched. No changes to `channels/`, `system.json`, `release/READY`, or production data from this audit pass.
 - Legacy Mixed remains sole live authority; M11 PAUSED; global kill switch ENGAGED.
