@@ -11,7 +11,11 @@ const p=plan(params);
 assert.equal(p.ok,true);assert.deepEqual(p.eligibleFailedDieIds,["fresh"]);
 assert.equal(p.selectedDieId,"fresh");assert.equal(p.diceToReroll,1);
 assert.equal(p.resourceAmount,1);assert.equal(p.resourceSpendCommitted,false);
-assert.equal(p.rollExecuted,false);assert.equal(p.actorWrite,false);
+assert.equal(p.rollExecuted,false);
+const afterLuck=plan({...params,fateLuckAlreadyUsed:true});
+assert.equal(afterLuck.ok,true);
+assert.deepEqual(afterLuck.eligibleFailedDieIds,["fresh"]);
+assert.equal(afterLuck.fateLuckAlreadyUsed,true);assert.equal(p.actorWrite,false);
 assert.equal(p.writesPlanned,0);assert.equal(p.liveApplication,false);
 for(const [opts,reason] of [
  [{...params,chosenDieId:"old"},"SELECTED_DIE_NOT_ELIGIBLE"],
@@ -20,7 +24,6 @@ for(const [opts,reason] of [
  [{...params,fateAvailable:0},"INSUFFICIENT_FATE"],
  [{...params,hasWise:false},"RELEVANT_WISE_REQUIRED"],
  [{...params,related:false},"RELEVANT_WISE_REQUIRED"],
- [{...params,fateLuckAlreadyUsed:true},"WISE_REROLL_MUST_PRECEDE_FATE_LUCK"],
  [{...params,successThreshold:3},"NO_ELIGIBLE_FAILED_DIE"],
  [{...params,dice:[...dice,{dieId:"fresh",face:2,alreadyRerolled:false}]},"DUPLICATE_DIE_ID"],
  [{...params,dice:[{dieId:"a",face:0,alreadyRerolled:false}]},"INVALID_DIE_HISTORY"]
