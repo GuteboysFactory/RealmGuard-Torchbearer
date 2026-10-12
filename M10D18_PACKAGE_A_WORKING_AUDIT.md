@@ -87,3 +87,10 @@ New smokes: `qa/m10d18-package-a-help-consent-outcome-smoke.mjs` and `qa/m10d18-
 New code and QA smoke additions cover Help participation and group failure (`SG 36–38`), environmental and Versus factors (`SG 32–34`), and the GM-locked Heroic Ability/Skill cap/TN exceptions (`DH 59,72`). All source-backed previews remain explicitly read-only. CI PASS, if reported, certifies syntax/regression safety only; it does **not** certify complete source-to-code parity, actor-derived entitlement or all 33 numeric factor tables.
 
 **Outstanding barriers to closing Package A:** (1) full numeric factor source-to-planner coverage; (2) actor-backed beneficial-level provenance and per-die Wise reroll provenance; (3) life-cycle Nature/Advancement interactions and all stock edge cases; (4) multiplayer Foundry 13.351 QA. No promotion while these are unverified; historical 0/14 count remains.
+
+
+## 2026-10-12 — Exact Wise die-history review (DH 77)
+
+Added read-only `wises.deeperDiePlan`, verifying a chosen failed D6 has not already been rerolled. Inputs carry explicit die IDs, face values, prior-reroll markers and resource availability. Existing Wise reroll entry point remains backward compatible. No Fate spend, no second roll, no Actor write. New regression: `qa/m10d18-package-a-wise-die-history-smoke.mjs`.
+
+This **does not** complete Wise parity: other reroll-effect sequencing and exact real roll-record binding remain open. It does close a specific untracked-die selection risk in shadow previews.
