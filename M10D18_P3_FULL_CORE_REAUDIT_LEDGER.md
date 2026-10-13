@@ -414,3 +414,8 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Reserved audit lifecycle checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents optional schema2 private pre-roll reservations for explicit Legacy Skill/BL, same-ID native/index commits and read-only pending detection. Pre-game storage failures stop before gameplay; interrupted/private-save failures retain intent. Valid saved traces can be explicitly indexed without reroll/re-spend. Schema1 remains post-game-only; no migration. Full event storage/other routes, terminal pending policy, cross-client/retention and actual Foundry13.351 remain OPEN / NOT RUN. No release/certification; A09 R unchanged.
+
+
+## Reviewed pending-gap disposition checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.

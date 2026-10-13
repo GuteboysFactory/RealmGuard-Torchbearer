@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 await import("./m10d18-package-a-legacy-audit-storage-smoke.mjs");
-const {legacyCreateAuditDataset:create,legacyAppendAuditDataset:append}=await import("../module/legacy-package-a-audit.mjs");
+const {legacyCreateAuditDataset:create,legacyAppendAuditDataset:append,legacyCloseAuditReservation:close}=await import("../module/legacy-package-a-audit.mjs");
 const {tb2ePackageAAuditDatasetEvidence:read}=await import("../module/m10d18-tb2e-package-a-saved-legacy-audit.mjs");
 const actor=game.actors.get("actor"),role=actor.items.get("cook"),gm=game.users.get("gm");
 let creates=0,updates=0,rolls=0,failUpdate=false;
@@ -10,7 +10,7 @@ globalThis.JournalEntry={async create(data){const j={id:`reserved${++creates}`,d
  if(failUpdate)throw Error("STORE");this.flags["realm-guard"].packageAAuditDataset=structuredClone(data["flags.realm-guard.packageAAuditDataset"]);
  data["flags.realm-guard.packageAAuditDataset"].revision=999;return this;}};game.journal.set(j.id,j);return j;}};
 Roll.prototype.evaluate=async function(){rolls++;this.assign(Array.from({length:Number(this.formula.split("d")[0])},(_,i)=>[1,2,4,5][i%4]));return this;};
-const make=async()=>{const d=await create({reserveBeforeRoll:true});assert.equal(d.ok,true,JSON.stringify(d));return {journalId:d.journalId,j:game.journal.get(d.journalId)};};
+const make=async(options={})=>{const d=await create({reserveBeforeRoll:true,...options});assert.equal(d.ok,true,JSON.stringify(d));return {journalId:d.journalId,j:game.journal.get(d.journalId)};};
 const opts=journalId=>({obstacle:2,auditDatasetId:journalId,reserveBeforeRoll:true});
 const {journalId,j}=await make();
 assert.equal((await read({journalId})).schemaVersion,2);
@@ -92,6 +92,48 @@ const fateResult=await actor.rollRoleWithAudit(role,opts(fate.journalId));
 assert.equal(fateResult.audit.ok,true,JSON.stringify(fateResult));assert.equal(prompts,1);assert.equal(nativeFaces.length,0);
 assert.equal(actor.system.resources.fate.value,startingFate-1);assert.equal((await read({journalId:fate.journalId})).pendingReservations.length,0);
 actor.system.resources.fate.value=startingFate;actor._askFateAfterSixes=ask;Roll.prototype.evaluate=originalEvaluate;
+// Active gameplay cannot be closed, even between base and recursive Fate rounds.
+const active=await make({allowReviewedGaps:true}),closeFromRoll=Roll.prototype.evaluate;
+let activeClose;
+Roll.prototype.evaluate=async function(){
+ const manifest=active.j.flags["realm-guard"].packageAAuditDataset,reservation=manifest.reservations.at(-1);
+ activeClose=await close({journalId:active.journalId,testId:reservation.testId,expectedRevision:manifest.revision,
+  reason:"CAPTURE_INTERRUPTED",note:"Attempted during the live roll; must be blocked.",gmReviewed:true,captureStoppedReviewed:true});
+ return closeFromRoll.call(this);
+};
+const live=await actor.rollRoleWithAudit(role,opts(active.journalId));Roll.prototype.evaluate=closeFromRoll;
+assert.equal(live.audit.ok,true,JSON.stringify(live));assert.equal(activeClose.reasonCode,"AUDIT_DATASET_CAPTURE_STILL_ACTIVE");
+assert.equal((await read({journalId:active.journalId})).ok,true);
+const closeGuard=await make({allowReviewedGaps:true}),closeGuardUpdate=closeGuard.j.update;let closeGuardWrites=0;
+closeGuard.j.update=async function(data){if(++closeGuardWrites===2)throw Error("INDEX_PENDING");return closeGuardUpdate.call(this,data);};
+const validAttempt=await actor.rollRoleWithAudit(role,opts(closeGuard.journalId));closeGuard.j.update=closeGuardUpdate;
+assert.equal(validAttempt.audit.reasonCode,"AUDIT_DATASET_APPEND_STORAGE_FAILED");const recoverableManifest=closeGuard.j.flags["realm-guard"].packageAAuditDataset;
+assert.equal((await close({journalId:closeGuard.journalId,testId:recoverableManifest.reservations[0].testId,
+ expectedRevision:recoverableManifest.revision,reason:"PRIVATE_TRACE_UNAVAILABLE",note:"The record appears unavailable.",
+ gmReviewed:true,captureStoppedReviewed:true,traceMessageIds:[validAttempt.audit.traceMessageId]})).reasonCode,"AUDIT_DATASET_RECOVERABLE_TRACE_MUST_BE_INDEXED");
+assert.equal((await append({journalId:closeGuard.journalId,traceMessageIds:[validAttempt.audit.traceMessageId],expectedRevision:recoverableManifest.revision})).ok,true);
+assert.equal((await read({journalId:closeGuard.journalId})).ok,true);
+// An irrecoverable private trace loss closes only as a GM-reviewed gap.
+const gap=await make({allowReviewedGaps:true}),privateCreateForGap=ChatMessage.create;
+ChatMessage.create=async function(data){if(data.flags)throw Error("TRACE_LOST");return privateCreateForGap.call(this,data);};
+const unobserved=await actor.rollRoleWithAudit(role,opts(gap.journalId));ChatMessage.create=privateCreateForGap;
+assert.equal(unobserved.outcome,"PASS");assert.equal(unobserved.audit.reasonCode,"LEGACY_AUDIT_STORAGE_FAILED_AFTER_GAMEPLAY");
+const gapManifest=gap.j.flags["realm-guard"].packageAAuditDataset,gapTestId=gapManifest.reservations[0].testId;
+const closeInput={journalId:gap.journalId,testId:gapTestId,expectedRevision:gapManifest.revision,
+ reason:"PRIVATE_TRACE_UNAVAILABLE",note:"Reviewed as GM after reload; private native trace is unavailable.",
+ gmReviewed:true,captureStoppedReviewed:true,traceMessageIds:[]};
+assert.equal((await close({...closeInput,gmReviewed:false})).reasonCode,"AUDIT_DATASET_CLOSURE_FIELDS_REQUIRED");
+assert.equal((await close({...closeInput,expectedRevision:0})).reasonCode,"AUDIT_DATASET_REVISION_CONFLICT");
+const closed=await close(closeInput);assert.equal(closed.ok,true,JSON.stringify(closed));
+const gapEvidence=await read({journalId:gap.journalId});assert.equal(gapEvidence.reasonCode,"AUDIT_DATASET_REVIEWED_GAPS");
+assert.equal(gapEvidence.pendingReservations.length,0);assert.equal(gapEvidence.reviewedGaps[0].testId,gapTestId);
+assert.equal(gapEvidence.reviewedGaps[0].nativeOutcome,"UNKNOWN");assert.equal(gapEvidence.reviewedGaps[0].advancementCredit,false);
+assert.equal(gapEvidence.nativeHistoryCompleteInDataset,false);assert.equal(closed.authenticated,false);
+const forgedGap=structuredClone(gap.j.flags);gap.j.flags["realm-guard"].packageAAuditDataset.closures[0].advancementCredit=true;
+assert.equal((await read({journalId:gap.journalId})).reasonCode,"AUDIT_DATASET_CLOSURES_INVALID");gap.j.flags=forgedGap;
+const continuing=await actor.rollRoleWithAudit(role,opts(gap.journalId));
+assert.equal(continuing.audit.ok,true,JSON.stringify(continuing));assert.equal(continuing.audit.datasetEvidenceComplete,false);
+assert.equal((await read({journalId:gap.journalId})).reviewedGaps.length,1);
 // Permission/session changes across reservation writes stop before RNG and keep intent.
 const switched=await make(),switchUpdate=switched.j.update,rollsBeforeSwitch=rolls;
 switched.j.update=async function(data){await switchUpdate.call(this,data);game.user=game.users.get("player");return this;};

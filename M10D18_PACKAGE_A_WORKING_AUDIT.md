@@ -521,3 +521,8 @@ Verified persisted selected-trace index code head 448f8bce3cb555bd7fe98e43a80062
 
 
 Verified reserved Skill/BL audit lifecycle code head 72203734c34ac582d1199e9e0a9f35b92b0e5581: local164/164/preflight and focused reservation/index regressions PASS; exact code CI38382025234 confirms164/164, syntax/preflight, unpublished ZIP21/21 and frozen guards PASS: https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38382025234 . Coverage observes saved intent before RNG, same-ID native/index binding, Skill/BL/Fate control semantics, interrupted/private-save failure across mocked reload, explicit no-reroll append recovery, reservation storage/readback failure before gameplay, version/chronology/binding/privacy/session and local concurrent-intent guards. Scalar metadata validation avoids freezing malformed source fields. Tests are Node mocks; real Foundry13.351 A-D NOT RUN. Full event persistence/other routes, terminal pending policy and cross-client/retention remain OPEN; no release/FULLY_REAUDITED.
+
+
+## Reviewed pending-gap disposition checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.
