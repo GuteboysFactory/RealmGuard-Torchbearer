@@ -1,5 +1,15 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
+**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Next consolidated code work: event/epoch replay and shared final-result integration, with source eligibility exceptions still OPEN.
+
+
+## Current fixed completion queue — 2026-10-13
+
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. A09 decision/design is SETTLED (R); remaining 11 entries and full G3 remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: consolidated A05/A06 evidence-model designs under the accepted R contract. G1/G2 source/integration, G4 actual Foundry and G5 release requirements remain unchanged.
+
+
+**Current Package A completion plan:** [five-gate closure checklist](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12). Historical NEXT/checkpoint sections below preserve earlier evidence; use the current list to avoid opening unrelated incremental packages. G1 integrated final outcome, G2 five-domain source/model closure, G3 historical provenance contract/data, G4 unpublished-candidate Foundry A-D, G5 final safety/release decision remain OPEN. Current automated baseline: 152/152, ZIP21/21; manual acceptance NOT RUN; 0/14 domain certificates.
+
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.0.8.3  
 **Current build:** v1.0.8.44 - Roll & Conflict Readability Polish - QA  
@@ -221,3 +231,158 @@ Promoted from verified qa.20. M10C.8 FULL PASS / VERIFIED / CLOSED. MG2E support
 ## v1.13.0-qa.1 — M10D.1 TB2E Foundation
 
 Source-constrained 19-domain audit, locked Rules / Creation Profile v1 and zero-write preview/status API. No later live domains. Stable remains 1.12.0. First foundation gate pending.
+
+### 2026-10-12 — Package A Actor / GM / saved-D6 evidence (Draft)
+
+Implemented a GM-only current-document read boundary and a narrow current-Actor-to-plain-D6 obstacle preview through `tests.documentEvidence` / `tests.documentOutcomePlan`. Caller assertions cannot replace session identity, document lookup, message visibility or current author ownership. Current Actor role/conditions are compared to the reviewed scenario. Stored plain native D6 results have bounded, unique per-message IDs; modified/rerolled/exploded histories fail closed. No RNG, writes, spends or advancement.
+
+NEXT: execute the combined Foundry v13.351 A-D protocol, then design historical Actor/resource snapshots and a verified Wise/Fate event ledger without enabling live CORE. Current mutable client evidence is not historical/server attestation. BL/helpers/Heroic/token routes and complete exception parity remain OPEN. CI/local regression evidence is in the Package A audit checkpoint. 0/14 FULLY_REAUDITED; Legacy Mixed only live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED. No release, version/channel/tag change.
+
+### 2026-10-12 — Package A saved Wise/Fate result-document chain
+
+Implemented `tests.documentRewardHistoryPlan`: current session GM/Actor/message/Wise identity checks, strictly ordered unique saved result documents, source-bound Deeper/Of Course/recursive Luck target/parent-six validation and explicit GM-asserted historical budgets. Fixed Angry permitting beneficial Wise rerolls (SG47); normal Luck remains allowed. All results remain read-only and all historical/authentication claims false. Full test evidence is in the Package A audit checkpoint.
+
+NEXT: combined Foundry v13.351 A-D execution and design trustworthy historical Actor/resource/event provenance. Saved timestamps and current Wise items cannot establish historical ownership, complete same-test linkage or immutable chronology. Legacy HTML-only cards, helpers/BL/Heroic/token paths and full exception parity remain OPEN. 0/14 FULLY_REAUDITED. Legacy Mixed live; CORE shadow/read-only; kill switch ENGAGED; M11 PAUSED. Stable/QA unchanged, no release.
+
+### 2026-10-12 — Package A current Skill / BL / Help / Wise participant evidence
+
+Added shared GM-only scalar `tests.actorEvidence` and separate `tests.participationOutcomePlan`: current unique trained Skill or correctly mapped untrained Will/Health, actual helping Skill/Wise Item IDs, distinct helper conditions, zero-rating Help exclusions and correct BL/Fresh stages. No historical permission/consent/spend claim, rolls, writes or advancement. Existing document/Wise-Fate history scope remains unchanged.
+
+NEXT: full Foundry v13.351 combined A-D acceptance; historical Actor/resource/consent/event provenance; equipment-source evidence and remaining reward/advancement/exception paths. Current participant records cannot certify actual past participation. Nature/Instinct/conflict/series/tiebreaker/Heroic/token routes and Legacy HTML-only native Roll gap remain OPEN. CI evidence in Package A audit. 0/14 FULLY_REAUDITED; Legacy Mixed live; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED. Stable/QA unchanged; no release.
+
+### 2026-10-12 — Current counter progression from the saved participant outcome
+
+Added `tests.participationProgressPlan`: source-derived acting Skill/BL proposals from the same saved outcome, observed current P/F/BL/Nature values and optional distinct Helper Synergy. Missing counters are not defaulted. Sick suppresses marks/readiness; BL uses Maximum Nature; cap6 and capacity24 are guarded. Current Legacy threshold settings are shown but untouched. Helper Ability Synergy reports the missing Will/Health counter model explicitly; no fields or baseline0 are invented.
+
+NEXT: combined Foundry v13.351 A-D verification, historical counter/duplicate-test/resource/event/consent provenance, equipment evidence, Ability counter model and complete reward/participation/exception parity. The projected marks remain zero-write and do not authorize any actual advancement. See working audit for verification checkpoint. 0/14 FULLY_REAUDITED; Legacy Mixed live; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable/QA unchanged. No release.
+
+### 2026-10-12 — Current Item / pack / supply / gear / tool-lender evidence
+
+Added `tests.equipmentOutcomePlan` with actual current Gear IDs/quantities/placements, one supported worn pack/satchel, distinct Supply/Gear roles and a real trained tool lender. Caller quantity/role reuse and missing/unassigned/orphan/ambiguous paths fail closed. Item relevance/usability/access, supply increment and loan consent remain explicit GM assertions; no classification from names/flags or quantity consumption. Current mutable evidence does not certify old inventory/spends. Source tests/checkpoint are in the working audit.
+
+NEXT: combined Foundry v13.351 A-D verification and reliable historical/item semantics; custom/nested container capacity/encumbrance; stock/crafting exceptions; full equipment/reward/progress integration; remaining Ability/history gates. All existing live authority and release controls unchanged: 0/14 FULLY_REAUDITED, Legacy Mixed live, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED, stable/QA untouched. No release.
+
+## 2026-10-12 — G1 integrated saved-test implementation
+
+`tests.integratedTestPlan` captures participant/equipment evidence once and binds the native base message, saved Wise/Fate events and final acting/helper progress to the same actor/message identity and scenario. An internal issued-result registry rejects forged or mismatched equipment contexts. Event reads and final participant/lender checks reject changed current snapshots. No caller final outcome or counter override is accepted.
+
+Source basis: DH 59,73-77,108-110; SG 36-38,47,51,87-88. The new regression proves ordinary Skill FAIL→Deeper→PASS gives acting PASS and helper's own helping-Skill PASS; BL FAIL→Deeper six→Luck child→PASS gives one learning attempt, no Will/Health mark, and helper Skill PASS. No events preserves FAIL; insufficient Fate, fabricated context, conflicting scenario, unsupported outcome/history fields, duplicate-counter review and player invocation are rejected. Existing narrower public adapters retain their boundaries.
+
+G1 engineering chain is implemented for independent Adventure Skill/BL in the existing supported equipment/participant scope. Full G1 acceptance remains OPEN pending the combined real-runtime case and broader exception coverage; this does not close G2–G5. Historical budgets/eligibility/relevance/consent/event links remain assertions, authentication remains false, Ability counters are still absent. No prospective capture was added. Foundry v13.351: NOT RUN. FULLY_REAUDITED: 0/14. Legacy sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; versions/channels/READY frozen.
+
+Verified code SHA `ef721151f810f0c9d1cb8cc96dabb0d3d02e81f0`: [CI 38294327585](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38294327585) SUCCESS; 153/153 suites, syntax/preflight, unpublished ZIP integrity/manifest byte equality and 21/21 dependencies PASS; frozen stable/QA/system/READY guard PASS. Foundry acceptance remains NOT RUN.
+
+## 2026-10-12 — G2 single source/code/test matrix and advancement boundaries
+
+Current mapping: [Package A rule/code/test matrix](M10D18_PACKAGE_A_RULE_CODE_TEST_MATRIX.md). It separates pure regression, observed-document integration, model gaps and pending runtime acceptance across all five domains. It is not an exhaustive exception certificate. G2 remains OPEN.
+
+Source-backed code corrections: DH108-110 advancement count/rating/Obstacle readers reject null, boolean, textual, fractional and unsafe numeric evidence instead of coercing it; mark review booleans must be actual booleans. DH68 zero-current Nature requires the immediate loss/trait/max/tax/mark-reset boundary before DH109 advancement. No live actions or schema changes. Regression proves distinct P/F thresholds, rating1/cap6 and preserved Nature tax difference; 154/154 local smoke suites plus preflight PASS. Final CI reference is recorded on Draft PR #14.
+
+Required model decisions remain OPEN: no observed Will/Health/Nature P/F rows in current schema; no canonical Gear quantity-to-supply-increment unit. Never infer history or default-zero counts. Entitlement/Instinct/channel/crafting/Versus/tie/series/conflict/Wise-lifecycle integration and prospective Legacy-owned evidence still require work. Foundry v13.351 NOT RUN; G1 full acceptance and G2-G5 remain OPEN; 0/14 FULLY_REAUDITED. Legacy sole live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED; published versions/channels/READY untouched.
+Verified G2 source/code SHA `e378731eae5d3d8ea0272cc8e91e2099cb2c137d`: [CI 38295483768](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38295483768) SUCCESS; 154/154 suites, syntax/preflight, unpublished ZIP integrity/manifest equality and 21/21 dependencies PASS; stable/QA/system/READY frozen guard PASS. Runtime acceptance NOT RUN; full gates and certifications unchanged.
+## 2026-10-12 — G3 proposed trace contract / read-only consistency validation
+
+Design and current limits: [Prospective Legacy trace contract](M10D18_PACKAGE_A_PROSPECTIVE_TRACE_CONTRACT.md). `tests.prospectiveTracePlan` validates explicit envelope/test/author/participant/item/die/spend/final declarations using the existing reward engine; it does not read native documents or install capture/storage/hooks. Source basis DH59,75,77,108-110; SG36-38,47,51,87-88. Envelope/receipt fields are engineering choices, not quoted rules.
+
+Regression covers Skill and BL with Help, helper pre-roll Synergy receipt, Deeper before recursive Luck, linked acting spends and one final result; inconsistent edits, mixed/duplicate identities, malformed plain D6 records, missing/wrong-payee/wrong-cost/invalid-balance receipts, unsupported counters and declared prior-test replay are rejected. A consistently fabricated author/owner snapshot can still pass structural checks; all authentication/complete-history flags remain false. No real-session permission or global replay proof is claimed by this pure validator.
+
+Legacy inspection confirms role chat cards retain HTML rather than complete native Roll/parent histories; existing spend results have no saved test/event identity. Future producer placement is specified in Legacy's existing roll and spend path, preserving Legacy rules and failure behavior, but no writer is installed in this checkpoint. G3 capture/trust/data and real runtime acceptance remain OPEN; current evidence cannot recover old HTML-only history. G1/G2 full acceptance and G4/G5 remain OPEN; certifications0/14; Legacy sole live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED, stable/published QA/READY untouched. Final verification is recorded after CI.
+Verified G3 contract/validator source SHA `22e36c1ced1b2cc77c842b407767dc152c101a82`: [CI 38299979716](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38299979716) SUCCESS; 155/155 suites, syntax/preflight, unpublished ZIP integrity/manifest equality and 21/21 dependencies PASS; frozen stable/QA/system/READY guard PASS. No capture/storage or authenticated historical records; Foundry v13.351 NOT RUN; G3 and full domain gates remain OPEN.
+## 2026-10-12 — explicit native observation lifecycle prototype
+
+`tests.legacyObservationProbe({actorId,skillItemId,testId})` opens an explicitly called, GM-only observation session in a current Legacy Mixed world with an observed trained Skill. `observeBaseRoll(nativeRoll)` copies only a single evaluated plain D6 object into stable scalar die IDs; it never evaluates or stores the Roll. `observeResourceChange({resource,amount})` compares actual current Actor balances with the session's earlier observation; it never spends. `finish()` returns OBSERVED_UNPERSISTED; `abort()` or invalid/missing/changed data latches INCOMPLETE and clears retained records. Session identity is copied so caller mutation cannot change it. Source basis DH59,77,108-110; SG87-88; lifecycle labels are engineering choices.
+
+Every operation checks current GM identity/registration, active profile, world and Actor source context. Pending/non-native/modified dice, duplicate base capture, changed ratings/conditions/counters, changed GM/profile/world, undeclared or contradictory resource changes and terminal reuse are rejected. Native object and Actor data remain unmodified. Regression includes abort/missing data/interruption and independent sessions observing an unexplained resource change.
+
+Limit: a supplied genuine native Roll object does not prove Legacy executed it. An observed delta does not prove a particular spend caused it; two sessions can acknowledge the same delta. Regression explicitly preserves authentication/replay flags=false in that case. Coverage is BASE_ROLL_AND_ACTING_RESOURCE_DELTAS_ONLY, no reroll/helper/parent/final outcome capture and no complete proposed trace. No hooks/startup capture, persistence, durable locks or Legacy gameplay edits are installed. This is an in-memory diagnostic prototype, not the required prospective Legacy producer. G3 remains OPEN, as do G1/G2 full acceptance, G4 real Foundry and G5 final gates. Foundry v13.351 NOT RUN; 0/14 FULLY_REAUDITED; Legacy sole live authority, CORE shadow/read-only, M11 PAUSED, kill switch ENGAGED; published versions/channels/READY frozen.
+Verified explicit observation prototype source SHA `8ffeade3c7fa72f08f93cc90e5bef248479c5666`: [CI 38302014928](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38302014928) SUCCESS; 156/156 suites, syntax/preflight, unpublished ZIP integrity/manifest equality and 21/21 dependencies PASS; frozen stable/QA/system/READY guard PASS. Local 156/156 and preflight also PASS. Legacy documents/progression implementation unchanged. No hooks/storage or proven Legacy execution origin; Foundry v13.351 NOT RUN; G3 and full audit gates remain OPEN.
+## 2026-10-12 — native observation reroll/Luck lineage extension
+
+Current probe coverage now supersedes the earlier BASE_ONLY prototype: explicit `observeLegacyWiseRoll({roll,targetDieIds,wiseItemId})` and `observeFateRound({roll,parentDieIds})` retain copied native result records and immutable links. Original base faces remain intact; resolved logical slots separately track their latest native result ID. A Luck link contains both parent slot ID and parentResultDieId, including sixes created by a Wise reroll, and recursive children remain independently identified.
+
+Source distinction: Legacy Mixed `documents.mjs::_applyWiseReroll` rerolls ALL failed indexes for its free Wise effect; the observer labels LEGACY_MIXED_WISE_REROLL and never calls it TB Deeper/Of Course or adds a price. SG87 supplies the one-child-per-six recursive Luck rule; DH77/SG87-88 distinguish TB reward effects. The existing Legacy roll/spend/chat implementations are unchanged. No hook or startup producer is installed.
+
+Regression retains base/native object data; follows Wise-result-to-Luck-to-recursive-Luck ancestry; rejects omitted/reordered/wrong targets/parents, wrong result counts, unknown current Wise, reused Roll objects, Wise after Luck, unfinished recursion, missing/ambiguous Fate delta and private/player access before Roll getters. Limits: 30 Luck rounds and 500 logical dice slots. Complete recursion plus exactly one observed one-point Fate decrease is required when Luck rounds were observed, but causality is still not authenticated. A probe without Luck does not force spending. Free Legacy Wise observation likewise never spends.
+
+Result remains OBSERVED_UNPERSISTED; all authentication/complete-test-history flags false. rerollParentHistoryCaptured denotes copied observed links only, not proof of Legacy execution. Helper chronology, final native chat persistence, historical author/entitlement/counter state, durable commit/replay and real producer/trust path remain missing; no complete prospective trace compatibility is claimed. G3 and G1/G2 full acceptance/G4/G5 remain OPEN. Foundry v13.351 NOT RUN; 0/14 FULLY_REAUDITED; CORE read-only, Legacy sole live authority, M11 PAUSED, kill switch ENGAGED; stable/QA/READY unchanged.
+Verified native lineage source SHA `1eb63a100ddc20df2123485733b7c8ab01b5339a`: [CI 38304047247](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38304047247) SUCCESS; 157/157 suites, syntax/preflight, unpublished ZIP integrity/manifest equality and 21/21 dependencies PASS; stable/QA/system/READY frozen guard PASS. Local 157/157 and preflight also PASS. No Legacy roll/spend implementation changes, hook/storage or authenticated native history; Foundry v13.351 NOT RUN and G3 full acceptance remains OPEN.
+## 2026-10-13 — explicit Legacy base-roll producer and private read-only consumer
+
+This supersedes earlier NO_WRITER/NO_STORAGE checkpoint statements for the bounded BASE_ONLY diagnostic scope. `RealmGuardActor.rollRoleWithAudit(ownedRole,{obstacle})` is an explicit GM-only Legacy method, not a CORE API or UI/startup hook. It delegates ordinary gameplay once to the existing `rollRole` and saves a separate ChatMessage whispered only to the calling registered GM. Normal `rollRole` stores the same existing chat content and additionally returns its completed messageId. No arithmetic, prompts, spends or default capture are changed. The dedicated writer lives in `module/legacy-package-a-audit.mjs`.
+
+The private record links actual original message, world/test/Actor/GM/Skill IDs, observed pre-roll source snapshot, declared obstacle and Legacy final result. It includes a reconstructed evaluated native base Roll (Roll.fromData/toJSON), so ChatMessage cannot own/mutate the gameplay Roll object. Source rules DH59,77,108-110 and SG87-88 remain boundaries, not a replacement for Legacy semantics. SDK reference: [Foundry v13 Roll serialization](https://foundryvtt.com/api/v13/classes/foundry.dice.Roll.html#fromData) and [ChatMessage](https://foundryvtt.com/api/v13/classes/foundry.documents.ChatMessage.html). Published API docs describe v13.350; exact v13.351 runtime acceptance remains pending.
+
+First capture scope: an owned trained world-character Skill, explicit positive integer obstacle and existing default condition handling; no supplied Help/Wise/traits/tokens/Persona/Nature/Versus/BL options. Such extra options are rejected before gameplay. The ordinary Fate prompt is preserved. Actual Fate use yields INCOMPLETE / NATIVE_FATE_ROUNDS_NOT_CAPTURED, never a complete record. A gameplay Roll failure before chat completion propagates with no audit record; pending/atomic failure capture is still missing. Storage failure after successful gameplay returns the original result plus a typed audit error and never retries gameplay. GM/world/profile changes deny diagnostic storage/success.
+
+CORE exposes only `tests.savedLegacyAuditEvidence({traceMessageId})`, reading currently visible GM-private saved native data. It rejects private/player access before flag getters, wrong world/GM/profile metadata, incomplete/Fate records, edited authentication claims, missing/foreign original message links, native/metadata/derived Legacy outcome disagreement and duplicate test IDs in currently visible messages. Historical owner/GM state, immutable ordering, full replay registry and author attestation remain unproven; all authentication/complete-history flags remain false. This is not a G1 TB scenario/progression authority and does not relabel Legacy Wise effects.
+
+Regression uses actual Actor.rollRole and Actor.rollRoleWithAudit in a mocked Foundry environment: control/result/chat/RNG/spend comparison; GM-private saved native copy and serialized reload simulation; player/foreign role/unsupported options denial before RNG; partial edits/false attestations/duplicate records; storage failure without gameplay retry; preserved Fate prompt/recursive gameplay and truthful incomplete record; session change denial and original dice-error propagation. Local 158/158 suites and preflight PASS. Live Foundry v13.351 NOT RUN.
+
+G3 remains OPEN for full native reroll/helper/resource/author/counter/entitlement capture, pending/atomic commit, trustworthy storage/permissions and durable replay, plus real runtime acceptance. G1/G2 full acceptance/G4/G5 remain OPEN; 0/14 FULLY_REAUDITED. Legacy Mixed remains sole live authority; CORE read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0/published QA v1.13.0-qa.29/system/READY frozen. No release/merge/tag/activation.
+Verified scoped Legacy base producer/reader code SHA `66de67cbc3d3a1679cf94ddf132f1d66d18569d5`: [CI 38354018154](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38354018154) SUCCESS; 158/158 suites, syntax/preflight, unpublished ZIP integrity/manifest equality and 21/21 dependencies PASS; frozen stable/QA/system/READY guard PASS. Native and metadata storage inputs are detached from gameplay/observation data; saved complete base posts pass the read-only consumer before audit success. Storage failure never retries gameplay. Local 158/158/preflight and focused post-isolation regression PASS. Real Foundry v13.351 NOT RUN; Fate records remain INCOMPLETE and full G3/authentication/runtime gates OPEN.
+
+## 2026-10-13 — scoped native Fate capture (G3 remains OPEN)
+
+The explicit Legacy GM role audit now observes the actual base Roll before the Fate decision, each native recursive Fate Roll and the actual one-point Fate balance delta after the existing spend. A module-issued, actor-bound capability is deleted in a finally block; unknown capabilities do nothing. Observer failures cannot interrupt or retry gameplay. Detached native rounds and parent/result links are stored only in the additional private diagnostic ChatMessage.
+
+Source: uploaded Scholar's Guide, printed p.87, Luck: one die per six recursively for one Fate. This is observation of existing Legacy behavior, not a change to live rules or authority. Regression compares ordinary and audited recursive rolls: identical final chat, successes, RNG count and one spend; forged capability does not opt ordinary gameplay into storage.
+
+Saved Fate records remain INCOMPLETE with LEGACY_AUDIT_SAVED_FATE_READER_PENDING. CORE's current single-base reader refuses them. Full saved-chain validation, Wise/helper coverage, authenticated history, durable replay checks and Foundry v13.351 A-D acceptance remain OPEN / NOT RUN. G1-G5 are not closed; 0/14 domains FULLY_REAUDITED. Legacy Mixed remains sole live authority, CORE shadow/read-only, M11 PAUSED and kill switch ENGAGED. Stable 1.12.0 and published QA 1.13.0-qa.29 remain unchanged; no release.
+
+
+## 2026-10-13 — saved native Fate consistency reader (G3 remains OPEN)
+
+The explicit Legacy producer now emits schema 2 LEGACY_ROLE_AUDIT_BASE_FATE / BASE_FATE_SCOPE_RECORDED when captured base, recursive rounds and actual acting Fate delta pass observation. Schema 1 BASE_ONLY remains supported. CORE's dedicated read-only saved consumer independently checks actual evaluated plain native Roll/Die classes, formulas/faces/totals against each stored record, ordered parent/result links, complete six recursion, bounded 30 rounds/500 dice, resolved faces and a single one-point Fate receipt with consistent starting/ending Fate and unchanged Persona. It derives final successes and PASS/FAIL from all saved faces and the recorded obstacle. The general single-native-Roll document adapter is unchanged.
+
+Rule source: uploaded Scholar's Guide printed p.87 (one new die per six recursively, one Fate); normal success threshold source SG31 / DH59. This validates the existing Legacy trace, without granting Torchbearer live authority or relabeling Legacy Wise effects. Current holdings are deliberately not substituted for historical balances. A coherent fabricated native/flag record can still pass consistency: all historical/author/owner/consent/spend-cause/immutable-history authentication remains FALSE. Visible-current-message duplicate checks do not establish durable replay protection.
+
+Regression covers actual Actor recursive control/audit parity, serialized native/flag reload, private GM-before-data gate, altered faces/final results/links, missing rounds, unfinished six recursion, reused native Roll objects, extra receipts, unsafe/coerced balances, wrong actor snapshots, Wise substitution, overflow, duplicate current test IDs, false attestation claims and storage failure with no reroll/re-spend. These are Node mocks, not actual Foundry acceptance. BASE_FATE_SCOPE_RECORDED means scoped saved consistency only; it does not mean completeTestHistoryVerified.
+
+The previous saved-Fate-reader-pending limitation is resolved for this narrow plain trained Skill scope. Full Wise/helper/BL/Versus/Nature histories, entitlement and historical ownership, trusted persistence, pending/atomic storage and durable replay remain OPEN. G1-G5 are not closed; Foundry v13.351 consolidated A-D NOT RUN; 0/14 FULLY_REAUDITED. Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED. Stable1.12.0 and published QA1.13.0-qa.29 unchanged; no release.
+
+
+## 2026-10-13 — shared saved Actor/GM/Skill provenance boundary
+
+Both BASE_ONLY (schema1) and BASE_FATE (schema2) now use the same read-only source guard before consuming dice: exact current world Actor/speaker, registered current GM, stored test/world/Actor/GM IDs, Actor UUID and exactly one matching captured trained Skill source must agree. The Skill must still exist as an owned role on that Actor; native records must be actual current native Roll instances. Captured Skill rating must be a safe integer 1-6. Authentication/causality/full-history claims in editable observation metadata are rejected for both schemas, closing a weaker base-only path.
+
+These are engineering provenance checks, not additional book rules. Rule context remains uploaded DH59 (tests), SG31 (successes), SG87 (Luck). Current Skill rating and current resource holdings are not substituted for captured historical values: later advancement does not invalidate otherwise coherent saved arithmetic. Coherent fabricated snapshots can still pass; stored IDs/UUIDs/native classes do not establish historical author ownership, GM entitlement, immutability or causal spending. Recorded source consistency is reported separately with CURRENT_REGISTERED_GM_ONLY_NOT_HISTORICAL_OWNER scope; all authentication flags remain FALSE.
+
+Regression: actual Legacy base/Fate producer-reader path, swapped stored GM/Actor/UUID, unknown/deleted Skill, conflicting or duplicated captured Skill, coerced historical rating, non-native base object, editable attestation claims, later current rating change, private-player rejection and existing Fate tamper/resource/control tests. CORE remains zero-write/zero-RNG. Full historical ownership/entitlements, broader Wise/helper/BL/Nature traces, trusted storage/durable replay and actual Foundry v13.351 A-D remain OPEN / NOT RUN. G1-G5 remain unclosed; 0/14 FULLY_REAUDITED. Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable1.12.0/published QA1.13.0-qa.29 unchanged; no release.
+
+## A09 proposal — 2026-10-13
+
+[Concrete historical evidence decision](M10D18_PACKAGE_A_TRUST_DECISION.md) is ready for review. Recommended R explicitly trusts the GM for prospective runtime-reviewed evidence and keeps historical authentication false; S requires independently authoritative observation/storage. This proposal is not an implemented choice or a gate closure. Source/integration/Foundry/final release gates remain unchanged pending explicit decision.
+
+## Accepted A09 R evidence boundary — 2026-10-13
+
+User explicitly selected trusted GM and reviewed prospective history. [Accepted contract](M10D18_PACKAGE_A_TRUST_DECISION.md) replaces independent historical-authentication requirements in G3 with complete observed/reproducibly reviewed records under trusted GM/admin assumptions. A09 design/decision is SETTLED; implementation, dataset replay/commit, full source integration and Foundry13.351 A-D remain OPEN / NOT RUN. Historical authentication flags remain FALSE; old missing history is not recovered. No runtime/code/profile/release change; 0/14 FULLY_REAUDITED. Next: A05/A06 consolidated evidence-model design.
+
+## Native-bound evidence replay checkpoint — 2026-10-13
+
+[Counter/supply models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now includes implemented saved-native trained-Skill credit and reviewed supply/reset/replenishment projections. Original FAIL plus Fate produces the native-final PASS credit; unknown baselines remain null. Replay/epoch/condition/stock guards are regression covered. Scope is independent Adventure trained Skill; Ability/BL/Nature credits, learning transitions, full capture/storage/durable indexing and Foundry13.351 remain OPEN. Supply use/rating changes are GM assertions, not captured causal operations. CORE zero-write/zero-RNG, no release/certification.
+
+## BL learning replay checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now projects BL credits from the existing integrated saved-document reward-final chain and explicit learning/rating2/new-epoch/24-Skill replacement. Sick/unknown/stale/duplicate/incomplete-roster cases fail closed; no Will/Health mark or live writes. This is not private Legacy BL capture. Full storage, other source routes, integrated exception acceptance and Foundry13.351 remain OPEN. A09 R decision unchanged; no release/FULLY_REAUDITED.
+
+## Private Legacy BL capture checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now documents explicit owned-untrained Skill native BL/Fate capture, mapped Ability provenance, private schema3 read-only validation and direct captured-learning replay. Actual Legacy leaves attempts unchanged; audit never invents a committed learning mark. Control/tamper/session/storage/replay regressions added. No default capture or live rule change. Broader source routes, durable indexing/storage and Foundry13.351 remain OPEN; no release/certification.
+
+## Persisted selected-trace index checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) describes explicit Legacy-owned private Journal index creation/append and optional post-audit indexing. CORE only reads stored selected trace IDs/commit revisions/native checksums and fails closed on conflicts/missing/unindexed refs. Checksums/local locks are not signatures, server CAS or atomic gameplay transactions. Pre-roll reservation, full event storage, real cross-client/retention and Foundry13.351 remain OPEN. No release/certification; A09 R unchanged.
+
+
+## Reserved audit lifecycle checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents optional schema2 private pre-roll reservations for explicit Legacy Skill/BL, same-ID native/index commits and read-only pending detection. Pre-game storage failures stop before gameplay; interrupted/private-save failures retain intent. Valid saved traces can be explicitly indexed without reroll/re-spend. Schema1 remains post-game-only; no migration. Full event storage/other routes, terminal pending policy, cross-client/retention and actual Foundry13.351 remain OPEN / NOT RUN. No release/certification; A09 R unchanged.
+
+
+## Reviewed pending-gap disposition checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.
+
+## Durable reviewed counter/supply ledger — 2026-10-13
+
+Schema4 opt-in persists append-only GM-reviewed baseline/events and CORE read-only replay for a supported subset. Invalid replay does not write; tampering is rejected. LEARNING_CREDIT is supported when the integrated BEGINNERS_LUCK chain binds to an indexed private Legacy trace. Other routes, actual Foundry13.351 A-D, cross-client/retention and full audit acceptance remain OPEN. No release or FULLY_REAUDITED claim.

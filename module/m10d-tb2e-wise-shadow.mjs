@@ -51,9 +51,9 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
   if(!related) return blocked("WISE_NOT_RELATED",{effect:String(effect ?? "")});
   const failed=clampInt(failedDice);
   const alreadyRerolled=Math.min(failed,clampInt(alreadyRerolledFailedDice));
-  if(fateLuckAlreadyUsed)return blocked("WISE_REROLL_MUST_PRECEDE_FATE_LUCK",{effect:String(effect??""),sourceEvidence:"DH 77; SG 87-88"});
 
   if(["deeperunderstanding","deeper"].includes(key)){
+    if(fateLuckAlreadyUsed)return blocked("DEEPER_MUST_PRECEDE_FATE_LUCK",{sourceEvidence:"SG p.87"});
     if(!hasFate) return blocked("INSUFFICIENT_FATE",{effect:"DEEPER_UNDERSTANDING",resourceCost:"FATE"});
     const eligible=Math.max(0,failed-alreadyRerolled);
     if(eligible<1) return blocked("NO_ELIGIBLE_FAILED_DIE",{effect:"DEEPER_UNDERSTANDING",resourceCost:"FATE",alreadyRerolledDiceExcluded:true});
@@ -61,11 +61,14 @@ export function tb2eWiseRerollPlan(effect,{hasWise=true,related=true,failedDice=
       ok:true,phase:"M10D.2",profileId:PROFILE_ID,effect:"DEEPER_UNDERSTANDING",
       resourceCost:"FATE",resourceAmount:1,timing:"AFTER_TEST_ROLL",reroll:"ONE_FAILED_DIE",
       rerollDiceMaximum:1,eligibleFailedDice:eligible,alreadyRerolledDiceExcluded:true,
-      orderRequirement:"WISE_REROLLS_BEFORE_FATE_LUCK",mustPrecedeFateLuck:true,liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
+      orderRequirement:"BEFORE_FATE_LUCK_AND_NO_DIE_REROLLED_TWICE",mustPrecedeFateLuck:true,
+      fateLuckAlreadyUsed:Boolean(fateLuckAlreadyUsed),perDieRerollHistoryRequiresConfirmation:true,
+      liveApplication:false,resourceSpendCommitted:false,writesPlanned:0
     });
   }
 
   if(["ofcourse","ahofcourse","course"].includes(key)){
+    if(fateLuckAlreadyUsed)return blocked("OF_COURSE_MUST_PRECEDE_FATE_LUCK",{sourceEvidence:"DH 77"});
     if(!hasPersona) return blocked("INSUFFICIENT_PERSONA",{effect:"OF_COURSE",resourceCost:"PERSONA"});
     if(failed<1) return blocked("NO_FAILED_DICE",{effect:"OF_COURSE",resourceCost:"PERSONA"});
     return freezeTb2e({
@@ -97,4 +100,89 @@ export function tb2eWiseCyclePlan({iAmWisePass=false,iAmWiseFail=false,deeperUnd
     completionChoices:["CHANGE_WISE","BEGINNERS_LUCK_TEST_TOWARD_NEW_SKILL","MARK_RELATED_SKILL_ADVANCEMENT_TEST"],
     automaticMutation:false,liveApplication:false,writesPlanned:0
   });
+}
+
+
+/** DH 78: creature/people-Wise grants communication with that people.
+ * When that Wise changes, language persists only if recorded alongside
+ * the character's current-level benefit. This is read-only bookkeeping.
+ */
+export function tb2eWiseLanguageRetentionPlan({
+  peopleWise=false,wiseChanged=false,retainLanguage=false,
+  languageRecordedWithLevelBenefit=false
+}={}){
+  if(!peopleWise)return blocked("LANGUAGE_WISE_REQUIRED",{sourceEvidence:"DH 78"});
+  const changed=Boolean(wiseChanged),requested=Boolean(retainLanguage);
+  const recorded=Boolean(languageRecordedWithLevelBenefit);
+  const pending=changed&&requested&&!recorded;
+  const retention=changed?requested&&recorded:true;
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"WISE_LANGUAGE_RETENTION_SHADOW",sourceEvidence:"Dungeoneer's Handbook p.78",
+    peopleWise:true,wiseChanged:changed,retainLanguageRequested:requested,
+    languageRetained:retention,languageForgotten:changed&&!requested,
+    retentionPendingLevelBenefitRecord:pending,
+    retentionStatus:pending?"PENDING_RECORD":!changed?"WISE_UNCHANGED":retention?"RETAINED":"FORGOTTEN",
+    retentionRequiresCurrentLevelBenefitRecord:changed&&requested,
+    levelBenefitRecordConfirmed:recorded,
+    gmBookkeepingRequired:changed&&requested&&!recorded,
+    languageWriteCommitted:false,wiseMutationCommitted:false,
+    liveApplication:false,writesPlanned:0
+  });
+}
+export function tb2eWiseCommunicationPlan({
+  peopleWiseApplies=false,otherCommunicationMethod=false
+}={}){
+  const permitted=Boolean(peopleWiseApplies)||Boolean(otherCommunicationMethod);
+  return freezeTb2e({
+    ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"WISE_COMMUNICATION_SHADOW",sourceEvidence:"Dungeoneer's Handbook p.78",
+    canCommunicate:permitted,
+    socialVerbalTestsAllowed:permitted,
+    blockedWhenNoCommunication:["ARGUMENT","RIDDLE","SPEECH","NEGOTIATION"],
+    requiresGmFictionalApplicabilityConfirmation:true,
+    languageGrantedByPeopleWise:Boolean(peopleWiseApplies),
+    alternateCommunicationMethod:Boolean(otherCommunicationMethod),
+    liveApplication:false,writesPlanned:0
+  });
+}
+
+
+/**
+ * DH 77 Deeper Understanding: choose exactly one failed, never-rerolled
+ * die on a related test. Numeric rolled faces are caller supplied.
+ * No Fate point is spent or any die rolled by this planner.
+ */
+export function tb2eWiseDeeperDiePlan({
+  dice=[],chosenDieId="",hasWise=true,related=true,
+  fateAvailable=0,fateLuckAlreadyUsed=false,successThreshold=4
+}={}){
+  const state={phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+    mode:"DEEPER_UNDERSTANDING_DIE_SELECTION_SHADOW",
+    sourceEvidence:"Dungeoneer's Handbook p.77",
+    liveApplication:false,writesPlanned:0,rollExecuted:false,
+    resourceSpendCommitted:false,actorWrite:false};
+  const fail=(reasonCode)=>freezeTb2e({...state,ok:false,reasonCode});
+  if(!hasWise||!related)return fail("RELEVANT_WISE_REQUIRED");
+  if(fateLuckAlreadyUsed)return fail("DEEPER_MUST_PRECEDE_FATE_LUCK");
+  if(!Number.isInteger(fateAvailable)||fateAvailable<1)return fail("INSUFFICIENT_FATE");
+  if(![3,4].includes(successThreshold))return fail("UNSUPPORTED_SUCCESS_THRESHOLD");
+  if(!Array.isArray(dice)||dice.some(d=>!d||typeof d.dieId!=="string"||!d.dieId.trim()||
+     !Number.isInteger(d.face)||d.face<1||d.face>6||
+     typeof d.alreadyRerolled!=="boolean"))
+    return fail("INVALID_DIE_HISTORY");
+  if(new Set(dice.map(d=>d.dieId.trim())).size!==dice.length)
+    return fail("DUPLICATE_DIE_ID");
+  const failedDice=dice.filter(d=>d.face<successThreshold);
+  const eligible=failedDice.filter(d=>!d.alreadyRerolled).map(d=>d.dieId.trim());
+  if(!eligible.length)return fail("NO_ELIGIBLE_FAILED_DIE");
+  const chosen=String(chosenDieId??"").trim();
+  if(!chosen)return fail("DIE_SELECTION_REQUIRED");
+  if(!eligible.includes(chosen))return fail("SELECTED_DIE_NOT_ELIGIBLE");
+  return freezeTb2e({...state,ok:true,successThreshold,
+    eligibleFailedDieIds:eligible,previouslyRerolledDiceExcluded:true,
+    selectedDieId:chosen,diceToReroll:1,
+    fateLuckAlreadyUsed:Boolean(fateLuckAlreadyUsed),
+    timingBoundary:"SELECTED_DIE_NEVER_BEFORE_REROLLED",
+    resourceCost:"FATE",resourceAmount:1,rerollCommitted:false});
 }

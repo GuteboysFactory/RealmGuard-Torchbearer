@@ -1,0 +1,66 @@
+name: CORE Package A Read-Only CI
+
+on:
+  pull_request:
+    paths:
+      - 'module/**'
+      - 'qa/**'
+      - 'M10D18_PACKAGE_A_WORKING_AUDIT.md'
+      - '.github/workflows/package-a-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-a-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shadow-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Node version
+        run: node --version
+      - name: Parse and safety preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          node qa/release-preflight.mjs
+          node --check realm-guard.mjs
+          find module sheets -type f -name '*.mjs' -print0 | while IFS= read -r -d '' file; do
+            node --check "$file"
+          done
+      - name: Package A + full regression suite (zero release actions)
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          for smoke in qa/*-smoke.mjs; do
+            node "$smoke"
+            count=$((count+1))
+          done
+          echo "PASS: executed $count smoke suites"
+      - name: Stage and verify Foundry archive without publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          STAGE="$(mktemp -d)"
+          mkdir -p "$STAGE/system"
+          rsync -a ./ "$STAGE/system/" --exclude '.git/' --exclude '.github/' --exclude 'channels/' --exclude 'release/' --exclude 'dist/' --exclude 'realm-guard-foundry-v*.zip'
+          (cd "$STAGE/system" && zip -qr "$STAGE/package-a.zip" .)
+          unzip -t "$STAGE/package-a.zip" > /dev/null
+          unzip -p "$STAGE/package-a.zip" system.json | cmp - system.json
+          unzip -Z1 "$STAGE/package-a.zip" > "$STAGE/manifest-files.txt"
+          node qa/m10d18-package-a-archive-check.mjs "$STAGE/manifest-files.txt"
+          echo "PASS: Foundry archive staged and verified without release"
+      - name: Stable and release channel frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code origin/main...HEAD -- channels/stable channels/qa release/READY system.json
+          echo "No QA/stable channel or manifest mutation in Package A branch"

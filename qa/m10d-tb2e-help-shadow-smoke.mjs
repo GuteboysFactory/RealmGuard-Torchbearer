@@ -26,7 +26,7 @@ assert.equal(townBills.reasonCode,"TOWN_BILLS_HELP_FORBIDDEN");assert.equal(town
 const townRecovery=tb2eHelpPlan({sourceKind:"ability",testName:"Health",phase:"TOWN",context:"RECOVERY"});
 assert.equal(townRecovery.reasonCode,"RECOVERY_HELP_FORBIDDEN");assert.equal(townRecovery.phase,"M10D.3");assert.equal(townRecovery.phaseContext,"TOWN");assert.equal(townRecovery.testContext,"RECOVERY");
 
-const instinct=tb2eHelpPlan({sourceKind:"skill",testName:"Scout",actingOnInstinct:true,helperActingOnInstinct:true});
+const instinct=tb2eHelpPlan({sourceKind:"skill",testName:"Scout",actingOnInstinct:true,helperActingOnInstinct:true,helperSimilarInstinct:true});
 assert.equal(instinct.ok,true);assert.equal(instinct.eligibility,"HELPER_ALSO_ACTING_ON_INSTINCT");
 const instinctNature=tb2eHelpPlan({sourceKind:"nature",actingOnInstinct:true,relevantNatureDescriptor:true});
 assert.equal(instinctNature.ok,true);assert.equal(instinctNature.eligibility,"RELEVANT_NATURE_DESCRIPTOR_ON_INSTINCT");
@@ -43,7 +43,7 @@ const conflict=tb2eConflictHelpPlan({partySize:4,helperHasRoundAction:false,rele
 assert.equal(conflict.ok,true);assert.equal(conflict.dice,1);assert.equal(conflict.eligibility,"RELEVANT_NATURE_DESCRIPTOR");
 
 const consequence=tb2eHelpConsequencePlan({testFailed:true,conditionApplied:true});
-assert.equal(consequence.applies,true);assert.equal(consequence.helperConsequence,"LESSER_CONDITION");assert.equal(consequence.everyoneHungryAlternative,true);
+assert.equal(consequence.applies,true);assert.equal(consequence.helperConsequence,"LESSER_CONDITION");assert.equal(consequence.everyoneHungryAlternative,false);
 assert.equal(consequence.automaticConditionWrite,false);assert.equal(consequence.writesPlanned,0);
 const already=tb2eHelpConsequencePlan({testFailed:true,conditionApplied:true,helperAlreadyHasCondition:true});
 assert.equal(already.helperConsequence,"NO_ADDITIONAL_CONDITION");

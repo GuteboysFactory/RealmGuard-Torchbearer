@@ -68,6 +68,8 @@ export function tb2eNatureSubstitutionPlan({
   targetSkillRatingZero=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!targetSkillUnavailable&&!targetSkillRatingZero) return blocked("NATURE_SUBSTITUTION_REQUIRES_UNAVAILABLE_OR_ZERO_SKILL");
   return freezeTb2e({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_SUBSTITUTION_SHADOW",
@@ -88,6 +90,8 @@ export function tb2eNatureSubstitutionTaxPlan({
   marginOfFailure=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const result=String(outcome??"PASS").trim().toUpperCase();
   if(!["PASS","FAIL"].includes(result)) return blocked("INVALID_TEST_OUTCOME",{outcome});
   if(!margin(marginOfFailure)) return blocked("INVALID_MARGIN_OF_FAILURE",{marginOfFailure});
@@ -109,6 +113,8 @@ export function tb2eChannelNaturePlan({
   personaAvailable=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!Number.isInteger(Number(personaAvailable))||Number(personaAvailable)<0) return blocked("INVALID_PERSONA_AVAILABLE",{personaAvailable});
   const test=String(testName??"").trim().toUpperCase();
   if(["RESOURCES","CIRCLES"].includes(test)) return blocked("CHANNEL_NATURE_FORBIDDEN_TEST",{testName:test});
@@ -132,6 +138,8 @@ export function tb2eChannelNatureTaxPlan({
   marginOfFailure=0
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const result=String(outcome??"PASS").trim().toUpperCase();
   if(!["PASS","FAIL"].includes(result)) return blocked("INVALID_TEST_OUTCOME",{outcome});
   if(!margin(marginOfFailure)) return blocked("INVALID_MARGIN_OF_FAILURE",{marginOfFailure});
@@ -155,6 +163,9 @@ export function tb2eNatureRecoveryPlan({
   passedLifestyle=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   const key=String(method??"").trim().toUpperCase();
   let nextCurrent=Number(currentNature),nextMaximum=Number(maximumNature),requirements=[],eligible=true;
   if(key==="RESPITE"){
@@ -178,6 +189,9 @@ export function tb2eNatureRecoveryPlan({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_RECOVERY_SHADOW",method:key,requirements,
     currentBefore:Number(currentNature),maximumBefore:Number(maximumNature),currentAfter:nextCurrent,maximumAfter:nextMaximum,
     maximumReduction:key==="CONSERVE"?1:0,traitChangeRequired:false,
+    eraseNatureAdvancementRequired:key==="CONSERVE",
+    eraseNatureAdvancementCommitted:false,
+    advancementResetSourceEvidence:"DH 69: any Maximum Nature reduction erases advancement marks",
     retirementRequired:nextMaximum===0,retirementTiming:nextMaximum===0?"END_OF_ADVENTURE":null,
     mutationCommitted:false,liveApplication:false,writesPlanned:0
   });
@@ -189,6 +203,7 @@ export function tb2eNatureLossPlan({
   reachedZeroDueToTax=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(Number(currentNature)!==0||!Boolean(reachedZeroDueToTax)) return blocked("NATURE_LOSS_REQUIRES_ZERO_CURRENT_FROM_TAX");
   const nextMaximum=Math.max(0,Number(maximumNature)-1);
   return freezeTb2e({
@@ -207,6 +222,9 @@ export function tb2eNatureAdvancementPlan({
   advancementTriggered=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
+  if(Number(currentNature)===0&&Number(maximumNature)>0)
+    return blocked("NATURE_ZERO_TAX_LOSS_MUST_RESOLVE_FIRST",{currentNature,maximumNature,sourceEvidence:"DH 68"});
+  if(Number(maximumNature)===0)return blocked("MAXIMUM_NATURE_ZERO_RETIRED_STATE",{currentNature,maximumNature,sourceEvidence:"DH 68"});
   if(!Boolean(advancementTriggered)) return blocked("ADVANCEMENT_NOT_TRIGGERED");
   if(Number(maximumNature)>=7) return blocked("MAXIMUM_NATURE_AT_CAP",{maximumNature});
   const taxDifference=Number(maximumNature)-Number(currentNature);
@@ -217,4 +235,55 @@ export function tb2eNatureAdvancementPlan({
     retirementCheckRequired:Number(maximumNature)+1===7,retirementTiming:Number(maximumNature)+1===7?"END_OF_SESSION_IF_STILL_AT_SEVEN":null,
     mutationCommitted:false,advancementResetCommitted:false,liveApplication:false,writesPlanned:0
   });
+}
+
+/** DH 65,70-71 advanced Nature uses. GM and actor source facts are
+ * mandatory; no stock is inferred, and this does not auto-apply an Ob.
+ */
+export function tb2eNatureDescriptorContextPlan({
+ stock="",descriptor="",hasAlternateDescriptor=false,
+ gmConfirmsRelevance=false,writtenGrudgeGoal=false,
+ merrymakingGroupSize=0,merrymakingTargetCondition="",
+ humanAction="",rememberedLoreNotEstablished=false,
+ gmApprovedNewLore=false
+}={}){
+ const stockKey=String(stock??"").trim().toLowerCase();
+ const primary=STOCK_DESCRIPTORS[stockKey];
+ if(!primary)return blocked("UNKNOWN_NATURE_STOCK");
+ const name=String(descriptor??"").trim().toLowerCase();
+ const standard=primary.find(d=>d.toLowerCase()===name);
+ const alt=ALTERNATE_DESCRIPTORS[stockKey];
+ if(!standard&&!(alt&&alt.toLowerCase()===name&&hasAlternateDescriptor===true))
+   return blocked("DESCRIPTOR_NOT_HELD_OR_UNKNOWN");
+ if(gmConfirmsRelevance!==true)return blocked("GM_DESCRIPTOR_RELEVANCE_REQUIRED");
+ if(stockKey==="dwarf"&&name==="avenging grudges"&&writtenGrudgeGoal!==true)
+   return blocked("WRITTEN_GRUDGE_GOAL_REQUIRED");
+ if(stockKey==="halfling"&&name==="merrymaking"){
+   if(!Number.isInteger(merrymakingGroupSize)||merrymakingGroupSize<2)
+     return blocked("MERRYMAKING_REQUIRES_GROUP");
+   const target=String(merrymakingTargetCondition??"").trim().toUpperCase();
+   if(!["ANGRY","AFRAID"].includes(target))return blocked("MERRYMAKING_TARGET_MUST_BE_ANGRY_OR_AFRAID");
+   return freezeTb2e({
+     ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+     mode:"NATURE_ADVANCED_DESCRIPTOR_SHADOW",sourceEvidence:"DH pp.70-71",
+     stock:stockKey,descriptor:"Merrymaking",recoveryAction:false,
+     groupMinimum:2,merrymakingTargetCondition:target,
+     recommendedGroupObstacleIncrease:1,
+     obstacleIncreaseIsGmGuidanceNotMandatory:true,usableOutOfRecoveryOrder:true,
+     gmFictionConfirmationRequired:true,rollExecuted:false,liveApplication:false,writesPlanned:0
+   });
+ }
+ if(stockKey==="human"&&name==="demanding"&&["PERSUADE","MANIPULATE","LIE"].includes(String(humanAction??"").trim().toUpperCase()))
+   return blocked("DEMANDING_CANNOT_REPLACE_PERSUASION_OR_MANIPULATION");
+ if(stockKey==="elf"&&name==="remembering"&&rememberedLoreNotEstablished===true&&gmApprovedNewLore!==true)
+   return blocked("NEW_REMEMBERED_LORE_REQUIRES_GM_APPROVAL");
+ return freezeTb2e({
+   ok:true,phase:"M10D.18_PACKAGE_A",profileId:PROFILE_ID,
+   mode:"NATURE_ADVANCED_DESCRIPTOR_SHADOW",sourceEvidence:"DH pp.65,70-71",
+   stock:stockKey,descriptor:standard??alt,
+   gmFictionConfirmationRequired:true,
+   specificTaskConfirmedByGm:true,
+   newRememberedLoreRequiresSettingRecord:Boolean(rememberedLoreNotEstablished),
+   settingRecordCommitted:false,rollExecuted:false,liveApplication:false,writesPlanned:0
+ });
 }

@@ -38,8 +38,8 @@ assert.equal(wiseCombination({knownWises:1,uses:[
  {wiseId:"orc-wise",effect:"I_AM_WISE",related:false}
 ]}).reasonCode,"UNVERIFIED_WISE_ID_EFFECT_OR_RELEVANCE");
 assert.equal(tb2eWiseAidPlan({alsoProvidingHelp:true}).reasonCode,"WISE_AID_AND_HELP_MUTUALLY_EXCLUSIVE");
-assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
-assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"WISE_REROLL_MUST_PRECEDE_FATE_LUCK");
+assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"DEEPER_MUST_PRECEDE_FATE_LUCK");
+assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:1,fateLuckAlreadyUsed:true}).reasonCode,"OF_COURSE_MUST_PRECEDE_FATE_LUCK");
 assert.equal(tb2eWiseRerollPlan("Of Course",{failedDice:2}).mustPrecedeFateLuck,true);
 assert.equal(tb2eWiseRerollPlan("Deeper Understanding",{failedDice:1}).mustPrecedeFateLuck,true);
 assert.equal(tb2eWiseCyclePlan({iAmWisePass:true,iAmWiseFail:true,deeperUnderstanding:true,ofCourse:true}).completionTiming,"ON_COMPLETING_FOUR_REQUIRED_USES");

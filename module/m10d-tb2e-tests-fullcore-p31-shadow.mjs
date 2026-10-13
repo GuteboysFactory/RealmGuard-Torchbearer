@@ -1,4 +1,7 @@
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
+import { tb2eNumericalFactorObstaclePlan, tb2eNumericalFactorFormulaPlan } from "./m10d18-tb2e-package-a-factor-values.mjs";
+import { tb2eSkillFactorPrerequisitePlan } from "./m10d18-tb2e-package-a-skill-prerequisites.mjs";
+import { tb2eSourceFactorInputGuard } from "./m10d18-tb2e-package-a-factor-guard.mjs";
 const SOURCE="Scholar's Guide pp.27, 32-34";
 const ACTIONS=Object.freeze(["SKILL","WILL","HEALTH","NATURE","MONSTER"]);
 const number=v=>Number.isInteger(v)&&v>=0;
@@ -61,4 +64,27 @@ export function tb2eTieBreakerPlan({initialSourceKind="",beginnersLuckAbility=""
   monsterOpponent:Boolean(playerVersusMonster),
   finalOutcomeGmAdjudicationRequired:result==="TIE",
   advancementCommitted:false,rollExecuted:false});
+}
+
+/** Source-bound factors route through the DH table catalogue. Original GM-supplied
+ * factors route remains available separately for historical read-only tools.
+ */
+export function tb2eSourceBoundFactorPlan(options={}){
+ const kind=String(options?.factorMode??"TABLE").trim().toUpperCase();
+ if(["TABLE","FORMULA"].includes(kind)){
+  const guard=tb2eSourceFactorInputGuard(options);
+  if(!guard.ok)return guard;
+  const prereq=tb2eSkillFactorPrerequisitePlan({...options,...guard.verifiedFacts});
+  if(!prereq.ok)return prereq;
+  const candidate=kind==="TABLE"?
+    tb2eNumericalFactorObstaclePlan(options):tb2eNumericalFactorFormulaPlan(options);
+  if(!candidate.ok)return candidate;
+  return freezeTb2e({...candidate,sourcePreconditionsValidated:prereq.specialRequirementsChecked,
+    additiveFactorReview:guard.factorCompletenessChecked?"COMPLETE_OR_GM_EXPLICITLY_EXCLUDED":"SEPARATE_FORMULA",
+    gmExcludedAdditives:guard.gmExcludedAdditives,
+    gameplayAuthorizationGranted:false,requiresGMFictionJudgment:true});
+ }
+ return freezeTb2e({ok:false,reasonCode:"UNKNOWN_SOURCE_FACTOR_MODE",
+   profileId:"torchbearer2e",mode:"READ_ONLY_SHADOW",
+   liveApplication:false,writesPlanned:0});
 }

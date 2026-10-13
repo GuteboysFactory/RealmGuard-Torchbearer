@@ -4,14 +4,33 @@ import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-found
 import { resolveRulesProfile, getRulesProfileRuntime } from "./rules-profile-service.mjs";
 import { profileActivationAvailable } from "./m10-profile-activation.mjs";
 import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
-import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
+import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan, tb2eWiseLanguageRetentionPlan, tb2eWiseCommunicationPlan, tb2eWiseDeeperDiePlan } from "./m10d-tb2e-wise-shadow.mjs";
 import { tb2eWiseCombinationPlan } from "./m10d-tb2e-wises-p32-shadow.mjs";
-import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
+import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpParticipationPlan, tb2eHelpGroupOutcomePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
-import { tb2eFactorObstaclePlan, tb2eVersusFactorPlan, tb2eTieBreakerPlan } from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
-import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan } from "./m10d-tb2e-nature-shadow.mjs";
+import { tb2eFactorObstaclePlan, tb2eVersusFactorPlan, tb2eTieBreakerPlan, tb2eSourceBoundFactorPlan } from "./m10d-tb2e-tests-fullcore-p31-shadow.mjs";
+import { tb2eEnvironmentalTestFactorPlan } from "./m10d18-tb2e-package-a-environment.mjs";
+import { tb2ePackageATestScenarioPlan } from "./m10d18-tb2e-package-a-test-scenario.mjs";
+import { tb2ePackageAProgressAfterTestPlan } from "./m10d18-tb2e-package-a-progress-boundary.mjs";
+import { tb2ePackageAOutcomeAndProgressPlan } from "./m10d18-tb2e-package-a-outcome-chain.mjs";
+import { tb2ePackageARewardedRollHistoryPlan } from "./m10d18-tb2e-package-a-rewarded-roll-history.mjs";
+import { tb2ePackageASynergyAdvancementPlan } from "./m10d18-tb2e-package-a-synergy.mjs";
+import { tb2ePackageAActorEvidence } from "./m10d18-tb2e-package-a-actor-evidence.mjs";
+import { tb2ePackageAEquipmentOutcomePlan } from "./m10d18-tb2e-package-a-equipment-provenance.mjs";
+import { tb2ePackageAParticipationProgressPlan, tb2ePackageAIntegratedTestPlan } from "./m10d18-tb2e-package-a-participation-progress.mjs";
+import { tb2ePackageAProspectiveTracePlan, tb2ePackageAEvidenceBaselinePlan, tb2ePackageAEvidenceReplayPlan } from "./m10d18-tb2e-package-a-prospective-trace.mjs";
+import { tb2ePackageALegacyObservationProbe } from "./m10d18-tb2e-package-a-legacy-observation.mjs";
+import { tb2ePackageASavedLegacyAuditEvidence } from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
+import { tb2ePackageAAuditLedgerReplay } from "./m10d18-tb2e-package-a-audit-ledger-replay.mjs";
+import { tb2ePackageAParticipationOutcomePlan } from "./m10d18-tb2e-package-a-participation-provenance.mjs";
+import { tb2ePackageADocumentRewardHistoryPlan } from "./m10d18-tb2e-package-a-document-reward-history.mjs";
+import { tb2ePackageADocumentEvidence, tb2ePackageADocumentOutcomePlan } from "./m10d18-tb2e-package-a-document-provenance.mjs";
+import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan, tb2eNatureDescriptorContextPlan } from "./m10d-tb2e-nature-shadow.mjs";
 import { tb2eAbilityInfo, tb2eAbilitySkillModel, tb2eAbilitySkillShadowStatus, tb2eAdvancementThresholdPlan, tb2eBeginnersLuckAbilityPlan, tb2eNewSkillLearningPlan, tb2eSkillInfo } from "./m10d-tb2e-abilities-shadow.mjs";
 import { tb2eSkillEquipmentPlan } from "./m10d-tb2e-skills-equipment-p32-shadow.mjs";
+import { tb2eSkillIndex, tb2eSkillSourceEntry, tb2eSuggestedHelpSkillPlan } from "./m10d18-tb2e-package-a-skill-index.mjs";
+import { tb2eNumericalFactorCatalogueStatus, tb2eNumericalFactorEntry, tb2eNumericalFactorObstaclePlan, tb2eNumericalFactorFormulaPlan } from "./m10d18-tb2e-package-a-factor-values.mjs";
+import { tb2eSkillFactorPrerequisitePlan } from "./m10d18-tb2e-package-a-skill-prerequisites.mjs";
 import { tb2eEndSessionAwardPlan, tb2eFateSpendPlan, tb2eLifestyleResourcesPlan, tb2ePersonaSpendPlan, tb2eResourceModel, tb2eResourceShadowStatus, tb2eResourcesTaxPlan, tb2eResourcesTestPlan } from "./m10d-tb2e-resources-shadow.mjs";
 import { tb2eConditionCapabilityPlan, tb2eConditionDeathRiskPlan, tb2eConditionInfo, tb2eConditionModel, tb2eConditionShadowStatus, tb2eConditionTestEffectPlan, tb2eConditionZeroRatingPlan, tb2eConflictDispositionConditionPlan } from "./m10d-tb2e-conditions-shadow.mjs";
 import { tb2eTownRecoveryVenuePlan, tb2eTownRecoveryVenueModel } from "./m10d-tb2e-town-recovery-p33-shadow.mjs";
@@ -124,15 +143,15 @@ export function installM10DFoundation() {
       traitsShadowStatus:tb2eTraitsShadowStatus,
       traits:Object.freeze({getStatus:tb2eTraitsShadowStatus,model:tb2eTraitModel,usePlan:tb2eTraitUsePlan,refreshPlan:tb2eTraitRefreshPlan,classTraitBoundaryPlan:tb2eClassTraitBoundaryPlan}),
       wiseShadowStatus:tb2eWiseShadowStatus,
-      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan}),
+      wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan,combinationPlan:tb2eWiseCombinationPlan,languageRetentionPlan:tb2eWiseLanguageRetentionPlan,communicationPlan:tb2eWiseCommunicationPlan,deeperDiePlan:tb2eWiseDeeperDiePlan}),
       helpShadowStatus:tb2eHelpShadowStatus,
-      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
+      help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan,participationPlan:tb2eHelpParticipationPlan,groupOutcomePlan:tb2eHelpGroupOutcomePlan,suggestedSkillPlan:tb2eSuggestedHelpSkillPlan}),
       testShadowStatus:tb2eTestShadowStatus,
-      tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan,factorObstaclePlan:tb2eFactorObstaclePlan,versusFactorPlan:tb2eVersusFactorPlan,tieBreakerPlan:tb2eTieBreakerPlan}),
+      tests:Object.freeze({getStatus:tb2eTestShadowStatus,model:tb2eDiceModel,poolPlan:tb2eTestPoolPlan,resolveObstacle:tb2eResolveObstacleShadow,resolveVersus:tb2eResolveVersusShadow,luckPlan:tb2eLuckPlan,beginnersLuckPlan:tb2eBeginnersLuckShadowPlan,factorObstaclePlan:tb2eFactorObstaclePlan,sourceBoundFactorPlan:tb2eSourceBoundFactorPlan,versusFactorPlan:tb2eVersusFactorPlan,tieBreakerPlan:tb2eTieBreakerPlan,environmentalFactorPlan:tb2eEnvironmentalTestFactorPlan,scenarioPlan:tb2ePackageATestScenarioPlan,progressAfterTestPlan:tb2ePackageAProgressAfterTestPlan,outcomeAndProgressPlan:tb2ePackageAOutcomeAndProgressPlan,rewardedRollHistoryPlan:tb2ePackageARewardedRollHistoryPlan,savedLegacyAuditEvidence:tb2ePackageASavedLegacyAuditEvidence,auditDatasetEvidence:tb2ePackageAAuditLedgerReplay,legacyObservationProbe:tb2ePackageALegacyObservationProbe,prospectiveTracePlan:tb2ePackageAProspectiveTracePlan,evidenceBaselinePlan:tb2ePackageAEvidenceBaselinePlan,evidenceReplayPlan:tb2ePackageAEvidenceReplayPlan,actorEvidence:tb2ePackageAActorEvidence,integratedTestPlan:tb2ePackageAIntegratedTestPlan,equipmentOutcomePlan:tb2ePackageAEquipmentOutcomePlan,participationProgressPlan:tb2ePackageAParticipationProgressPlan,participationOutcomePlan:tb2ePackageAParticipationOutcomePlan,documentRewardHistoryPlan:tb2ePackageADocumentRewardHistoryPlan,documentEvidence:tb2ePackageADocumentEvidence,documentOutcomePlan:tb2ePackageADocumentOutcomePlan,synergyAdvancementPlan:tb2ePackageASynergyAdvancementPlan}),
       natureShadowStatus:tb2eNatureShadowStatus,
-      nature:Object.freeze({getStatus:tb2eNatureShadowStatus,model:tb2eNatureModel,substitutionPlan:tb2eNatureSubstitutionPlan,substitutionTaxPlan:tb2eNatureSubstitutionTaxPlan,channelPlan:tb2eChannelNaturePlan,channelTaxPlan:tb2eChannelNatureTaxPlan,recoveryPlan:tb2eNatureRecoveryPlan,lossPlan:tb2eNatureLossPlan,advancementPlan:tb2eNatureAdvancementPlan}),
+      nature:Object.freeze({getStatus:tb2eNatureShadowStatus,model:tb2eNatureModel,substitutionPlan:tb2eNatureSubstitutionPlan,substitutionTaxPlan:tb2eNatureSubstitutionTaxPlan,channelPlan:tb2eChannelNaturePlan,channelTaxPlan:tb2eChannelNatureTaxPlan,recoveryPlan:tb2eNatureRecoveryPlan,lossPlan:tb2eNatureLossPlan,advancementPlan:tb2eNatureAdvancementPlan,descriptorContextPlan:tb2eNatureDescriptorContextPlan}),
       abilitiesShadowStatus:tb2eAbilitySkillShadowStatus,
-      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan,equipmentPlan:tb2eSkillEquipmentPlan}),
+      abilities:Object.freeze({getStatus:tb2eAbilitySkillShadowStatus,model:tb2eAbilitySkillModel,abilityInfo:tb2eAbilityInfo,skillInfo:tb2eSkillInfo,beginnersLuckAbilityPlan:tb2eBeginnersLuckAbilityPlan,newSkillLearningPlan:tb2eNewSkillLearningPlan,advancementThresholdPlan:tb2eAdvancementThresholdPlan,equipmentPlan:tb2eSkillEquipmentPlan,skillIndex:tb2eSkillIndex,skillSourceEntry:tb2eSkillSourceEntry,numericalFactorStatus:tb2eNumericalFactorCatalogueStatus,numericalFactorEntry:tb2eNumericalFactorEntry,numericalFactorObstaclePlan:tb2eNumericalFactorObstaclePlan,numericalFactorFormulaPlan:tb2eNumericalFactorFormulaPlan,skillFactorPrerequisitePlan:tb2eSkillFactorPrerequisitePlan}),
       resourcesShadowStatus:tb2eResourceShadowStatus,
       resources:Object.freeze({getStatus:tb2eResourceShadowStatus,model:tb2eResourceModel,endSessionAwardPlan:tb2eEndSessionAwardPlan,fateSpendPlan:tb2eFateSpendPlan,personaSpendPlan:tb2ePersonaSpendPlan,testPlan:tb2eResourcesTestPlan,taxPlan:tb2eResourcesTaxPlan,lifestylePlan:tb2eLifestyleResourcesPlan}),
       conditionsShadowStatus:tb2eConditionShadowStatus,
