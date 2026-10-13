@@ -1,4 +1,5 @@
 import {tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
+import {tb2ePackageAIntegratedTestPlan} from "./m10d18-tb2e-package-a-participation-progress.mjs";
 import {tb2ePackageAProgressAfterTestPlan} from "./m10d18-tb2e-package-a-progress-boundary.mjs";
 import {tb2eConditionCapabilityPlan} from "./m10d-tb2e-conditions-shadow.mjs";
 import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
@@ -255,7 +256,7 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
   const events=new Set(input.previousEventIds),credits=new Set(input.previousCreditKeys),supplyTests=new Set(input.previousSupplyTestIds);
   const subjects=new Map(baseline.subjects.map(s=>[s.subjectId,JSON.parse(JSON.stringify(s))]));
   const supplies=new Map(baseline.supplies.map(s=>[s.unitId,JSON.parse(JSON.stringify(s))]));
-  const epochs=new Set(baseline.subjects.map(s=>`${s.subjectId}:${s.epochId}`)),history=[],savedCache=new Map();
+  const epochs=new Set(baseline.subjects.map(s=>`${s.subjectId}:${s.epochId}`)),history=[],savedCache=new Map(),learningContexts=new Map();
   const saved=id=>{
    if(savedCache.has(id))return savedCache.get(id);
    const evidence=tb2ePackageASavedLegacyAuditEvidence({traceMessageId:id});check(evidence.ok,"REPLAY_"+evidence.reasonCode);
@@ -287,6 +288,56 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
     subject.counters=mark?increment(before,mark==="PASS"?"passed":"failed",1):before;
     history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,testId:evidence.testIdentity.testId,
      nativeOutcome:evidence.recordedLegacyOutcome,proposedMark:mark,suppressedReason:projection.reasonCode,before,after:subject.counters});
+   }else if(e.type==="LEARNING_CREDIT"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","integratedTestInput"]),"REPLAY_LEARNING_CREDIT_FIELDS_REQUIRED");
+    const subject=subjects.get(e.subjectId);check(subject?.kind==="LEARNING"&&subject.epochId===e.epochId,"REPLAY_LEARNING_SUBJECT_EPOCH_REQUIRED");
+    const test=e.integratedTestInput;
+    check(test?.actorId===baseline.actorId&&test.scenarioInput?.mode==="BEGINNERS_LUCK"&&
+     test.scenarioInput.skillName.trim().toLowerCase()===subject.skillName.trim().toLowerCase(),"REPLAY_LEARNING_TEST_SOURCE_REQUIRED");
+    const integrated=tb2ePackageAIntegratedTestPlan(test);check(integrated.ok,"REPLAY_INTEGRATED_"+integrated.reasonCode);
+    check(integrated.actingCounterProjection.itemId===subject.itemId&&integrated.actingCounterProjection.willHealthAdvancementMark===false,
+     "REPLAY_LEARNING_ITEM_OR_ABILITY_MARK_MISMATCH");
+    const initialLearning=baseline.subjects.find(s=>s.subjectId===subject.subjectId);
+    check(initialLearning?.counters===null||initialLearning.counters.attempts===integrated.actingCounterProjection.attemptsBefore,
+     "REPLAY_LEARNING_BASELINE_COUNTER_MISMATCH");
+    check(subject.counters===null||subject.counters.attempts<integrated.actingCounterProjection.maximumNature,
+     "REPLAY_LEARNING_THRESHOLD_ALREADY_REACHED");
+    const key=`${integrated.testIdentity.initialMessageId}:${subject.subjectId}`;
+    check(!credits.has(key),"REPLAY_DUPLICATE_TEST_CREDIT");credits.add(key);
+    const before=subject.counters,added=integrated.actingCounterProjection.attemptWouldBeAdded;
+    check(added===0||added===1,"REPLAY_LEARNING_ATTEMPT_DELTA_INVALID");
+    subject.counters=added?increment(before,"attempts",1):before;
+    learningContexts.set(subject.subjectId,{eventId:e.eventId,integrated,added});
+    history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,
+     initialMessageId:integrated.testIdentity.initialMessageId,initialOutcome:integrated.initialOutcome,finalOutcome:integrated.finalOutcome,
+     before,after:subject.counters,attemptWouldBeAdded:added,maximumNatureObserved:integrated.actingCounterProjection.maximumNature,
+     willHealthAdvancementMark:false,evidenceScope:"CURRENT_DOCUMENTS_AND_GM_REVIEWED_REWARD_LINKS_NOT_LEGACY_BL_CAPTURE"});
+   }else if(e.type==="LEARN_SKILL"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","nextEpochId",
+     "learningCreditEventId","knownSkillItemIds","forgetItemId","gmCanonicalRosterReviewed"]),"REPLAY_LEARN_FIELDS_REQUIRED");
+    const subject=subjects.get(e.subjectId),context=learningContexts.get(e.subjectId);
+    check(subject?.kind==="LEARNING"&&subject.epochId===e.epochId&&id(e.nextEpochId)&&context?.eventId===e.learningCreditEventId&&context.added===1,
+     "REPLAY_LEARN_MATCHING_CREDIT_REQUIRED");
+    const observed=context.integrated.participationEvidence.participantEvidence.find(p=>p.actorId===baseline.actorId);
+    const nature=observed.currentNature;
+    check(nature.current>0&&nature.maximum>0&&subject.counters!==null&&subject.counters.attempts>=nature.maximum,"REPLAY_LEARNING_THRESHOLD_NOT_EVIDENCED");
+    const natureSubject=[...subjects.values()].find(s=>s.kind==="NATURE");
+    check(!natureSubject||natureSubject.rating===nature.maximum&&natureSubject.currentNature===nature.current,"REPLAY_LEARNING_NATURE_CONTEXT_MISMATCH");
+    const roster=observed.currentSkillItems.filter(i=>i.rating>0),names=roster.map(i=>i.name.trim().toLowerCase());
+    check(e.gmCanonicalRosterReviewed===true&&Array.isArray(e.knownSkillItemIds)&&e.knownSkillItemIds.every(id)&&
+     new Set(e.knownSkillItemIds).size===e.knownSkillItemIds.length&&roster.length<=24&&new Set(names).size===names.length&&
+     roster.every(i=>tb2eSkillInfo(i.name).ok)&&same([...e.knownSkillItemIds].sort(),roster.map(i=>i.itemId).sort()),"REPLAY_COMPLETE_REVIEWED_SKILL_ROSTER_REQUIRED");
+    check(roster.length===24?id(e.forgetItemId)&&e.knownSkillItemIds.includes(e.forgetItemId)&&e.forgetItemId!==subject.itemId:e.forgetItemId===null,
+     "REPLAY_LEARN_FORGET_SELECTION_REQUIRED");
+    const nextId=`${baseline.actorId}:SKILL:${subject.itemId}`,epochKey=`${nextId}:${e.nextEpochId}`;
+    check(!subjects.has(nextId)&&!epochs.has(epochKey)&&e.nextEpochId!==subject.epochId,"REPLAY_EPOCH_REUSE");
+    const before=JSON.parse(JSON.stringify(subject));subjects.delete(subject.subjectId);epochs.add(epochKey);
+    if(e.forgetItemId!==null)for(const [key,value] of subjects)if(value.kind==="SKILL"&&value.itemId===e.forgetItemId)subjects.delete(key);
+    const after={...subject,subjectId:nextId,epochId:e.nextEpochId,kind:"SKILL",rating:2,counters:{passed:0,failed:0},counterState:"GM_REVIEWED",
+     reviewId:e.reviewId,reviewerId:e.reviewerId};subjects.set(nextId,after);
+    history.push({eventId:e.eventId,type:e.type,before,after:JSON.parse(JSON.stringify(after)),learnedRating:2,
+     forgottenSkillItemId:e.forgetItemId,projectedKnownSkillItemIds:[...e.knownSkillItemIds.filter(id=>id!==e.forgetItemId),subject.itemId],
+     skillCreationCommitted:false,learningMutationCommitted:false,rosterCanonicalityGmAsserted:true});
    }else if(e.type==="SUPPLY_USE"){
     check(exact(e,["eventId","sequence","type","reviewId","reviewerId","unitId","traceMessageId","gmUseReviewed"]),"REPLAY_SUPPLY_USE_FIELDS_REQUIRED");
     const supply=supplies.get(e.unitId);check(supply&&e.gmUseReviewed===true,"REPLAY_SUPPLY_REVIEW_REQUIRED");

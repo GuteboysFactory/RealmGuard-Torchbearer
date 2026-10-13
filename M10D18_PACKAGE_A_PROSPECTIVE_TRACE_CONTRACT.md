@@ -119,3 +119,7 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Native-bound evidence replay checkpoint — 2026-10-13
 
 [Counter/supply models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now includes implemented saved-native trained-Skill credit and reviewed supply/reset/replenishment projections. Original FAIL plus Fate produces the native-final PASS credit; unknown baselines remain null. Replay/epoch/condition/stock guards are regression covered. Scope is independent Adventure trained Skill; Ability/BL/Nature credits, learning transitions, full capture/storage/durable indexing and Foundry13.351 remain OPEN. Supply use/rating changes are GM assertions, not captured causal operations. CORE zero-write/zero-RNG, no release/certification.
+
+## BL learning replay checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now projects BL credits from the existing integrated saved-document reward-final chain and explicit learning/rating2/new-epoch/24-Skill replacement. Sick/unknown/stale/duplicate/incomplete-roster cases fail closed; no Will/Health mark or live writes. This is not private Legacy BL capture. Full storage, other source routes, integrated exception acceptance and Foundry13.351 remain OPEN. A09 R decision unchanged; no release/FULLY_REAUDITED.
