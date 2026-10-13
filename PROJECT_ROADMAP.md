@@ -385,4 +385,4 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 
 ## Durable reviewed counter/supply ledger — 2026-10-13
 
-Schema4 opt-in persists append-only GM-reviewed baseline/events and CORE read-only replay for a supported subset. Invalid replay does not write; tampering is rejected. LEARNING_CREDIT persistence, other routes, actual Foundry13.351 A-D, cross-client/retention and full audit acceptance remain OPEN. No release or FULLY_REAUDITED claim.
+Schema4 opt-in persists append-only GM-reviewed baseline/events and CORE read-only replay for a supported subset. Invalid replay does not write; tampering is rejected. LEARNING_CREDIT is supported when the integrated BEGINNERS_LUCK chain binds to an indexed private Legacy trace. Other routes, actual Foundry13.351 A-D, cross-client/retention and full audit acceptance remain OPEN. No release or FULLY_REAUDITED claim.

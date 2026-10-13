@@ -187,4 +187,33 @@ ledgerJournal.flags=structuredClone(pristineLedgerFlags);
 ledgerJournal.flags["realm-guard"].packageAAuditDataset.commits[2].traceMessageIds=["not-indexed"];
 assert.equal((await readReplay({journalId:ledgerDoc.journalId})).reasonCode,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");ledgerJournal.flags=pristineLedgerFlags;
 const restoredLedger=await readReplay({journalId:ledgerDoc.journalId});assert.equal(restoredLedger.ok,true,JSON.stringify(restoredLedger));
+// Persist the integrated learning route only when its source BL trace is indexed.
+const learningState=structuredClone(role.system);role.system.rating=0;role.system.beginnerAttempts=3;
+const learningDoc=await create({reserveBeforeRoll:true,enableEvidenceLedger:true});assert.equal(learningDoc.ok,true,JSON.stringify(learningDoc));
+const learningJournal=game.journal.get(learningDoc.journalId),learningRun=await actor.rollBeginnerLuckWithAudit(role,opts(learningDoc.journalId));
+assert.equal(learningRun.audit.ok,true,JSON.stringify(learningRun));const learningTraceId=learningRun.audit.traceMessageId;
+const learningBaseline={schemaVersion:1,worldId:"world",actorId:"actor",gmId:"gm",subjects:[
+ {subjectId:"actor:LEARNING:cook",epochId:"learning-e1",kind:"LEARNING",itemId:"cook",skillName:"Cook",rating:0,currentNature:null,
+  counters:review({attempts:3})}],supplies:[]};
+const learningScenario={skillName:"Cook",mode:"BEGINNERS_LUCK",rating:4,beginnerAbilityName:"WILL",
+ factor:{tableName:"meals",gmAuthorized:true,selections:{ingredients:"fresh",amount:"one"}},
+ equipment:{hasSkill:false,carriesBackpackOrSatchel:false,borrowedTools:false,dwarvenCraftingNature:false,isCraftingTest:false,
+  toolsInadequate:false,suppliesUsed:0,gearUsed:0},environment:{light:"CLEAR",additionalGmHindrances:0},allModifiersGmReviewed:true,
+ actingCharacterId:"actor",actingConditions:[],conditionsGmReviewed:true};
+const integratedTestInput={actorId:"actor",messageId:learningTraceId,scenarioInput:learningScenario,
+ equipmentReview:{pack:null,borrowedTools:null,supply:null,gear:null,adequacyGmReviewed:true},
+ rewardReview:{events:[],gmEventLinksReviewed:true,fateAtRollStartGmAsserted:2,personaAtRollStartGmAsserted:0},
+ progressReview:{gmConfirmedLegalTest:true,gmConfirmsCountersExcludeThisTest:true,gmConfirmsHistoricalEligibility:true,context:"ADVENTURE"}};
+const learningEvent={eventId:"durableLearning",sequence:0,type:"LEARNING_CREDIT",reviewId:"r",reviewerId:"gm",
+ subjectId:"actor:LEARNING:cook",epochId:"learning-e1",integratedTestInput};
+const unindexedLearning=structuredClone(learningEvent);unindexedLearning.integratedTestInput.messageId="unindexedMessage";
+assert.equal((await appendLedger({journalId:learningDoc.journalId,expectedRevision:2,
+ ledger:{baseline:learningBaseline,events:[unindexedLearning],previousEventIds:[],previousCreditKeys:[],previousSupplyTestIds:[]}})).reasonCode,
+ "AUDIT_DATASET_LEDGER_TRACE_NOT_INDEXED");
+const durableLearning=await appendLedger({journalId:learningDoc.journalId,expectedRevision:2,
+ ledger:{baseline:learningBaseline,events:[learningEvent],previousEventIds:[],previousCreditKeys:[],previousSupplyTestIds:[]}});
+assert.equal(durableLearning.ok,true,JSON.stringify(durableLearning));
+const readLearning=await readReplay({journalId:learningDoc.journalId});assert.equal(readLearning.ok,true,JSON.stringify(readLearning));
+assert.equal(readLearning.ledgerReplayValid,true);assert.equal(readLearning.replayProjection.eventHistory[0].traceMessageId,learningTraceId);
+assert.equal(readLearning.replayProjection.eventHistory[0].evidenceScope,"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE");role.system=learningState;
 console.log("PASS reserved and reviewed evidence lifecycle: pre-roll intent, pending recovery/GM disposition, append-only durable Skill/supply replay, tamper rejection, no Actor/Item mutation or CORE writes");

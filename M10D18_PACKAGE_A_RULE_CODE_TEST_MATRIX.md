@@ -158,9 +158,9 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 | Capability | Implementation / regression | Runtime status |
 |---|---|---|
 | Schema4 append-only reviewed baseline/events | Explicit Legacy private Journal writer; replay validation before write; append-prefix and commit-chain checks | Node mock PASS |
-| Native trace-bound credits and supply use | Requires previously indexed Skill/BL trace; CORE shadow reader returns replay projection | Node mock PASS |
+| Native trace-bound Skill, integrated BL learning credit and supply use | Requires previously indexed Skill/BL trace; BL credit also revalidates the integrated BEGINNERS_LUCK chain; CORE shadow reader returns replay projection | Node mock PASS |
 | Replenish, reset, learn-skill replay | Reviewed events persisted and tamper/replay validated | Node mock PASS |
 | Actor/Item and CORE write isolation | Snapshot regression around persisted replay | Node mock PASS |
-| LEARNING_CREDIT persistence, cross-client/retention, Foundry v13.351 | Not implemented/verified | OPEN / NOT RUN |
+| Other replay event routes, cross-client/retention, Foundry v13.351 | Not implemented/verified | OPEN / NOT RUN |
 
 Do not infer authenticated history, full domain audit, FULLY_REAUDITED or release readiness from these checks.

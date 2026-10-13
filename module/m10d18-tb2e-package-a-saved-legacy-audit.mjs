@@ -260,9 +260,10 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
    for(const e of eventLedger.events){
     if(!e||typeof e!=="object"||Array.isArray(e)||typeof e.eventId!=="string"||!/^[A-Za-z0-9_-]{1,128}$/.test(e.eventId))
      return result(false,"AUDIT_DATASET_LEDGER_INVALID");
-    if(["TEST_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
-     if(typeof e.traceMessageId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(e.traceMessageId))return result(false,"AUDIT_DATASET_LEDGER_TRACE_REQUIRED");
-     if(!traceIds.includes(e.traceMessageId))traceIds.push(e.traceMessageId);
+    if(["TEST_CREDIT","LEARNING_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
+     const traceMessageId=e.type==="LEARNING_CREDIT"?e.integratedTestInput?.messageId:e.traceMessageId;
+     if(typeof traceMessageId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(traceMessageId))return result(false,"AUDIT_DATASET_LEDGER_TRACE_REQUIRED");
+     if(!traceIds.includes(traceMessageId))traceIds.push(traceMessageId);
     }else if(["SUPPLY_REPLENISH","SUBJECT_RESET","LEARN_SKILL"].includes(e.type)){}
     else return result(false,"AUDIT_DATASET_LEDGER_EVENT_ROUTE_UNSUPPORTED");
    }

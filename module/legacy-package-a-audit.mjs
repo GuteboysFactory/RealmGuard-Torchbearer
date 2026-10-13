@@ -318,19 +318,20 @@ export async function legacyAppendEvidenceLedger({journalId,expectedRevision,led
    return failure("AUDIT_DATASET_LEDGER_NOT_APPEND_ONLY");
   const candidate={baseline:cloned.baseline,events:cloned.events,previousEventIds:cloned.previousEventIds,
    previousCreditKeys:cloned.previousCreditKeys,previousSupplyTestIds:cloned.previousSupplyTestIds};
-  const projection=tb2ePackageAEvidenceReplayPlan(candidate);
-  if(!projection.ok)return failure("AUDIT_DATASET_LEDGER_"+projection.reasonCode);
   const additions=cloned.events.slice(current.events.length);
   if(!additions.length)return failure("AUDIT_DATASET_LEDGER_NO_NEW_EVENTS");
   const refs=[];
   for(const e of additions){
-   if(["TEST_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
-    if(typeof e.traceMessageId!=="string"||!prior.entries.some(row=>row.traceMessageId===e.traceMessageId))
+   if(["TEST_CREDIT","LEARNING_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
+    const traceMessageId=e.type==="LEARNING_CREDIT"?e.integratedTestInput?.messageId:e.traceMessageId;
+    if(typeof traceMessageId!=="string"||!prior.entries.some(row=>row.traceMessageId===traceMessageId))
      return failure("AUDIT_DATASET_LEDGER_TRACE_NOT_INDEXED");
-    if(!refs.includes(e.traceMessageId))refs.push(e.traceMessageId);
+    if(!refs.includes(traceMessageId))refs.push(traceMessageId);
    }else if(!["SUPPLY_REPLENISH","SUBJECT_RESET","LEARN_SKILL"].includes(e.type))
     return failure("AUDIT_DATASET_LEDGER_EVENT_ROUTE_UNSUPPORTED");
   }
+  const projection=tb2ePackageAEvidenceReplayPlan(candidate);
+  if(!projection.ok)return failure("AUDIT_DATASET_LEDGER_"+projection.reasonCode);
   const serialized=stableDataset(candidate);
   if(serialized.length>524288)return failure("AUDIT_DATASET_LEDGER_SIZE_LIMIT");
   const expectedRevisionNext=expectedRevision+1;

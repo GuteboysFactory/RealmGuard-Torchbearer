@@ -524,7 +524,7 @@ Verified reserved Skill/BL audit lifecycle code head 72203734c34ac582d1199e9e0a9
 
 ## Durable reviewed ledger checkpoint — 2026-10-13
 
-Schema4 opt-in now persists append-only reviewed baseline/events in the private Legacy dataset. The Core shadow reader validates commit chain and replays the supported subset; invalid replay is rejected before a write, and tampering is detected. TEST_CREDIT, CAPTURED_LEARNING_CREDIT and SUPPLY_USE bind to indexed traces; SUPPLY_REPLENISH, SUBJECT_RESET and LEARN_SKILL are trace-less reviewed events. LEARNING_CREDIT persistence and unmodeled routes remain unsupported. Node regressions cover read-only replay and no Actor/Item mutation. Actual Foundry13.351 A-D, cross-client/retention and full source route coverage remain NOT RUN/OPEN; no release/FULLY_REAUDITED.
+Schema4 opt-in now persists append-only reviewed baseline/events in the private Legacy dataset. The Core shadow reader validates commit chain and replays the supported subset; invalid replay is rejected before a write, and tampering is detected. TEST_CREDIT, LEARNING_CREDIT, CAPTURED_LEARNING_CREDIT and SUPPLY_USE bind to indexed traces; the integrated LEARNING_CREDIT route validates its BEGINNERS_LUCK chain against that saved trace. SUPPLY_REPLENISH, SUBJECT_RESET and LEARN_SKILL are trace-less reviewed events. Other event routes remain unsupported. Node regressions cover read-only replay and no Actor/Item mutation. Actual Foundry13.351 A-D, cross-client/retention and full source route coverage remain NOT RUN/OPEN; no release/FULLY_REAUDITED.
 
 
 ## Reviewed pending-gap disposition checkpoint — 2026-10-13

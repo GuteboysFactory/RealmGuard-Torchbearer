@@ -330,11 +330,12 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
     check(added===0||added===1,"REPLAY_LEARNING_ATTEMPT_DELTA_INVALID");
     subject.counters=added?increment(before,"attempts",1):before;
     learningContexts.set(subject.subjectId,{eventId:e.eventId,integrated,added});
+    const capturedEvidence=captured||Boolean(integrated.capturedTestId);
     history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,
      initialMessageId:integrated.testIdentity.initialMessageId,initialOutcome:integrated.initialOutcome,finalOutcome:integrated.finalOutcome,
      before,after:subject.counters,attemptWouldBeAdded:added,maximumNatureObserved:integrated.actingCounterProjection.maximumNature,
-     willHealthAdvancementMark:false,traceMessageId:captured?e.traceMessageId:null,
-     evidenceScope:captured?"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE":"CURRENT_DOCUMENTS_AND_GM_REVIEWED_REWARD_LINKS_NOT_LEGACY_BL_CAPTURE"});
+     willHealthAdvancementMark:false,traceMessageId:captured?e.traceMessageId:capturedEvidence?integrated.testIdentity.initialMessageId:null,
+     evidenceScope:capturedEvidence?"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE":"CURRENT_DOCUMENTS_AND_GM_REVIEWED_REWARD_LINKS_NOT_LEGACY_BL_CAPTURE"});
    }else if(e.type==="LEARN_SKILL"){
     check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","nextEpochId",
      "learningCreditEventId","knownSkillItemIds","forgetItemId","gmCanonicalRosterReviewed"]),"REPLAY_LEARN_FIELDS_REQUIRED");
