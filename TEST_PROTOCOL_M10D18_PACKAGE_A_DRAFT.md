@@ -449,3 +449,5 @@ Verified saved-native replay code head 620ecc370da47c13946b37183bdbc7923aec85ba:
 ## BL learning replay checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now projects BL credits from the existing integrated saved-document reward-final chain and explicit learning/rating2/new-epoch/24-Skill replacement. Sick/unknown/stale/duplicate/incomplete-roster cases fail closed; no Will/Health mark or live writes. This is not private Legacy BL capture. Full storage, other source routes, integrated exception acceptance and Foundry13.351 remain OPEN. A09 R decision unchanged; no release/FULLY_REAUDITED.
+
+Verified BL/learning replay code head d4fc618c979b18b4ecd90a0299e9c80b8ac564d8: local161/161/preflight and focused baseline guard PASS; CI38374331796 confirms161/161, syntax/preflight, ZIP21/21 and frozen guards PASS: https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38374331796 . Integrated saved-document BL/learning projections are tested in mocks; private Legacy BL capture, other routes, durable storage and actual Foundry13.351 remain OPEN / NOT RUN.
