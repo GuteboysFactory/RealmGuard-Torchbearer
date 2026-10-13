@@ -157,12 +157,12 @@ export class RealmGuardActor extends Actor {
     }
     if (!wise || wise.type !== "wise") return { faces: [...baseFaces], rerollFaces: [], traitRerollFaces: [], rerolledIndexes: [] };
     const failedIndexes = baseFaces.map((v, i) => v < 4 ? i : -1).filter(i => i >= 0);
-    if (!failedIndexes.length) return { faces: [...baseFaces], rerollFaces: [], traitRerollFaces: [], rerolledIndexes: [] };
+    if (!failedIndexes.length) return { faces: [...baseFaces], rerollFaces: [], traitRerollFaces: [], rerolledIndexes: [], rerollRoll: null };
     const reroll = await new Roll(`${failedIndexes.length}d6`).evaluate();
     const rerollFaces = reroll.dice.flatMap(d => d.results.map(r => r.result));
     const faces = [...baseFaces];
     failedIndexes.forEach((idx, n) => { faces[idx] = rerollFaces[n]; });
-    return { faces, rerollFaces, traitRerollFaces: [], rerolledIndexes: failedIndexes };
+    return { faces, rerollFaces, traitRerollFaces: [], rerolledIndexes: failedIndexes, rerollRoll: reroll };
   }
 
   _tokenPowerUse(tokenPowerId, sourceName, { isSkill = true } = {}) {
@@ -458,6 +458,7 @@ export class RealmGuardActor extends Actor {
     await this._commitTokenPowerUse(power);
     let baseFaces = roll.dice.flatMap(d => d.results.map(r => r.result));
     const wiseResult = await this._applyWiseReroll(baseFaces, assist.wise, assist);
+    if (legacyAuditCapture && assist.wise && wiseResult.rerollRoll) observeLegacyAuditEvent(legacyAuditCapture,this,"wise",wiseResult.rerollRoll,{wiseItemId:assist.wise.id,indexes:wiseResult.rerolledIndexes});
     baseFaces = wiseResult.faces;
     const tokenResult = await this._applyTokenPowerReroll(baseFaces, power, wiseResult.rerolledIndexes);
     baseFaces = tokenResult.faces;

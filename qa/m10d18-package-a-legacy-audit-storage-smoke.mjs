@@ -34,7 +34,8 @@ globalThis.ChatMessage={getSpeaker:({actor})=>({actor:actor.id,scene:"scene"}),
 const {RealmGuardActor}=await import("../module/documents.mjs");
 const actor=new RealmGuardActor(),skill={id:"cook",type:"role",name:"Cook",system:{rating:4,beginnerAttempts:0,
  learning:{passed:1,failed:1,passNeeded:4,failNeeded:3}}};
-const items=[skill];items.get=id=>items.find(i=>i.id===id);
+const wise={id:"foodWise",type:"wise",name:"Cook Wise",system:{rating:0}};
+const items=[skill,wise];items.get=id=>items.find(i=>i.id===id);
 Object.assign(actor,{id:"actor",uuid:"Actor.actor",documentName:"Actor",type:"character",name:"Cook tester",items,
  system:{attributes:{will:{value:4},health:{value:3},nature:{value:2,maximum:4}},resources:{fate:{value:2},persona:{value:1}}},
  update:()=>{throw Error("UNEXPECTED_ACTOR_WRITE");},testUserPermission:u=>u===player});
@@ -172,4 +173,20 @@ reset();facesQueue=[[6,1,2,3]];actor._askFateAfterSixes=async()=>{game.user=play
 const changed=await actor.rollRoleWithAudit(skill);assert.equal(changed.audit.reasonCode,"LEGACY_AUDIT_SESSION_CHANGED_BEFORE_STORAGE");
 assert.equal(rollCalls,1);assert.equal(messages.length,1);
 reset();facesQueue=[];await assert.rejects(()=>actor.rollRoleWithAudit(skill));assert.equal(rollCalls,1);assert.equal(messages.length,0);
+reset();facesQueue=[[1,4,6,2],[5,3]];const wiseResult=await actor.rollRoleWithAudit(skill,{obstacle:2,wiseId:wise.id});
+assert.equal(rollCalls,2);assert.equal(wiseResult.audit.ok,true,JSON.stringify(wiseResult.audit));
+const wiseTrace=messages[1],wiseRecord=wiseTrace.flags["realm-guard"].packageAAudit;
+assert.equal(wiseRecord.schemaVersion,4);assert.equal(wiseTrace.rolls.length,2);
+assert.equal(wiseRecord.nativeObservation.nativeEventHistory[0].kind,"LEGACY_MIXED_WISE_REROLL");
+assert.deepEqual(wiseRecord.nativeObservation.nativeEventHistory[0].links.map(x=>x.targetDieId),[`${wiseRecord.testId}:base:0`,`${wiseRecord.testId}:base:3`]);
+const wiseRead=read({traceMessageId:wiseTrace.id});assert.equal(wiseRead.ok,true,JSON.stringify(wiseRead));
+assert.deepEqual(wiseRead.baseFaces,[1,4,6,2]);assert.deepEqual(wiseRead.savedNativeEvidence.dice.map(d=>d.face),[5,4,6,3]);assert.equal(wiseRead.nativeFateRoundCount,0);
+assert.equal(wiseRecord.nativeObservation.torchbearerWiseEffectEquivalent,false);assert.equal(wiseRecord.nativeObservation.resourceChanges.length,0);
+reset();actor._askFateAfterSixes=async()=>true;facesQueue=[[6,1,4,2],[5,3],[4]];
+const wiseThenFate=await actor.rollRoleWithAudit(skill,{obstacle:2,wiseId:wise.id});
+assert.equal(wiseThenFate.audit.ok,true,JSON.stringify(wiseThenFate.audit));
+const wf=messages[1].flags["realm-guard"].packageAAudit.nativeObservation;
+assert.deepEqual(wf.nativeEventHistory.map(e=>e.kind),["LEGACY_MIXED_WISE_REROLL","LEGACY_FATE_ROUND"]);
+assert.equal(wf.nativeEventHistory[1].links[0].parentDieId,`${wf.testIdentity.testId}:base:0`);
+assert.equal(read({traceMessageId:messages[1].id}).ok,true);
 console.log("PASS actual Legacy role audit path: default control unchanged, private native base persisted/read-only reload, GM/tamper/duplicate rejection, storage failure no retry, recursive saved Fate consistency/reload/tamper guards, history never authenticated");

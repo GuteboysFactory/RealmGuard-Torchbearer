@@ -1321,3 +1321,6 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Durable reviewed counter/supply ledger — 2026-10-13
 
 Schema4 opt-in persists append-only GM-reviewed baseline/events and CORE read-only replay for a supported subset. Invalid replay does not write; tampering is rejected. LEARNING_CREDIT persistence, other routes, actual Foundry13.351 A-D, cross-client/retention and full audit acceptance remain OPEN. No release or FULLY_REAUDITED claim.
+### 2026-10-13 — Package A Legacy Wise native provenance
+
+The explicit private Legacy Skill audit now accepts an optional owned Wise, records its actual native reroll as a separate event, and validates failed-die identity through saved native readback and subsequent Fate lineage. Default audit controls remain unchanged. This is Legacy Mixed history consistency only: no Torchbearer Wise equivalence, credit, release, or live CORE authority. Local 164/164 smoke suites and release preflight pass; exact-head CI and Foundry v13.351 A-D acceptance are pending / not run. Remaining A08 routes, full A04 Wise lifecycle, cross-client persistence, historical authentication, and all G1-G5 gates remain open. 0/14 FULLY_REAUDITED; Legacy Mixed remains sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable 1.12.0 and published QA 1.13.0-qa.29 unchanged.

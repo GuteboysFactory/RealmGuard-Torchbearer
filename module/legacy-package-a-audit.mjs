@@ -9,19 +9,27 @@ const failure=reasonCode=>({ok:false,reasonCode});
 const captures=new WeakMap();
 const activeReservedTests=new Set();
 // Private issued capability; diagnostic failures never interrupt gameplay.
-export function observeLegacyAuditEvent(capability,actor,stage,roll=null){
+export function observeLegacyAuditEvent(capability,actor,stage,roll=null,details={}){
  const c=captures.get(capability);if(!c||c.actor!==actor||c.error)return;
  try{
   let r;
   if(stage==="base")r=c.probe.observeBaseRoll(roll);
+  else if(stage==="wise")r=c.probe.observeLegacyWiseRoll({roll,targetDieIds:details.indexes.map(i=>`${c.testId}:base:${i}`),wiseItemId:details.wiseItemId});
   else if(stage==="fate")r=c.probe.observeFateRound({roll,parentDieIds:c.parents});
   else if(stage==="spend")r=c.probe.observeResourceChange({resource:"fate",amount:1});
   else return;
   if(!r.ok){c.error=r;return;}
   if(roll){
    c.nativeData.push(JSON.parse(JSON.stringify(roll.toJSON())));
-   const id=stage==="base"?`${c.testId}:base`:`${c.testId}:luck${c.round++}`;
-   c.parents=roll.dice.flatMap(d=>d.results).flatMap((d,i)=>d.result===6?[`${id}:${i}`]:[]);
+   const id=stage==="base"?`${c.testId}:base`:stage==="wise"?`${c.testId}:legacyWise`:`${c.testId}:luck${c.round++}`;
+   if(stage==="base"){
+    c.resolvedFaces=roll.dice.flatMap(d=>d.results).flatMap(d=>d.result);
+    c.parents=c.resolvedFaces.flatMap((face,i)=>face===6?[`${c.testId}:base:${i}`]:[]);
+   }
+   else if(stage==="wise"){
+    details.indexes.forEach((index,n)=>{c.resolvedFaces[index]=roll.dice.flatMap(d=>d.results)[n].result;});
+    c.parents=c.resolvedFaces.flatMap((face,i)=>face===6?[`${c.testId}:base:${i}`]:[]);
+   }else c.parents=roll.dice.flatMap(d=>d.results).flatMap((d,i)=>d.result===6?[`${id}:${i}`]:[]);
   }
  }catch{c.error=failure("LEGACY_AUDIT_CAPTURE_FAILED");}
 }
@@ -34,7 +42,7 @@ export function observeLegacyAuditEvent(capability,actor,stage,roll=null){
 export const legacyRoleRollWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"SKILL");
 export const legacyBeginnerLuckWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"BEGINNERS_LUCK");
 async function legacyRollWithAudit(actor,role,options,mode){
-  if(!fields(options,["obstacle","auditDatasetId","reserveBeforeRoll"])||!Number.isSafeInteger(options.obstacle??1)||(options.obstacle??1)<1)
+  if(!fields(options,["obstacle","auditDatasetId","reserveBeforeRoll","wiseId"])||!Number.isSafeInteger(options.obstacle??1)||(options.obstacle??1)<1)
     return failure("LEGACY_AUDIT_PLAIN_OBSTACLE_SCOPE_REQUIRED");
   if(options.auditDatasetId!==undefined&&(typeof options.auditDatasetId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(options.auditDatasetId)))return failure("AUDIT_DATASET_ID_REQUIRED");
   if(options.reserveBeforeRoll!==undefined&&typeof options.reserveBeforeRoll!=="boolean"||options.reserveBeforeRoll===true&&!options.auditDatasetId)return failure("AUDIT_DATASET_RESERVATION_OPTIONS_REQUIRED");
@@ -43,6 +51,9 @@ async function legacyRollWithAudit(actor,role,options,mode){
     return failure("CURRENT_SESSION_GM_REQUIRED");
   if(!actor||!role||g.actors?.get(actor.id)!==actor||actor.items?.get(role.id)!==role||role.type!=="role")
     return failure("LEGACY_AUDIT_OWNED_WORLD_SKILL_REQUIRED");
+  if(options.wiseId!==undefined&&options.wiseId!==null&&
+    (typeof options.wiseId!=="string"||actor.items?.get(options.wiseId)?.type!=="wise"))return failure("LEGACY_AUDIT_OWNED_WORLD_WISE_REQUIRED");
+  if(mode==="BEGINNERS_LUCK"&&options.wiseId!=null)return failure("LEGACY_AUDIT_WISE_NOT_SUPPORTED_FOR_BL_CAPTURE");
   const testId=globalThis.foundry.utils.randomID();
   const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId,mode});
   if(!probe.ok)return failure(probe.reasonCode);
@@ -67,12 +78,12 @@ async function legacyRollWithAudit(actor,role,options,mode){
   if(activeKey)activeReservedTests.add(activeKey);
   try{
   const capability=Object.freeze({});
-  const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null};
+  const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null,resolvedFaces:[]};
   captures.set(capability,capture);
   let legacyResult;
   try{legacyResult=mode==="BEGINNERS_LUCK"
     ?await actor.rollBeginnerLuck(role,{abilityKey:tb2eSkillInfo(role.name).beginnersLuckAbility.toLowerCase(),obstacle,legacyAuditCapture:capability})
-    :await actor.rollRole(role,{obstacle,legacyAuditCapture:capability});}
+    :await actor.rollRole(role,{obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability});}
   finally{captures.delete(capability);}
   if(!legacyResult?.roll)return {...(legacyResult??{}),audit:failure("LEGACY_ROLL_DID_NOT_COMPLETE")};
   try{
@@ -88,7 +99,8 @@ async function legacyRollWithAudit(actor,role,options,mode){
      original.author!==gm||original.visible!==true||original.isContentVisible!==true)
     return {...legacyResult,audit:failure("LEGACY_AUDIT_ORIGINAL_MESSAGE_LINK_REQUIRED")};
   const fateScope=legacyResult.fateSpent===true,blScope=mode==="BEGINNERS_LUCK";
-  const record={schemaVersion:blScope?3:fateScope?2:1,kind:blScope?"LEGACY_BL_AUDIT":fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
+  const wiseScope=!blScope&&capture.nativeData.length>1&&capture.nativeData.some((_,i)=>i>0)&&!fateScope;
+  const record={schemaVersion:blScope?3:fateScope?2:wiseScope?4:1,kind:blScope?"LEGACY_BL_AUDIT":fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":wiseScope?"LEGACY_ROLE_AUDIT_BASE_WISE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
     gmId:gm.id,skillItemId:role.id,obstacle,legacyMessageId:original.id,
     status:reason?"INCOMPLETE":blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
     nativeObservation:observed.ok?observed:null,
