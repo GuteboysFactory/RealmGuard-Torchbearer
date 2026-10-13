@@ -1,6 +1,6 @@
 # Package A — fixed closure register
 
-**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Supported Skill/BL replay and selected trace index/reservation are implemented. Next consolidated work: persist required counter/supply events and complete missing source/capture routes, with source eligibility and runtime exceptions still OPEN.
+**A05/A06 design and partial persistence checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies the shared v1 contract, executable read-only baseline validation, native-bound Skill/BL replay, schema4 durable append-only reviewed event ledger for the supported subset, and supply-use/replenishment/reset projections. UNKNOWN remains distinct from reviewed zero; supply quantities are not converted to increments. Persisted LEARNING_CREDIT and other event/source routes, complete eligibility and runtime exception review remain OPEN, so this does not close A05/A06. Next work is remaining source/capture/shared-chain routes and actual runtime acceptance.
 
 **A09 decision accepted:** [Historical evidence contract](M10D18_PACKAGE_A_TRUST_DECISION.md) records the explicit user selection of R: trusted GM/admin and prospectively captured, runtime-reviewed history. G3 uses this stated assurance boundary; historical authentication flags stay FALSE. A09 design/decision is SETTLED; capture/model/integration/runtime and full G3 remain OPEN.
 
@@ -10,7 +10,7 @@ Status: OPEN / NOT RELEASED. Inventory v1, 2026-10-13. Reviewed repository basel
 
 Supported independent Skill/BL integrated read-only planning is implemented. Explicit GM-only Legacy trained Skill diagnostics capture native base/recursive Fate history and acting Fate deltas; separate CORE consumption checks saved consistency, Actor/GM/Skill identities and final outcome without writing or RNG. General Legacy gameplay remains unchanged. Source/model matrix contains 29 review rows, not 29 fully accepted rules.
 
-Baseline final-head CI: [38361548151](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38361548151), 158/158 suites PASS, unpublished ZIP 21/21, preflight/frozen guards PASS. Actual Foundry v13.351 A-D NOT RUN. G1-G5 full acceptance OPEN. 0/14 FULLY_REAUDITED. A green automated baseline is not a percentage of completion.
+Latest verified head CI: [38393309786](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38393309786), 164/164 suites PASS, unpublished ZIP 21/21, parser/preflight/frozen guards PASS. Actual Foundry v13.351 A-D NOT RUN. G1-G5 full acceptance OPEN. 0/14 FULLY_REAUDITED. A green automated baseline is not a percentage of completion.
 
 ## Fixed remaining work
 
@@ -94,3 +94,8 @@ Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch
 ## Reviewed pending-gap disposition checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.
+
+
+## Durable reviewed event ledger checkpoint — 2026-10-13
+
+Commit `a091c1f480d2788ecb5ccc4661c5df1c983103f5` adds opt-in schema4 append-only baseline/event persistence and CORE read-only replay for TEST_CREDIT, CAPTURED_LEARNING_CREDIT, SUPPLY_USE, SUPPLY_REPLENISH, SUBJECT_RESET and LEARN_SKILL. The writer validates full replay before storage, binds the trace-dependent routes to indexed private traces, and verifies readback replay. Invalid appends do not advance revision; malformed/tampered event or commit references fail closed. Regression also confirms no Actor/Item writes from replay. LEARNING_CREDIT persistence, unimplemented event/source routes, multi-client/retention and Foundry v13.351 remain OPEN/NOT RUN. CI [38393309786](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38393309786) confirms 164/164, ZIP 21/21 and frozen release guards. No FULLY_REAUDITED/release claim.
