@@ -109,7 +109,7 @@ closeGuard.j.update=async function(data){if(++closeGuardWrites===2)throw Error("
 const validAttempt=await actor.rollRoleWithAudit(role,opts(closeGuard.journalId));closeGuard.j.update=closeGuardUpdate;
 assert.equal(validAttempt.audit.reasonCode,"AUDIT_DATASET_APPEND_STORAGE_FAILED");const recoverableManifest=closeGuard.j.flags["realm-guard"].packageAAuditDataset;
 assert.equal((await close({journalId:closeGuard.journalId,testId:recoverableManifest.reservations[0].testId,
- expectedRevision:recoverableManifest.revision,reason:"PRIVATE_TRACE_UNAVAILABLE",note:"The record appears unavailable.",
+ expectedRevision:recoverableManifest.revision,reason:"CAPTURE_INTERRUPTED",note:"Checking that a recoverable record cannot be closed.",
  gmReviewed:true,captureStoppedReviewed:true,traceMessageIds:[validAttempt.audit.traceMessageId]})).reasonCode,"AUDIT_DATASET_RECOVERABLE_TRACE_MUST_BE_INDEXED");
 assert.equal((await append({journalId:closeGuard.journalId,traceMessageIds:[validAttempt.audit.traceMessageId],expectedRevision:recoverableManifest.revision})).ok,true);
 assert.equal((await read({journalId:closeGuard.journalId})).ok,true);
@@ -124,6 +124,8 @@ const closeInput={journalId:gap.journalId,testId:gapTestId,expectedRevision:gapM
  gmReviewed:true,captureStoppedReviewed:true,traceMessageIds:[]};
 assert.equal((await close({...closeInput,gmReviewed:false})).reasonCode,"AUDIT_DATASET_CLOSURE_FIELDS_REQUIRED");
 assert.equal((await close({...closeInput,expectedRevision:0})).reasonCode,"AUDIT_DATASET_REVISION_CONFLICT");
+assert.equal((await close({...closeInput,reason:"INCOMPLETE_NATIVE_CAPTURE"})).reasonCode,"AUDIT_DATASET_INCOMPLETE_TRACE_REQUIRED");
+assert.equal((await close({...closeInput,reason:"PRIVATE_TRACE_UNAVAILABLE",traceMessageIds:[unobserved.messageId]})).reasonCode,"AUDIT_DATASET_CLOSURE_TRACE_SELECTION_REQUIRED");
 const closed=await close(closeInput);assert.equal(closed.ok,true,JSON.stringify(closed));
 const gapEvidence=await read({journalId:gap.journalId});assert.equal(gapEvidence.reasonCode,"AUDIT_DATASET_REVIEWED_GAPS");
 assert.equal(gapEvidence.pendingReservations.length,0);assert.equal(gapEvidence.reviewedGaps[0].testId,gapTestId);

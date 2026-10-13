@@ -158,6 +158,8 @@ export async function legacyCloseAuditReservation({journalId,testId,expectedRevi
   const associated=[...session.g.messages.values()].filter(m=>m.visible===true&&m.isContentVisible===true&&
    m.flags?.["realm-guard"]?.packageAAudit?.datasetId===journalId&&m.flags["realm-guard"].packageAAudit.testId===testId);
   if(associated.length!==traceMessageIds.length||associated.some(m=>!traceMessageIds.includes(m.id)))return failure("AUDIT_DATASET_CLOSURE_TRACE_SELECTION_REQUIRED");
+  if(reason==="PRIVATE_TRACE_UNAVAILABLE"&&(associated.length||traceMessageIds.length))return failure("AUDIT_DATASET_CLOSURE_REASON_MISMATCH");
+  if(reason==="INCOMPLETE_NATIVE_CAPTURE"&&!associated.length)return failure("AUDIT_DATASET_INCOMPLETE_TRACE_REQUIRED");
   for(const m of associated){
    if(m.documentName!=="ChatMessage"||m.author!==session.gm||m.whisper?.length!==1||m.whisper[0]!==session.gm.id)return failure("PRIVATE_CURRENT_GM_AUDIT_MESSAGE_REQUIRED");
    const native=tb2ePackageASavedLegacyAuditEvidence({traceMessageId:m.id});
