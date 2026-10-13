@@ -1,14 +1,14 @@
 # A09 — concrete historical evidence decision
 
-Status: PROPOSAL / DECISION PENDING, 2026-10-13. No acceptance gate or runtime flag changes are implemented. Reviewed implementation baseline: 7848b21d1a48e5bf35d0aa135b919560f820050c. This proposal belongs to A09 in the fixed closure register; it is not another work package.
+Status: R SELECTED / EVIDENCE CONTRACT ACCEPTED, 2026-10-13. User explicitly selected "Betrodd GM och granskad historik (rekommenderas)". The G3 evidence wording is now updated; no runtime flag or gameplay changes are implemented. Reviewed implementation baseline: 7848b21d1a48e5bf35d0aa135b919560f820050c. This proposal belongs to A09 in the fixed closure register; it is not another work package.
 
 ## Problem and recommendation
 
 The original request requires verifiable Actor/GM provenance and dice history with safe read-only boundaries, source-backed changes/regressions, actual acceptance and no premature release/certification. It does not specify resistance to a malicious GM/world administrator. The later engineering checklist added stronger historical authentication, immutable storage and durable replay requirements. Those stronger terms are not game rules from DH/SG and have not been demonstrated by the current client implementation.
 
-Recommend **R — reviewed prospective history under a trusted GM** for this rules-system re-audit. This is an explicit change to G3's evidence acceptance/threat assumptions, not a lowering of rule parity, source coverage or Foundry verification. Only after user selection may the checklist be revised. Alternative **S — independently authenticated historical authority** preserves the stronger historical claims but requires a separate authority design and feasibility/hosting decision beyond the existing client system. There is no ready supported server-attestation component in the inspected Package A paths.
+Recommend **R — reviewed prospective history under a trusted GM** for this rules-system re-audit. This is an explicit change to G3's evidence acceptance/threat assumptions, not a lowering of rule parity, source coverage or Foundry verification. User selection has now authorized the exact G3 revision below. Alternative **S — independently authenticated historical authority** preserves the stronger historical claims but requires a separate authority design and feasibility/hosting decision beyond the existing client system. There is no ready supported server-attestation component in the inspected Package A paths.
 
-Until selection: original G3 requirements remain OPEN, all authentication flags FALSE, all 12 register entries OPEN. A05/A06 designs and source review may proceed independently. Do not silently adopt R or implement/deploy S.
+Decision recorded: R is selected; independent hostile-GM-resistant authority S is excluded from this Package A acceptance. A09 decision/design is SETTLED. Full G3 remains OPEN until A05-A08/A10/A11 evidence exists; all historical authentication flags stay FALSE. No service deployment or automatic release is authorized.
 
 ## Evidence layers
 
@@ -55,7 +55,7 @@ No external service, account, credential, key or backend modification is authori
 
 The design must specify authority identity, authenticated transport, snapshot/event binding, canonical schema, uniqueness/ordered ingestion, transaction/failure behavior, signing/verification key custody, rotation/revocation, receipt storage and access privacy, offline behavior, retention/backup/rollback coverage and threat-specific acceptance tests. A GM browser holding a signing secret is still a client under that GM's control. A separate collector cannot independently verify dice or resource causality without authoritative observation. If a supported authority cannot be identified, S remains blocked on feasibility rather than being implemented as a misleading signer.
 
-## Exact proposed G3 change if R is selected
+## Accepted G3 change — R selected
 
 Replace the requirement for independently authenticated/immutable historical ownership and replay data with: complete **prospectively observed and reproducibly reviewed** Actor/user/GM/source/native event/resource/counter records for all required Package A routes under a stated trusted-GM model; durable dataset-scoped replay/commit checks; tested privacy/interruption/reload/concurrency and unchanged Legacy controls. Historical authentication and immutable/global-history flags remain FALSE; certificate/report must disclose this assurance boundary.
 
@@ -65,7 +65,7 @@ If S is selected, do not apply this change. Preserve the current stronger G3 wor
 
 ## Evidence and verification required for this decision
 
-A09's **proposal subtask** is delivered by this document. A09 itself closes only after an explicit recorded choice, reviewed acceptance wording and the authority/threat/evidence contract is settled. All implementation/runtime subcases retain their own OPEN status. User silence, elapsed time and a general approval to continue drafting are not a selection of R or S.
+A09 decision/design is SETTLED by the explicit user response recorded above and this accepted R contract. Implementation of capture/index/failure/permission observations remains in A05-A08/A10, with real runtime evidence in A11; none is closed by the choice. G3 itself remains OPEN. No independent historical authentication is claimed.
 
 Current repository inspection: legacy-package-a-audit.mjs, m10d18-tb2e-package-a-legacy-observation.mjs, m10d18-tb2e-package-a-saved-legacy-audit.mjs and m10d18-tb2e-package-a-prospective-trace.mjs. G3 paths store mutable private ChatMessage/native/flag records and copy current client facts; they do not implement independently authenticated historical storage. Other subsystem sockets are not repurposed as an authority.
 

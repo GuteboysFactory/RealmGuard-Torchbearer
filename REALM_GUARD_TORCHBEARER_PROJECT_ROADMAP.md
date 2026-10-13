@@ -3,7 +3,7 @@
 
 ## Current fixed completion queue — 2026-10-13
 
-Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. A09 decision/design is SETTLED (R); remaining 11 entries and full G3 remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: consolidated A05/A06 evidence-model designs under the accepted R contract. G1/G2 source/integration, G4 actual Foundry and G5 release requirements remain unchanged.
 
 
 **Current Package A completion plan:** [five-gate closure checklist](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12). Historical NEXT/checkpoint sections below preserve earlier evidence; use the current list to avoid opening unrelated incremental packages. G1 integrated final outcome, G2 five-domain source/model closure, G3 historical provenance contract/data, G4 unpublished-candidate Foundry A-D, G5 final safety/release decision remain OPEN. Current automated baseline: 152/152, ZIP21/21; manual acceptance NOT RUN; 0/14 domain certificates.
@@ -1285,3 +1285,7 @@ Regression: actual Legacy base/Fate producer-reader path, swapped stored GM/Acto
 ## A09 proposal — 2026-10-13
 
 [Concrete historical evidence decision](M10D18_PACKAGE_A_TRUST_DECISION.md) is ready for review. Recommended R explicitly trusts the GM for prospective runtime-reviewed evidence and keeps historical authentication false; S requires independently authoritative observation/storage. This proposal is not an implemented choice or a gate closure. Source/integration/Foundry/final release gates remain unchanged pending explicit decision.
+
+## Accepted A09 R evidence boundary — 2026-10-13
+
+User explicitly selected trusted GM and reviewed prospective history. [Accepted contract](M10D18_PACKAGE_A_TRUST_DECISION.md) replaces independent historical-authentication requirements in G3 with complete observed/reproducibly reviewed records under trusted GM/admin assumptions. A09 design/decision is SETTLED; implementation, dataset replay/commit, full source integration and Foundry13.351 A-D remain OPEN / NOT RUN. Historical authentication flags remain FALSE; old missing history is not recovered. No runtime/code/profile/release change; 0/14 FULLY_REAUDITED. Next: A05/A06 consolidated evidence-model design.

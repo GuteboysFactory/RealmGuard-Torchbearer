@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer — Package A consolidated Foundry 13.351 QA (DRAFT)
 
-**A09 proposal delivered / decision pending:** [Historical evidence decision](M10D18_PACKAGE_A_TRUST_DECISION.md) specifies R (trusted-GM prospective review, recommended) and S (independent authority). No choice or gate change is implied; all implementation/runtime acceptance stays OPEN.
+**A09 decision accepted:** [Historical evidence contract](M10D18_PACKAGE_A_TRUST_DECISION.md) records the explicit user selection of R: trusted GM/admin and prospectively captured, runtime-reviewed history. G3 uses this stated assurance boundary; historical authentication flags stay FALSE. A09 design/decision is SETTLED; capture/model/integration/runtime and full G3 remain OPEN.
 
 
 ## Current fixed completion queue — 2026-10-13
 
-Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. A09 decision/design is SETTLED (R); remaining 11 entries and full G3 remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: consolidated A05/A06 evidence-model designs under the accepted R contract. G1/G2 source/integration, G4 actual Foundry and G5 release requirements remain unchanged.
 
 
 **Status:** DRAFT / NOT RUN. Full acceptance uses an unpublished final candidate in an isolated copy of the test World BEFORE any release.
@@ -431,3 +431,7 @@ These are engineering provenance checks, not additional book rules. Rule context
 Regression: actual Legacy base/Fate producer-reader path, swapped stored GM/Actor/UUID, unknown/deleted Skill, conflicting or duplicated captured Skill, coerced historical rating, non-native base object, editable attestation claims, later current rating change, private-player rejection and existing Fate tamper/resource/control tests. CORE remains zero-write/zero-RNG. Full historical ownership/entitlements, broader Wise/helper/BL/Nature traces, trusted storage/durable replay and actual Foundry v13.351 A-D remain OPEN / NOT RUN. G1-G5 remain unclosed; 0/14 FULLY_REAUDITED. Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable1.12.0/published QA1.13.0-qa.29 unchanged; no release.
 
 Verified source-guard code head 8c49ec71bd39cd1b664ddbad7a956bda65cd1b44: local 158/158 and preflight PASS; CI run 38360848529 confirms 158/158, syntax/preflight, ZIP staging 21/21 manifest dependencies and frozen channel guard PASS. https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38360848529 . Foundry v13.351 A-D remains NOT RUN; current metadata agreement does not authenticate historical Actor/GM ownership.
+
+## Accepted A09 R evidence boundary — 2026-10-13
+
+User explicitly selected trusted GM and reviewed prospective history. [Accepted contract](M10D18_PACKAGE_A_TRUST_DECISION.md) replaces independent historical-authentication requirements in G3 with complete observed/reproducibly reviewed records under trusted GM/admin assumptions. A09 design/decision is SETTLED; implementation, dataset replay/commit, full source integration and Foundry13.351 A-D remain OPEN / NOT RUN. Historical authentication flags remain FALSE; old missing history is not recovered. No runtime/code/profile/release change; 0/14 FULLY_REAUDITED. Next: A05/A06 consolidated evidence-model design.
