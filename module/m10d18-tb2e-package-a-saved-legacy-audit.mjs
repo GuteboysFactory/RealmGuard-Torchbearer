@@ -1,3 +1,4 @@
+import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageAActorEvidence} from "./m10d18-tb2e-package-a-actor-evidence.mjs";
 import {tb2ePackageADocumentEvidence} from "./m10d18-tb2e-package-a-document-provenance.mjs";
@@ -29,8 +30,15 @@ function savedActorGmSource(message,r){
   snapshot.currentGmId!==r.gmId||snapshot.actorUuid!==actor.actorUuid||!owned||owned.type!=="role"||
   o.skillSource?.itemId!==r.skillItemId||!Array.isArray(sources)||sources.filter(i=>i.itemId===r.skillItemId).length!==1||
   !same(sources.find(i=>i.itemId===r.skillItemId),o.skillSource)||
-  !Number.isSafeInteger(o.skillSource.rating)||o.skillSource.rating<1||o.skillSource.rating>6)
+  !Number.isSafeInteger(o.skillSource.rating)||(r.schemaVersion===3?o.skillSource.rating!==0:o.skillSource.rating<1||o.skillSource.rating>6))
   return {ok:false,reasonCode:"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH"};
+ if(r.schemaVersion===3){
+  const skill=tb2eSkillInfo(o.skillSource.name),ability=o.abilitySource;
+  if(!skill.ok||o.testMode!=="BEGINNERS_LUCK"||ability?.name!==skill.beginnersLuckAbility||
+   !Number.isSafeInteger(ability.rating)||ability.rating<1||ability.rating>6||snapshot.currentAbilities?.[ability.name.toLowerCase()]!==ability.rating||
+   !Number.isSafeInteger(o.skillSource.beginnerAttempts)||o.skillSource.beginnerAttempts<0||o.legacyLearningCounterChanged!==false)
+   return {ok:false,reasonCode:"SAVED_LEGACY_BL_SOURCE_MISMATCH"};
+ }
  for(const flag of ["rollSourceAuthenticated","actorSourceAuthenticated","gmPermissionAuthenticated","playerConsentAuthenticated",
   "rollTimeActorStateVerified","historicalRewardBalanceVerified","completeTestHistoryVerified","immutableChronologyVerified",
   "duplicateTestCheckAuthenticated","spendCauseAuthenticated","captureOfLegacyExecutionProven"])
@@ -101,11 +109,12 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     message.author!==gm||!Array.isArray(message.whisper)||message.whisper.length!==1||message.whisper[0]!==gm.id)
     return result(false,"PRIVATE_CURRENT_GM_AUDIT_MESSAGE_REQUIRED");
   const r=message.flags?.["realm-guard"]?.packageAAudit;
-  const fateScope=r?.schemaVersion===2&&r.kind==="LEGACY_ROLE_AUDIT_BASE_FATE";
-  if(!r||(!fateScope&&(r.schemaVersion!==1||r.kind!=="LEGACY_ROLE_AUDIT_BASE_ONLY"))||r.sourceProfileId!=="realm-guard-legacy-mixed"||
+  const blScope=r?.schemaVersion===3&&r.kind==="LEGACY_BL_AUDIT";
+  const fateScope=r?.schemaVersion===2&&r.kind==="LEGACY_ROLE_AUDIT_BASE_FATE"||blScope&&r.legacyOutcome?.fateSpent===true;
+  if(!r||(!blScope&&!fateScope&&(r.schemaVersion!==1||r.kind!=="LEGACY_ROLE_AUDIT_BASE_ONLY"))||r.sourceProfileId!=="realm-guard-legacy-mixed"||
     r.worldId!==g.world?.id||r.gmId!==gm.id||typeof r.testId!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(r.testId))
     return result(false,"SAVED_LEGACY_AUDIT_SCOPE_MISMATCH");
-  if(r.status!==(fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED")||r.reasonCode!==null||r.legacyOutcome?.fateSpent!==fateScope)
+  if(r.status!==(blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED")||r.reasonCode!==null||r.legacyOutcome?.fateSpent!==fateScope)
     return result(false,"SAVED_LEGACY_AUDIT_INCOMPLETE");
   if(r.authenticated!==false||r.completeTestHistoryVerified!==false)return result(false,"EDITABLE_AUDIT_ATTESTATION_REJECTED");
   const original=g.messages.get(r.legacyMessageId);
@@ -134,7 +143,8 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
   return result(true,null,{testIdentity:{worldId:r.worldId,testId:r.testId,actorId:r.actorId},
     traceMessageId,legacyMessageId:original.id,skillItemId:r.skillItemId,savedNativeEvidence:evidence,
     baseFaces:fateScope?evidence.baseFaces:evidence.dice.map(d=>d.face),
-    nativeFateRoundCount:fateScope?evidence.nativeRoundCount:0,
+    nativeFateRoundCount:fateScope?evidence.nativeRoundCount:0,testMode:blScope?"BEGINNERS_LUCK":"SKILL",
+    abilitySource:blScope?{...o.abilitySource}:null,legacyLearningCounterChanged:blScope?false:null,
     savedFateChainConsistent:fateScope,recordedLegacyOutcome:r.legacyOutcome.outcome,
     evidenceScope:fateScope?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
     storedNativeBaseAndLinkedOutcomeAgree:true,recordedActorGmSourceConsistent:true,

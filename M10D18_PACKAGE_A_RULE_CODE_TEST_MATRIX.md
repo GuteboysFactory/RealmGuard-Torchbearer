@@ -134,3 +134,7 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## BL learning replay checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now projects BL credits from the existing integrated saved-document reward-final chain and explicit learning/rating2/new-epoch/24-Skill replacement. Sick/unknown/stale/duplicate/incomplete-roster cases fail closed; no Will/Health mark or live writes. This is not private Legacy BL capture. Full storage, other source routes, integrated exception acceptance and Foundry13.351 remain OPEN. A09 R decision unchanged; no release/FULLY_REAUDITED.
+
+## Private Legacy BL capture checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now documents explicit owned-untrained Skill native BL/Fate capture, mapped Ability provenance, private schema3 read-only validation and direct captured-learning replay. Actual Legacy leaves attempts unchanged; audit never invents a committed learning mark. Control/tamper/session/storage/replay regressions added. No default capture or live rule change. Broader source routes, durable indexing/storage and Foundry13.351 remain OPEN; no release/certification.

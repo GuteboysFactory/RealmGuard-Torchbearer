@@ -1,3 +1,4 @@
+import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
 import {tb2ePackageALegacyObservationProbe} from "./m10d18-tb2e-package-a-legacy-observation.mjs";
 import {tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
 
@@ -27,16 +28,18 @@ export function observeLegacyAuditEvent(capability,actor,stage,roll=null){
  * Executes existing live Legacy gameplay once; audit storage is an additional
  * GM-private ChatMessage, never an Actor/Item/rules/profile change by CORE.
  */
-export async function legacyRoleRollWithAudit(actor,role,options={}){
+export const legacyRoleRollWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"SKILL");
+export const legacyBeginnerLuckWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"BEGINNERS_LUCK");
+async function legacyRollWithAudit(actor,role,options,mode){
   if(!fields(options,["obstacle"])||!Number.isSafeInteger(options.obstacle??1)||(options.obstacle??1)<1)
     return failure("LEGACY_AUDIT_PLAIN_OBSTACLE_SCOPE_REQUIRED");
   const g=globalThis.game,gm=g?.user;
   if(!g?.ready||g.system?.id!=="realm-guard"||!gm?.active||gm.isGM!==true||g.users?.get(gm.id)!==gm)
     return failure("CURRENT_SESSION_GM_REQUIRED");
-  if(g.actors?.get(actor?.id)!==actor||actor.items?.get(role?.id)!==role||role?.type!=="role")
+  if(!actor||!role||g.actors?.get(actor.id)!==actor||actor.items?.get(role.id)!==role||role.type!=="role")
     return failure("LEGACY_AUDIT_OWNED_WORLD_SKILL_REQUIRED");
   const testId=globalThis.foundry.utils.randomID();
-  const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId});
+  const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId,mode});
   if(!probe.ok)return failure(probe.reasonCode);
   // Saved Fate scope is checked separately; mutable records are not attestation.
   const obstacle=options.obstacle??1,worldId=g.world.id;
@@ -44,7 +47,9 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null};
   captures.set(capability,capture);
   let legacyResult;
-  try{legacyResult=await actor.rollRole(role,{obstacle,legacyAuditCapture:capability});}
+  try{legacyResult=mode==="BEGINNERS_LUCK"
+    ?await actor.rollBeginnerLuck(role,{abilityKey:tb2eSkillInfo(role.name).beginnersLuckAbility.toLowerCase(),obstacle,legacyAuditCapture:capability})
+    :await actor.rollRole(role,{obstacle,legacyAuditCapture:capability});}
   finally{captures.delete(capability);}
   if(!legacyResult?.roll)return {...(legacyResult??{}),audit:failure("LEGACY_ROLL_DID_NOT_COMPLETE")};
   try{
@@ -59,10 +64,10 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   if(!original||original.speaker?.actor!==actor.id||original.speakerActor!==actor||original.speaker?.token||
      original.author!==gm||original.visible!==true||original.isContentVisible!==true)
     return {...legacyResult,audit:failure("LEGACY_AUDIT_ORIGINAL_MESSAGE_LINK_REQUIRED")};
-  const fateScope=legacyResult.fateSpent===true;
-  const record={schemaVersion:fateScope?2:1,kind:fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
+  const fateScope=legacyResult.fateSpent===true,blScope=mode==="BEGINNERS_LUCK";
+  const record={schemaVersion:blScope?3:fateScope?2:1,kind:blScope?"LEGACY_BL_AUDIT":fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
     gmId:gm.id,skillItemId:role.id,obstacle,legacyMessageId:original.id,
-    status:reason?"INCOMPLETE":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
+    status:reason?"INCOMPLETE":blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
     nativeObservation:observed.ok?observed:null,
     legacyOutcome:{outcome:legacyResult.outcome,successes:legacyResult.successes,fateSpent:legacyResult.fateSpent===true},
     sourceProfileId:"realm-guard-legacy-mixed",authenticated:false,completeTestHistoryVerified:false};

@@ -288,13 +288,35 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
     subject.counters=mark?increment(before,mark==="PASS"?"passed":"failed",1):before;
     history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,testId:evidence.testIdentity.testId,
      nativeOutcome:evidence.recordedLegacyOutcome,proposedMark:mark,suppressedReason:projection.reasonCode,before,after:subject.counters});
-   }else if(e.type==="LEARNING_CREDIT"){
-    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","integratedTestInput"]),"REPLAY_LEARNING_CREDIT_FIELDS_REQUIRED");
+   }else if(["LEARNING_CREDIT","CAPTURED_LEARNING_CREDIT"].includes(e.type)){
+    const captured=e.type==="CAPTURED_LEARNING_CREDIT";
+    check(captured?exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","traceMessageId","context","gmEligibilityReviewed"]):exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","integratedTestInput"]),"REPLAY_LEARNING_CREDIT_FIELDS_REQUIRED");
     const subject=subjects.get(e.subjectId);check(subject?.kind==="LEARNING"&&subject.epochId===e.epochId,"REPLAY_LEARNING_SUBJECT_EPOCH_REQUIRED");
+    let integrated;
+    if(captured){
+     check(e.context==="ADVENTURE"&&e.gmEligibilityReviewed===true,"REPLAY_INDEPENDENT_ADVENTURE_REVIEW_REQUIRED");
+     const {evidence,record}=saved(e.traceMessageId),o=record.nativeObservation,snapshot=o.startingActorSnapshot;
+     check(evidence.testMode==="BEGINNERS_LUCK"&&evidence.skillItemId===subject.itemId&&o.skillSource.name.trim().toLowerCase()===subject.skillName.trim().toLowerCase(),
+      "REPLAY_CAPTURED_BL_SOURCE_REQUIRED");
+     const progress=tb2ePackageAProgressAfterTestPlan({skillName:subject.skillName,mode:"BEGINNERS_LUCK",outcome:evidence.recordedLegacyOutcome,
+      obstacle:record.obstacle,gmConfirmedLegalTest:true,actingConditions:snapshot.conditions,conditionsGmReviewed:true,skillAlreadyKnown:false,
+      previousLearningAttempts:o.skillSource.beginnerAttempts,maximumNature:snapshot.currentNature.maximum,
+      currentKnownSkillCount:snapshot.currentSkillItems.filter(i=>i.rating>0).length,context:"ADVENTURE",alreadyCountedInContext:false,wentToTiebreaker:false});
+     check(progress.ok,"REPLAY_CAPTURED_BL_PROGRESS_"+progress.reasonCode);
+     integrated={testIdentity:{initialMessageId:record.legacyMessageId},capturedTestId:record.testId,
+      initialOutcome:o.baseRecord.dice.filter(d=>d.face>=4).length>=record.obstacle?"PASS":"FAIL",finalOutcome:evidence.recordedLegacyOutcome,
+      actingCounterProjection:{itemId:subject.itemId,attemptsBefore:o.skillSource.beginnerAttempts,attemptWouldBeAdded:progress.attemptWouldBeAdded??0,
+       maximumNature:snapshot.currentNature.maximum,willHealthAdvancementMark:false},participationEvidence:{participantEvidence:[snapshot]}};
+    }else{
     const test=e.integratedTestInput;
     check(test?.actorId===baseline.actorId&&test.scenarioInput?.mode==="BEGINNERS_LUCK"&&
      test.scenarioInput.skillName.trim().toLowerCase()===subject.skillName.trim().toLowerCase(),"REPLAY_LEARNING_TEST_SOURCE_REQUIRED");
-    const integrated=tb2ePackageAIntegratedTestPlan(test);check(integrated.ok,"REPLAY_INTEGRATED_"+integrated.reasonCode);
+    integrated=tb2ePackageAIntegratedTestPlan(test);check(integrated.ok,"REPLAY_INTEGRATED_"+integrated.reasonCode);
+    const audit=g.messages.get(integrated.testIdentity.initialMessageId)?.flags?.["realm-guard"]?.packageAAudit;
+    if(audit){const resolved=saved(integrated.testIdentity.initialMessageId);check(resolved.evidence.testMode==="BEGINNERS_LUCK","REPLAY_CAPTURED_BL_SOURCE_REQUIRED");
+     check(resolved.record.obstacle===integrated.rewardHistoryEvidence.rewardTimelinePreview.obstacle&&resolved.evidence.recordedLegacyOutcome===integrated.finalOutcome,"REPLAY_CAPTURED_BL_CONTEXT_MISMATCH");
+     integrated={...integrated,capturedTestId:resolved.record.testId};}
+    }
     check(integrated.actingCounterProjection.itemId===subject.itemId&&integrated.actingCounterProjection.willHealthAdvancementMark===false,
      "REPLAY_LEARNING_ITEM_OR_ABILITY_MARK_MISMATCH");
     const initialLearning=baseline.subjects.find(s=>s.subjectId===subject.subjectId);
@@ -302,7 +324,7 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
      "REPLAY_LEARNING_BASELINE_COUNTER_MISMATCH");
     check(subject.counters===null||subject.counters.attempts<integrated.actingCounterProjection.maximumNature,
      "REPLAY_LEARNING_THRESHOLD_ALREADY_REACHED");
-    const key=`${integrated.testIdentity.initialMessageId}:${subject.subjectId}`;
+    const key=`${integrated.capturedTestId??integrated.testIdentity.initialMessageId}:${subject.subjectId}`;
     check(!credits.has(key),"REPLAY_DUPLICATE_TEST_CREDIT");credits.add(key);
     const before=subject.counters,added=integrated.actingCounterProjection.attemptWouldBeAdded;
     check(added===0||added===1,"REPLAY_LEARNING_ATTEMPT_DELTA_INVALID");
@@ -311,7 +333,8 @@ export function tb2ePackageAEvidenceReplayPlan(input={}){
     history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,
      initialMessageId:integrated.testIdentity.initialMessageId,initialOutcome:integrated.initialOutcome,finalOutcome:integrated.finalOutcome,
      before,after:subject.counters,attemptWouldBeAdded:added,maximumNatureObserved:integrated.actingCounterProjection.maximumNature,
-     willHealthAdvancementMark:false,evidenceScope:"CURRENT_DOCUMENTS_AND_GM_REVIEWED_REWARD_LINKS_NOT_LEGACY_BL_CAPTURE"});
+     willHealthAdvancementMark:false,traceMessageId:captured?e.traceMessageId:null,
+     evidenceScope:captured?"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE":"CURRENT_DOCUMENTS_AND_GM_REVIEWED_REWARD_LINKS_NOT_LEGACY_BL_CAPTURE"});
    }else if(e.type==="LEARN_SKILL"){
     check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","nextEpochId",
      "learningCreditEventId","knownSkillItemIds","forgetItemId","gmCanonicalRosterReviewed"]),"REPLAY_LEARN_FIELDS_REQUIRED");
