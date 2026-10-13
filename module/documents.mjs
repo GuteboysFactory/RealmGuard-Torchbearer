@@ -6,6 +6,7 @@ import { diceFacesHtml } from "./dice-ui.mjs";
 import { traitLevel, traitPositiveStatus, traitPositiveDice, traitPositiveSuccessBonus, consumeTraitPositiveUse } from "./traits.mjs";
 import { applyMg2eWiseEffect } from "./m10c-mg2e-live-wises.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
+import { legacyRoleRollWithAudit } from "./legacy-package-a-audit.mjs";
 
 function familyPolicy() { return getActiveM10BFamilyRulePolicy(); }
 function usesMg1eTraitRules() { return familyPolicy().mg1eTraits; }
@@ -31,6 +32,8 @@ function rollFacesRowsHtml(rows = []) {
   return `<div class="rg-roll-faces-rows">${rows.filter(row => row?.faces?.length).map(row => `<div><b>${foundry.utils.escapeHTML(row.label)}</b>${diceFacesHtml(row.faces)}</div>`).join("")}</div>`;
 }
 export class RealmGuardActor extends Actor {
+  // Explicit GM diagnostic only; normal rollRole calls never opt into storage.
+  async rollRoleWithAudit(role,options={}) { return legacyRoleRollWithAudit(this,role,options); }
   get roles() { return this.items.filter(i => i.type === "role"); }
   get traits() { return this.items.filter(i => i.type === "trait"); }
   get wises() { return this.items.filter(i => i.type === "wise"); }
@@ -497,9 +500,9 @@ export class RealmGuardActor extends Actor {
       versus ? "Versus test" : ""
     ].filter(Boolean);
     const content = `<div class="realm-guard chat-roll rg-readable-roll"><h3>${foundry.utils.escapeHTML(role.name)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length ? `<div class="rg-roll-support-notes">${specialNotes.map(note => `<span>${note}</span>`).join("")}</div>` : ""}${(personaDice || tapNature || spendFate) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(persona || tapNature) ? `Persona −${personaDice+(tapNature?1:0)}` : "", spendFate ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Base roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${sixes}</strong></span></div>${natureTaxText}${this._resultSummaryHTML(successes, obstacle, { targetLabel: versus ? "Target / Obstacle" : "Obstacle" })}</div>`;
-    if (pendingMessage) await pendingMessage.update({ content });
-    else await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this }), content });
-    return { roll, successes, sixes, passed, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
+    const completedMessage = pendingMessage ? await pendingMessage.update({ content })
+      : await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this }), content });
+    return { roll, messageId: completedMessage?.id ?? null, successes, sixes, passed, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
   }
 
   async rollAbility(abilityKey, { modifier = 0, extraDice = 0, help = [], obstacle = 1, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", natureUse = "within", doubleTapNature = false } = {}) {
