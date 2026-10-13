@@ -1336,3 +1336,6 @@ Follow-up screenshot shows Baran/Baker4, Inn-wise, obstacle2; base `[1,5,4,3]`, 
 ### 2026-10-13 — Legacy Will/Health Ability capture slice
 
 `rollAbilityWithAudit` explicitly captures existing Legacy Will/Health base, optional Wise and Fate events into private diagnostics; CORE read-only saved evidence checks current source and native chronology. Ordinary calls retain their behavior. DH108-110's distinct P/F accounting is the boundary: this does not create marks/counters or advancement. Nature, helper/Versus routes, event-ledger replay for Ability counters, durable cross-client storage and Foundry v13.351 A-D remain open. Legacy Mixed remains sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 and published QA v1.13.0-qa.29 unchanged; no release or FULLY_REAUDITED claim.
+
+
+Verified exact-head Ability capture commit `a9a9bbceef264f447f537309edc06731fb9bcae5`: local 164/164 smoke suites, syntax/preflight and `git diff --check` PASS. CI [38446007982](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38446007982) passes Package A/full regressions, staged archive manifest 21/21 and frozen channel checks. No release or profile activation.
