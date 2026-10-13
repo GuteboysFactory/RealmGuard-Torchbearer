@@ -612,7 +612,9 @@ export class RealmGuardActor extends Actor {
     await this._commitTraitBenefit(assist);
     await this._commitTokenPowerUse(power);
     let baseFaces = roll.dice.flatMap(d => d.results.map(r => r.result));
-    const wiseResult = await this._applyWiseReroll(baseFaces, assist.wise, assist); baseFaces = wiseResult.faces;
+    const wiseResult = await this._applyWiseReroll(baseFaces, assist.wise, assist);
+    if (legacyAuditCapture && assist.wise && wiseResult.rerollRoll) observeLegacyAuditEvent(legacyAuditCapture,this,"wise",wiseResult.rerollRoll,{wiseItemId:assist.wise.id,indexes:wiseResult.rerolledIndexes});
+    baseFaces = wiseResult.faces;
     const tokenResult = await this._applyTokenPowerReroll(baseFaces, power, wiseResult.rerolledIndexes); baseFaces = tokenResult.faces;
     const baseSixes = baseFaces.filter(v => v === 6).length;
     const canAskFate = baseSixes > 0 && Number(this.system.resources.fate.value ?? 0) > 0;

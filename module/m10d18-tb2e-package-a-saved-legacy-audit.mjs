@@ -133,10 +133,11 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     return result(false,"SAVED_LEGACY_ORIGINAL_MESSAGE_REQUIRED");
   const source=savedActorGmSource(message,r);
   if(!source.ok)return result(false,source.reasonCode);
-  const evidence=fateScope||wiseScope?savedFateEvidence(message,r):tb2ePackageADocumentEvidence({actorId:r.actorId,messageId:traceMessageId});
+  const linkedHistory=fateScope||wiseScope||blScope&&r.nativeObservation?.nativeEventHistory?.length>0;
+  const evidence=linkedHistory?savedFateEvidence(message,r):tb2ePackageADocumentEvidence({actorId:r.actorId,messageId:traceMessageId});
   if(!evidence.ok)return result(false,evidence.reasonCode);
   const o=r.nativeObservation,base=o?.baseRecord;
-  if(!fateScope&&!wiseScope&&(!o?.ok||o.status!=="OBSERVED_UNPERSISTED"||o.testIdentity?.testId!==r.testId||
+  if(!linkedHistory&&(!o?.ok||o.status!=="OBSERVED_UNPERSISTED"||o.testIdentity?.testId!==r.testId||
     o.testIdentity?.worldId!==r.worldId||o.testIdentity?.actorId!==r.actorId||o.skillSource?.itemId!==r.skillItemId||
     !Array.isArray(base?.dice)||base.dice.length!==evidence.dice.length||
     base.dice.some((d,i)=>d.face!==evidence.dice[i].face||d.dieId!==`${r.testId}:base:${i}`)||
@@ -152,11 +153,11 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
   if(duplicate.length)return result(false,"SAVED_LEGACY_DUPLICATE_TEST_IN_CURRENT_MESSAGES");
   return result(true,null,{testIdentity:{worldId:r.worldId,testId:r.testId,actorId:r.actorId},
     traceMessageId,legacyMessageId:original.id,skillItemId:r.skillItemId,savedNativeEvidence:evidence,
-    baseFaces:fateScope||wiseScope?evidence.baseFaces:evidence.dice.map(d=>d.face),
-    nativeFateRoundCount:fateScope||wiseScope?evidence.nativeRoundCount:0,testMode:blScope?"BEGINNERS_LUCK":"SKILL",
+    baseFaces:linkedHistory?evidence.baseFaces:evidence.dice.map(d=>d.face),
+    nativeFateRoundCount:linkedHistory?evidence.nativeRoundCount:0,testMode:blScope?"BEGINNERS_LUCK":"SKILL",
     abilitySource:blScope?{...o.abilitySource}:null,legacyLearningCounterChanged:blScope?false:null,
-    savedFateChainConsistent:fateScope||wiseScope,recordedLegacyOutcome:r.legacyOutcome.outcome,
-    evidenceScope:fateScope||wiseScope?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_WISE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
+    savedFateChainConsistent:linkedHistory,recordedLegacyOutcome:r.legacyOutcome.outcome,
+    evidenceScope:linkedHistory?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_WISE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
     storedNativeBaseAndLinkedOutcomeAgree:true,recordedActorGmSourceConsistent:true,
     permissionEvidenceScope:"CURRENT_REGISTERED_GM_ONLY_NOT_HISTORICAL_OWNER",historicalSnapshotAuthentication:false});
  }catch{return result(false,"SAVED_LEGACY_AUDIT_READ_FAILED");}

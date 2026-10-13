@@ -53,7 +53,6 @@ async function legacyRollWithAudit(actor,role,options,mode){
     return failure("LEGACY_AUDIT_OWNED_WORLD_SKILL_REQUIRED");
   if(options.wiseId!==undefined&&options.wiseId!==null&&
     (typeof options.wiseId!=="string"||actor.items?.get(options.wiseId)?.type!=="wise"))return failure("LEGACY_AUDIT_OWNED_WORLD_WISE_REQUIRED");
-  if(mode==="BEGINNERS_LUCK"&&options.wiseId!=null)return failure("LEGACY_AUDIT_WISE_NOT_SUPPORTED_FOR_BL_CAPTURE");
   const testId=globalThis.foundry.utils.randomID();
   const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId,mode});
   if(!probe.ok)return failure(probe.reasonCode);
@@ -82,7 +81,7 @@ async function legacyRollWithAudit(actor,role,options,mode){
   captures.set(capability,capture);
   let legacyResult;
   try{legacyResult=mode==="BEGINNERS_LUCK"
-    ?await actor.rollBeginnerLuck(role,{abilityKey:tb2eSkillInfo(role.name).beginnersLuckAbility.toLowerCase(),obstacle,legacyAuditCapture:capability})
+    ?await actor.rollBeginnerLuck(role,{abilityKey:tb2eSkillInfo(role.name).beginnersLuckAbility.toLowerCase(),obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability})
     :await actor.rollRole(role,{obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability});}
   finally{captures.delete(capability);}
   if(!legacyResult?.roll)return {...(legacyResult??{}),audit:failure("LEGACY_ROLL_DID_NOT_COMPLETE")};
