@@ -1,3 +1,6 @@
+import {tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
+import {tb2ePackageAProgressAfterTestPlan} from "./m10d18-tb2e-package-a-progress-boundary.mjs";
+import {tb2eConditionCapabilityPlan} from "./m10d-tb2e-conditions-shadow.mjs";
 import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageARewardedRollHistoryPlan} from "./m10d18-tb2e-package-a-rewarded-roll-history.mjs";
@@ -230,4 +233,108 @@ export function tb2ePackageAEvidenceBaselinePlan(input={}){
    eventApplicationImplemented:false,baselineStored:false,quantityConversionApplied:false,completeModelLifecycleVerified:false});
  }catch(error){return result(false,error instanceof TraceError?error.message:"BASELINE_CONTRACT_READ_FAILED",
   {mode:"PROSPECTIVE_EVIDENCE_BASELINE_CONTRACT_READ_ONLY",eventApplicationImplemented:false,baselineStored:false});}
+}
+
+
+/** Replays a reviewed dataset against saved native Legacy outcomes. Never
+ * updates the dataset/Actor/Item, spends or evaluates a Roll. Supply use and
+ * rating-change reviews remain explicit GM assertions, not captured causes.
+ */
+export function tb2ePackageAEvidenceReplayPlan(input={}){
+ try{
+  const exact=(o,keys)=>fields(o,keys)&&keys.every(k=>Object.hasOwn(o,k));
+  const g=globalThis.game,gm=g?.user;
+  check(g?.ready&&g.system?.id==="realm-guard"&&gm?.active&&gm.isGM===true&&g.users?.get(gm.id)===gm,"CURRENT_SESSION_GM_REQUIRED");
+  check(exact(input,["baseline","events","previousEventIds","previousCreditKeys","previousSupplyTestIds"]),"REPLAY_ENVELOPE_REQUIRED");
+  const baseline=tb2ePackageAEvidenceBaselinePlan(input.baseline);check(baseline.ok,"REPLAY_"+baseline.reasonCode);
+  check(baseline.worldId===g.world?.id&&baseline.declaredGmId===gm.id,"REPLAY_WORLD_GM_MISMATCH");
+  const actor=g.actors?.get(baseline.actorId);check(actor?.documentName==="Actor"&&actor.type==="character"&&!actor.isToken&&!actor.inCompendium,"REPLAY_WORLD_CHARACTER_REQUIRED");
+  check(Array.isArray(input.events)&&input.events.length<=500,"REPLAY_EVENT_LIMIT");
+  for(const key of ["previousEventIds","previousCreditKeys","previousSupplyTestIds"])
+   check(Array.isArray(input[key])&&input[key].length<=2000&&input[key].every(v=>key==="previousCreditKeys"?typeof v==="string"&&v.length>0&&v.length<=512:id(v))&&new Set(input[key]).size===input[key].length,"REPLAY_REVIEWED_PRIOR_IDS_REQUIRED");
+  const events=new Set(input.previousEventIds),credits=new Set(input.previousCreditKeys),supplyTests=new Set(input.previousSupplyTestIds);
+  const subjects=new Map(baseline.subjects.map(s=>[s.subjectId,JSON.parse(JSON.stringify(s))]));
+  const supplies=new Map(baseline.supplies.map(s=>[s.unitId,JSON.parse(JSON.stringify(s))]));
+  const epochs=new Set(baseline.subjects.map(s=>`${s.subjectId}:${s.epochId}`)),history=[],savedCache=new Map();
+  const saved=id=>{
+   if(savedCache.has(id))return savedCache.get(id);
+   const evidence=tb2ePackageASavedLegacyAuditEvidence({traceMessageId:id});check(evidence.ok,"REPLAY_"+evidence.reasonCode);
+   check(evidence.testIdentity.actorId===baseline.actorId&&evidence.testIdentity.worldId===baseline.worldId,"REPLAY_TEST_ACTOR_MISMATCH");
+   const record=JSON.parse(JSON.stringify(g.messages.get(id).flags["realm-guard"].packageAAudit));
+   const data={evidence,record};savedCache.set(id,data);return data;
+  };
+  const increment=(value,key,delta)=>{
+   if(value===null)return null;
+   check(count(value[key]+delta)&&value[key]+delta<Number.MAX_SAFE_INTEGER,"REPLAY_COUNT_OVERFLOW_OR_UNDERFLOW");
+   return {...value,[key]:value[key]+delta};
+  };
+  for(const [sequence,e] of input.events.entries()){
+   check(e&&id(e.eventId)&&e.sequence===sequence&&!events.has(e.eventId)&&id(e.reviewId)&&e.reviewerId===gm.id,"REPLAY_EVENT_ID_SEQUENCE_OR_REVIEW_INVALID");
+   events.add(e.eventId);
+   if(e.type==="TEST_CREDIT"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","traceMessageId","context","gmEligibilityReviewed"]),"REPLAY_CREDIT_FIELDS_REQUIRED");
+    const subject=subjects.get(e.subjectId);check(subject?.kind==="SKILL"&&subject.epochId===e.epochId,"REPLAY_CREDIT_SUBJECT_EPOCH_UNSUPPORTED");
+    check(e.context==="ADVENTURE"&&e.gmEligibilityReviewed===true,"REPLAY_INDEPENDENT_ADVENTURE_REVIEW_REQUIRED");
+    const {evidence,record}=saved(e.traceMessageId),source=record.nativeObservation.skillSource;
+    check(evidence.skillItemId===subject.itemId&&source.rating===subject.rating&&source.name.trim().toLowerCase()===subject.skillName.trim().toLowerCase(),"REPLAY_CAPTURED_SKILL_SOURCE_MISMATCH");
+    const creditKey=`${evidence.testIdentity.testId}:${subject.subjectId}`;
+    check(!credits.has(creditKey),"REPLAY_DUPLICATE_TEST_CREDIT");credits.add(creditKey);
+    const projection=tb2ePackageAProgressAfterTestPlan({skillName:subject.skillName,mode:"SKILL",outcome:evidence.recordedLegacyOutcome,
+     obstacle:record.obstacle,gmConfirmedLegalTest:true,actingConditions:record.nativeObservation.startingActorSnapshot.conditions,
+     conditionsGmReviewed:true,skillAlreadyKnown:true,context:"ADVENTURE",alreadyCountedInContext:false,wentToTiebreaker:false});
+    check(projection.ok,"REPLAY_PROGRESS_"+projection.reasonCode);
+    const mark=projection.wouldRecordMark?projection.proposedMark:null,before=subject.counters;
+    subject.counters=mark?increment(before,mark==="PASS"?"passed":"failed",1):before;
+    history.push({eventId:e.eventId,type:e.type,subjectId:e.subjectId,epochId:e.epochId,testId:evidence.testIdentity.testId,
+     nativeOutcome:evidence.recordedLegacyOutcome,proposedMark:mark,suppressedReason:projection.reasonCode,before,after:subject.counters});
+   }else if(e.type==="SUPPLY_USE"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","unitId","traceMessageId","gmUseReviewed"]),"REPLAY_SUPPLY_USE_FIELDS_REQUIRED");
+    const supply=supplies.get(e.unitId);check(supply&&e.gmUseReviewed===true,"REPLAY_SUPPLY_REVIEW_REQUIRED");
+    const {evidence,record}=saved(e.traceMessageId),testId=evidence.testIdentity.testId;
+    check(record.nativeObservation.skillSource.name.trim().toLowerCase()===supply.skillName.trim().toLowerCase(),"REPLAY_SUPPLY_SKILL_MISMATCH");
+    check(!supplyTests.has(testId),"REPLAY_ONE_SUPPLY_INCREMENT_PER_TEST");supplyTests.add(testId);
+    const before=supply.stock;check(before===null||before.increments>=1,"REPLAY_INSUFFICIENT_SUPPLY_STOCK");
+    supply.stock=increment(before,"increments",-1);supply.incrementAvailable=supply.stock===null?null:supply.stock.increments>0;
+    history.push({eventId:e.eventId,type:e.type,unitId:e.unitId,testId,before,after:supply.stock,
+     useGmAsserted:true,supplyBonusCaptured:false,stockSufficiencyVerified:before!==null});
+   }else if(e.type==="SUPPLY_REPLENISH"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","unitId","increments"]),"REPLAY_REPLENISH_FIELDS_REQUIRED");
+    const supply=supplies.get(e.unitId);check(supply&&count(e.increments)&&e.increments>0&&e.increments<Number.MAX_SAFE_INTEGER,"REPLAY_REPLENISH_AMOUNT_REQUIRED");
+    const before=supply.stock;supply.stock=increment(before,"increments",e.increments);supply.incrementAvailable=supply.stock===null?null:supply.stock.increments>0;
+    history.push({eventId:e.eventId,type:e.type,unitId:e.unitId,before,after:supply.stock,replenishmentGmAsserted:true});
+   }else if(e.type==="SUBJECT_RESET"){
+    check(exact(e,["eventId","sequence","type","reviewId","reviewerId","subjectId","epochId","nextEpochId","reason","nextRating","nextCurrentNature","conditions"]),"REPLAY_RESET_FIELDS_REQUIRED");
+    const subject=subjects.get(e.subjectId);check(subject&&subject.kind!=="LEARNING"&&subject.epochId===e.epochId&&id(e.nextEpochId),"REPLAY_RESET_SUBJECT_EPOCH_REQUIRED");
+    const epochKey=`${subject.subjectId}:${e.nextEpochId}`;check(!epochs.has(epochKey),"REPLAY_EPOCH_REUSE");
+    const nature=subject.kind==="NATURE",cap=nature?7:6;
+    check(Number.isSafeInteger(e.nextRating)&&e.nextRating>=(nature?0:1)&&e.nextRating<=cap&&
+     (nature?Number.isSafeInteger(e.nextCurrentNature)&&e.nextCurrentNature>=0&&e.nextCurrentNature<=e.nextRating:e.nextCurrentNature===null),"REPLAY_RESET_RATINGS_INVALID");
+    const conditionGate=tb2eConditionCapabilityPlan({conditions:e.conditions,capability:"ADVANCEMENT_LOGGING"});
+    check(Array.isArray(e.conditions)&&conditionGate.ok,"REPLAY_RESET_CONDITIONS_REQUIRED");
+    if(e.reason==="ADVANCE"){
+     check(conditionGate.allowed&&!conditionGate.conditions.includes("DEAD"),"REPLAY_ADVANCEMENT_CONDITION_BLOCKED");
+     check(subject.counters!==null&&subject.rating>0&&subject.rating<cap&&e.nextRating===subject.rating+1&&
+      subject.counters.passed>=subject.rating&&subject.counters.failed>=subject.rating-1&&
+      (!nature||subject.currentNature>0&&e.nextCurrentNature===subject.currentNature+1),"REPLAY_ADVANCEMENT_NOT_EVIDENCED");
+    }else if(e.reason==="RATING_LOSS"){
+     check(!nature&&e.nextRating<subject.rating,"REPLAY_RATING_LOSS_INVALID");
+    }else if(["NATURE_ZERO_LOSS","CONSERVE_NATURE"].includes(e.reason)){
+     check(nature&&subject.rating>0&&e.nextRating===subject.rating-1&&e.nextCurrentNature===e.nextRating&&
+      (e.reason==="NATURE_ZERO_LOSS"?subject.currentNature===0:subject.currentNature>0),"REPLAY_NATURE_LOSS_INVALID");
+    }else check(false,"REPLAY_RESET_REASON_UNSUPPORTED");
+    const before=JSON.parse(JSON.stringify(subject));epochs.add(epochKey);
+    subject.epochId=e.nextEpochId;subject.rating=e.nextRating;subject.currentNature=e.nextCurrentNature;
+    subject.counters={passed:0,failed:0};subject.counterState="GM_REVIEWED";subject.reviewId=e.reviewId;subject.reviewerId=e.reviewerId;
+    subject.natureZeroLossResolutionRequired=false;subject.natureRetiredState=nature&&e.nextRating===0;
+    history.push({eventId:e.eventId,type:e.type,reason:e.reason,before,after:JSON.parse(JSON.stringify(subject)),ratingChangeGmAsserted:true});
+   }else check(false,"REPLAY_EVENT_TYPE_UNSUPPORTED");
+  }
+  return result(true,null,{mode:"SAVED_NATIVE_EVIDENCE_REPLAY_READ_ONLY",sourceEvidence:"DH 68-69,73-75,108-110; SG87",
+   subjects:[...subjects.values()],supplies:[...supplies.values()],eventHistory:history,
+   reviewedEventIds:[...events],reviewedCreditKeys:[...credits],reviewedSupplyTestIds:[...supplyTests],
+   replayCheckScope:"EXPLICIT_DATASET_AND_REVIEWED_PRIOR_IDS_NOT_DURABLE_WORLD_INDEX",
+   baselineStored:false,eventApplicationImplemented:true,eventProjectionOnly:true,
+   captureStorageImplemented:false,supplyBonusCaptureVerified:false,completeModelLifecycleVerified:false});
+ }catch(error){return result(false,error instanceof TraceError?error.message:"EVIDENCE_REPLAY_READ_FAILED",
+  {mode:"SAVED_NATIVE_EVIDENCE_REPLAY_READ_ONLY",eventProjectionOnly:true,baselineStored:false});}
 }

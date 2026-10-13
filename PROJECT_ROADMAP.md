@@ -356,3 +356,7 @@ Regression: actual Legacy base/Fate producer-reader path, swapped stored GM/Acto
 ## Accepted A09 R evidence boundary — 2026-10-13
 
 User explicitly selected trusted GM and reviewed prospective history. [Accepted contract](M10D18_PACKAGE_A_TRUST_DECISION.md) replaces independent historical-authentication requirements in G3 with complete observed/reproducibly reviewed records under trusted GM/admin assumptions. A09 design/decision is SETTLED; implementation, dataset replay/commit, full source integration and Foundry13.351 A-D remain OPEN / NOT RUN. Historical authentication flags remain FALSE; old missing history is not recovered. No runtime/code/profile/release change; 0/14 FULLY_REAUDITED. Next: A05/A06 consolidated evidence-model design.
+
+## Native-bound evidence replay checkpoint — 2026-10-13
+
+[Counter/supply models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now includes implemented saved-native trained-Skill credit and reviewed supply/reset/replenishment projections. Original FAIL plus Fate produces the native-final PASS credit; unknown baselines remain null. Replay/epoch/condition/stock guards are regression covered. Scope is independent Adventure trained Skill; Ability/BL/Nature credits, learning transitions, full capture/storage/durable indexing and Foundry13.351 remain OPEN. Supply use/rating changes are GM assertions, not captured causal operations. CORE zero-write/zero-RNG, no release/certification.

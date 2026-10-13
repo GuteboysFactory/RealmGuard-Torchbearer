@@ -68,3 +68,7 @@ A decision request must present an actual proposal and explain whether it change
 Package A is done only when its applicable A01-A12 evidence closes G1-G5 for the same final candidate. It covers Tests, Help, Wises, Nature and Abilities/Skills; it does not automatically complete the other nine CORE domain audits, set all 14 certificates or resume M11. A01-A10 are predominantly repository/design work; A09 includes an authority decision and A11 requires real runtime evidence. No honest completion percentage or end date follows from 158 tests or twelve entries.
 
 Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED. Stable1.12.0 and published QA1.13.0-qa.29, system/channels/READY remain frozen. No release from this register.
+
+## Native-bound evidence replay checkpoint — 2026-10-13
+
+[Counter/supply models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now includes implemented saved-native trained-Skill credit and reviewed supply/reset/replenishment projections. Original FAIL plus Fate produces the native-final PASS credit; unknown baselines remain null. Replay/epoch/condition/stock guards are regression covered. Scope is independent Adventure trained Skill; Ability/BL/Nature credits, learning transitions, full capture/storage/durable indexing and Foundry13.351 remain OPEN. Supply use/rating changes are GM assertions, not captured causal operations. CORE zero-write/zero-RNG, no release/certification.
