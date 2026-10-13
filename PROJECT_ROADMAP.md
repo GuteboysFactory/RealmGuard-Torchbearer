@@ -368,3 +368,7 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Private Legacy BL capture checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) now documents explicit owned-untrained Skill native BL/Fate capture, mapped Ability provenance, private schema3 read-only validation and direct captured-learning replay. Actual Legacy leaves attempts unchanged; audit never invents a committed learning mark. Control/tamper/session/storage/replay regressions added. No default capture or live rule change. Broader source routes, durable indexing/storage and Foundry13.351 remain OPEN; no release/certification.
+
+## Persisted selected-trace index checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) describes explicit Legacy-owned private Journal index creation/append and optional post-audit indexing. CORE only reads stored selected trace IDs/commit revisions/native checksums and fails closed on conflicts/missing/unindexed refs. Checksums/local locks are not signatures, server CAS or atomic gameplay transactions. Pre-roll reservation, full event storage, real cross-client/retention and Foundry13.351 remain OPEN. No release/certification; A09 R unchanged.

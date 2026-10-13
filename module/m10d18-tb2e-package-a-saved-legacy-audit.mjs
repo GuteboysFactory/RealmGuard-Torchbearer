@@ -151,3 +151,71 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     permissionEvidenceScope:"CURRENT_REGISTERED_GM_ONLY_NOT_HISTORICAL_OWNER",historicalSnapshotAuthentication:false});
  }catch{return result(false,"SAVED_LEGACY_AUDIT_READ_FAILED");}
 }
+
+
+const canonicalAudit=value=>JSON.stringify(value,(_key,v)=>v&&typeof v==="object"&&!Array.isArray(v)
+ ?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+const datasetSession=(g,gm,worldId)=>globalThis.game===g&&g.ready&&g.system?.id==="realm-guard"&&g.user===gm&&gm.active&&gm.isGM===true&&g.users?.get(gm.id)===gm&&g.world?.id===worldId;
+
+/** SHA256 is a consistency checksum, never an issuer signature. */
+export async function tb2ePackageAAuditTraceFingerprint({traceMessageId=null}={}){
+ const evidence=tb2ePackageASavedLegacyAuditEvidence({traceMessageId});if(!evidence.ok)return evidence;
+ try{
+  const g=globalThis.game,gm=g.user,worldId=g.world.id,message=g.messages.get(traceMessageId);
+  const snapshot=()=>canonicalAudit({record:message.flags["realm-guard"].packageAAudit,rolls:message.rolls.map(r=>({formula:r.formula,total:r.total,
+   faces:r.terms[0].results.map(d=>d.result)}))});
+  const text=snapshot();if(text.length>524288)return result(false,"AUDIT_TRACE_CHECKSUM_SIZE_LIMIT");
+  if(!globalThis.crypto?.subtle)return result(false,"AUDIT_CHECKSUM_API_UNAVAILABLE");
+  const bytes=await globalThis.crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
+  if(!datasetSession(g,gm,worldId)||g.messages.get(traceMessageId)!==message)return result(false,"AUDIT_DATASET_SESSION_CHANGED");
+  if(snapshot()!==text)return result(false,"AUDIT_TRACE_CHANGED_DURING_CHECKSUM");
+  const refreshed=tb2ePackageASavedLegacyAuditEvidence({traceMessageId});if(!refreshed.ok)return refreshed;
+  return result(true,null,{testIdentity:evidence.testIdentity,traceMessageId,legacyMessageId:evidence.legacyMessageId,
+   skillItemId:evidence.skillItemId,testMode:evidence.testMode,outcome:evidence.recordedLegacyOutcome,
+   checksum:[...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,"0")).join(""),checksumAuthenticated:false});
+ }catch{return result(false,"AUDIT_TRACE_CHECKSUM_READ_FAILED");}
+}
+
+/** Reads a persisted, explicitly selected dataset; no repair, storage or RNG. */
+export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
+ try{
+  const g=globalThis.game,gm=g?.user,worldId=g?.world?.id;
+  if(!g?.ready||g.system?.id!=="realm-guard"||!gm?.active||gm.isGM!==true||g.users?.get(gm.id)!==gm)return result(false,"CURRENT_SESSION_GM_REQUIRED");
+  if(typeof journalId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(journalId))return result(false,"DOCUMENT_IDS_REQUIRED");
+  const journal=g.journal?.get(journalId);
+  if(!journal||journal.id!==journalId||journal.documentName!=="JournalEntry"||journal.visible!==true||journal.inCompendium||
+   journal.ownership?.default!==0||journal.ownership?.[gm.id]!==3||Object.keys(journal.ownership).some(k=>k!=="default"&&k!==gm.id))
+   return result(false,"PRIVATE_CURRENT_GM_AUDIT_JOURNAL_REQUIRED");
+  const original=journal.flags?.["realm-guard"]?.packageAAuditDataset,stable=canonicalAudit(original);
+  const d=JSON.parse(stable??"null");
+  const exact=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length===keys.length&&keys.every(k=>Object.hasOwn(o,k));
+  if(!exact(d,["schemaVersion","kind","worldId","gmId","revision","entries","commits","assuranceModel","sourceProfileId","authenticated"])||d.schemaVersion!==1||d.kind!=="LEGACY_AUDIT_DATASET"||d.worldId!==worldId||d.gmId!==gm.id||
+   d.assuranceModel!=="TRUSTED_GM_R"||d.sourceProfileId!=="realm-guard-legacy-mixed"||d.authenticated!==false||
+   !Number.isSafeInteger(d.revision)||d.revision<0||d.revision>128||!Array.isArray(d.entries)||d.entries.length>128||
+   !Array.isArray(d.commits)||d.commits.length!==d.revision)
+   return result(false,"AUDIT_DATASET_MANIFEST_INVALID");
+  const committed=d.commits.flatMap((c,i)=>exact(c,["revision","traceMessageIds"])&&c.revision===i+1&&Array.isArray(c.traceMessageIds)&&c.traceMessageIds.length&&c.traceMessageIds.length<=128?c.traceMessageIds:[null]);
+  if(committed.length!==d.entries.length||new Set(committed).size!==committed.length||
+   committed.some((id,i)=>id!==d.entries[i]?.traceMessageId))return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+  const seenTests=new Set(),seenMessages=new Set();
+  for(const [i,e] of d.entries.entries()){
+   if(!exact(e,["sequence","testId","actorId","skillItemId","testMode","traceMessageId","legacyMessageId","outcome","checksum"])||e.sequence!==i||typeof e.testId!=="string"||seenTests.has(e.testId)||seenMessages.has(e.traceMessageId)||
+    typeof e.checksum!=="string"||!/^[a-f0-9]{64}$/.test(e.checksum))return result(false,"AUDIT_DATASET_DUPLICATE_OR_INVALID_ENTRY");
+   seenTests.add(e.testId);seenMessages.add(e.traceMessageId);
+   const f=await tb2ePackageAAuditTraceFingerprint({traceMessageId:e.traceMessageId});
+   if(!f.ok)return result(false,"AUDIT_DATASET_TRACE_"+f.reasonCode,{journalId,traceMessageId:e.traceMessageId});
+   if(f.testIdentity.testId!==e.testId||f.testIdentity.actorId!==e.actorId||f.skillItemId!==e.skillItemId||f.testMode!==e.testMode||
+    f.legacyMessageId!==e.legacyMessageId||f.outcome!==e.outcome||f.checksum!==e.checksum)
+    return result(false,"AUDIT_DATASET_TRACE_FINGERPRINT_MISMATCH",{journalId,traceMessageId:e.traceMessageId});
+  }
+  if(!datasetSession(g,gm,worldId)||g.journal.get(journalId)!==journal)return result(false,"AUDIT_DATASET_SESSION_CHANGED");
+  if(journal.visible!==true||journal.ownership?.default!==0||journal.ownership?.[gm.id]!==3||Object.keys(journal.ownership).some(k=>k!=="default"&&k!==gm.id))return result(false,"PRIVATE_CURRENT_GM_AUDIT_JOURNAL_REQUIRED");
+  if(canonicalAudit(journal.flags?.["realm-guard"]?.packageAAuditDataset)!==stable)return result(false,"AUDIT_DATASET_CHANGED_DURING_READ");
+  const unindexed=[...g.messages.values()].filter(m=>m.visible===true&&m.isContentVisible===true&&
+   m.flags?.["realm-guard"]?.packageAAudit?.datasetId===journalId&&!seenMessages.has(m.id)).map(m=>m.id);
+  const data={journalId,worldId,gmId:gm.id,revision:d.revision,entries:d.entries,commits:d.commits,unindexedTraceMessageIds:unindexed,
+   indexScope:"EXPLICIT_SELECTED_TRACE_MESSAGES_NOT_ALL_WORLD_TESTS",persistedIndexObserved:true,
+   datasetChecksumsConsistent:true,datasetAuthenticated:false,durableGlobalReplayVerified:false};
+  return result(!unindexed.length,unindexed.length?"AUDIT_DATASET_UNINDEXED_ASSOCIATED_TRACE":null,data);
+ }catch{return result(false,"AUDIT_DATASET_READ_FAILED");}
+}
