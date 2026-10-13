@@ -1,5 +1,11 @@
 # G3 — prospective Legacy trace contract and trust boundary
 
+
+## Current fixed completion queue — 2026-10-13
+
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+
+
 Status: PROPOSED CONTRACT / READ-ONLY VALIDATOR + EXPLICIT LEGACY BASE/FATE AUDIT WRITER AND READ-ONLY CONSUMER IMPLEMENTED. The current scoped base/Fate producer is GM-called and GM-private; no startup hook/default capture. Broader capture/trust/runtime gates remain OPEN. Source basis: DH 59,75,77,108-110; SG 36-38,47,51,87-88. The books supply the rule requirements; envelope IDs and receipt fields below are engineering design choices, not rules printed in the books.
 
 ## What the inspected Legacy path actually retains

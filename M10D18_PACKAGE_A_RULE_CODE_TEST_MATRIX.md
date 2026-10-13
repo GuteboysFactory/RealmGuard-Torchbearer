@@ -1,5 +1,11 @@
 # Package A — G2 rule/code/test and model review
 
+
+## Current fixed completion queue — 2026-10-13
+
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+
+
 Status: IN PROGRESS. This is the single current G2 mapping, not a certificate or an exhaustive exception inventory. Source authority is the uploaded Dungeoneer's Handbook (DH) and Scholar's Guide (SG), printed page numbers. Optional supplements are excluded. All runtime acceptance below is NOT RUN for the current unpublished candidate. Historical P3 acceptance does not transfer to this branch.
 
 Paths in the code/test columns are repository-relative; `module/` and `qa/` apply respectively. A regression-covered pure rule is not a document-backed integrated rule. A rejected required case remains a certification blocker. No row grants live authority, publication or FULLY_REAUDITED status.

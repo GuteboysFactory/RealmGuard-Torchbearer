@@ -1,5 +1,11 @@
 # M10D.18 — Full CORE Re-Audit / Package A (working branch)
 
+
+## Current fixed completion queue — 2026-10-13
+
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+
+
 **Branch:** `qa/m10d18-full-reaudit-package-a`  
 **Base:** `433cbb4b4261a9dad6ba2ba10744008ea923f47a` (`v1.13.0-qa.29`)  
 **Status:** IN PROGRESS / NOT RELEASED. Do not treat this branch as a completed 5-domain re-audit.

@@ -1,5 +1,11 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
+
+## Current fixed completion queue — 2026-10-13
+
+Use [Package A closure register](M10D18_PACKAGE_A_CLOSURE_REGISTER.md) as the single current work queue under G1-G5. It maps all 29 existing source-matrix rows to 12 stable blocker IDs with deliverables, evidence, dependencies and ownership. All entries remain OPEN. Historical NEXT sections are superseded; new micro-checks are not new work packages or completion percentages. Next deliverable: A09 concrete historical trust/authority design, with A05/A06 model designs independent. No gate, rule requirement or release boundary is reduced.
+
+
 **Current Package A completion plan:** [five-gate closure checklist](M10D18_PACKAGE_A_WORKING_AUDIT.md#current-closure-checklist--2026-10-12). Historical NEXT/checkpoint sections below preserve earlier evidence; use the current list to avoid opening unrelated incremental packages. G1 integrated final outcome, G2 five-domain source/model closure, G3 historical provenance contract/data, G4 unpublished-candidate Foundry A-D, G5 final safety/release decision remain OPEN. Current automated baseline: 152/152, ZIP21/21; manual acceptance NOT RUN; 0/14 domain certificates.
 
 **Foundry target:** 13.351  
