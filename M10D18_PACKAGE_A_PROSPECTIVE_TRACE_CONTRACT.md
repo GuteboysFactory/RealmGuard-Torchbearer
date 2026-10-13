@@ -1,5 +1,7 @@
 # G3 — prospective Legacy trace contract and trust boundary
 
+**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Next consolidated code work: event/epoch replay and shared final-result integration, with source eligibility exceptions still OPEN.
+
 **A09 decision accepted:** [Historical evidence contract](M10D18_PACKAGE_A_TRUST_DECISION.md) records the explicit user selection of R: trusted GM/admin and prospectively captured, runtime-reviewed history. G3 uses this stated assurance boundary; historical authentication flags stay FALSE. A09 design/decision is SETTLED; capture/model/integration/runtime and full G3 remain OPEN.
 
 

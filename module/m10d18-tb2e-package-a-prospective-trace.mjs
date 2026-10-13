@@ -1,3 +1,4 @@
+import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
 import {freezeTb2e} from "./m10d-tb2e-source-coverage.mjs";
 import {tb2ePackageARewardedRollHistoryPlan} from "./m10d18-tb2e-package-a-rewarded-roll-history.mjs";
 
@@ -157,4 +158,76 @@ export function tb2ePackageAProspectiveTracePlan(options={}){
       replayCheckScope:"CALLER_SUPPLIED_PREVIOUS_TEST_IDS_ONLY",
       captureStorageImplemented:false,nativeRollDocumentsRead:false});
   }catch(error){return fail(error instanceof TraceError?error.message:"TRACE_CONTRACT_READ_FAILED");}
+}
+
+
+/** A05/A06 v1 explicit reviewed baselines. Pure declarations, no Foundry reads,
+ * migration, replay, spending or event application. UNKNOWN is not zero.
+ */
+export function tb2ePackageAEvidenceBaselinePlan(input={}){
+ try{
+  const exact=(o,keys)=>fields(o,keys)&&keys.every(k=>Object.hasOwn(o,k));
+  check(exact(input,["schemaVersion","worldId","actorId","gmId","subjects","supplies"])&&input.schemaVersion===1&&
+   [input.worldId,input.actorId,input.gmId].every(id),"BASELINE_ENVELOPE_REQUIRED");
+  check(Array.isArray(input.subjects)&&input.subjects.length<=64&&Array.isArray(input.supplies)&&input.supplies.length<=128,
+   "BASELINE_COLLECTION_LIMIT");
+  const seenSubjects=new Set(),seenItems=new Set(),seenUnits=new Set(),seenSkills=new Set();
+  const review=(r,keys)=>{
+   check(exact(r,["state","value","reviewId","reviewerId"]),"EXPLICIT_EVIDENCE_STATE_REQUIRED");
+   if(r.state==="UNKNOWN"){
+    check(r.value===null&&r.reviewId===null&&r.reviewerId===null,"UNKNOWN_EVIDENCE_MUST_REMAIN_NULL");return null;
+   }
+   check(r.state==="GM_REVIEWED"&&id(r.reviewId)&&r.reviewerId===input.gmId,"DECLARED_GM_REVIEW_REQUIRED");
+   check(exact(r.value,keys)&&keys.every(k=>count(r.value[k])&&r.value[k]<Number.MAX_SAFE_INTEGER),"STRICT_BASELINE_COUNTS_REQUIRED");
+   return Object.fromEntries(keys.map(k=>[k,r.value[k]]));
+  };
+  const subjects=input.subjects.map(s=>{
+   check(exact(s,["subjectId","epochId","kind","itemId","skillName","rating","currentNature","counters"]),"BASELINE_SUBJECT_FIELDS_REQUIRED");
+   check(["WILL","HEALTH","NATURE","SKILL","LEARNING"].includes(s.kind)&&id(s.epochId),"BASELINE_SUBJECT_KIND_REQUIRED");
+   const itemBased=["SKILL","LEARNING"].includes(s.kind);
+   check(itemBased?id(s.itemId)&&typeof s.skillName==="string"&&s.skillName.trim().length>0:s.itemId===null&&s.skillName===null,
+    "BASELINE_SUBJECT_SOURCE_REQUIRED");
+   const subjectId=`${input.actorId}:${s.kind}${itemBased?":"+s.itemId:""}`;
+   check(s.subjectId===subjectId&&!seenSubjects.has(subjectId),"BASELINE_SUBJECT_ID_MISMATCH_OR_DUPLICATE");seenSubjects.add(subjectId);
+   if(itemBased){
+    const skill=tb2eSkillInfo(s.skillName);check(skill.ok,"BASELINE_SOURCED_SKILL_REQUIRED");
+    const name=s.skillName.trim().toLowerCase();check(!seenSkills.has(name),"BASELINE_SKILL_SUBJECT_AMBIGUOUS");seenSkills.add(name);
+    check(!seenItems.has(s.itemId),"BASELINE_ITEM_SUBJECT_AMBIGUOUS");seenItems.add(s.itemId);
+   }
+   check(Number.isSafeInteger(s.rating)&&(s.kind==="LEARNING"?s.rating===0:s.rating>=(s.kind==="NATURE"?0:1)&&s.rating<=(s.kind==="NATURE"?7:6)),
+    "BASELINE_RATING_SCOPE_REQUIRED");
+   check(s.kind==="NATURE"?Number.isSafeInteger(s.currentNature)&&s.currentNature>=0&&s.currentNature<=s.rating:s.currentNature===null,
+    "BASELINE_NATURE_STATE_REQUIRED");
+   const counters=review(s.counters,s.kind==="LEARNING"?["attempts"]:["passed","failed"]);
+   check(s.kind!=="NATURE"||s.rating!==0||counters===null||(counters.passed===0&&counters.failed===0),"RETIRED_NATURE_COUNTERS_MUST_BE_ZERO_OR_UNKNOWN");
+   return {subjectId,epochId:s.epochId,kind:s.kind,itemId:s.itemId,skillName:s.skillName,rating:s.rating,currentNature:s.currentNature,
+    counterState:s.counters.state,counters,reviewId:s.counters.reviewId,reviewerId:s.counters.reviewerId,
+    observedFromFoundry:false,historicalCountsAuthenticated:false,advancementAuthorized:false,
+    natureZeroLossResolutionRequired:s.kind==="NATURE"&&s.currentNature===0&&s.rating>0,
+    natureRetiredState:s.kind==="NATURE"&&s.rating===0};
+  });
+  const supplyItems=new Set();
+  const supplies=input.supplies.map(s=>{
+   check(exact(s,["itemId","unitId","skillName","incrementDefinition","unitReviewId","unitReviewerId","quantityMapping","stock"]),
+    "SUPPLY_UNIT_FIELDS_REQUIRED");
+   check(id(s.itemId)&&id(s.unitId)&&!seenUnits.has(s.unitId)&&!supplyItems.has(s.itemId),"SUPPLY_UNIT_ID_AMBIGUOUS");
+   seenUnits.add(s.unitId);supplyItems.add(s.itemId);
+   check(typeof s.skillName==="string"&&s.skillName.trim().length>0&&s.skillName.length<=128&&
+    typeof s.incrementDefinition==="string"&&s.incrementDefinition.trim().length>0&&s.incrementDefinition.length<=512&&
+    id(s.unitReviewId)&&s.unitReviewerId===input.gmId,"EXPLICIT_SUPPLY_UNIT_REVIEW_REQUIRED");
+   check(tb2eSkillInfo(s.skillName).ok,"SUPPLY_SOURCED_SKILL_REQUIRED");
+   check(s.quantityMapping==="NO_AUTOMATIC_CONVERSION","QUANTITY_IS_NOT_SUPPLY_INCREMENTS");
+   const stock=review(s.stock,["increments"]);
+   return {itemId:s.itemId,unitId:s.unitId,skillName:s.skillName,incrementDefinition:s.incrementDefinition,
+    unitReviewId:s.unitReviewId,unitReviewerId:s.unitReviewerId,stockState:s.stock.state,stock,
+    stockReviewId:s.stock.reviewId,stockReviewerId:s.stock.reviewerId,
+    incrementAvailable:stock===null?null:stock.increments>0,quantityDecrementPlanned:false,supplySpent:false,
+    classificationSource:"DECLARED_GM_REVIEW_NOT_BOOK_UNIT_TABLE",supplyIncrementAuthenticated:false};
+  });
+  return result(true,null,{mode:"PROSPECTIVE_EVIDENCE_BASELINE_CONTRACT_READ_ONLY",sourceEvidence:"DH 68-69,72-75,108-110",
+   schemaVersion:1,worldId:input.worldId,actorId:input.actorId,declaredGmId:input.gmId,subjects,supplies,
+   evidenceScope:"EXPLICIT_GM_REVIEW_DECLARATIONS_NOT_DOCUMENT_OBSERVATIONS",missingHistoryPreserved:true,
+   eventApplicationImplemented:false,baselineStored:false,quantityConversionApplied:false,completeModelLifecycleVerified:false});
+ }catch(error){return result(false,error instanceof TraceError?error.message:"BASELINE_CONTRACT_READ_FAILED",
+  {mode:"PROSPECTIVE_EVIDENCE_BASELINE_CONTRACT_READ_ONLY",eventApplicationImplemented:false,baselineStored:false});}
 }

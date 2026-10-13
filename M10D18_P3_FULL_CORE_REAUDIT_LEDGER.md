@@ -1,5 +1,7 @@
 # M10D.18 P3 — Full CORE Re-Audit Ledger
 
+**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Next consolidated code work: event/epoch replay and shared final-result integration, with source eligibility exceptions still OPEN.
+
 
 ## Current fixed completion queue — 2026-10-13
 

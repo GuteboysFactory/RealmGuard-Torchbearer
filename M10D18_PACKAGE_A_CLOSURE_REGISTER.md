@@ -1,5 +1,7 @@
 # Package A — fixed closure register
 
+**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Next consolidated code work: event/epoch replay and shared final-result integration, with source eligibility exceptions still OPEN.
+
 **A09 decision accepted:** [Historical evidence contract](M10D18_PACKAGE_A_TRUST_DECISION.md) records the explicit user selection of R: trusted GM/admin and prospectively captured, runtime-reviewed history. G3 uses this stated assurance boundary; historical authentication flags stay FALSE. A09 design/decision is SETTLED; capture/model/integration/runtime and full G3 remain OPEN.
 
 Status: OPEN / NOT RELEASED. Inventory v1, 2026-10-13. Reviewed repository baseline: d6cd7595c207ebbb83aba792ab69cbe7fb988094. This register is the work queue beneath the unchanged five G1-G5 completion gates, not a replacement or a lower acceptance standard. It supersedes chronological NEXT instructions elsewhere.
