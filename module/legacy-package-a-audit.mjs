@@ -1,6 +1,8 @@
 import {tb2eSkillInfo} from "./m10d-tb2e-abilities-shadow.mjs";
 import {tb2ePackageALegacyObservationProbe} from "./m10d18-tb2e-package-a-legacy-observation.mjs";
 import {tb2ePackageAAuditDatasetEvidence,tb2ePackageAAuditTraceFingerprint,tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
+import {tb2ePackageAEvidenceReplayPlan} from "./m10d18-tb2e-package-a-prospective-trace.mjs";
+import {tb2ePackageAAuditLedgerReplay} from "./m10d18-tb2e-package-a-audit-ledger-replay.mjs";
 
 const fields=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
 const failure=reasonCode=>({ok:false,reasonCode});
@@ -186,14 +188,15 @@ export async function legacyCloseAuditReservation({journalId,testId,expectedRevi
  finally{appendLocks.delete(journalId);}
 }
 /** Explicit Legacy diagnostic creation; never called by CORE or startup. */
-export async function legacyCreateAuditDataset({name="Realm Guard Package A audit",reserveBeforeRoll=false,allowReviewedGaps=false}={}){
+export async function legacyCreateAuditDataset({name="Realm Guard Package A audit",reserveBeforeRoll=false,allowReviewedGaps=false,enableEvidenceLedger=false}={}){
  const session=datasetWriterSession();if(!session)return failure("CURRENT_SESSION_GM_LEGACY_REQUIRED");
+ if(typeof enableEvidenceLedger!=="boolean"||enableEvidenceLedger&&!reserveBeforeRoll)return failure("AUDIT_DATASET_LEDGER_OPTIONS_REQUIRED");
  if(typeof allowReviewedGaps!=="boolean"||allowReviewedGaps&&!reserveBeforeRoll)return failure("AUDIT_DATASET_GAP_OPTIONS_REQUIRED");
  if(typeof reserveBeforeRoll!=="boolean")return failure("AUDIT_DATASET_RESERVATION_OPTIONS_REQUIRED");
  if(typeof name!=="string"||!name.trim()||name.length>128)return failure("AUDIT_DATASET_NAME_REQUIRED");
  try{
-  const data={schemaVersion:allowReviewedGaps?3:reserveBeforeRoll?2:1,kind:"LEGACY_AUDIT_DATASET",worldId:session.worldId,gmId:session.gm.id,revision:0,
-   entries:[],commits:[],assuranceModel:"TRUSTED_GM_R",sourceProfileId:"realm-guard-legacy-mixed",authenticated:false,...(reserveBeforeRoll?{reservations:[]}: {}),...(allowReviewedGaps?{closures:[]}: {})};
+  const data={schemaVersion:enableEvidenceLedger?4:allowReviewedGaps?3:reserveBeforeRoll?2:1,kind:"LEGACY_AUDIT_DATASET",worldId:session.worldId,gmId:session.gm.id,revision:0,
+   entries:[],commits:[],assuranceModel:"TRUSTED_GM_R",sourceProfileId:"realm-guard-legacy-mixed",authenticated:false,...(reserveBeforeRoll?{reservations:[]}: {}),...(allowReviewedGaps||enableEvidenceLedger?{closures:[]}: {}),...(enableEvidenceLedger?{eventLedger:{baseline:null,events:[],previousEventIds:[],previousCreditKeys:[],previousSupplyTestIds:[]}}:{})};
   const journal=await globalThis.JournalEntry.create({name,ownership:{default:0,[session.gm.id]:3},
    flags:{"realm-guard":{packageAAuditDataset:JSON.parse(JSON.stringify(data))}}});
   if(!sameWriter(session))return {...failure("AUDIT_DATASET_SESSION_CHANGED"),journalId:journal?.id};
@@ -281,5 +284,68 @@ async function reserveAuditTest({journalId,testId,actorId,skillItemId,testMode,o
   activeReservedTests.add(journalId+":"+testId);
   return {ok:true,journalId,sequence:reservation.sequence,testId,revision:data.revision};
  }catch{return failure("AUDIT_DATASET_RESERVATION_STORAGE_FAILED");}
+ finally{appendLocks.delete(journalId);}
+}
+
+/** Persist an append-only reviewed baseline/event ledger after replay validates it. */
+export async function legacyAppendEvidenceLedger({journalId,expectedRevision,ledger}={}){
+ const session=datasetWriterSession();if(!session)return failure("CURRENT_SESSION_GM_LEGACY_REQUIRED");
+ if(typeof journalId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(journalId)||!Number.isSafeInteger(expectedRevision)||expectedRevision<0||
+  !fields(ledger,["baseline","events","previousEventIds","previousCreditKeys","previousSupplyTestIds"])||
+  !Array.isArray(ledger.events)||!ledger.events.length||ledger.events.length>500)return failure("AUDIT_DATASET_LEDGER_FIELDS_REQUIRED");
+ if(appendLocks.has(journalId))return failure("AUDIT_DATASET_LOCAL_APPEND_IN_PROGRESS");
+ appendLocks.add(journalId);
+ try{
+  const prior=await tb2ePackageAAuditDatasetEvidence({journalId});
+  if(!prior.ok&&prior.reasonCode!=="AUDIT_DATASET_REVIEWED_GAPS")return failure(prior.reasonCode);
+  if(prior.schemaVersion!==4)return failure("AUDIT_DATASET_LEDGER_SCHEMA_REQUIRED");
+  if(prior.revision!==expectedRevision)return failure("AUDIT_DATASET_REVISION_CONFLICT");
+  if(prior.pendingReservations.length||prior.unindexedTraceMessageIds.length)return failure("AUDIT_DATASET_TRACE_SET_INCOMPLETE");
+  if(prior.entries.length>128||prior.revision>=256)return failure("AUDIT_DATASET_SIZE_LIMIT");
+  const journal=session.g.journal.get(journalId);
+  if(!sameWriter(session)||!privateDatasetJournal(journal,session))return failure("PRIVATE_CURRENT_GM_AUDIT_JOURNAL_REQUIRED");
+  const before=stableDataset(journal.flags["realm-guard"].packageAAuditDataset);
+  if(before!==prior.validatedManifestSnapshot)return failure("AUDIT_DATASET_REVISION_CONFLICT");
+  const old=JSON.parse(before),current=old.eventLedger;
+  const cloned=JSON.parse(JSON.stringify(ledger));
+  const exact=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length===keys.length&&keys.every(k=>Object.hasOwn(o,k));
+  if(!exact(cloned,["baseline","events","previousEventIds","previousCreditKeys","previousSupplyTestIds"])||
+   !Array.isArray(cloned.events)||cloned.events.length>500||
+   !Array.isArray(cloned.previousEventIds)||!Array.isArray(cloned.previousCreditKeys)||!Array.isArray(cloned.previousSupplyTestIds)||
+   current.events.length>cloned.events.length||current.events.some((e,i)=>stableDataset(e)!==stableDataset(cloned.events[i]))||
+   current.baseline!==null&&stableDataset(current.baseline)!==stableDataset(cloned.baseline)||
+   current.events.length&&["previousEventIds","previousCreditKeys","previousSupplyTestIds"].some(k=>stableDataset(current[k])!==stableDataset(cloned[k])))
+   return failure("AUDIT_DATASET_LEDGER_NOT_APPEND_ONLY");
+  const candidate={baseline:cloned.baseline,events:cloned.events,previousEventIds:cloned.previousEventIds,
+   previousCreditKeys:cloned.previousCreditKeys,previousSupplyTestIds:cloned.previousSupplyTestIds};
+  const projection=tb2ePackageAEvidenceReplayPlan(candidate);
+  if(!projection.ok)return failure("AUDIT_DATASET_LEDGER_"+projection.reasonCode);
+  const additions=cloned.events.slice(current.events.length);
+  if(!additions.length)return failure("AUDIT_DATASET_LEDGER_NO_NEW_EVENTS");
+  const refs=[];
+  for(const e of additions){
+   if(["TEST_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
+    if(typeof e.traceMessageId!=="string"||!prior.entries.some(row=>row.traceMessageId===e.traceMessageId))
+     return failure("AUDIT_DATASET_LEDGER_TRACE_NOT_INDEXED");
+    if(!refs.includes(e.traceMessageId))refs.push(e.traceMessageId);
+   }else if(!["SUPPLY_REPLENISH","SUBJECT_RESET","LEARN_SKILL"].includes(e.type))
+    return failure("AUDIT_DATASET_LEDGER_EVENT_ROUTE_UNSUPPORTED");
+  }
+  const serialized=stableDataset(candidate);
+  if(serialized.length>524288)return failure("AUDIT_DATASET_LEDGER_SIZE_LIMIT");
+  const expectedRevisionNext=expectedRevision+1;
+  const data={...old,revision:expectedRevisionNext,eventLedger:candidate,
+   commits:[...old.commits,{revision:expectedRevisionNext,kind:"LEDGER",testIds:additions.map(e=>e.eventId),traceMessageIds:refs}]};
+  await journal.update({"flags.realm-guard.packageAAuditDataset":JSON.parse(JSON.stringify(data))});
+  if(!sameWriter(session)||!privateDatasetJournal(journal,session))return failure("AUDIT_DATASET_SESSION_CHANGED");
+  if(stableDataset(journal.flags["realm-guard"].packageAAuditDataset)!==stableDataset(data))return failure("AUDIT_DATASET_COMMIT_READBACK_CONFLICT");
+  const after=await tb2ePackageAAuditLedgerReplay({journalId});
+  if(!after.ok&&after.reasonCode!=="AUDIT_DATASET_REVIEWED_GAPS")return {...failure(after.reasonCode),ledgerCommitObserved:true};
+  if(after.ledgerReplayValid!==true)return {...failure("AUDIT_DATASET_LEDGER_READBACK_REPLAY_FAILED"),ledgerCommitObserved:true};
+  if(!sameWriter(session)||!privateDatasetJournal(journal,session)||stableDataset(journal.flags["realm-guard"].packageAAuditDataset)!==stableDataset(data))
+   return failure("AUDIT_DATASET_COMMIT_READBACK_CONFLICT");
+  return {ok:true,journalId,revision:after.revision,appendedEventIds:additions.map(e=>e.eventId),replayValidated:true,
+   projection,datasetEvidenceComplete:after.nativeHistoryCompleteInDataset,authenticated:false};
+ }catch{return failure("AUDIT_DATASET_LEDGER_STORAGE_FAILED");}
  finally{appendLocks.delete(journalId);}
 }

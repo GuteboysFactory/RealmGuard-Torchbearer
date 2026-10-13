@@ -194,13 +194,13 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
   const original=journal.flags?.["realm-guard"]?.packageAAuditDataset,stable=canonicalAudit(original);
   const d=JSON.parse(stable??"null");
   const exact=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length===keys.length&&keys.every(k=>Object.hasOwn(o,k));
-  const terminal=d?.schemaVersion===3,reserved=d?.schemaVersion===2||terminal;
-  if(!exact(d,["schemaVersion","kind","worldId","gmId","revision","entries","commits","assuranceModel","sourceProfileId","authenticated",...(reserved?["reservations"]:[]),...(terminal?["closures"]:[])])||(!reserved&&d.schemaVersion!==1)||d.kind!=="LEGACY_AUDIT_DATASET"||d.worldId!==worldId||d.gmId!==gm.id||
+  const ledgerEnabled=d?.schemaVersion===4,terminal=d?.schemaVersion===3||ledgerEnabled,reserved=d?.schemaVersion===2||terminal;
+  if(!exact(d,["schemaVersion","kind","worldId","gmId","revision","entries","commits","assuranceModel","sourceProfileId","authenticated",...(reserved?["reservations"]:[]),...(terminal?["closures"]:[]),...(ledgerEnabled?["eventLedger"]:[])])||(!reserved&&d.schemaVersion!==1)||d.kind!=="LEGACY_AUDIT_DATASET"||d.worldId!==worldId||d.gmId!==gm.id||
    d.assuranceModel!=="TRUSTED_GM_R"||d.sourceProfileId!=="realm-guard-legacy-mixed"||d.authenticated!==false||
    !Number.isSafeInteger(d.revision)||d.revision<0||d.revision>(reserved?256:128)||!Array.isArray(d.entries)||d.entries.length>128||
    !Array.isArray(d.commits)||d.commits.length!==d.revision)
    return result(false,"AUDIT_DATASET_MANIFEST_INVALID");
-  const committed=[],reservationTests=new Set(),reservedIds=[],indexedIds=[],closedIds=[];
+  const committed=[],reservationTests=new Set(),reservedIds=[],indexedIds=[],closedIds=[],ledgerEventIds=[],ledgerTraceIds=[];
   if(reserved){
    if(!Array.isArray(d.reservations)||d.reservations.length>128)return result(false,"AUDIT_DATASET_RESERVATIONS_INVALID");
    for(const [i,r] of d.reservations.entries()){
@@ -236,14 +236,42 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
      reservedIds.push(c.testIds[0]);
     }else if(c.kind==="INDEX"&&c.testIds.length===c.traceMessageIds.length&&c.testIds.every(id=>reservedIds.includes(id)&&!closedIds.includes(id)))indexedIds.push(...c.testIds);
     else if(terminal&&c.kind==="CLOSE_GAP"&&c.testIds.length===1&&!c.traceMessageIds.length&&reservedIds.includes(c.testIds[0])&&!closedIds.includes(c.testIds[0])&&!indexedIds.includes(c.testIds[0]))closedIds.push(c.testIds[0]);
-    else return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+    else if(ledgerEnabled&&c.kind==="LEDGER"&&c.testIds.length>0&&c.testIds.every(id=>typeof id==="string")&&
+     c.testIds.every(id=>/^[A-Za-z0-9_-]{1,128}$/.test(id))&&
+     c.traceMessageIds.every(id=>d.entries.some(e=>e.traceMessageId===id&&indexedIds.includes(e.testId)))&&
+     new Set(c.testIds).size===c.testIds.length&&new Set(c.traceMessageIds).size===c.traceMessageIds.length){
+     ledgerEventIds.push(...c.testIds);for(const id of c.traceMessageIds)if(!ledgerTraceIds.includes(id))ledgerTraceIds.push(id);
+    }else return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
    }else if(!c.traceMessageIds.length)return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
-   committed.push(...c.traceMessageIds);
+   if(!reserved||c.kind==="INDEX")committed.push(...c.traceMessageIds);
   }
   if(committed.length!==d.entries.length||new Set(committed).size!==committed.length||committed.some((id,i)=>id!==d.entries[i]?.traceMessageId)||
    reserved&&(reservedIds.length!==d.reservations.length||reservedIds.some((id,i)=>id!==d.reservations[i].testId)||
     indexedIds.length!==d.entries.length||indexedIds.some((id,i)=>id!==d.entries[i]?.testId))||
    terminal&&(closedIds.length!==d.closures.length||closedIds.some((id,i)=>id!==d.closures[i].testId)))return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+  let eventLedger=d.eventLedger??null;
+  if(ledgerEnabled){
+   const validPrior=(v,key)=>Array.isArray(v)&&v.length<=2000&&v.every(x=>key==="previousCreditKeys"?typeof x==="string"&&x.length>0&&x.length<=512:typeof x==="string"&&/^[A-Za-z0-9_-]{1,128}$/.test(x))&&new Set(v).size===v.length;
+   if(!exact(eventLedger,["baseline","events","previousEventIds","previousCreditKeys","previousSupplyTestIds"])||
+    !Array.isArray(eventLedger.events)||eventLedger.events.length>500||
+    !validPrior(eventLedger.previousEventIds,"previousEventIds")||!validPrior(eventLedger.previousCreditKeys,"previousCreditKeys")||
+    !validPrior(eventLedger.previousSupplyTestIds,"previousSupplyTestIds"))return result(false,"AUDIT_DATASET_LEDGER_INVALID");
+   const eventIds=eventLedger.events.map(e=>e?.eventId),traceIds=[];
+   for(const e of eventLedger.events){
+    if(!e||typeof e!=="object"||Array.isArray(e)||typeof e.eventId!=="string"||!/^[A-Za-z0-9_-]{1,128}$/.test(e.eventId))
+     return result(false,"AUDIT_DATASET_LEDGER_INVALID");
+    if(["TEST_CREDIT","CAPTURED_LEARNING_CREDIT","SUPPLY_USE"].includes(e.type)){
+     if(typeof e.traceMessageId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(e.traceMessageId))return result(false,"AUDIT_DATASET_LEDGER_TRACE_REQUIRED");
+     if(!traceIds.includes(e.traceMessageId))traceIds.push(e.traceMessageId);
+    }else if(["SUPPLY_REPLENISH","SUBJECT_RESET","LEARN_SKILL"].includes(e.type)){}
+    else return result(false,"AUDIT_DATASET_LEDGER_EVENT_ROUTE_UNSUPPORTED");
+   }
+   if(new Set(eventIds).size!==eventIds.length||ledgerEventIds.length!==eventIds.length||
+    ledgerEventIds.some((id,i)=>id!==eventIds[i])||new Set(ledgerEventIds).size!==ledgerEventIds.length||
+    ledgerTraceIds.length!==traceIds.length||ledgerTraceIds.some((id,i)=>id!==traceIds[i])||
+    eventLedger.events.length>0&&(!eventLedger.baseline||typeof eventLedger.baseline!=="object"))
+    return result(false,"AUDIT_DATASET_LEDGER_COMMIT_CHAIN_MISMATCH");
+  }
   const seenTests=new Set(),seenMessages=new Set();
   for(const [i,e] of d.entries.entries()){
    if(!exact(e,["sequence","testId","actorId","skillItemId","testMode","traceMessageId","legacyMessageId","outcome","checksum"])||e.sequence!==i||typeof e.testId!=="string"||seenTests.has(e.testId)||seenMessages.has(e.traceMessageId)||
@@ -280,7 +308,7 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
    m.flags?.["realm-guard"]?.packageAAudit?.datasetId===journalId&&!seenMessages.has(m.id)&&!gapMessages.has(m.id)).map(m=>m.id);
   const pending=reserved?d.reservations.filter(r=>!seenTests.has(r.testId)&&!closedIds.includes(r.testId)):[];
   const gaps=terminal?d.closures:[];
-  const data={reviewedGaps:gaps,gapTraceAvailability,nativeHistoryCompleteInDataset:!gaps.length&&!pending.length&&!unindexed.length,validatedManifestSnapshot:stable,schemaVersion:d.schemaVersion,reservations:reserved?d.reservations:[],pendingReservations:pending,
+  const data={eventLedger,reviewedGaps:gaps,gapTraceAvailability,nativeHistoryCompleteInDataset:!gaps.length&&!pending.length&&!unindexed.length,validatedManifestSnapshot:stable,schemaVersion:d.schemaVersion,reservations:reserved?d.reservations:[],pendingReservations:pending,
    preRollReservationScope:reserved?"EXPLICIT_RESERVED_TESTS_NOT_ALL_WORLD_TESTS":"NOT_RECORDED_SCHEMA1",journalId,worldId,gmId:gm.id,revision:d.revision,entries:d.entries,commits:d.commits,unindexedTraceMessageIds:unindexed,
    indexScope:"EXPLICIT_SELECTED_TRACE_MESSAGES_NOT_ALL_WORLD_TESTS",persistedIndexObserved:true,
    datasetChecksumsConsistent:true,datasetAuthenticated:false,durableGlobalReplayVerified:false};

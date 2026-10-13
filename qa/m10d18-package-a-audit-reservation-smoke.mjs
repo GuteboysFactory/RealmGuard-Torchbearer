@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 await import("./m10d18-package-a-legacy-audit-storage-smoke.mjs");
-const {legacyCreateAuditDataset:create,legacyAppendAuditDataset:append,legacyCloseAuditReservation:close}=await import("../module/legacy-package-a-audit.mjs");
+const {legacyCreateAuditDataset:create,legacyAppendAuditDataset:append,legacyCloseAuditReservation:close,legacyAppendEvidenceLedger:appendLedger}=await import("../module/legacy-package-a-audit.mjs");
 const {tb2ePackageAAuditDatasetEvidence:read}=await import("../module/m10d18-tb2e-package-a-saved-legacy-audit.mjs");
+const {tb2ePackageAAuditLedgerReplay:readReplay}=await import("../module/m10d18-tb2e-package-a-audit-ledger-replay.mjs");
 const actor=game.actors.get("actor"),role=actor.items.get("cook"),gm=game.users.get("gm");
 let creates=0,updates=0,rolls=0,failUpdate=false;
 game.journal=new Map();game.messages.clear();
@@ -145,4 +146,45 @@ assert.equal((await read({journalId:switched.journalId})).reasonCode,"AUDIT_DATA
 game.user=game.users.get("player");assert.equal((await actor.rollRoleWithAudit(role,opts(journalId))).reasonCode,"CURRENT_SESSION_GM_REQUIRED");game.user=gm;
 const concurrent=await make();const a=actor.rollRoleWithAudit(role,opts(concurrent.journalId)),b=actor.rollRoleWithAudit(role,opts(concurrent.journalId));
 assert.equal((await b).reasonCode,"AUDIT_DATASET_LOCAL_APPEND_IN_PROGRESS");assert.equal((await a).audit.ok,true);
-console.log("PASS reserved audit lifecycle: durable pre-game intent, same-ID Skill/BL index, pending interruption/reload/storage failure, explicit no-reroll recovery, version/chronology/source/privacy/concurrency guards and unchanged Legacy controls");
+// Persist the already-supported source-bound Skill/supply replay and read it again without writes.
+const ledgerDoc=await create({reserveBeforeRoll:true,enableEvidenceLedger:true});assert.equal(ledgerDoc.ok,true,JSON.stringify(ledgerDoc));
+const ledgerJournal=game.journal.get(ledgerDoc.journalId);
+const ledgerRun=await actor.rollRoleWithAudit(role,opts(ledgerDoc.journalId));assert.equal(ledgerRun.audit.ok,true,JSON.stringify(ledgerRun));
+const traceMessageId=ledgerRun.audit.traceMessageId;
+const review=value=>({state:"GM_REVIEWED",value,reviewId:"r",reviewerId:"gm"});
+const baseline={schemaVersion:1,worldId:"world",actorId:"actor",gmId:"gm",subjects:[
+ {subjectId:"actor:SKILL:cook",epochId:"counter-e1",kind:"SKILL",itemId:"cook",skillName:"Cook",rating:4,currentNature:null,counters:review({passed:3,failed:3})}],
+ supplies:[{itemId:"food",unitId:"unit1",skillName:"Cook",incrementDefinition:"one reviewed applicable allocation",
+  unitReviewId:"ur",unitReviewerId:"gm",quantityMapping:"NO_AUTOMATIC_CONVERSION",stock:review({increments:2})}]};
+const credit={eventId:"ledgerCredit",sequence:0,type:"TEST_CREDIT",reviewId:"r",reviewerId:"gm",subjectId:"actor:SKILL:cook",
+ epochId:"counter-e1",traceMessageId,context:"ADVENTURE",gmEligibilityReviewed:true};
+const use={eventId:"ledgerUse",sequence:1,type:"SUPPLY_USE",reviewId:"r",reviewerId:"gm",unitId:"unit1",traceMessageId,gmUseReviewed:true};
+const ledger={baseline,events:[credit,use],previousEventIds:[],previousCreditKeys:[],previousSupplyTestIds:[]};
+const committed=await appendLedger({journalId:ledgerDoc.journalId,expectedRevision:2,ledger});
+assert.equal(committed.ok,true,JSON.stringify(committed));assert.equal(committed.replayValidated,true);assert.equal(committed.datasetEvidenceComplete,true);
+assert.equal(committed.projection.subjects[0].counters.passed,4);assert.equal(committed.projection.supplies[0].stock.increments,1);
+const beforeLedgerState=JSON.stringify([actor.system,role.system,ledgerJournal.flags,[...game.messages.values()]]);
+const durable=await readReplay({journalId:ledgerDoc.journalId});assert.equal(durable.ok,true,JSON.stringify(durable));
+assert.equal(durable.ledgerReplayValid,true);assert.equal(durable.replayProjection.eventHistory.length,2);
+assert.equal(JSON.stringify([actor.system,role.system,ledgerJournal.flags,[...game.messages.values()]]),beforeLedgerState);
+const altered=structuredClone(ledger);altered.events[0]={...altered.events[0],context:"CONFLICT",sequence:2};
+assert.equal((await appendLedger({journalId:ledgerDoc.journalId,expectedRevision:3,ledger:altered})).reasonCode,"AUDIT_DATASET_LEDGER_NOT_APPEND_ONLY");
+const replenished={...ledger,events:[...ledger.events,{eventId:"ledgerRestock",sequence:2,type:"SUPPLY_REPLENISH",
+ reviewId:"r",reviewerId:"gm",unitId:"unit1",increments:2}]};
+const second=await appendLedger({journalId:ledgerDoc.journalId,expectedRevision:3,ledger:replenished});assert.equal(second.ok,true,JSON.stringify(second));
+assert.equal(second.projection.supplies[0].stock.increments,3);
+assert.equal((await readReplay({journalId:ledgerDoc.journalId})).replayProjection.reviewedEventIds.length,3);
+const invalidAppend={...replenished,events:[...replenished.events,{eventId:"ledgerBadRestock",sequence:3,type:"SUPPLY_REPLENISH",
+ reviewId:"r",reviewerId:"gm",unitId:"unit1",increments:-1}]};
+const revisionBeforeInvalid=ledgerJournal.flags["realm-guard"].packageAAuditDataset.revision;
+assert.equal((await appendLedger({journalId:ledgerDoc.journalId,expectedRevision:revisionBeforeInvalid,ledger:invalidAppend})).reasonCode,
+ "AUDIT_DATASET_LEDGER_REPLAY_REPLENISH_AMOUNT_REQUIRED");
+assert.equal(ledgerJournal.flags["realm-guard"].packageAAuditDataset.revision,revisionBeforeInvalid);
+const pristineLedgerFlags=structuredClone(ledgerJournal.flags);ledgerJournal.flags=structuredClone(pristineLedgerFlags);
+ledgerJournal.flags["realm-guard"].packageAAuditDataset.eventLedger.events[2].increments=-1;
+assert.equal((await readReplay({journalId:ledgerDoc.journalId})).reasonCode,"AUDIT_DATASET_LEDGER_REPLAY_REPLENISH_AMOUNT_REQUIRED");ledgerJournal.flags=pristineLedgerFlags;
+ledgerJournal.flags=structuredClone(pristineLedgerFlags);
+ledgerJournal.flags["realm-guard"].packageAAuditDataset.commits[2].traceMessageIds=["not-indexed"];
+assert.equal((await readReplay({journalId:ledgerDoc.journalId})).reasonCode,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");ledgerJournal.flags=pristineLedgerFlags;
+const restoredLedger=await readReplay({journalId:ledgerDoc.journalId});assert.equal(restoredLedger.ok,true,JSON.stringify(restoredLedger));
+console.log("PASS reserved and reviewed evidence lifecycle: pre-roll intent, pending recovery/GM disposition, append-only durable Skill/supply replay, tamper rejection, no Actor/Item mutation or CORE writes");

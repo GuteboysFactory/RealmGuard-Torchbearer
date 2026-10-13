@@ -1317,3 +1317,7 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Reviewed pending-gap disposition checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.
+
+## Durable reviewed counter/supply ledger — 2026-10-13
+
+Schema4 opt-in persists append-only GM-reviewed baseline/events and CORE read-only replay for a supported subset. Invalid replay does not write; tampering is rejected. LEARNING_CREDIT persistence, other routes, actual Foundry13.351 A-D, cross-client/retention and full audit acceptance remain OPEN. No release or FULLY_REAUDITED claim.

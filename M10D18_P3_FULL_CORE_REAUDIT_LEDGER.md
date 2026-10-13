@@ -419,3 +419,7 @@ User explicitly selected trusted GM and reviewed prospective history. [Accepted 
 ## Reviewed pending-gap disposition checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents explicit GM-reviewed terminal disposition for irrecoverable schema3 reservations. CLOSE_GAP retains the prior reservation/note, asserts UNKNOWN/no advancement/no resource proof, and stays visible so dataset completeness remains false. Valid or active captures cannot be closed. A later trace cannot index a closed reservation. No timer, reroll, deletion, authentication or release. Cross-client and actual Foundry13.351 acceptance remain OPEN / NOT RUN.
+
+## Durable reviewed counter/supply ledger checkpoint — 2026-10-13
+
+Schema4 opt-in persists append-only GM-reviewed baseline and replay events on the reserved Legacy dataset; CORE shadow validates the revision/event/trace commit chain and returns a read-only replay. Supported persisted routes are TEST_CREDIT, CAPTURED_LEARNING_CREDIT, SUPPLY_USE, SUPPLY_REPLENISH, SUBJECT_RESET and LEARN_SKILL. Indexed-trace binding is required for the first three. Invalid replay is refused before Journal update; tampering is rejected. LEARNING_CREDIT storage and other routes remain unsupported. Node mock regression passes; actual Foundry13.351 A-D, cross-client/retention and complete domain coverage remain open. No full re-audit/release.
