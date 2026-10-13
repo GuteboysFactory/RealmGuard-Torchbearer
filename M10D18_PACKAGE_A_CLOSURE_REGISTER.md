@@ -1,5 +1,7 @@
 # Package A — fixed closure register
 
+**A09 proposal delivered / decision pending:** [Historical evidence decision](M10D18_PACKAGE_A_TRUST_DECISION.md) specifies R (trusted-GM prospective review, recommended) and S (independent authority). No choice or gate change is implied; all implementation/runtime acceptance stays OPEN.
+
 Status: OPEN / NOT RELEASED. Inventory v1, 2026-10-13. Reviewed repository baseline: d6cd7595c207ebbb83aba792ab69cbe7fb988094. This register is the work queue beneath the unchanged five G1-G5 completion gates, not a replacement or a lower acceptance standard. It supersedes chronological NEXT instructions elsewhere.
 
 ## Where we are

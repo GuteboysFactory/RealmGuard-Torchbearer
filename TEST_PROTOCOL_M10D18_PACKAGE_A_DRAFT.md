@@ -1,5 +1,7 @@
 # Realm Guard / Torchbearer — Package A consolidated Foundry 13.351 QA (DRAFT)
 
+**A09 proposal delivered / decision pending:** [Historical evidence decision](M10D18_PACKAGE_A_TRUST_DECISION.md) specifies R (trusted-GM prospective review, recommended) and S (independent authority). No choice or gate change is implied; all implementation/runtime acceptance stays OPEN.
+
 
 ## Current fixed completion queue — 2026-10-13
 
