@@ -25,15 +25,20 @@ export function tb2ePackageALegacyObservationProbe(options={}){
   try{
     const initial=tb2ePackageAActorEvidence({actorId:options?.actorId});
     if(!initial.ok)return response(false,initial.reasonCode);
-    if(!fields(options,["actorId","skillItemId","testId","mode"])||!id(options.testId)||!id(options.skillItemId))
+    const abilityMode=options?.mode==="ABILITY";
+    if(!fields(options,abilityMode?["actorId","abilityKey","testId","mode"]:["actorId","skillItemId","testId","mode"])||!id(options.testId)||
+      (abilityMode?!["will","health"].includes(options.abilityKey):!id(options.skillItemId)))
       return response(false,"OBSERVATION_IDENTITIES_REQUIRED");
     const mode=options.mode===undefined?"SKILL":options.mode;
-    if(!["SKILL","BEGINNERS_LUCK"].includes(mode))return response(false,"OBSERVATION_TEST_MODE_UNSUPPORTED");
-    options=Object.freeze({actorId:options.actorId,skillItemId:options.skillItemId,testId:options.testId});
-    const source=initial.currentSkillItems.filter(i=>i.itemId===options.skillItemId);
-    if(source.length!==1||!Number.isInteger(source[0].rating)||(mode==="BEGINNERS_LUCK"?source[0].rating!==0:source[0].rating<1||source[0].rating>6))
+    if(!["SKILL","BEGINNERS_LUCK","ABILITY"].includes(mode))return response(false,"OBSERVATION_TEST_MODE_UNSUPPORTED");
+    options=Object.freeze({actorId:options.actorId,skillItemId:options.skillItemId??null,abilityKey:options.abilityKey??null,testId:options.testId});
+    const source=abilityMode?[]:initial.currentSkillItems.filter(i=>i.itemId===options.skillItemId);
+    const abilityRating=abilityMode?initial.currentAbilities?.[options.abilityKey]:null;
+    if(abilityMode?(!Number.isSafeInteger(abilityRating)||abilityRating<1||abilityRating>6):
+      (source.length!==1||!Number.isInteger(source[0].rating)||(mode==="BEGINNERS_LUCK"?source[0].rating!==0:source[0].rating<1||source[0].rating>6)))
       return response(false,mode==="BEGINNERS_LUCK"?"OBSERVATION_CURRENT_UNTRAINED_SKILL_REQUIRED":"OBSERVATION_CURRENT_TRAINED_SKILL_REQUIRED");
     let abilitySource=null;
+    if(abilityMode)abilitySource={key:options.abilityKey,name:options.abilityKey[0].toUpperCase()+options.abilityKey.slice(1),rating:abilityRating};
     if(mode==="BEGINNERS_LUCK"){
       const skill=tb2eSkillInfo(source[0].name),name=skill.beginnersLuckAbility;
       const rating=initial.currentAbilities[name?.toLowerCase()];
@@ -156,7 +161,7 @@ export function tb2ePackageALegacyObservationProbe(options={}){
           return failure("OBSERVATION_FATE_DELTA_AMBIGUOUS");
         status="OBSERVED_UNPERSISTED";
         return response(true,null,{status,testIdentity:{worldId,testId:options.testId,actorId:options.actorId},
-          currentGmId:gmId,testMode:mode,abilitySource,startingActorSnapshot:initial,skillSource:source[0],baseRecord:base,
+          currentGmId:gmId,testMode:mode,abilitySource,startingActorSnapshot:initial,skillSource:source[0]??null,baseRecord:base,
           legacyLearningCounterChanged:false,
           resourceChanges:spends.slice(),observedEndingRewards:{...expectedRewards},
           observationStorage:"IN_MEMORY_ONLY",observationCoverage:"BASE_OPTIONAL_LEGACY_WISE_FATE_AND_ACTING_DELTAS",

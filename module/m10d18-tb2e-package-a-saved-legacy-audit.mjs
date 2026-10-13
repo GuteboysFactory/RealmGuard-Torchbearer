@@ -23,14 +23,18 @@ function savedActorGmSource(message,r){
  if(typeof globalThis.Roll!=="function"||!Array.isArray(message.rolls)||
   message.rolls.some(roll=>roll?.constructor!==globalThis.Roll))
   return {ok:false,reasonCode:"SAVED_LEGACY_NATIVE_ROLL_IDENTITY_REQUIRED"};
+ const abilityScope=r.schemaVersion===5&&r.kind==="LEGACY_ABILITY_AUDIT";
  const sources=snapshot?.currentSkillItems;
  const owned=worldActor.items?.get(r.skillItemId);
  if(!o?.ok||o.status!=="OBSERVED_UNPERSISTED"||o.testIdentity?.testId!==r.testId||o.testIdentity?.worldId!==r.worldId||
   o.testIdentity?.actorId!==r.actorId||o.currentGmId!==r.gmId||snapshot?.actorId!==r.actorId||
-  snapshot.currentGmId!==r.gmId||snapshot.actorUuid!==actor.actorUuid||!owned||owned.type!=="role"||
-  o.skillSource?.itemId!==r.skillItemId||!Array.isArray(sources)||sources.filter(i=>i.itemId===r.skillItemId).length!==1||
-  !same(sources.find(i=>i.itemId===r.skillItemId),o.skillSource)||
-  !Number.isSafeInteger(o.skillSource.rating)||(r.schemaVersion===3?o.skillSource.rating!==0:o.skillSource.rating<1||o.skillSource.rating>6))
+  snapshot.currentGmId!==r.gmId||snapshot.actorUuid!==actor.actorUuid||
+  (abilityScope?(r.skillItemId!==null||!['will','health'].includes(r.abilityKey)||o.testMode!=="ABILITY"||
+    o.abilitySource?.key!==r.abilityKey||snapshot.currentAbilities?.[r.abilityKey]!==o.abilitySource.rating||
+    !Number.isSafeInteger(o.abilitySource.rating)||o.abilitySource.rating<1||o.abilitySource.rating>6):
+   (!owned||owned.type!=="role"||o.skillSource?.itemId!==r.skillItemId||!Array.isArray(sources)||sources.filter(i=>i.itemId===r.skillItemId).length!==1||
+    !same(sources.find(i=>i.itemId===r.skillItemId),o.skillSource)||!Number.isSafeInteger(o.skillSource.rating)||
+    (r.schemaVersion===3?o.skillSource.rating!==0:o.skillSource.rating<1||o.skillSource.rating>6))))
   return {ok:false,reasonCode:"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH"};
  if(r.schemaVersion===3){
   const skill=tb2eSkillInfo(o.skillSource.name),ability=o.abilitySource;
@@ -52,12 +56,15 @@ function savedFateEvidence(message,r){
  const worldActor=globalThis.game.actors.get(r.actorId);
  if(message.speaker?.actor!==r.actorId||message.speakerActor!==worldActor||message.speaker?.scene||message.speaker?.token)
   return {ok:false,reasonCode:"WORLD_ACTOR_SPEAKER_MISMATCH"};
+ const abilityScope=r.schemaVersion===5&&r.kind==="LEGACY_ABILITY_AUDIT";
  const o=r.nativeObservation,events=o?.nativeEventHistory,rolls=message.rolls;
  if(!o?.ok||o.status!=="OBSERVED_UNPERSISTED"||o.testIdentity?.testId!==r.testId||
   o.testIdentity?.worldId!==r.worldId||o.testIdentity?.actorId!==r.actorId||o.currentGmId!==r.gmId||
   o.startingActorSnapshot?.actorId!==r.actorId||o.startingActorSnapshot?.currentGmId!==r.gmId||
-  o.skillSource?.itemId!==r.skillItemId||!actor.currentSkillItems.some(i=>i.itemId===r.skillItemId)||
-  !Array.isArray(events)||events.length<1||events.length>30||!Array.isArray(rolls)||rolls.length!==events.length+1)
+  (abilityScope?(o.testMode!=="ABILITY"||o.abilitySource?.key!==r.abilityKey||
+    o.startingActorSnapshot.currentAbilities?.[r.abilityKey]!==o.abilitySource.rating):
+   (o.skillSource?.itemId!==r.skillItemId||!actor.currentSkillItems.some(i=>i.itemId===r.skillItemId)))||
+  !Array.isArray(events)||events.length>(abilityScope?31:30)||(!abilityScope&&events.length<1)||!Array.isArray(rolls)||rolls.length!==events.length+1)
   return {ok:false,reasonCode:"SAVED_LEGACY_FATE_SCOPE_MISMATCH"};
  const resolved=new Map(),seenRolls=new Set();let parents=[],count=0,fateRounds=0,wiseSeen=false;
  for(let n=0;n<rolls.length;n++){
@@ -119,12 +126,13 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     return result(false,"PRIVATE_CURRENT_GM_AUDIT_MESSAGE_REQUIRED");
   const r=message.flags?.["realm-guard"]?.packageAAudit;
   const blScope=r?.schemaVersion===3&&r.kind==="LEGACY_BL_AUDIT";
-  const fateScope=r?.schemaVersion===2&&r.kind==="LEGACY_ROLE_AUDIT_BASE_FATE"||blScope&&r.legacyOutcome?.fateSpent===true;
+  const abilityScope=r?.schemaVersion===5&&r.kind==="LEGACY_ABILITY_AUDIT";
+  const fateScope=r?.schemaVersion===2&&r.kind==="LEGACY_ROLE_AUDIT_BASE_FATE"||blScope&&r.legacyOutcome?.fateSpent===true||abilityScope&&r.legacyOutcome?.fateSpent===true;
   const wiseScope=r?.schemaVersion===4&&r.kind==="LEGACY_ROLE_AUDIT_BASE_WISE";
-  if(!r||(!blScope&&!fateScope&&!wiseScope&&(r.schemaVersion!==1||r.kind!=="LEGACY_ROLE_AUDIT_BASE_ONLY"))||r.sourceProfileId!=="realm-guard-legacy-mixed"||
+  if(!r||(!abilityScope&&!blScope&&!fateScope&&!wiseScope&&(r.schemaVersion!==1||r.kind!=="LEGACY_ROLE_AUDIT_BASE_ONLY"))||r.sourceProfileId!=="realm-guard-legacy-mixed"||
     r.worldId!==g.world?.id||r.gmId!==gm.id||typeof r.testId!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(r.testId))
     return result(false,"SAVED_LEGACY_AUDIT_SCOPE_MISMATCH");
-  if(r.status!==(blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED")||r.reasonCode!==null||r.legacyOutcome?.fateSpent!==fateScope)
+  if(r.status!==(abilityScope?(fateScope?"BASE_FATE_SCOPE_RECORDED":"ABILITY_SCOPE_RECORDED"):blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED")||r.reasonCode!==null||r.legacyOutcome?.fateSpent!==fateScope)
     return result(false,"SAVED_LEGACY_AUDIT_INCOMPLETE");
   if(r.authenticated!==false||r.completeTestHistoryVerified!==false)return result(false,"EDITABLE_AUDIT_ATTESTATION_REJECTED");
   const original=g.messages.get(r.legacyMessageId);
@@ -133,7 +141,7 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     return result(false,"SAVED_LEGACY_ORIGINAL_MESSAGE_REQUIRED");
   const source=savedActorGmSource(message,r);
   if(!source.ok)return result(false,source.reasonCode);
-  const linkedHistory=fateScope||wiseScope||blScope&&r.nativeObservation?.nativeEventHistory?.length>0;
+  const linkedHistory=abilityScope||fateScope||wiseScope||blScope&&r.nativeObservation?.nativeEventHistory?.length>0;
   const evidence=linkedHistory?savedFateEvidence(message,r):tb2ePackageADocumentEvidence({actorId:r.actorId,messageId:traceMessageId});
   if(!evidence.ok)return result(false,evidence.reasonCode);
   const o=r.nativeObservation,base=o?.baseRecord;
@@ -154,10 +162,10 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
   return result(true,null,{testIdentity:{worldId:r.worldId,testId:r.testId,actorId:r.actorId},
     traceMessageId,legacyMessageId:original.id,skillItemId:r.skillItemId,savedNativeEvidence:evidence,
     baseFaces:linkedHistory?evidence.baseFaces:evidence.dice.map(d=>d.face),
-    nativeFateRoundCount:linkedHistory?evidence.nativeRoundCount:0,testMode:blScope?"BEGINNERS_LUCK":"SKILL",
-    abilitySource:blScope?{...o.abilitySource}:null,legacyLearningCounterChanged:blScope?false:null,
+    nativeFateRoundCount:linkedHistory?evidence.nativeRoundCount:0,testMode:abilityScope?"ABILITY":blScope?"BEGINNERS_LUCK":"SKILL",
+    abilitySource:abilityScope||blScope?{...o.abilitySource}:null,legacyLearningCounterChanged:blScope?false:null,
     savedFateChainConsistent:linkedHistory,recordedLegacyOutcome:r.legacyOutcome.outcome,
-    evidenceScope:linkedHistory?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_WISE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
+    evidenceScope:abilityScope?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_ABILITY_BASE_WISE_FATE":linkedHistory?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_WISE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
     storedNativeBaseAndLinkedOutcomeAgree:true,recordedActorGmSourceConsistent:true,
     permissionEvidenceScope:"CURRENT_REGISTERED_GM_ONLY_NOT_HISTORICAL_OWNER",historicalSnapshotAuthentication:false});
  }catch{return result(false,"SAVED_LEGACY_AUDIT_READ_FAILED");}

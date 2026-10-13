@@ -504,3 +504,7 @@ Limits: all base dice were 4+, so Inn-wise was selected but no failed die existe
 ## Partial user-run Wise sample — 2026-10-13
 
 Foundry screenshots show two Skill audit samples: one base/Fate private-save/readback with no Wise reroll; another with base `[1,5,4,3]`, a distinct Wise row `[1,4,3]`, final 2 successes/PASS, parity `MATCH`, audit `ok:true / BASE_SCOPE_RECORDED`, and readback `ok:true / SAVED_PRIVATE_LEGACY_AUDIT_READ_ONLY`. The second image's expanded result objects and identity metadata are not visible. Treat both as partial observations only; A-D remains incomplete. Record exact Foundry build, installed archive SHA/source commit, test/trace IDs, expanded audit/readback fields, and before/after snapshots in the consolidated run before final acceptance.
+
+## Partial Ability runtime case added to candidate protocol
+
+For the explicit unpublished build, compare ordinary `rollAbility("will", {obstacle, wiseId})` against `rollAbilityWithAudit` using the same copied World state and seeded/manual face sequence where available. Cover base-only and base→Wise→Fate, private trace save, reload/read-only `savedLegacyAuditEvidence`, unsupported `nature` and override/dataset refusal, and unchanged gameplay chat/result/resource semantics. Record actual source/build/hash and before/after Actor state. No Will/Health marks are written or inferred. This is a partial A05/A08 diagnostic until integrated with full counter/ledger and consolidated A-D acceptance.

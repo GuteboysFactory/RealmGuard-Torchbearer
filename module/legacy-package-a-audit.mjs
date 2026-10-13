@@ -33,6 +33,7 @@ export function observeLegacyAuditEvent(capability,actor,stage,roll=null,details
   }
  }catch{c.error=failure("LEGACY_AUDIT_CAPTURE_FAILED");}
 }
+export const legacyAuditCaptureIssued=(capability,actor)=>captures.get(capability)?.actor===actor;
 
 
 /** Explicit Legacy-owned GM diagnostic. Not registered on CORE/startup/UI.
@@ -41,6 +42,7 @@ export function observeLegacyAuditEvent(capability,actor,stage,roll=null,details
  */
 export const legacyRoleRollWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"SKILL");
 export const legacyBeginnerLuckWithAudit=(actor,role,options={})=>legacyRollWithAudit(actor,role,options,"BEGINNERS_LUCK");
+export const legacyAbilityRollWithAudit=(actor,abilityKey,options={})=>legacyRollWithAudit(actor,abilityKey,options,"ABILITY");
 async function legacyRollWithAudit(actor,role,options,mode){
   if(!fields(options,["obstacle","auditDatasetId","reserveBeforeRoll","wiseId"])||!Number.isSafeInteger(options.obstacle??1)||(options.obstacle??1)<1)
     return failure("LEGACY_AUDIT_PLAIN_OBSTACLE_SCOPE_REQUIRED");
@@ -49,13 +51,15 @@ async function legacyRollWithAudit(actor,role,options,mode){
   const g=globalThis.game,gm=g?.user;
   if(!g?.ready||g.system?.id!=="realm-guard"||!gm?.active||gm.isGM!==true||g.users?.get(gm.id)!==gm)
     return failure("CURRENT_SESSION_GM_REQUIRED");
-  if(!actor||!role||g.actors?.get(actor.id)!==actor||actor.items?.get(role.id)!==role||role.type!=="role")
-    return failure("LEGACY_AUDIT_OWNED_WORLD_SKILL_REQUIRED");
+  const abilityMode=mode==="ABILITY",abilityKey=abilityMode?String(role??"").toLowerCase():null;
+  if(!actor||g.actors?.get(actor.id)!==actor||(abilityMode?!["will","health"].includes(abilityKey):!role||actor.items?.get(role.id)!==role||role.type!=="role"))
+    return failure(abilityMode?"LEGACY_AUDIT_SUPPORTED_WORLD_ABILITY_REQUIRED":"LEGACY_AUDIT_OWNED_WORLD_SKILL_REQUIRED");
   if(options.wiseId!==undefined&&options.wiseId!==null&&
     (typeof options.wiseId!=="string"||actor.items?.get(options.wiseId)?.type!=="wise"))return failure("LEGACY_AUDIT_OWNED_WORLD_WISE_REQUIRED");
   const testId=globalThis.foundry.utils.randomID();
-  const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId,mode});
+  const probe=tb2ePackageALegacyObservationProbe(abilityMode?{actorId:actor.id,abilityKey,testId,mode}:{actorId:actor.id,skillItemId:role.id,testId,mode});
   if(!probe.ok)return failure(probe.reasonCode);
+  if(abilityMode&&(options.auditDatasetId!==undefined||options.reserveBeforeRoll!==undefined))return failure("LEGACY_ABILITY_AUDIT_DATASET_SCOPE_UNSUPPORTED");
   // Saved Fate scope is checked separately; mutable records are not attestation.
   const obstacle=options.obstacle??1,worldId=g.world.id;
   if(options.auditDatasetId&&options.reserveBeforeRoll!==true){
@@ -80,7 +84,9 @@ async function legacyRollWithAudit(actor,role,options,mode){
   const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null,resolvedFaces:[]};
   captures.set(capability,capture);
   let legacyResult;
-  try{legacyResult=mode==="BEGINNERS_LUCK"
+  try{legacyResult=abilityMode
+    ?await actor.rollAbility(abilityKey,{obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability})
+    :mode==="BEGINNERS_LUCK"
     ?await actor.rollBeginnerLuck(role,{abilityKey:tb2eSkillInfo(role.name).beginnersLuckAbility.toLowerCase(),obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability})
     :await actor.rollRole(role,{obstacle,wiseId:options.wiseId??null,legacyAuditCapture:capability});}
   finally{captures.delete(capability);}
@@ -99,9 +105,9 @@ async function legacyRollWithAudit(actor,role,options,mode){
     return {...legacyResult,audit:failure("LEGACY_AUDIT_ORIGINAL_MESSAGE_LINK_REQUIRED")};
   const fateScope=legacyResult.fateSpent===true,blScope=mode==="BEGINNERS_LUCK";
   const wiseScope=!blScope&&capture.nativeData.length>1&&capture.nativeData.some((_,i)=>i>0)&&!fateScope;
-  const record={schemaVersion:blScope?3:fateScope?2:wiseScope?4:1,kind:blScope?"LEGACY_BL_AUDIT":fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":wiseScope?"LEGACY_ROLE_AUDIT_BASE_WISE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
-    gmId:gm.id,skillItemId:role.id,obstacle,legacyMessageId:original.id,
-    status:reason?"INCOMPLETE":blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
+  const record={schemaVersion:abilityMode?5:blScope?3:fateScope?2:wiseScope?4:1,kind:abilityMode?"LEGACY_ABILITY_AUDIT":blScope?"LEGACY_BL_AUDIT":fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":wiseScope?"LEGACY_ROLE_AUDIT_BASE_WISE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
+    gmId:gm.id,skillItemId:abilityMode?null:role.id,...(abilityMode?{abilityKey}:{}),obstacle,legacyMessageId:original.id,
+    status:reason?"INCOMPLETE":abilityMode&&!fateScope?"ABILITY_SCOPE_RECORDED":blScope?"BL_SCOPE_RECORDED":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
     nativeObservation:observed.ok?observed:null,
     legacyOutcome:{outcome:legacyResult.outcome,successes:legacyResult.successes,fateSpent:legacyResult.fateSpent===true},
     sourceProfileId:"realm-guard-legacy-mixed",authenticated:false,completeTestHistoryVerified:false,
