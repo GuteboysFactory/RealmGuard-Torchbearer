@@ -69,6 +69,28 @@ r.nativeObservation.baseRecord.dice[0].face=6;assert.equal(read({traceMessageId:
 r.nativeObservation.baseRecord.dice[0].face=1;r.legacyOutcome.outcome="FAIL";
 assert.equal(read({traceMessageId:trace.id}).reasonCode,"SAVED_LEGACY_FINAL_MISMATCH");r.legacyOutcome.outcome="PASS";
 r.authenticated=true;assert.equal(read({traceMessageId:trace.id}).reasonCode,"EDITABLE_AUDIT_ATTESTATION_REJECTED");r.authenticated=false;
+const baseFlags=structuredClone(trace.flags);
+const rejectBase=(mutate,reason)=>{
+ trace.flags=structuredClone(baseFlags);mutate(trace.flags["realm-guard"].packageAAudit);
+ assert.equal(read({traceMessageId:trace.id}).reasonCode,reason);trace.flags=structuredClone(baseFlags);
+};
+rejectBase(r=>r.nativeObservation.currentGmId="other","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.nativeObservation.startingActorSnapshot.currentGmId="other","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.nativeObservation.startingActorSnapshot.actorId="other","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.nativeObservation.startingActorSnapshot.actorUuid="Actor.other","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.skillItemId="unknown","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.nativeObservation.skillSource.rating=5,"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+rejectBase(r=>r.nativeObservation.startingActorSnapshot.currentSkillItems.push({...r.nativeObservation.skillSource}),"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+for(const flag of ["rollSourceAuthenticated","actorSourceAuthenticated","gmPermissionAuthenticated","spendCauseAuthenticated",
+ "captureOfLegacyExecutionProven","historicalRewardBalanceVerified","completeTestHistoryVerified"])
+ rejectBase(r=>r.nativeObservation[flag]=true,"EDITABLE_AUDIT_ATTESTATION_REJECTED");
+rejectBase(r=>{r.nativeObservation.skillSource.rating="4";r.nativeObservation.startingActorSnapshot.currentSkillItems[0].rating="4";},"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
+const nativeBaseRolls=trace.rolls;trace.rolls=[{...trace.rolls[0]}];
+assert.equal(read({traceMessageId:trace.id}).reasonCode,"SAVED_LEGACY_NATIVE_ROLL_IDENTITY_REQUIRED");trace.rolls=nativeBaseRolls;
+const oldRating=skill.system.rating;skill.system.rating=5;
+assert.equal(read({traceMessageId:trace.id}).ok,true);skill.system.rating=oldRating;
+const savedSkill=items.splice(0,1)[0];assert.equal(read({traceMessageId:trace.id}).reasonCode,"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");items.push(savedSkill);
+assert.equal(read({traceMessageId:trace.id}).recordedActorGmSourceConsistent,true);
 game.messages.set("duplicate",{...trace,id:"duplicate"});assert.equal(read({traceMessageId:trace.id}).reasonCode,
  "SAVED_LEGACY_DUPLICATE_TEST_IN_CURRENT_MESSAGES");game.messages.delete("duplicate");
 game.user=player;let privateReads=0;const originalFlags=trace.flags;
@@ -119,7 +141,7 @@ reject(r=>r.nativeObservation.nativeEventHistory[0].kind="LEGACY_MIXED_WISE_RERO
 reject((r,m)=>m.rolls.pop(),"SAVED_LEGACY_FATE_SCOPE_MISMATCH");
 reject((r,m)=>{r.nativeObservation.nativeEventHistory.pop();m.rolls.pop();},"SAVED_LEGACY_FATE_CHAIN_INCOMPLETE");
 reject((r,m)=>m.rolls[2]=m.rolls[1],"SAVED_LEGACY_FATE_NATIVE_INVALID");
-reject(r=>r.nativeObservation.startingActorSnapshot.actorId="other","SAVED_LEGACY_FATE_SCOPE_MISMATCH");
+reject(r=>r.nativeObservation.startingActorSnapshot.actorId="other","SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH");
 reject(r=>r.nativeObservation.resourceChanges=[],"SAVED_LEGACY_FATE_BALANCE_MISMATCH");
 reject(r=>r.nativeObservation.resourceChanges[0].amount=2,"SAVED_LEGACY_FATE_BALANCE_MISMATCH");
 reject(r=>r.nativeObservation.observedEndingRewards.persona=0,"SAVED_LEGACY_FATE_BALANCE_MISMATCH");

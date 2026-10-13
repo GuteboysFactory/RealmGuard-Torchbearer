@@ -13,6 +13,31 @@ const result=(ok,reasonCode=null,data={})=>freezeTb2e({ok,reasonCode,phase:"M10D
 
 // Separate bounded multi-Roll contract; the general single-Roll adapter stays narrow.
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function savedActorGmSource(message,r){
+ const actor=tb2ePackageAActorEvidence({actorId:r.actorId});
+ if(!actor.ok)return actor;
+ const worldActor=globalThis.game.actors.get(r.actorId),o=r.nativeObservation,snapshot=o?.startingActorSnapshot;
+ if(message.speaker?.actor!==r.actorId||message.speakerActor!==worldActor||message.speaker?.scene||message.speaker?.token)
+  return {ok:false,reasonCode:"WORLD_ACTOR_SPEAKER_MISMATCH"};
+ if(typeof globalThis.Roll!=="function"||!Array.isArray(message.rolls)||
+  message.rolls.some(roll=>roll?.constructor!==globalThis.Roll))
+  return {ok:false,reasonCode:"SAVED_LEGACY_NATIVE_ROLL_IDENTITY_REQUIRED"};
+ const sources=snapshot?.currentSkillItems;
+ const owned=worldActor.items?.get(r.skillItemId);
+ if(!o?.ok||o.status!=="OBSERVED_UNPERSISTED"||o.testIdentity?.testId!==r.testId||o.testIdentity?.worldId!==r.worldId||
+  o.testIdentity?.actorId!==r.actorId||o.currentGmId!==r.gmId||snapshot?.actorId!==r.actorId||
+  snapshot.currentGmId!==r.gmId||snapshot.actorUuid!==actor.actorUuid||!owned||owned.type!=="role"||
+  o.skillSource?.itemId!==r.skillItemId||!Array.isArray(sources)||sources.filter(i=>i.itemId===r.skillItemId).length!==1||
+  !same(sources.find(i=>i.itemId===r.skillItemId),o.skillSource)||
+  !Number.isSafeInteger(o.skillSource.rating)||o.skillSource.rating<1||o.skillSource.rating>6)
+  return {ok:false,reasonCode:"SAVED_LEGACY_ACTOR_GM_SOURCE_MISMATCH"};
+ for(const flag of ["rollSourceAuthenticated","actorSourceAuthenticated","gmPermissionAuthenticated","playerConsentAuthenticated",
+  "rollTimeActorStateVerified","historicalRewardBalanceVerified","completeTestHistoryVerified","immutableChronologyVerified",
+  "duplicateTestCheckAuthenticated","spendCauseAuthenticated","captureOfLegacyExecutionProven"])
+  if(o[flag]!==false)return {ok:false,reasonCode:"EDITABLE_AUDIT_ATTESTATION_REJECTED"};
+ return {ok:true,actorEvidence:actor};
+}
+
 function savedFateEvidence(message,r){
  const actor=tb2ePackageAActorEvidence({actorId:r.actorId});
  if(!actor.ok)return actor;
@@ -58,10 +83,6 @@ function savedFateEvidence(message,r){
   start.fate<1||end.fate!==start.fate-1||end.persona!==start.persona||spends[0].sequence!==0||spends[0].actorId!==r.actorId||
   spends[0].resource!=="fate"||spends[0].amount!==1||spends[0].before!==start.fate||spends[0].after!==end.fate)
   return {ok:false,reasonCode:"SAVED_LEGACY_FATE_BALANCE_MISMATCH"};
- for(const flag of ["rollSourceAuthenticated","actorSourceAuthenticated","gmPermissionAuthenticated","playerConsentAuthenticated",
-  "rollTimeActorStateVerified","historicalRewardBalanceVerified","completeTestHistoryVerified","immutableChronologyVerified",
-  "duplicateTestCheckAuthenticated","spendCauseAuthenticated","captureOfLegacyExecutionProven"])
-  if(o[flag]!==false)return {ok:false,reasonCode:"EDITABLE_AUDIT_ATTESTATION_REJECTED"};
  return {ok:true,dice:resolved,baseFaces:o.baseRecord.dice.map(d=>d.face),nativeRoundCount:events.length,
   recordedBalanceDeltaConsistent:true,actorEvidence:actor};
 }
@@ -91,6 +112,8 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
   if(!original||original===message||original.documentName!=="ChatMessage"||original.visible!==true||original.isContentVisible!==true||
     original.author!==gm||original.speaker?.actor!==r.actorId||original.speakerActor!==g.actors?.get(r.actorId)||original.speaker?.token)
     return result(false,"SAVED_LEGACY_ORIGINAL_MESSAGE_REQUIRED");
+  const source=savedActorGmSource(message,r);
+  if(!source.ok)return result(false,source.reasonCode);
   const evidence=fateScope?savedFateEvidence(message,r):tb2ePackageADocumentEvidence({actorId:r.actorId,messageId:traceMessageId});
   if(!evidence.ok)return result(false,evidence.reasonCode);
   const o=r.nativeObservation,base=o?.baseRecord;
@@ -114,6 +137,7 @@ export function tb2ePackageASavedLegacyAuditEvidence({traceMessageId=null}={}){
     nativeFateRoundCount:fateScope?evidence.nativeRoundCount:0,
     savedFateChainConsistent:fateScope,recordedLegacyOutcome:r.legacyOutcome.outcome,
     evidenceScope:fateScope?"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_FATE":"CURRENT_MUTABLE_PRIVATE_CHAT_AND_NATIVE_BASE_ONLY",
-    storedNativeBaseAndLinkedOutcomeAgree:true,historicalSnapshotAuthentication:false});
+    storedNativeBaseAndLinkedOutcomeAgree:true,recordedActorGmSourceConsistent:true,
+    permissionEvidenceScope:"CURRENT_REGISTERED_GM_ONLY_NOT_HISTORICAL_OWNER",historicalSnapshotAuthentication:false});
  }catch{return result(false,"SAVED_LEGACY_AUDIT_READ_FAILED");}
 }
