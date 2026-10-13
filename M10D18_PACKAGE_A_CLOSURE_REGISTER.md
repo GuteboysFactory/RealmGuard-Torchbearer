@@ -1,6 +1,6 @@
 # Package A — fixed closure register
 
-**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Next consolidated code work: event/epoch replay and shared final-result integration, with source eligibility exceptions still OPEN.
+**A05/A06 design checkpoint:** [Counter and supply evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) supplies a shared v1 contract and executable read-only baseline validation. UNKNOWN is distinct from reviewed zero; supply quantities are not converted to increments. Baseline validation does not implement storage/event replay or close A05/A06. Supported Skill/BL replay and selected trace index/reservation are implemented. Next consolidated work: persist required counter/supply events and complete missing source/capture routes, with source eligibility and runtime exceptions still OPEN.
 
 **A09 decision accepted:** [Historical evidence contract](M10D18_PACKAGE_A_TRUST_DECISION.md) records the explicit user selection of R: trusted GM/admin and prospectively captured, runtime-reviewed history. G3 uses this stated assurance boundary; historical authentication flags stay FALSE. A09 design/decision is SETTLED; capture/model/integration/runtime and full G3 remain OPEN.
 
@@ -57,7 +57,7 @@ A09 applies to every historical claim; A12 reviews all rows. Source authority st
 
 ## Next action and stop conditions
 
-1. A09 is selected and its R evidence contract is accepted. Next: consolidated A05/A06 evidence-model designs (Ability/Nature/learning ledger and supply increments), then grouped source/capture integration. Do not build an independent attestation service or claim authentication from mutable records.
+1. A09 is selected and its R evidence contract is accepted. Baseline designs, supported Skill/BL replay and selected trace index/reservation are delivered. Next: required counter/supply event persistence, remaining source/capture routes and terminal pending policy, then complete shared exception coverage. Do not build an independent attestation service or claim authentication from mutable records.
 2. Implement consolidated changes against these approved source/evidence contracts, grouping A02-A08 by their shared dependencies. Report entry/subcase evidence, not new smoke milestones as completion.
 3. Assemble A10's final case manifest. Only then label an unpublished candidate ready for A11 FINAL acceptance. A12 follows actual runtime evidence.
 
@@ -84,3 +84,8 @@ Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch
 ## Persisted selected-trace index checkpoint — 2026-10-13
 
 [Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) describes explicit Legacy-owned private Journal index creation/append and optional post-audit indexing. CORE only reads stored selected trace IDs/commit revisions/native checksums and fails closed on conflicts/missing/unindexed refs. Checksums/local locks are not signatures, server CAS or atomic gameplay transactions. Pre-roll reservation, full event storage, real cross-client/retention and Foundry13.351 remain OPEN. No release/certification; A09 R unchanged.
+
+
+## Reserved audit lifecycle checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents optional schema2 private pre-roll reservations for explicit Legacy Skill/BL, same-ID native/index commits and read-only pending detection. Pre-game storage failures stop before gameplay; interrupted/private-save failures retain intent. Valid saved traces can be explicitly indexed without reroll/re-spend. Schema1 remains post-game-only; no migration. Full event storage/other routes, terminal pending policy, cross-client/retention and actual Foundry13.351 remain OPEN / NOT RUN. No release/certification; A09 R unchanged.

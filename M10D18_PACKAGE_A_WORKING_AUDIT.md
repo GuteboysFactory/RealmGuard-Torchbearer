@@ -513,3 +513,8 @@ Verified explicit BL native-capture code head c0702cdf33d6384fd2faf2a3743588017b
 
 
 Verified persisted selected-trace index code head 448f8bce3cb555bd7fe98e43a80062c51f93df65: local full163/preflight and focused dataset regression PASS; CI38380323949 confirms163/163, syntax/preflight, unpublished ZIP21/21 and frozen guards PASS: https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38380323949 . Coverage includes reload without RNG, checksum/identity/missing refs, private access/session changes, revision/duplicate guards, same-client append lock, detached update inputs and post-game storage failure with explicit no-reroll recovery. These are Node mocks, not Foundry acceptance. Selected trace persistence is implemented; pre-roll reservation, full event ledger, cross-client concurrency/retention and actual Foundry13.351 A-D remain OPEN / NOT RUN. Legacy Mixed sole live authority; CORE reader-only; M11 PAUSED; kill switch ENGAGED; 0/14 FULLY_REAUDITED; stable1.12.0/published QA1.13.0-qa.29 frozen.
+
+
+## Reserved audit lifecycle checkpoint — 2026-10-13
+
+[Evidence models](M10D18_PACKAGE_A_EVIDENCE_MODELS.md) documents optional schema2 private pre-roll reservations for explicit Legacy Skill/BL, same-ID native/index commits and read-only pending detection. Pre-game storage failures stop before gameplay; interrupted/private-save failures retain intent. Valid saved traces can be explicitly indexed without reroll/re-spend. Schema1 remains post-game-only; no migration. Full event storage/other routes, terminal pending policy, cross-client/retention and actual Foundry13.351 remain OPEN / NOT RUN. No release/certification; A09 R unchanged.

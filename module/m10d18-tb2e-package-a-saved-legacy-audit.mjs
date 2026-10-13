@@ -162,6 +162,10 @@ export async function tb2ePackageAAuditTraceFingerprint({traceMessageId=null}={}
  const evidence=tb2ePackageASavedLegacyAuditEvidence({traceMessageId});if(!evidence.ok)return evidence;
  try{
   const g=globalThis.game,gm=g.user,worldId=g.world.id,message=g.messages.get(traceMessageId);
+  const {datasetId,reservationSequence,obstacle}=message.flags["realm-guard"].packageAAudit;
+  if(datasetId!==undefined&&(typeof datasetId!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(datasetId))||
+   reservationSequence!==undefined&&(!Number.isSafeInteger(reservationSequence)||reservationSequence<0||reservationSequence>=128||datasetId===undefined))
+   return result(false,"AUDIT_TRACE_DATASET_FIELDS_INVALID");
   const snapshot=()=>canonicalAudit({record:message.flags["realm-guard"].packageAAudit,rolls:message.rolls.map(r=>({formula:r.formula,total:r.total,
    faces:r.terms[0].results.map(d=>d.result)}))});
   const text=snapshot();if(text.length>524288)return result(false,"AUDIT_TRACE_CHECKSUM_SIZE_LIMIT");
@@ -172,6 +176,7 @@ export async function tb2ePackageAAuditTraceFingerprint({traceMessageId=null}={}
   const refreshed=tb2ePackageASavedLegacyAuditEvidence({traceMessageId});if(!refreshed.ok)return refreshed;
   return result(true,null,{testIdentity:evidence.testIdentity,traceMessageId,legacyMessageId:evidence.legacyMessageId,
    skillItemId:evidence.skillItemId,testMode:evidence.testMode,outcome:evidence.recordedLegacyOutcome,
+   datasetId:datasetId??null,reservationSequence:reservationSequence??null,obstacle,
    checksum:[...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,"0")).join(""),checksumAuthenticated:false});
  }catch{return result(false,"AUDIT_TRACE_CHECKSUM_READ_FAILED");}
 }
@@ -189,14 +194,40 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
   const original=journal.flags?.["realm-guard"]?.packageAAuditDataset,stable=canonicalAudit(original);
   const d=JSON.parse(stable??"null");
   const exact=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length===keys.length&&keys.every(k=>Object.hasOwn(o,k));
-  if(!exact(d,["schemaVersion","kind","worldId","gmId","revision","entries","commits","assuranceModel","sourceProfileId","authenticated"])||d.schemaVersion!==1||d.kind!=="LEGACY_AUDIT_DATASET"||d.worldId!==worldId||d.gmId!==gm.id||
+  const reserved=d?.schemaVersion===2;
+  if(!exact(d,["schemaVersion","kind","worldId","gmId","revision","entries","commits","assuranceModel","sourceProfileId","authenticated",...(reserved?["reservations"]:[])])||(!reserved&&d.schemaVersion!==1)||d.kind!=="LEGACY_AUDIT_DATASET"||d.worldId!==worldId||d.gmId!==gm.id||
    d.assuranceModel!=="TRUSTED_GM_R"||d.sourceProfileId!=="realm-guard-legacy-mixed"||d.authenticated!==false||
-   !Number.isSafeInteger(d.revision)||d.revision<0||d.revision>128||!Array.isArray(d.entries)||d.entries.length>128||
+   !Number.isSafeInteger(d.revision)||d.revision<0||d.revision>(reserved?256:128)||!Array.isArray(d.entries)||d.entries.length>128||
    !Array.isArray(d.commits)||d.commits.length!==d.revision)
    return result(false,"AUDIT_DATASET_MANIFEST_INVALID");
-  const committed=d.commits.flatMap((c,i)=>exact(c,["revision","traceMessageIds"])&&c.revision===i+1&&Array.isArray(c.traceMessageIds)&&c.traceMessageIds.length&&c.traceMessageIds.length<=128?c.traceMessageIds:[null]);
-  if(committed.length!==d.entries.length||new Set(committed).size!==committed.length||
-   committed.some((id,i)=>id!==d.entries[i]?.traceMessageId))return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+  const committed=[],reservationTests=new Set(),reservedIds=[],indexedIds=[];
+  if(reserved){
+   if(!Array.isArray(d.reservations)||d.reservations.length>128)return result(false,"AUDIT_DATASET_RESERVATIONS_INVALID");
+   for(const [i,r] of d.reservations.entries()){
+    if(!exact(r,["sequence","testId","actorId","skillItemId","testMode","obstacle"])||r.sequence!==i||
+     typeof r.testId!=="string"||!/^[A-Za-z0-9_-]{1,100}$/.test(r.testId)||reservationTests.has(r.testId)||
+     [r.actorId,r.skillItemId].some(id=>typeof id!=="string"||!/^[A-Za-z0-9]{1,128}$/.test(id))||
+     !["SKILL","BEGINNERS_LUCK"].includes(r.testMode)||!Number.isSafeInteger(r.obstacle)||r.obstacle<1)
+     return result(false,"AUDIT_DATASET_RESERVATIONS_INVALID");
+    reservationTests.add(r.testId);
+   }
+  }
+  for(const [i,c] of d.commits.entries()){
+   if(!exact(c,reserved?["revision","kind","testIds","traceMessageIds"]:["revision","traceMessageIds"])||c.revision!==i+1||
+    !Array.isArray(c.traceMessageIds)||c.traceMessageIds.length>128)return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+   if(reserved){
+    if(!Array.isArray(c.testIds)||!c.testIds.length||c.testIds.length>128)return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+    if(c.kind==="RESERVE"&&c.testIds.length===1&&!c.traceMessageIds.length){
+     if(reservedIds.includes(c.testIds[0]))return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+     reservedIds.push(c.testIds[0]);
+    }else if(c.kind==="INDEX"&&c.testIds.length===c.traceMessageIds.length&&c.testIds.every(id=>reservedIds.includes(id)))indexedIds.push(...c.testIds);
+    else return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+   }else if(!c.traceMessageIds.length)return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
+   committed.push(...c.traceMessageIds);
+  }
+  if(committed.length!==d.entries.length||new Set(committed).size!==committed.length||committed.some((id,i)=>id!==d.entries[i]?.traceMessageId)||
+   reserved&&(reservedIds.length!==d.reservations.length||reservedIds.some((id,i)=>id!==d.reservations[i].testId)||
+    indexedIds.length!==d.entries.length||indexedIds.some((id,i)=>id!==d.entries[i]?.testId)))return result(false,"AUDIT_DATASET_COMMIT_CHAIN_MISMATCH");
   const seenTests=new Set(),seenMessages=new Set();
   for(const [i,e] of d.entries.entries()){
    if(!exact(e,["sequence","testId","actorId","skillItemId","testMode","traceMessageId","legacyMessageId","outcome","checksum"])||e.sequence!==i||typeof e.testId!=="string"||seenTests.has(e.testId)||seenMessages.has(e.traceMessageId)||
@@ -207,15 +238,23 @@ export async function tb2ePackageAAuditDatasetEvidence({journalId=null}={}){
    if(f.testIdentity.testId!==e.testId||f.testIdentity.actorId!==e.actorId||f.skillItemId!==e.skillItemId||f.testMode!==e.testMode||
     f.legacyMessageId!==e.legacyMessageId||f.outcome!==e.outcome||f.checksum!==e.checksum)
     return result(false,"AUDIT_DATASET_TRACE_FINGERPRINT_MISMATCH",{journalId,traceMessageId:e.traceMessageId});
+   if(reserved){
+    const r=d.reservations.find(r=>r.testId===e.testId);
+    if(!r||f.datasetId!==journalId||f.reservationSequence!==r.sequence||f.obstacle!==r.obstacle||
+     r.actorId!==e.actorId||r.skillItemId!==e.skillItemId||r.testMode!==e.testMode)
+     return result(false,"AUDIT_DATASET_RESERVATION_TRACE_MISMATCH");
+   }else if(f.reservationSequence!==null)return result(false,"AUDIT_DATASET_RESERVATION_SCHEMA_REQUIRED");
   }
   if(!datasetSession(g,gm,worldId)||g.journal.get(journalId)!==journal)return result(false,"AUDIT_DATASET_SESSION_CHANGED");
   if(journal.visible!==true||journal.ownership?.default!==0||journal.ownership?.[gm.id]!==3||Object.keys(journal.ownership).some(k=>k!=="default"&&k!==gm.id))return result(false,"PRIVATE_CURRENT_GM_AUDIT_JOURNAL_REQUIRED");
   if(canonicalAudit(journal.flags?.["realm-guard"]?.packageAAuditDataset)!==stable)return result(false,"AUDIT_DATASET_CHANGED_DURING_READ");
   const unindexed=[...g.messages.values()].filter(m=>m.visible===true&&m.isContentVisible===true&&
    m.flags?.["realm-guard"]?.packageAAudit?.datasetId===journalId&&!seenMessages.has(m.id)).map(m=>m.id);
-  const data={journalId,worldId,gmId:gm.id,revision:d.revision,entries:d.entries,commits:d.commits,unindexedTraceMessageIds:unindexed,
+  const pending=reserved?d.reservations.filter(r=>!seenTests.has(r.testId)):[];
+  const data={validatedManifestSnapshot:stable,schemaVersion:d.schemaVersion,reservations:reserved?d.reservations:[],pendingReservations:pending,
+   preRollReservationScope:reserved?"EXPLICIT_RESERVED_TESTS_NOT_ALL_WORLD_TESTS":"NOT_RECORDED_SCHEMA1",journalId,worldId,gmId:gm.id,revision:d.revision,entries:d.entries,commits:d.commits,unindexedTraceMessageIds:unindexed,
    indexScope:"EXPLICIT_SELECTED_TRACE_MESSAGES_NOT_ALL_WORLD_TESTS",persistedIndexObserved:true,
    datasetChecksumsConsistent:true,datasetAuthenticated:false,durableGlobalReplayVerified:false};
-  return result(!unindexed.length,unindexed.length?"AUDIT_DATASET_UNINDEXED_ASSOCIATED_TRACE":null,data);
+  return result(!unindexed.length&&!pending.length,unindexed.length?"AUDIT_DATASET_UNINDEXED_ASSOCIATED_TRACE":pending.length?"AUDIT_DATASET_PENDING_RESERVATION":null,data);
  }catch{return result(false,"AUDIT_DATASET_READ_FAILED");}
 }
