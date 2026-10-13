@@ -45,7 +45,7 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   try{
     // Construct an evaluated native copy from serialized data. ChatMessage's
     // model may own/mutate its input; never hand it the gameplay Roll instance.
-    const nativeCopy=globalThis.Roll.fromData(legacyResult.roll.toJSON());
+    const nativeCopy=globalThis.Roll.fromData(JSON.parse(JSON.stringify(legacyResult.roll.toJSON())));
     const trace=await globalThis.ChatMessage.create({speaker:{actor:actor.id,alias:actor.name},
       whisper:[gm.id],content:"<p>Realm Guard Package A: private Legacy diagnostic record.</p>",
       rolls:[nativeCopy],flags:{"realm-guard":{packageAAudit:record}}});
