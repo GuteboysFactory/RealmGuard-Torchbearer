@@ -22,10 +22,13 @@ globalThis.game={ready:true,version:"13.351",system:{id:"realm-guard",version:"1
 globalThis.ChatMessage={getSpeaker:({actor})=>({actor:actor.id,scene:"scene"}),
  async create(data){if(data.flags&&storageFail)throw Error("PRIVATE_STORAGE_FAILURE");
   const rolls=(data.rolls||[]).map(r=>{const copy=new Roll(r.formula);copy.assign(r.terms[0].results.map(d=>d.result));return copy;});
+  const savedFlags=structuredClone(data.flags||{});
   // Model owns/mutates its supplied data: gameplay's original Roll must survive.
   if(data.flags&&data.rolls?.[0])data.rolls[0].terms[0].results[0].result=6;
+  if(data.flags?.["realm-guard"]?.packageAAudit?.nativeObservation)
+    data.flags["realm-guard"].packageAAudit.nativeObservation.baseRecord.dice[0].face=6;
   const m={id:`msg${++nextId}`,documentName:"ChatMessage",visible:true,isContentVisible:true,author:game.user,
-   timestamp:nextId,whisper:data.whisper||[],speaker:data.speaker,content:data.content,flags:structuredClone(data.flags||{}),rolls,
+   timestamp:nextId,whisper:data.whisper||[],speaker:data.speaker,content:data.content,flags:savedFlags,rolls,
    get speakerActor(){return game.actors.get(this.speaker.actor);},async update(change){Object.assign(this,change);return this;}};
   messages.push(m);game.messages.set(m.id,m);return m;}};
 const {RealmGuardActor}=await import("../module/documents.mjs");

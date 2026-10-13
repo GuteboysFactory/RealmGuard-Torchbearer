@@ -1,4 +1,5 @@
 import {tb2ePackageALegacyObservationProbe} from "./m10d18-tb2e-package-a-legacy-observation.mjs";
+import {tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-saved-legacy-audit.mjs";
 
 const fields=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
 const failure=reasonCode=>({ok:false,reasonCode});
@@ -48,10 +49,14 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
     const nativeCopy=globalThis.Roll.fromData(JSON.parse(JSON.stringify(legacyResult.roll.toJSON())));
     const trace=await globalThis.ChatMessage.create({speaker:{actor:actor.id,alias:actor.name},
       whisper:[gm.id],content:"<p>Realm Guard Package A: private Legacy diagnostic record.</p>",
-      rolls:[nativeCopy],flags:{"realm-guard":{packageAAudit:record}}});
+      rolls:[nativeCopy],flags:{"realm-guard":{packageAAudit:JSON.parse(JSON.stringify(record))}}});
     if(!globalThis.game?.ready||globalThis.game.system?.id!=="realm-guard"||globalThis.game.user!==gm||!gm.active||gm.isGM!==true||globalThis.game.users?.get(gm.id)!==gm||globalThis.game.world?.id!==worldId||
       globalThis.game.settings.get("realm-guard","activeRulesProfileId")!=="realm-guard-legacy-mixed")
       return {...legacyResult,audit:{...failure("LEGACY_AUDIT_SESSION_CHANGED_DURING_STORAGE"),traceMessageId:trace.id}};
+    if(!reason){
+      const saved=tb2ePackageASavedLegacyAuditEvidence({traceMessageId:trace.id});
+      if(!saved.ok)return {...legacyResult,audit:{...failure(saved.reasonCode),traceMessageId:trace.id}};
+    }
     return {...legacyResult,audit:{ok:!reason,reasonCode:reason,traceMessageId:trace.id,status:record.status}};
   }catch{
     // Never reroll/re-spend/retry gameplay after a diagnostic storage failure.
