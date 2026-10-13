@@ -215,5 +215,14 @@ const durableLearning=await appendLedger({journalId:learningDoc.journalId,expect
 assert.equal(durableLearning.ok,true,JSON.stringify(durableLearning));
 const readLearning=await readReplay({journalId:learningDoc.journalId});assert.equal(readLearning.ok,true,JSON.stringify(readLearning));
 assert.equal(readLearning.ledgerReplayValid,true);assert.equal(readLearning.replayProjection.eventHistory[0].traceMessageId,learningTraceId);
-assert.equal(readLearning.replayProjection.eventHistory[0].evidenceScope,"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE");role.system=learningState;
-console.log("PASS reserved and reviewed evidence lifecycle: pre-roll intent, pending recovery/GM disposition, append-only durable Skill/supply replay, tamper rejection, no Actor/Item mutation or CORE writes");
+assert.equal(readLearning.replayProjection.eventHistory[0].evidenceScope,"SCOPED_SAVED_NATIVE_LEGACY_BL_CAPTURE");
+globalThis.Hooks={once:(event,callback)=>{assert.equal(event,"ready");callback();}};
+game.realmGuard={core:{}};const {installM10DFoundation}=await import("../module/m10d-tb2e-foundation.mjs");installM10DFoundation();
+const coreBefore=JSON.stringify([actor.system,role.system,learningJournal.flags,[...game.messages.values()]]),coreRolls=rolls,coreUpdates=updates;
+const coreLedger=await game.realmGuard.core.m10d.tests.auditDatasetEvidence({journalId:learningDoc.journalId});
+assert.equal(coreLedger.ok,true,JSON.stringify(coreLedger));assert.equal(coreLedger.ledgerReplayValid,true);
+assert.equal(game.realmGuard.core.m10d.tests.appendEvidenceLedger,undefined);
+assert.equal(coreLedger.replayProjection.eventHistory[0].traceMessageId,learningTraceId);
+assert.equal(JSON.stringify([actor.system,role.system,learningJournal.flags,[...game.messages.values()]]),coreBefore);
+assert.equal(rolls,coreRolls);assert.equal(updates,coreUpdates);role.system=learningState;
+console.log("PASS reserved and reviewed evidence lifecycle: pre-roll intent, pending recovery/GM disposition, durable Skill/BL-learning/supply replay, CORE API read-only, tamper rejection, no Actor/Item mutation");
