@@ -38,7 +38,7 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   const testId=globalThis.foundry.utils.randomID();
   const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId});
   if(!probe.ok)return failure(probe.reasonCode);
-  // Fate rounds are captured, but BASE_ONLY reader acceptance remains pending.
+  // Saved Fate scope is checked separately; mutable records are not attestation.
   const obstacle=options.obstacle??1,worldId=g.world.id;
   const capability=Object.freeze({});
   const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null};
@@ -50,7 +50,7 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   try{
   const observed=capture.error??probe.finish();
   let reason=observed.ok?null:observed.reasonCode;
-  if(legacyResult.fateSpent&&!reason)reason="LEGACY_AUDIT_SAVED_FATE_READER_PENDING";
+
   const current=globalThis.game;
   if(!current?.ready||current.system?.id!=="realm-guard"||current.user!==gm||!gm.active||gm.isGM!==true||current.users?.get(gm.id)!==gm||current.world?.id!==worldId||
     current.settings.get("realm-guard","activeRulesProfileId")!=="realm-guard-legacy-mixed")
@@ -59,9 +59,10 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   if(!original||original.speaker?.actor!==actor.id||original.speakerActor!==actor||original.speaker?.token||
      original.author!==gm||original.visible!==true||original.isContentVisible!==true)
     return {...legacyResult,audit:failure("LEGACY_AUDIT_ORIGINAL_MESSAGE_LINK_REQUIRED")};
-  const record={schemaVersion:1,kind:"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
+  const fateScope=legacyResult.fateSpent===true;
+  const record={schemaVersion:fateScope?2:1,kind:fateScope?"LEGACY_ROLE_AUDIT_BASE_FATE":"LEGACY_ROLE_AUDIT_BASE_ONLY",testId,worldId,actorId:actor.id,
     gmId:gm.id,skillItemId:role.id,obstacle,legacyMessageId:original.id,
-    status:reason?"INCOMPLETE":"BASE_SCOPE_RECORDED",reasonCode:reason,
+    status:reason?"INCOMPLETE":fateScope?"BASE_FATE_SCOPE_RECORDED":"BASE_SCOPE_RECORDED",reasonCode:reason,
     nativeObservation:observed.ok?observed:null,
     legacyOutcome:{outcome:legacyResult.outcome,successes:legacyResult.successes,fateSpent:legacyResult.fateSpent===true},
     sourceProfileId:"realm-guard-legacy-mixed",authenticated:false,completeTestHistoryVerified:false};
