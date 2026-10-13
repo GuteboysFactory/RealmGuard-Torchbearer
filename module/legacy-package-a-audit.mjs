@@ -3,6 +3,25 @@ import {tb2ePackageASavedLegacyAuditEvidence} from "./m10d18-tb2e-package-a-save
 
 const fields=(o,keys)=>o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
 const failure=reasonCode=>({ok:false,reasonCode});
+const captures=new WeakMap();
+// Private issued capability; diagnostic failures never interrupt gameplay.
+export function observeLegacyAuditEvent(capability,actor,stage,roll=null){
+ const c=captures.get(capability);if(!c||c.actor!==actor||c.error)return;
+ try{
+  let r;
+  if(stage==="base")r=c.probe.observeBaseRoll(roll);
+  else if(stage==="fate")r=c.probe.observeFateRound({roll,parentDieIds:c.parents});
+  else if(stage==="spend")r=c.probe.observeResourceChange({resource:"fate",amount:1});
+  else return;
+  if(!r.ok){c.error=r;return;}
+  if(roll){
+   c.nativeData.push(JSON.parse(JSON.stringify(roll.toJSON())));
+   const id=stage==="base"?`${c.testId}:base`:`${c.testId}:luck${c.round++}`;
+   c.parents=roll.dice.flatMap(d=>d.results).flatMap((d,i)=>d.result===6?[`${id}:${i}`]:[]);
+  }
+ }catch{c.error=failure("LEGACY_AUDIT_CAPTURE_FAILED");}
+}
+
 
 /** Explicit Legacy-owned GM diagnostic. Not registered on CORE/startup/UI.
  * Executes existing live Legacy gameplay once; audit storage is an additional
@@ -19,16 +38,19 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   const testId=globalThis.foundry.utils.randomID();
   const probe=tb2ePackageALegacyObservationProbe({actorId:actor.id,skillItemId:role.id,testId});
   if(!probe.ok)return failure(probe.reasonCode);
-  // Do not change/disable the normal Fate prompt. If used, the saved BASE_ONLY
-  // trace is explicitly incomplete because native Fate rounds are not hooked.
+  // Fate rounds are captured, but BASE_ONLY reader acceptance remains pending.
   const obstacle=options.obstacle??1,worldId=g.world.id;
-  const legacyResult=await actor.rollRole(role,{obstacle});
+  const capability=Object.freeze({});
+  const capture={actor,probe,testId,parents:[],round:0,nativeData:[],error:null};
+  captures.set(capability,capture);
+  let legacyResult;
+  try{legacyResult=await actor.rollRole(role,{obstacle,legacyAuditCapture:capability});}
+  finally{captures.delete(capability);}
   if(!legacyResult?.roll)return {...(legacyResult??{}),audit:failure("LEGACY_ROLL_DID_NOT_COMPLETE")};
   try{
-  let observed=probe.observeBaseRoll(legacyResult.roll);
-  if(observed.ok)observed=probe.finish();
+  const observed=capture.error??probe.finish();
   let reason=observed.ok?null:observed.reasonCode;
-  if(legacyResult.fateSpent)reason="LEGACY_AUDIT_NATIVE_FATE_ROUNDS_NOT_CAPTURED";
+  if(legacyResult.fateSpent&&!reason)reason="LEGACY_AUDIT_SAVED_FATE_READER_PENDING";
   const current=globalThis.game;
   if(!current?.ready||current.system?.id!=="realm-guard"||current.user!==gm||!gm.active||gm.isGM!==true||current.users?.get(gm.id)!==gm||current.world?.id!==worldId||
     current.settings.get("realm-guard","activeRulesProfileId")!=="realm-guard-legacy-mixed")
@@ -46,10 +68,10 @@ export async function legacyRoleRollWithAudit(actor,role,options={}){
   try{
     // Construct an evaluated native copy from serialized data. ChatMessage's
     // model may own/mutate its input; never hand it the gameplay Roll instance.
-    const nativeCopy=globalThis.Roll.fromData(JSON.parse(JSON.stringify(legacyResult.roll.toJSON())));
+    const nativeCopies=capture.nativeData.map(data=>globalThis.Roll.fromData(JSON.parse(JSON.stringify(data))));
     const trace=await globalThis.ChatMessage.create({speaker:{actor:actor.id,alias:actor.name},
       whisper:[gm.id],content:"<p>Realm Guard Package A: private Legacy diagnostic record.</p>",
-      rolls:[nativeCopy],flags:{"realm-guard":{packageAAudit:JSON.parse(JSON.stringify(record))}}});
+      rolls:nativeCopies,flags:{"realm-guard":{packageAAudit:JSON.parse(JSON.stringify(record))}}});
     if(!globalThis.game?.ready||globalThis.game.system?.id!=="realm-guard"||globalThis.game.user!==gm||!gm.active||gm.isGM!==true||globalThis.game.users?.get(gm.id)!==gm||globalThis.game.world?.id!==worldId||
       globalThis.game.settings.get("realm-guard","activeRulesProfileId")!=="realm-guard-legacy-mixed")
       return {...legacyResult,audit:{...failure("LEGACY_AUDIT_SESSION_CHANGED_DURING_STORAGE"),traceMessageId:trace.id}};

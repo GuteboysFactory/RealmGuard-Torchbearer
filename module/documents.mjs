@@ -6,7 +6,7 @@ import { diceFacesHtml } from "./dice-ui.mjs";
 import { traitLevel, traitPositiveStatus, traitPositiveDice, traitPositiveSuccessBonus, consumeTraitPositiveUse } from "./traits.mjs";
 import { applyMg2eWiseEffect } from "./m10c-mg2e-live-wises.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
-import { legacyRoleRollWithAudit } from "./legacy-package-a-audit.mjs";
+import { legacyRoleRollWithAudit, observeLegacyAuditEvent } from "./legacy-package-a-audit.mjs";
 
 function familyPolicy() { return getActiveM10BFamilyRulePolicy(); }
 function usesMg1eTraitRules() { return familyPolicy().mg1eTraits; }
@@ -66,11 +66,12 @@ export class RealmGuardActor extends Actor {
     }));
   }
 
-  async _explodeSixes(initialFaces) {
+  async _explodeSixes(initialFaces, legacyAuditCapture = null) {
     const bonusFaces = [];
     let open = initialFaces.filter(v => v === 6).length;
     while (open > 0) {
       const extra = await new Roll(`${open}d6`).evaluate();
+      observeLegacyAuditEvent(legacyAuditCapture,this,"fate",extra);
       const extraFaces = extra.dice.flatMap(d => d.results.map(r => r.result));
       bonusFaces.push(...extraFaces);
       open = extraFaces.filter(v => v === 6).length;
@@ -436,7 +437,7 @@ export class RealmGuardActor extends Actor {
     return Math.max(1,Number(result.margin||1));
   }
 
-  async rollRole(role, { modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within" } = {}) {
+  async rollRole(role, { modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", legacyAuditCapture = null } = {}) {
     const personaDice = personaDiceCount(persona);
     const esc = foundry.utils.escapeHTML;
     const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: false });
@@ -451,6 +452,7 @@ export class RealmGuardActor extends Actor {
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const roll = await new Roll(`${dice}d6`).evaluate();
+    observeLegacyAuditEvent(legacyAuditCapture,this,"base",roll);
     await this._commitTraitBenefit(assist);
     await this._commitTokenPowerUse(power);
     let baseFaces = roll.dice.flatMap(d => d.results.map(r => r.result));
@@ -467,8 +469,9 @@ export class RealmGuardActor extends Actor {
       pendingMessage = await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this }), content: pending });
     }
     const spendFate = canAskFate ? await this._askFateAfterSixes({ roleName: role.name, sixCount: baseSixes }) : false;
-    const bonusFaces = spendFate ? await this._explodeSixes(baseFaces) : [];
+    const bonusFaces = spendFate ? await this._explodeSixes(baseFaces,legacyAuditCapture) : [];
     if (spendFate) await this.spendTrackedResource("fate", 1, { reason: "Fate / Open 6s or Versus tie" });
+    if (spendFate) observeLegacyAuditEvent(legacyAuditCapture,this,"spend");
     const faces = baseFaces.concat(bonusFaces);
     const rolledSuccesses = faces.filter(v => v >= 4).length;
     const traitSuccesses = this._traitSuccessBonus(assist, rolledSuccesses, obstacle);
