@@ -558,3 +558,7 @@ Rule boundary: DH108-110 requires distinct Ability P/F history and defines thres
 
 
 Verified exact-head Ability capture commit `a9a9bbceef264f447f537309edc06731fb9bcae5`: local 164/164 smoke suites, syntax/preflight and `git diff --check` PASS. CI [38446007982](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38446007982) passes Package A/full regressions, staged archive manifest 21/21 and frozen channel checks. No release or profile activation.
+
+## 2026-10-13 — Ability P/F replay follow-on
+
+Added a distinct read-only replay route for saved native Will/Health test events. A GM-reviewed Adventure `TEST_CREDIT` must point to the correct Will or Health baseline epoch, match the private trace's captured Ability key and rating, and not duplicate an earlier test credit. The final saved Legacy result increments only that Ability's detached P/F projection; captured condition evidence can suppress a mark. Regression reuses actual Ability audit fixtures and covers a wrong Ability subject and repeated test ID. This does not put marks in Foundry, reconstruct earlier counts, or authorize advancement. Current schema4 durable trace indexing remains Skill-shaped (`skillItemId`/Skill reservation), so Ability credit is not yet storable in the shared ledger. That schema/index transition, Nature routes, real-runtime execution and consolidated A-D remain outstanding. Local focused replay regression passes; exact-head full regression and CI are pending.

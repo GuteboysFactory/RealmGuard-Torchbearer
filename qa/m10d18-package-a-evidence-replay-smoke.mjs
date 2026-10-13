@@ -78,6 +78,21 @@ nature.baseline.subjects[1].rating=1;nature.baseline.subjects[1].counters=unknow
 nature.events[0]={...nature.events[0],reason:"NATURE_ZERO_LOSS",nextRating:0,nextCurrentNature:0};
 const retired=replay(nature);assert.equal(retired.ok,true);assert.equal(retired.subjects[1].natureRetiredState,true);
 assert.deepEqual(retired.subjects[1].counters,{passed:0,failed:0});
+const abilityTrace=[...game.messages.values()].find(m=>m.flags?.["realm-guard"]?.packageAAudit?.kind==="LEGACY_ABILITY_AUDIT"&&
+ m.flags["realm-guard"].packageAAudit.abilityKey==="health");assert.ok(abilityTrace,"The storage fixture must leave a saved native Health audit trace.");
+const abilityRecord=abilityTrace.flags["realm-guard"].packageAAudit,abilitySubject={subjectId:"actor:HEALTH",epochId:"h1",kind:"HEALTH",
+ itemId:null,skillName:null,rating:3,currentNature:null,counters:reviewed({passed:1,failed:2})};
+const abilityInput={baseline:{schemaVersion:1,worldId:"world",actorId:"actor",gmId:"gm",subjects:[abilitySubject],supplies:[]},
+ events:[{eventId:"healthCredit",sequence:0,type:"TEST_CREDIT",reviewId:"r",reviewerId:"gm",subjectId:"actor:HEALTH",epochId:"h1",
+  traceMessageId:abilityTrace.id,context:"ADVENTURE",gmEligibilityReviewed:true}],previousEventIds:[],previousCreditKeys:[],previousSupplyTestIds:[]};
+const abilityProjection=replay(abilityInput);assert.equal(abilityProjection.ok,true,JSON.stringify(abilityProjection));
+assert.deepEqual(abilityProjection.subjects[0].counters,{passed:2,failed:2});assert.equal(abilityProjection.eventHistory[0].evidenceMode,"SAVED_NATIVE_WILL_HEALTH_ABILITY");
+assert.equal(abilityProjection.eventHistory[0].nativeOutcome,abilityRecord.legacyOutcome.outcome);
+const abilityReject=structuredClone(abilityInput);abilityReject.baseline.subjects[0].kind="WILL";abilityReject.baseline.subjects[0].subjectId="actor:WILL";
+abilityReject.events[0].subjectId="actor:WILL";
+assert.equal(replay(abilityReject).reasonCode,"REPLAY_CAPTURED_ABILITY_SOURCE_MISMATCH");
+const abilityDuplicate=structuredClone(abilityInput);abilityDuplicate.events.push({...abilityDuplicate.events[0],eventId:"healthCredit2",sequence:1});
+assert.equal(replay(abilityDuplicate).reasonCode,"REPLAY_DUPLICATE_TEST_CREDIT");
 game.user=game.users.get("player");assert.equal(replay(input()).reasonCode,"CURRENT_SESSION_GM_REQUIRED");game.user=game.users.get("gm");
 assert.equal(JSON.stringify(actor.system),beforeActor);assert.equal(evaluations,2);
 Roll.prototype.evaluate=originalEvaluate;ChatMessage.create=originalCreate;

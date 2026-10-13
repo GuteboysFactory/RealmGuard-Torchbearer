@@ -508,3 +508,7 @@ Foundry screenshots show two Skill audit samples: one base/Fate private-save/rea
 ## Partial Ability runtime case added to candidate protocol
 
 For the explicit unpublished build, compare ordinary `rollAbility("will", {obstacle, wiseId})` against `rollAbilityWithAudit` using the same copied World state and seeded/manual face sequence where available. Cover base-only and base→Wise→Fate, private trace save, reload/read-only `savedLegacyAuditEvidence`, unsupported `nature` and override/dataset refusal, and unchanged gameplay chat/result/resource semantics. Record actual source/build/hash and before/after Actor state. No Will/Health marks are written or inferred. This is a partial A05/A08 diagnostic until integrated with full counter/ledger and consolidated A-D acceptance.
+
+## Package A next regression checkpoint — Ability replay
+
+The replay smoke now verifies a saved native Health trace projects only to the Health P/F baseline, records the captured outcome, rejects routing the same trace to Will, and rejects a duplicate test credit. This is a Node Foundry-mock projection only. It does not persist Ability traces into schema4: current dataset trace index/reservation requires a Skill item ID/mode. For a live candidate test, the existing unpublished `rollAbilityWithAudit` control/readback scenario remains the required producer check; counters stay unchanged in Foundry. Record archive SHA/source commit, build, trace ID, expanded saved evidence and before/after snapshots. Consolidated Foundry v13.351 A-D: NOT RUN.

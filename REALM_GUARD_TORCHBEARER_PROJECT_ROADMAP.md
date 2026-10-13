@@ -1339,3 +1339,7 @@ Follow-up screenshot shows Baran/Baker4, Inn-wise, obstacle2; base `[1,5,4,3]`, 
 
 
 Verified exact-head Ability capture commit `a9a9bbceef264f447f537309edc06731fb9bcae5`: local 164/164 smoke suites, syntax/preflight and `git diff --check` PASS. CI [38446007982](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38446007982) passes Package A/full regressions, staged archive manifest 21/21 and frozen channel checks. No release or profile activation.
+
+### 2026-10-13 — Will/Health Ability read-only replay increment
+
+The event replay projection now routes a saved native Will/Health Legacy diagnostic to its matching separately baselined Ability P/F subject after reviewed Adventure eligibility. It checks source key/rating, captured conditions, epoch and duplicate credit; regression includes a genuine saved test fixture plus wrong Ability and duplicate-credit refusals. This is a read-only in-memory projection; schema4 durable trace indexing/reservation remains Skill-shaped and cannot yet persist Ability credits. Nature and actual Foundry A-D remain open. Legacy Mixed sole live authority; CORE shadow/read-only; M11 PAUSED; kill switch ENGAGED; stable v1.12.0 and published QA v1.13.0-qa.29 unchanged; no release or FULLY_REAUDITED claim.

@@ -105,3 +105,5 @@ Commit `a091c1f480d2788ecb5ccc4661c5df1c983103f5` added schema4 append-only base
 
 
 Verified exact-head Ability capture commit `a9a9bbceef264f447f537309edc06731fb9bcae5`: local 164/164 smoke suites, syntax/preflight and `git diff --check` PASS. CI [38446007982](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/38446007982) passes Package A/full regressions, staged archive manifest 21/21 and frozen channel checks. No release or profile activation.
+
+**2026-10-13 Ability replay increment:** Read-only `TEST_CREDIT` replay now consumes a saved Legacy Will/Health diagnostic, binds the captured key/rating to the matching distinct baseline Ability and epoch, uses the recorded final outcome, applies captured condition suppression, and rejects duplicate/mismatched source credit. Local focused regression passed. This slice is not durable: current schema4 trace indexing/reservation remains Skill-shaped; no Ability event can yet be committed to that ledger. Nature, cross-client persistence, full runtime acceptance, and all G1-G5 gates remain OPEN. All authority/release controls and version pins remain unchanged.
