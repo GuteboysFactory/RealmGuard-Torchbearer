@@ -3,7 +3,7 @@
 **Planning baseline:** v1.13.0-qa.17  
 **Planning date:** 2026-10-14  
 **Foundry target:** 13.351  
-**Current status:** PLANNING ONLY — no live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
+**Current status:** IMPLEMENTATION CANDIDATE on `codex/m10d-tb2e-wise-pilot` — isolated source module, QA namespace exposure and regression smoke are added. The smoke has not yet been executed and the code has not been installed in Foundry. No live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
 
 ## 1. Entry evidence
 
@@ -52,6 +52,8 @@ The QA-only Wises handoff must expose and report which source-owned plan was sel
 - Missing/unrelated Wise, missing resource, unknown effect, or no eligible failed die must fail closed without applying an effect.
 
 The pilot is policy routing and evidence capture only. No die is rerolled, no Fate/Persona is spent, and no Actor/Item/Journal/Setting is changed. Runtime evidence stays in memory and resets after reload.
+
+The candidate exposes `game.realmGuard.core.m10d.controlledWiseHandoff` as a separate namespace beside the existing `wises` shadow API. Its `run(effect, context)` accepts explicit QA inputs, calls only the TB2E Wises plan, and returns `PLAN_ROUTED_NOT_APPLIED` or a fail-closed rejection. It is deliberately not connected to normal roll entry points.
 
 ## 5. Required gates
 
