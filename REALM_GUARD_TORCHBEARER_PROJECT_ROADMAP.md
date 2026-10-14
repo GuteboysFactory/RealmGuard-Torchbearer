@@ -2,14 +2,305 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.1 — M10D.1 TB2E Source Coverage + Foundation
+**Current QA build:** v1.13.0-qa.17 — M10D planning baseline
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10D.1 — IN PROGRESS · Source-constrained TB2E foundation
+**Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
+**M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
 **Internal system id:** `realm-guard` (do not rename)
 
-## M10D.1 — Torchbearer 2E Source Coverage + Profile Foundation
+> **Planeringsbas:** `v1.13.0-qa.17`. M10D-omfattningen nedan är fryst vid denna version; implementation och beslut efter qa.17 ska inte användas för att definiera innehållet.
 
-Active QA: v1.13.0-qa.1. Only guide-supported source audit and standalone Rules / Creation Profile v1; no live activation or writes. All gaps/ambiguities are explicit. Stable remains v1.12.0; M10C.8 remains FULL PASS / VERIFIED / CLOSED. First foundation gate pending. See M10D_1_TB2E_SOURCE_COVERAGE_MATRIX_2026-10-04.md and TEST_PROTOCOL_v1.13.0-qa.1.md.
+## M10D — TORCHBEARER 2E CORE LIVE
+
+### M10D.1 — Source / Profile Foundation
+
+Bygg den officiella source boundary-matrisen för de två guiderna.
+
+Registrera:
+
+`torchbearer2e`
+
+Initial status:
+
+- FOUNDATION_ONLY
+- non-selectable
+- non-live
+- zero-write
+
+Lägg in:
+
+- source lineage
+- domain capabilities
+- Rules Registry
+- source-gap metadata
+- conversion-preview foundation
+
+**Gate:** profilen kan resolve:a alla deklarerade domains utan att ändra World/Actor/Item/Journal/settings.
+
+### M10D.2 — Character Model + Sheet
+
+Utöka befintlig generisk Actor-modell/presentation för TB:
+
+- Stock
+- Class
+- Level
+- Age
+- Home
+- Raiment
+- Will
+- Health
+- Nature current/max där relevant
+- Resources
+- Circles
+- Might
+- Precedence
+- Belief
+- Creed
+- Goal
+- Instinct
+- Skills
+- Wises
+- Traits
+- Conditions
+- Fate
+- Persona
+- Inventory
+- Spell/Relic storage placeholders
+
+Sheet ska vara profile-aware. Bygg inte en separat TB Actor-klass om befintlig CORE Actor kan bära datan.
+
+**Gate:** TB Actor kan skapas, redigeras, sparas och reloadas utan att påverka Legacy/Strict/MG-profiler.
+
+### M10D.3 — Tests / Help / Beginner’s Luck / Nature / Traits / Wises
+
+Koppla TB till befintliga M2/M3/M4-services.
+
+Implementera source-supported:
+
+- dice pool
+- successes
+- Ob tests
+- versus där guide coverage räcker
+- modifiers
+- Help
+- helper provenance
+- Beginner’s Luck
+- Nature
+- Nature descriptors
+- Traits
+- Trait Against där stöd finns
+- Wises
+- Fate/Persona integrations där stöd finns
+- advancement marks/rules där guiderna räcker
+
+MG1E/MG2E behavior får inte användas som dold fallback.
+
+**Gate:** representativa TB Skill/Ability/Nature/BL/Help/Trait/Wise tests passerar genom CORE Test Engine med TB-owned policy.
+
+### M10D.4 — Conditions / Recovery / Grind
+
+Detta är den största TB-specifika mekaniska delen.
+
+Implementera:
+
+- Adventure turn counting
+- test/conflict → Turn där källan säger det
+- Grind
+- condition application
+- condition modifiers
+- recovery order
+- recovery tests
+- Camp/Town recovery semantics
+- Fresh där guiderna stöder det
+- interaction med Instinct/free actions
+
+Återanvänd M4/M7 där möjligt.
+
+Skapa inte en andra generell Session Engine.
+
+**Gate:** en Actor kan gå från frisk → Adventure/Grind → Condition → Camp/Town → Recovery korrekt.
+
+### M10D.5 — Inventory / Gear
+
+Lägg TB-policy ovanpå M5.
+
+Minimum:
+
+- inventory slots
+- carried
+- worn
+- pack/container
+- basic placement validation
+- consumable quantities
+- cache support där guiden räcker
+- relevant Gear modifier där guiden stöder det
+
+Paper-doll/container presentation får återanvändas, men TB-reglerna ska äga mechanics.
+
+**Gate:** flytt, usage och reload fungerar utan data loss.
+
+### M10D.6 — Basic Conflict
+
+Lägg TB-policy ovanpå M6 Conflict Engine.
+
+Implementera bara source-supported:
+
+- conflict setup
+- sides / teams / participants
+- disposition
+- actions
+- action resolution
+- Help
+- compromise/result där guide coverage räcker
+- basic condition interaction
+
+Saknas detaljerade weapon/action tables i source package ska de vara GUIDED/MANUAL.
+
+**Gate:** ett representativt TB Conflict kan startas, spelas till resolution och avslutas utan profile leakage.
+
+### M10D.7 — Adventure / Camp / Town
+
+Lägg en TB Session Policy ovanpå M7.
+
+Minimum:
+
+- session start basics
+- Adventure state
+- Adventure turns
+- Grind interaction
+- Checks
+- Camp entry
+- Camp actions
+- recovery
+- return to Adventure
+- Town entry
+- Town recovery/resources basics
+- session persistence/reload
+
+Automatisera inte regler som guiderna inte specificerar.
+
+**Gate:** Adventure → Camp → Adventure och Adventure → Town fungerar genom samma Session Engine.
+
+### M10D.8 — Character Creation
+
+Implementera `CharacterCreationProfile = torchbearer2e` ovanpå CORE M9.
+
+Guide-supported core classes:
+
+- Burglar
+- Magician
+- Outcast
+- Ranger
+- Theurge
+- Warrior
+
+Implementera där källan stöder det:
+
+- Stock/Class
+- age
+- home
+- raiment
+- abilities
+- Nature
+- skills
+- wises
+- traits
+- relationships
+- B/C/G/I
+- basic gear
+- Resources/Circles/Might/Precedence
+- class-specific storage such as Spell/Relic fields
+- Review
+- transactional Commit
+- CreationProvenance
+
+Inga permanent writes före final Commit.
+
+**Gate:** skapa en full TB character → reload → all creation data finns kvar.
+
+### M10D.9 — Live Readiness Audit
+
+Kör en sammanhållen readiness audit.
+
+För varje domain:
+
+- source coverage
+- provider exists
+- live handoff exists
+- read/write behavior
+- dependency status
+- source gap
+- regression status
+
+Audit får **inte** aktivera profilen.
+
+**Gate:** inga tekniska blockerare kvar för de domains som ingår i Core Live.
+
+### M10D.10 — Controlled Live Parity
+
+Kör bounded QA handoffs genom riktiga Foundry-flöden.
+
+Verifiera minst:
+
+- Test
+- Help
+- BL
+- Nature
+- Conditions/Recovery
+- Grind
+- Inventory
+- Conflict
+- Session
+- Creation
+
+Fortfarande ingen generell TB activation.
+
+**Gate:** alla supported Core domains visar parity i samma QA-baseline och zero unexpected writes.
+
+### M10D.11 — Explicit QA Activation
+
+Gör `torchbearer2e` explicit valbar i QA.
+
+Krav:
+
+- GM-only activation
+- preview before switch
+- settings/profile-state driven
+- reversible
+- reload-safe
+- multi-client-safe
+- no Actor/Item/Journal destructive migration
+- no silent conversion of Wises/Traits/Conditions/Inventory
+- rollback till tidigare profile
+
+**Gate:** previous profile → TB → reload → rollback → TB igen är idempotent och data-safe.
+
+### M10D.12 — TB2E CORE LIVE / STABLE
+
+Sluttesta hela grundloopen:
+
+`Create → Adventure → Test → Grind/Condition → Conflict → Camp/Recovery → Adventure/Town → Advancement → reload`
+
+Regression:
+
+- Legacy Mixed
+- Realm Guard Strict
+- MG1E
+- MG2E
+
+Definition of Done:
+
+- TB profile är supported
+- grundloopen är spelbar
+- inga source gaps maskeras
+- manual/guided mechanics visas tydligt
+- activation är reversibel
+- campaign data bevaras
+- stable promotion görs först efter explicit QA PASS
+
+**M10D är då CLOSED.**
+
+---
 
 ## v1.12.0 stable promotion
 
