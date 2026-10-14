@@ -2,13 +2,13 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.1 — repository snapshot; M10D scope is frozen at v1.7.0-qa.17
+**Current QA build:** v1.13.0-qa.29 — current QA baseline; M10D scope is frozen at v1.13.0-qa.17
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
-**Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · planning baseline v1.7.0-qa.17
-**M10D planning boundary:** v1.7.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
+**Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · planning baseline v1.13.0-qa.17
+**M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
 **Internal system id:** `realm-guard` (do not rename)
 
-> **Planeringsbas:** `v1.7.0-qa.17`. M10D-omfattningen nedan är fryst vid denna version; senare implementation och roadmap-beslut ska inte användas för att tolka vad som ska byggas.
+> **Planeringsbas:** `v1.13.0-qa.17`. M10D-omfattningen nedan är fryst vid denna version; senare implementation och roadmap-beslut ska inte användas för att tolka vad som ska byggas.
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 
