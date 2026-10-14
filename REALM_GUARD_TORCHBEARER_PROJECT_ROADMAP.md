@@ -10,6 +10,8 @@
 
 > **Planeringsbas:** `v1.13.0-qa.17`. M10D-omfattningen nedan är fryst vid denna version; implementation och beslut efter qa.17 ska inte användas för att definiera innehållet.
 
+**Foundry verification (2026-10-14, installed qa.17):** User-run `game.realmGuard.core.m10d.finalAudit()` returned `auditComplete=true`, `domainCount=19`, `mappingIntegrity=true`, `adapterGapDomains=[]`, `unexpectedReadyDomains=[]`, and `nextPhase=CONTROLLED_TB2E_LIVE_INTEGRATION_PLANNING`. `liveActivationAuthorized=false`, `profileSwitchAuthorized=false`, and `creationCommitAuthorized=false`. This verifies the foundation audit in Foundry only; it does not enable live rules.
+
 ## M10D — TORCHBEARER 2E CORE LIVE
 
 ## qa.17 carry-forward — reuse the existing implementation
