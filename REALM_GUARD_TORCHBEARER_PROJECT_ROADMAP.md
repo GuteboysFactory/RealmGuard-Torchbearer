@@ -268,6 +268,8 @@ Audit får **inte** aktivera profilen.
 
 **qa.17 carry-forward:** this is new work after the read-only shadow baseline. Execute only explicit Foundry handoffs for VERIFIED/BOUNDED_PARTIAL domains; SOURCE_BLOCKED domains remain excluded.
 
+**First pilot: Wises.** qa.17 classifies it as the only VERIFIED domain. Follow [M10D.17 controlled integration plan](M10D_17_TB2E_CONTROLLED_LIVE_INTEGRATION_PLAN.md). The first slice proves QA-only, TB2E-owned routing while keeping the profile locked; it performs no reroll, resource spend, or document/settings write, so it is not yet live parity or activation.
+
 Kör bounded QA handoffs genom riktiga Foundry-flöden.
 
 Verifiera minst:
