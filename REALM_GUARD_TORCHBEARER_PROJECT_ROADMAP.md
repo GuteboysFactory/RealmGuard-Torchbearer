@@ -12,7 +12,30 @@
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 
+## qa.17 carry-forward — reuse the existing implementation
+
+M10D is **not a greenfield rebuild**. Use the qa.17 implementation and the existing CORE/M1–M9 services as the starting point. First inspect and verify what is already present; add code only for a demonstrated gap. A passing READ_ONLY shadow audit is evidence to carry forward, but it is not evidence of live authority, persistent writes, or end-to-end play readiness.
+
+| Roadmap gate | qa.17 baseline / carry-forward | Remaining work |
+|---|---|---|
+| M10D.1 Source/Profile Foundation | **Complete.** Final foundation audit, source matrix, profile registration and zero-write boundary are in qa.17. | Preserve this contract; update source metadata only if authoritative inputs change. |
+| M10D.2 Character Model + Sheet | Reuse existing CORE Actor/sheet and the bounded TB creation profile/plan. | Inspect existing fields and Foundry persistence; implement only missing TB-specific data, then verify save/reload and profile isolation. qa.17 did not authorize creation commits. |
+| M10D.3 Tests / Help / BL / Nature / Traits / Wises | Reuse the existing shadow adapters: Wises is **VERIFIED**; supported test, ability, Nature and Help areas are **BOUNDED_PARTIAL**. | Plan controlled live handoffs for supported rules. Traits are **SOURCE_BLOCKED** at qa.17 and must remain out of automated/live scope. |
+| M10D.4 Conditions / Recovery / Grind | Reuse bounded Conditions and Recovery shadows and existing session/phase services. | Verify source-bounded live handoffs and the Adventure/Grind/recovery loop; close only evidenced gaps. |
+| M10D.5 Inventory / Gear | Reuse the bounded Inventory/Gear shadow and existing CORE inventory/container presentation. | Verify live placement, use and reload; do not rebuild existing storage/presentation. |
+| M10D.6 Basic Conflict | **SOURCE_BLOCKED** at qa.17. No authorized Conflict shadow adapter exists. | Defer automated/live Conflict until authoritative source coverage resolves the recorded conflicts and gaps. Keep it explicitly unavailable or GM/manual. |
+| M10D.7 Adventure / Camp / Town | Reuse the bounded Session/Phases shadow and existing CORE Session Engine. | Verify TB policy handoffs through the existing engine and persistence; do not create a second session engine. |
+| M10D.8 Character Creation | Reuse the bounded TB creation profile and creation plan on CORE M9. | Verify against the guide, then separately gate any transactional live commit. qa.17 keeps commit blocked and performs zero writes. |
+| M10D.9 Live Readiness Audit | The **foundation/source-readiness audit is complete** in qa.17. | Do not rerun it unchanged. Audit only domain handoffs, mutation contracts, rollback and regression evidence as they are introduced. |
+| M10D.10 Controlled Live Parity | This is the next implementation phase; qa.17 shadows are not live parity. | Execute bounded Foundry handoffs only for VERIFIED/BOUNDED_PARTIAL domains. Exclude the four SOURCE_BLOCKED domains and keep writes inside explicit contracts. |
+| M10D.11 Explicit QA Activation | Activation remains **unauthorized and blocked** in qa.17. | Consider only after the selected live domains pass their handoff, data-safety, rollback and regression gates. |
+| M10D.12 TB2E Core Live / Stable | Not complete in qa.17. | Promote only the explicitly supported and verified playable scope; keep source-blocked mechanics visible as unavailable/manual and never imply full rule coverage. |
+
+M10D.1 and the source/foundation portion of M10D.9 are carry-forward completions, not new build tasks. Every other gate must start with an implementation and play-session inventory against qa.17 and the existing CORE engines. “Already shadow-ready” means reuse the adapter and prove the next boundary; it does not mean silently enable live behavior.
+
 ### M10D.1 — Source / Profile Foundation
+
+**qa.17 carry-forward: COMPLETE.** Preserve the existing source matrix, standalone profile and zero-write foundation; do not rebuild it.
 
 Bygg den officiella source boundary-matrisen för de två guiderna.
 
@@ -38,6 +61,8 @@ Lägg in:
 **Gate:** profilen kan resolve:a alla deklarerade domains utan att ändra World/Actor/Item/Journal/settings.
 
 ### M10D.2 — Character Model + Sheet
+
+**qa.17 carry-forward: reuse existing CORE Actor/sheet and the bounded TB creation plan.** Inspect existing schema and persistence first; add only demonstrated missing fields or handoffs. qa.17 does not prove live TB save/reload or authorize creation writes.
 
 Utöka befintlig generisk Actor-modell/presentation för TB:
 
@@ -73,6 +98,8 @@ Sheet ska vara profile-aware. Bygg inte en separat TB Actor-klass om befintlig C
 
 ### M10D.3 — Tests / Help / Beginner’s Luck / Nature / Traits / Wises
 
+**qa.17 carry-forward:** Wises is VERIFIED; supported Tests, Abilities/Skills, Nature and Help/Teamwork are BOUNDED_PARTIAL shadow domains. Reuse these adapters for controlled parity planning. Traits is SOURCE_BLOCKED and must not be implemented or routed live without new authoritative source coverage.
+
 Koppla TB till befintliga M2/M3/M4-services.
 
 Implementera source-supported:
@@ -99,6 +126,8 @@ MG1E/MG2E behavior får inte användas som dold fallback.
 
 ### M10D.4 — Conditions / Recovery / Grind
 
+**qa.17 carry-forward:** reuse the BOUNDED_PARTIAL Conditions, Recovery and Session/Phases shadows and existing CORE session services. Work is live handoff and play-loop verification, not a second implementation of the shadow rules.
+
 Detta är den största TB-specifika mekaniska delen.
 
 Implementera:
@@ -122,6 +151,8 @@ Skapa inte en andra generell Session Engine.
 
 ### M10D.5 — Inventory / Gear
 
+**qa.17 carry-forward:** reuse the BOUNDED_PARTIAL Inventory/Gear shadow and existing CORE inventory/container presentation. Add only missing live policy or persistence behavior after inspection.
+
 Lägg TB-policy ovanpå M5.
 
 Minimum:
@@ -139,26 +170,17 @@ Paper-doll/container presentation får återanvändas, men TB-reglerna ska äga 
 
 **Gate:** flytt, usage och reload fungerar utan data loss.
 
-### M10D.6 — Basic Conflict
+### M10D.6 — Basic Conflict (SOURCE-BLOCKED at qa.17)
 
-Lägg TB-policy ovanpå M6 Conflict Engine.
+**qa.17 carry-forward:** Conflict is SOURCE_BLOCKED; no shadow adapter or live candidate is authorized. The source matrix records unresolved disposition-rule conflict and missing weapon/action/compromise coverage.
 
-Implementera bara source-supported:
+Do not begin automated TB Conflict or claim parity from the existence of a generic CORE Conflict Engine. Keep the domain unavailable or explicitly GM/MANUAL until authoritative TB2E source coverage is added and audited. If coverage changes, first define the bounded contract and regression gates, then consider a source-owned adapter.
 
-- conflict setup
-- sides / teams / participants
-- disposition
-- actions
-- action resolution
-- Help
-- compromise/result där guide coverage räcker
-- basic condition interaction
-
-Saknas detaljerade weapon/action tables i source package ska de vara GUIDED/MANUAL.
-
-**Gate:** ett representativt TB Conflict kan startas, spelas till resolution och avslutas utan profile leakage.
+**Gate:** no automated/live Conflict is included until its source blockers are resolved and a separate bounded audit passes.
 
 ### M10D.7 — Adventure / Camp / Town
+
+**qa.17 carry-forward:** reuse the BOUNDED_PARTIAL Session/Phases shadow and existing CORE Session Engine. Implement only TB policy handoffs and persistence gaps demonstrated by Foundry QA.
 
 Lägg en TB Session Policy ovanpå M7.
 
@@ -182,6 +204,8 @@ Automatisera inte regler som guiderna inte specificerar.
 **Gate:** Adventure → Camp → Adventure och Adventure → Town fungerar genom samma Session Engine.
 
 ### M10D.8 — Character Creation
+
+**qa.17 carry-forward:** reuse the BOUNDED_PARTIAL TB Character Creation profile/plan and CORE M9. Existing previews do not authorize a live commit; verify actual gaps before changing creation code.
 
 Implementera `CharacterCreationProfile = torchbearer2e` ovanpå CORE M9.
 
@@ -220,6 +244,8 @@ Inga permanent writes före final Commit.
 
 ### M10D.9 — Live Readiness Audit
 
+**qa.17 carry-forward:** the source/foundation readiness audit is already complete. This gate audits newly introduced live handoffs, mutation boundaries and regression evidence only; do not repeat the unchanged foundation audit.
+
 Kör en sammanhållen readiness audit.
 
 För varje domain:
@@ -238,6 +264,8 @@ Audit får **inte** aktivera profilen.
 
 ### M10D.10 — Controlled Live Parity
 
+**qa.17 carry-forward:** this is new work after the read-only shadow baseline. Execute only explicit Foundry handoffs for VERIFIED/BOUNDED_PARTIAL domains; SOURCE_BLOCKED domains remain excluded.
+
 Kör bounded QA handoffs genom riktiga Foundry-flöden.
 
 Verifiera minst:
@@ -249,15 +277,16 @@ Verifiera minst:
 - Conditions/Recovery
 - Grind
 - Inventory
-- Conflict
 - Session
-- Creation
+- Character Creation preview/review boundaries (no commit unless separately authorized)
 
 Fortfarande ingen generell TB activation.
 
 **Gate:** alla supported Core domains visar parity i samma QA-baseline och zero unexpected writes.
 
 ### M10D.11 — Explicit QA Activation
+
+**qa.17 carry-forward:** activation remains blocked and unauthorized. This gate can start only after selected live domains pass bounded parity, data safety, rollback and regression checks.
 
 Gör `torchbearer2e` explicit valbar i QA.
 
@@ -276,6 +305,8 @@ Krav:
 **Gate:** previous profile → TB → reload → rollback → TB igen är idempotent och data-safe.
 
 ### M10D.12 — TB2E CORE LIVE / STABLE
+
+**qa.17 carry-forward:** not complete. Stable promotion must name its supported scope; source-blocked mechanics remain unavailable/manual until supported, and no full-rule coverage may be implied.
 
 Sluttesta hela grundloopen:
 
