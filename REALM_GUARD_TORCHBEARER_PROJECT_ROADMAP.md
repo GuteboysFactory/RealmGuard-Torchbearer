@@ -270,6 +270,8 @@ Audit får **inte** aktivera profilen.
 
 **First pilot: Wises.** qa.17 classifies it as the only VERIFIED domain. Follow [M10D.17 controlled integration plan](M10D_17_TB2E_CONTROLLED_LIVE_INTEGRATION_PLAN.md). The first slice proves QA-only, TB2E-owned routing while keeping the profile locked; it performs no reroll, resource spend, or document/settings write, so it is not yet live parity or activation.
 
+**Implementation candidate:** `codex/m10d-tb2e-wise-pilot` adds a separate QA-only, GM-only Wises handoff namespace around the qa.17 TB2E shadow plans. The existing `wises` shadow API and all other rule trees remain unchanged. Automated smoke and Foundry QA are still pending; this does not close M10D.10.
+
 Kör bounded QA handoffs genom riktiga Foundry-flöden.
 
 Verifiera minst:
