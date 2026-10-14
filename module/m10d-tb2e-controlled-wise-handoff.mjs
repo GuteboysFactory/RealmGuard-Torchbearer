@@ -39,8 +39,8 @@ function inputComplete(effect, options) {
   const key = normalize(effect);
   if (["iamwise", "wiseaid"].includes(key)) return typeof options.actingOnInstinct === "boolean";
   if (["deeperunderstanding", "deeper"].includes(key)) {
-    return Number.isFinite(options.failedDice) && options.failedDice >= 0
-      && Number.isFinite(options.alreadyRerolledFailedDice) && options.alreadyRerolledFailedDice >= 0
+    return Number.isInteger(options.failedDice) && options.failedDice >= 0
+      && Number.isInteger(options.alreadyRerolledFailedDice) && options.alreadyRerolledFailedDice >= 0
       && typeof options.hasFate === "boolean";
   }
   if (["ofcourse", "ahofcourse", "course"].includes(key)) {
