@@ -125,7 +125,7 @@ assert.equal(unrelated.reasonCode,"WISE_NOT_RELATED");
 const unknown=api.run("Free Reroll",{hasWise:true,related:true});
 assert.equal(unknown.reasonCode,"UNKNOWN_WISE_EFFECT");
 
-assert.equal(api.getStatus().evidenceCount,7);
+assert.equal(api.getStatus().evidenceCount,8);
 assert.deepEqual(api.getStatus().writes,{actors:0,items:0,journals:0,settings:0});
 assert.equal(worldSnapshot(),beforeWorld);
 assert.equal(profileSnapshot(),profilesBefore);
