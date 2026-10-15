@@ -1,10 +1,11 @@
-# Realm Guard / Torchbearer v1.13.0-qa.18 — M10D.17 Controlled TB2E Wises Handoff
+# Realm Guard / Torchbearer v1.13.0-qa.19 — M10D.18 Controlled TB2E Basic Test Handoff
 
-- Adds a QA-runtime-only, GM-only path to select and record TB2E-owned Wises plans.
-- Reuses the qa.17 VERIFIED Wises shadow adapter; no Wises rules are reimplemented.
-- The handoff records only in-memory evidence. It does not evaluate or reroll dice, spend Fate/Persona, write Actor/Item/Journal/settings data, activate TB2E, or switch profiles.
-- Rejects missing/unrelated Wises, unavailable resources, ineligible dice and unknown effects without fallback.
-- Legacy Mixed, Strict Realm Guard, MG1E and MG2E remain outside the TB2E handoff.
+- Reuses the existing TB2E Tests/Dice read-only shadow and CORE M3 Test Engine.
+- Adds a QA-only, GM-only deterministic ordinary Ob Test handoff with caller-supplied source label, dice pool, Obstacle, modifiers and d6 faces.
+- Reports the M3 result and bounded route evidence in memory only.
+- Keeps TB2E FOUNDATION_ONLY, READ_ONLY, unsupported, inactive and unavailable for activation.
+- Does not generate random dice, automate skill Obstacle factors, create chat messages, spend resources, apply consequences, or write Actor/Item/Journal/Setting data.
+- Legacy Mixed remains the active profile; Strict RG, MG1E and MG2E are unchanged.
 - Stable remains v1.12.0.
 
-Foundry VTT 13.351 validation: TEST_PROTOCOL_v1.13.0-qa.18.md.
+Source boundary: supplied Torchbearer 2E Quick Rules Guide pages 2 and 4 and Player Guide page 5; see M10D.18 plan and TEST_PROTOCOL_v1.13.0-qa.19.md.
