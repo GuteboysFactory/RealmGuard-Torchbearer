@@ -1,8 +1,9 @@
-1.13.0-qa.18
-# M10D.17 Controlled TB2E Wises QA handoff
-# qa.17 baseline; Wises is the first controlled pilot under M10D.10
-# QA-only and GM-only; TB2E remains FOUNDATION_ONLY, locked, inactive and unsupported
-# No dice evaluation/reroll, Fate/Persona spend, document/setting write, profile activation or creation commit
-# M10D.17 handoff slice only; no source-blocked domains or PR14
+1.13.0-qa.19
+# M10D.18 Controlled TB2E Basic Test handoff
+# baseline v1.13.0-qa.18; reuses the existing M3 Test Engine and TB2E test shadow
+# QA-only and GM-only; profile remains FOUNDATION_ONLY, locked, inactive and unsupported
+# deterministic supplied d6 faces only; caller supplies source label, pool, Obstacle and modifiers
+# no random roll, ChatMessage, resource spend, Actor/Item/Journal/Setting write, activation or creation commit
+# M10D.18 slice only; M10D.10 remains in progress; no PR14
 # Stable remains 1.12.0
-# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.18.md
+# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.19.md
