@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.17 — M10D planning baseline
+**Current QA build:** v1.13.0-qa.19 — M10D.18 controlled Test handoff candidate (baseline qa.18)
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
 **M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
@@ -268,7 +268,9 @@ Audit får **inte** aktivera profilen.
 
 **qa.17 carry-forward:** this is new work after the read-only shadow baseline. Execute only explicit Foundry handoffs for VERIFIED/BOUNDED_PARTIAL domains; SOURCE_BLOCKED domains remain excluded.
 
-**First pilot: Wises.** qa.17 classifies it as the only VERIFIED domain. Follow [M10D.17 controlled integration plan](M10D_17_TB2E_CONTROLLED_LIVE_INTEGRATION_PLAN.md). The first slice proves QA-only, TB2E-owned routing while keeping the profile locked; it performs no reroll, resource spend, or document/settings write, so it is not yet live parity or activation.
+**First pilot: Wises.** qa.17 classifies it as the only VERIFIED domain. Follow [M10D.17 controlled integration plan](M10D_17_TB2E_CONTROLLED_LIVE_INTEGRATION_PLAN.md). This bounded QA-only handoff passed Foundry verification in qa.18; it performs no reroll, resource spend, or document/settings write and does not establish live parity or activation.
+
+**Next bounded handoff: basic ordinary Ob Test.** M10D.18 routes caller-supplied deterministic dice through the existing CORE M3 Test Engine under QA-only, GM-only controls. It does not automate skill Obstacle factors or enable a random/live TB2E roll. See [M10D.18 controlled Test handoff plan](M10D_18_TB2E_CONTROLLED_TEST_HANDOFF.md) and the qa.19 protocol. M10D.10 remains in progress; this slice does not establish general Test parity or TB2E playability.
 
 Kör bounded QA handoffs genom riktiga Foundry-flöden.
 
