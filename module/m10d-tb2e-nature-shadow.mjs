@@ -51,7 +51,11 @@ export function tb2eNatureModel(){
     substitutionUsesCurrentNature:true,
     channel:{resource:"PERSONA",amount:1,addsCurrentNatureDice:true,blockedTests:["RESOURCES","CIRCLES"]},
     advancementBasis:"MAXIMUM_NATURE",
-    upperRetirementBoundary:{rating:7,timing:"END_OF_SESSION",automation:"MANUAL_CONFIRMATION"},
+    upperRetirementBoundary:{
+      rating:7,ratingBasis:"CURRENT_NATURE",
+      timing:"END_OF_SESSION",requiresRatingStillAtSeven:true,
+      automation:"MANUAL_CONFIRMATION"
+    },
     lowerRetirementBoundary:{maximumAfterNatureLoss:0,timing:"END_OF_CURRENT_ADVENTURE_PHASE",automation:"MANUAL_CONFIRMATION"},
     liveApplication:false,writesPlanned:0
   });
@@ -143,20 +147,14 @@ export function tb2eChannelNatureTaxPlan({
 }
 
 export function tb2eNatureRecoveryPlan({
-  method="",
-  currentNature=0,
-  maximumNature=0,
-  noConditions=false,
-  deliveredPrologue=false,
-  missedLastSession=false,
-  passedLifestyle=false
+  method="",currentNature=0,maximumNature=0,noConditions=false,
+  deliveredPrologue=false,missedLastSession=false,passedLifestyle=false
 }={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
   const key=String(method??"").trim().toUpperCase();
   let nextCurrent=Number(currentNature),nextMaximum=Number(maximumNature),requirements=[],eligible=true;
-  if(key==="RESPITE"){
-    nextCurrent=nextMaximum;
-  }else if(key==="PROLOGUE"){
+  if(key==="RESPITE") nextCurrent=nextMaximum;
+  else if(key==="PROLOGUE"){
     requirements=["DELIVERED_PROLOGUE","NO_CONDITIONS"];eligible=Boolean(deliveredPrologue)&&Boolean(noConditions);
     if(eligible) nextCurrent=Math.min(nextMaximum,nextCurrent+1);
   }else if(key==="MISSED_SESSION_RETURN"){
@@ -169,7 +167,6 @@ export function tb2eNatureRecoveryPlan({
     if(nextMaximum<1)return blocked("CANNOT_CONSERVE_ZERO_MAXIMUM_NATURE");
     nextMaximum-=1;nextCurrent=nextMaximum;requirements=["VOLUNTARY_MAXIMUM_REDUCTION"];
   }else return blocked("UNKNOWN_NATURE_RECOVERY_METHOD",{method:key});
-
   if(!eligible)return blocked("NATURE_RECOVERY_REQUIREMENTS_NOT_MET",{method:key,requirements});
   return freezeTb2e({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_RECOVERY_SHADOW",method:key,requirements,
@@ -179,11 +176,7 @@ export function tb2eNatureRecoveryPlan({
   });
 }
 
-export function tb2eNatureLossPlan({
-  currentNature=0,
-  maximumNature=0,
-  reachedZeroDueToTax=false
-}={}){
+export function tb2eNatureLossPlan({currentNature=0,maximumNature=0,reachedZeroDueToTax=false}={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
   if(Number(currentNature)!==0||!Boolean(reachedZeroDueToTax)) return blocked("NATURE_LOSS_REQUIRES_ZERO_CURRENT_FROM_TAX");
   const nextMaximum=Math.max(0,Number(maximumNature)-1);
@@ -197,20 +190,20 @@ export function tb2eNatureLossPlan({
   });
 }
 
-export function tb2eNatureAdvancementPlan({
-  currentNature=0,
-  maximumNature=0,
-  advancementTriggered=false
-}={}){
+export function tb2eNatureAdvancementPlan({currentNature=0,maximumNature=0,advancementTriggered=false}={}){
   if(!rating(currentNature)||!rating(maximumNature)||Number(currentNature)>Number(maximumNature)) return blocked("INVALID_NATURE_RATINGS",{currentNature,maximumNature});
   if(!Boolean(advancementTriggered)) return blocked("ADVANCEMENT_NOT_TRIGGERED");
   if(Number(maximumNature)>=7) return blocked("MAXIMUM_NATURE_AT_CAP",{maximumNature});
+  const currentAfter=Number(currentNature)+1,maximumAfter=Number(maximumNature)+1;
+  const retirementCheckRequired=currentAfter===7;
   const taxDifference=Number(maximumNature)-Number(currentNature);
   return freezeTb2e({
     ok:true,phase:"M10D.5",profileId:PROFILE_ID,mode:"NATURE_ADVANCEMENT_SHADOW",
     advancementBasis:"MAXIMUM_NATURE",currentBefore:Number(currentNature),maximumBefore:Number(maximumNature),
-    currentAfter:Number(currentNature)+1,maximumAfter:Number(maximumNature)+1,taxDifferenceBefore:taxDifference,taxDifferenceAfter:taxDifference,
-    retirementCheckRequired:Number(maximumNature)+1===7,retirementTiming:Number(maximumNature)+1===7?"END_OF_SESSION":null,
+    currentAfter,maximumAfter,taxDifferenceBefore:taxDifference,taxDifferenceAfter:taxDifference,
+    retirementRatingBasis:"CURRENT_NATURE_AFTER_ADVANCEMENT",
+    retirementCheckRequired,retirementTiming:retirementCheckRequired?"END_OF_SESSION":null,
+    retirementRequiresCurrentNatureStillSevenAtSessionEnd:retirementCheckRequired,
     mutationCommitted:false,advancementResetCommitted:false,liveApplication:false,writesPlanned:0
   });
 }
