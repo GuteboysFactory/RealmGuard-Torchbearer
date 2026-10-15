@@ -1,9 +1,9 @@
-1.13.0-qa.19
-# M10D.18 Controlled TB2E Basic Test handoff
+1.13.0-qa.20
+# M10D.19 Controlled TB2E Beginner's Luck / Nature handoff
 # baseline v1.13.0-qa.18; reuses the existing M3 Test Engine and TB2E test shadow
 # QA-only and GM-only; profile remains FOUNDATION_ONLY, locked, inactive and unsupported
-# deterministic supplied d6 faces only; caller supplies source label, pool, Obstacle and modifiers
+# deterministic supplied d6 faces only; source-bounded Beginner's Luck/Nature plans hand off to M3
 # no random roll, ChatMessage, resource spend, Actor/Item/Journal/Setting write, activation or creation commit
-# M10D.18 slice only; M10D.10 remains in progress; no PR14
+# M10D.19 slice only; M10D.10 remains in progress; no PR14
 # Stable remains 1.12.0
-# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.19.md
+# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.20.md
