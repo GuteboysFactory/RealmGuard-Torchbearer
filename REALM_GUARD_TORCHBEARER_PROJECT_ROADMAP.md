@@ -276,7 +276,7 @@ Audit får **inte** aktivera profilen.
 
 M10D.19 Beginner's Luck / Nature (qa.20) routes supplied deterministic dice through CORE M3. All nine handoff cases passed in Foundry; the user confirmed the Legacy regression PASS, zero writes were reported, and reload reset evidence to zero executed/nine pending. This closes only the M10D.19 slice; it does not establish general Test/Nature parity or TB2E playability.
 
-M10D.20 Conditions / Recovery / Grind (qa.21) is the next bounded candidate. It reuses the existing read-only shadows, exercises 13 QA-only cases, and keeps source-ambiguous recovery and Conflict behavior manual. Foundry protocol verification is pending; this candidate does not close M10D.4 or M10D.10 and does not authorize activation.
+M10D.20 Conditions / Recovery / Grind (qa.21) passed Foundry verification per the user's report: 13/13 bounded QA-only cases passed. It reuses existing read-only shadows and keeps source-ambiguous recovery and Conflict behavior manual. This closes only the M10D.20 handoff slice; it does not close M10D.4 or M10D.10, complete the Adventure-to-Camp/Town-to-Recovery loop, or authorize activation.
 
 M10D.10 remains in progress.
 
