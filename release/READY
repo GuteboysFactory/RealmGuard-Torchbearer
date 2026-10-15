@@ -1,10 +1,8 @@
-1.13.0-qa.21
-# M10D.20 Controlled TB2E Conditions / Recovery / Grind handoff
-# baseline v1.13.0-qa.20; reuses existing Condition, Recovery, Session/Grind read-only shadows
-# QA-only and GM-only; Torchbearer profile remains FOUNDATION_ONLY, READ_ONLY, locked, inactive and unsupported
-# 13 bounded cases; three condition-effect tests use caller-supplied deterministic d6 faces through CORE M3
-# recovery and Grind checks are previews only; no random rolls, writes, costs, condition/turn/phase mutations, activation or creation commit
-# unresolved source boundaries remain manual; no automated Conflict; no PR14
+1.13.0-qa.22
+# QA22 read-only Foundry World Inventory Report; baseline 1.13.0-qa.21
+# GM-only report of existing world documents, embedded Actor Items, readable compendium contents, active modules, profile and CORE/M10D status
+# no fixture creation, document/setting writes, compendium seeding, profile changes or automatic upload
+# setting values and authentication credentials are excluded
+# discovery/reporting only; does not close M10D.5 or another roadmap gate
 # Stable remains 1.12.0
-# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.21.md; release workflow must pass before QA channel promotion
-# Rebuilt after removal of the stale QA21 release/tag collision
+# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.22.md; all release gates must pass before QA channel promotion
