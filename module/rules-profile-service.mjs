@@ -235,3 +235,17 @@ export function installRulesProfileInfrastructure() {
     }
   });
 }
+
+export function getRulesProfileCatalog() {
+  return resolver.list().map((registered) => {
+    const resolved = resolver.resolve(registered.id);
+    const registry = new RulesRegistry(resolved);
+    return {
+      id: resolved.id, name: resolved.name, version: resolved.version,
+      parent: resolved.parent, lineage: resolved.lineage, classification: resolved.classification,
+      metadata: resolved.metadata, rulesSnapshotHash: resolved.rulesSnapshotHash,
+      domains: resolved.domains, registry: registry.list(),
+      capabilities: buildProfileCapabilities(resolved)
+    };
+  });
+}

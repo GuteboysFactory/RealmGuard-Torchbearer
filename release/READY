@@ -1,8 +1,5 @@
-1.13.0-qa.23
-# QA23 corrective release for QA22 report download compatibility
-# Foundry-native local save via foundry.utils.saveDataToFile plus selectable JSON copy fallback
-# read-only inventory only; no document, setting, module, profile or compendium writes and no automatic upload
-# report feature only; does not close M10D.5 or another roadmap gate
-# Stable remains 1.12.0
-# Release check rerun after report export smoke assertion correction
-# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.23.md; all release gates must pass before QA channel promotion
+1.13.0-qa.24
+# Complete read-only repository source, all rules profiles/registries, M10D source matrix, and existing Foundry world inventory
+# Does not create fixtures or mutate Foundry world, settings, profiles, modules, or compendiums; never auto-uploads
+# Inventory/discovery only; does not close any M10D gate; Stable remains 1.12.0
+# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.24.md; release automation runs the complete QA suite before channel promotion

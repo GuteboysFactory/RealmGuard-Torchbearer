@@ -1,5 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
-import { getRulesProfileRuntime } from "./rules-profile-service.mjs";
+import { getRulesProfileRuntime, getRulesProfileCatalog } from "./rules-profile-service.mjs";
 
 const NS = "realm-guard";
 const TOOL_ID = "world-inventory-report";
@@ -107,12 +107,16 @@ function rulesStatus(runtime) {
       if (api && typeof api.getStatus === "function") out.m10dDomains[name] = safeCall(() => api.getStatus());
     }
   }
+  out.registeredRuleProfiles = safeCall(() => getRulesProfileCatalog());
   try {
     const active = getRulesProfileRuntime();
     out.activeProfile = {
       id: String(active?.profile?.id ?? ""),
       label: String(active?.profile?.label ?? active?.profile?.name ?? ""),
-      snapshot: copyData(active?.snapshot ?? {})
+      snapshot: copyData(active?.snapshot ?? {}),
+      registry: safeCall(() => active?.registry?.list?.() ?? []),
+      domains: copyData(active?.profile?.domains ?? {}),
+      metadata: copyData(active?.profile?.metadata ?? {})
     };
   } catch (error) {
     out.activeProfile = { reportReadError: String(error?.message ?? error) };
@@ -153,7 +157,20 @@ async function compendiumInventory(packs) {
   return result.sort((a, b) => a.collection.localeCompare(b.collection));
 }
 
-export async function buildWorldInventoryReport(runtime = globalThis.game) {
+async function packagedSourceInventory(runtime) {
+  try {
+    const systemId = encodeURIComponent(String(runtime?.system?.id ?? "realm-guard"));
+    const response = await globalThis.fetch(`/systems/${systemId}/data/source-inventory.json`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const inventory = await response.json();
+    if (inventory?.formatVersion !== 1 || inventory?.manifest?.id !== String(runtime?.system?.id ?? "realm-guard")) throw new Error("Packaged source inventory version or system id is invalid.");
+    return { status: "available", inventory };
+  } catch (error) {
+    return { status: "unavailable", error: String(error?.message ?? error), inventory: null };
+  }
+}
+
+export async function buildWorldInventoryReport(runtime = globalThis.game, { sourceInventory = null } = {}) {
   if (!runtime?.user?.isGM) throw new Error("World inventory report is restricted to an active GM.");
   const worldCollections = {};
   for (const [key, label] of WORLD_COLLECTIONS) {
@@ -162,12 +179,13 @@ export async function buildWorldInventoryReport(runtime = globalThis.game) {
   }
 
   const packs = await compendiumInventory(runtime.packs);
+  const sourceIndex = sourceInventory ? { status: "available", inventory: copyData(sourceInventory) } : await packagedSourceInventory(runtime);
   const world = runtime.world ?? {};
   const system = runtime.system ?? {};
   const report = {
     report: {
       id: "realm-guard-world-inventory",
-      version: 1,
+      version: 2,
       createdAt: new Date().toISOString(),
       generatedBy: "Realm Guard / Torchbearer QA",
       readOnly: true,
@@ -178,6 +196,7 @@ export async function buildWorldInventoryReport(runtime = globalThis.game) {
       ],
       writes: { actors: 0, items: 0, scenes: 0, journals: 0, settings: 0, chatMessages: 0, compendiums: 0 }
     },
+    sourceInventory: sourceIndex,
     environment: {
       foundry: {
         release: copyData(runtime.version ?? runtime.release ?? {}),
@@ -251,7 +270,7 @@ async function openInventoryReport() {
   const rows = Object.entries(counts).map(([name, count]) => `<li><b>${escapeHtml(name)}</b>: ${count}</li>`).join("");
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Foundry World Inventory Report", resizable: true },
-    content: `<section><p>Complete read-only inventory of this world and all readable compendium entries.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules.</p><p>Setting values and authentication credentials are excluded. The JSON is saved locally through Foundry. If local saving is unavailable, use Copy JSON to select and copy the report. It is never uploaded automatically.</p></section>`,
+    content: `<section><p>Read-only inventory of this world, readable compendiums, packaged source code and rules profiles.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules · <b>${report.summary.indexedCodeFiles}</b> indexed code files · <b>${report.summary.indexedSymbols}</b> declared code symbols · <b>${report.environment.rules.registeredRuleProfiles?.length ?? 0}</b> rules profiles.</p><p>Setting values and authentication credentials are excluded. Source inventory includes source files, declared functions/classes, imports, hooks, settings, GM Dock tools, sheet registrations, project-document headings and the M10D source matrix. Runtime registry entries for every profile are included. Static indexing cannot infer every behavior branch; its coverage limits are documented. The JSON is saved locally through Foundry. If local saving is unavailable, use Copy JSON to select and copy the report. It is never uploaded automatically.</p></section>`,
     modal: true,
     rejectClose: false,
     buttons: [

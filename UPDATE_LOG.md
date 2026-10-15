@@ -1,3 +1,13 @@
+## v1.13.0-qa.24 — Complete Read-only System Inventory
+
+- Extends QA23's existing Foundry world and readable compendium inventory with a generated index of the full checked-out system source tree.
+- Indexes files, declared functions/classes/exports, imports, discovered Hook/setting/GM Dock/sheet registrations, read/write call sites, project-document headings, QA evidence and manifest document types.
+- Adds the qa.17 M10D source-coverage matrix plus runtime-resolved domains, Registry entries and capabilities for all registered rules profiles.
+- Preserves the active profile and current CORE/M10D provider statuses as separate runtime observations.
+- Documents static indexing limits; does not infer undocumented/dynamic behavior.
+- Read-only; no Actor/Item/Journal/Setting/compendium/profile/module writes and no automatic upload.
+- Inventory/discovery only. No M10D gate closes; Stable remains v1.12.0.
+
 # Realm Guard - Update Log
 
 ## v1.13.0-qa.17 — M10D Final Foundation Audit

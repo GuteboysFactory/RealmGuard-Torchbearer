@@ -1,9 +1,7 @@
-# Realm Guard / Torchbearer v1.13.0-qa.23 — Foundry Inventory Report Export Fix
+Realm Guard / Torchbearer v1.13.0-qa.24
 
-- Carries forward QA22's GM-only, read-only inventory of existing world documents, embedded Actor Items and readable compendiums.
-- Fixes report export to use Foundry V13's native local-file save utility instead of a Blob URL.
-- Adds a selectable JSON copy fallback if local saving is unavailable.
-- No Foundry documents, settings, profiles, modules, or compendium entries are changed; no automatic upload.
-- Discovery/reporting only; no M10D gate closes. Stable remains v1.12.0.
+QA24 extends the QA23 Foundry world and readable compendium report with a build-generated source-code index and a read-only runtime catalogue of all registered rules profiles and resolved Rules Registry entries.
 
-See TEST_PROTOCOL_v1.13.0-qa.23.md.
+The report inventories repository files, code symbols, imports, discovered hooks/settings/tools/sheets, project-document headings, QA evidence, the qa.17 M10D source matrix, current profile state and all registered profile rules. It records limits where static indexing cannot establish runtime behavior. No world/profile/settings/compendium writes or automatic uploads are introduced. No M10D gate closes; Stable remains v1.12.0.
+
+Foundry QA: TEST_PROTOCOL_v1.13.0-qa.24.md
