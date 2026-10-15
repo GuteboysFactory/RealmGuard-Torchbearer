@@ -25,7 +25,7 @@ const runtime = {
   messages: { contents: [makeDoc({ _id: "message-1", content: "QA note" })] },
   macros: { contents: [] }, folders: { contents: [] },
   packs: { contents: [fakePack] },
-  settings: { settings: new Map([["module.apiToken", { scope: "world", type: String, config: false, name: "API token" }]]) },
+  settings: { settings: new Map([["module.apiToken", { scope: "world", type: String, config: false, name: "API token", value: "SHOULD_NEVER_APPEAR" }]]) },
   realmGuard: { core: { m10d: { getStatus: () => ({ phase: "M10D.20", liveReady: false }), inventory: { getStatus: () => ({ phase: "M10D.10", liveApplication: false }) } } } }
 };
 
