@@ -8,6 +8,7 @@ import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, 
 import { getTb2eControlledWisesStatus, getTb2eControlledWisesMatrix, runTb2eControlledWisesHandoff, resetTb2eControlledWisesEvidence } from "./m10d-tb2e-controlled-wises.mjs";
 import { getTb2eControlledTestsStatus, getTb2eControlledTestsMatrix, runTb2eControlledTestHandoff, resetTb2eControlledTestsEvidence } from "./m10d-tb2e-controlled-tests.mjs";
 import { getTb2eControlledBlNatureStatus, getTb2eControlledBlNatureMatrix, runTb2eControlledBlNatureHandoff, resetTb2eControlledBlNatureEvidence } from "./m10d-tb2e-controlled-bl-nature.mjs";
+import { getTb2eControlledConditionsRecoveryGrindStatus, getTb2eControlledConditionsRecoveryGrindMatrix, runTb2eControlledConditionsRecoveryGrindHandoff, resetTb2eControlledConditionsRecoveryGrindEvidence } from "./m10d20-tb2e-controlled-conditions-recovery-grind.mjs";
 import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
 import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan } from "./m10d-tb2e-nature-shadow.mjs";
@@ -79,6 +80,7 @@ export function installM10DFoundation() {
       controlledWises:Object.freeze({getStatus:getTb2eControlledWisesStatus,getMatrix:getTb2eControlledWisesMatrix,runHandoff:runTb2eControlledWisesHandoff,resetEvidence:resetTb2eControlledWisesEvidence}),
       controlledTests:Object.freeze({getStatus:getTb2eControlledTestsStatus,getMatrix:getTb2eControlledTestsMatrix,runHandoff:runTb2eControlledTestHandoff,resetEvidence:resetTb2eControlledTestsEvidence}),
       controlledBlNature:Object.freeze({getStatus:getTb2eControlledBlNatureStatus,getMatrix:getTb2eControlledBlNatureMatrix,runHandoff:runTb2eControlledBlNatureHandoff,resetEvidence:resetTb2eControlledBlNatureEvidence}),
+      controlledConditionsRecoveryGrind:Object.freeze({getStatus:getTb2eControlledConditionsRecoveryGrindStatus,getMatrix:getTb2eControlledConditionsRecoveryGrindMatrix,runHandoff:runTb2eControlledConditionsRecoveryGrindHandoff,resetEvidence:resetTb2eControlledConditionsRecoveryGrindEvidence}),
       helpShadowStatus:tb2eHelpShadowStatus,
       help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
       testShadowStatus:tb2eTestShadowStatus,
