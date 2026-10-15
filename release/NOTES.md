@@ -1,10 +1,9 @@
-# Realm Guard / Torchbearer v1.13.0-qa.22 — Read-only Foundry World Inventory Report
+# Realm Guard / Torchbearer v1.13.0-qa.23 — Foundry Inventory Report Export Fix
 
-- Adds a GM-only Foundry World Inventory Report action.
-- Inventories existing world documents and readable compendium documents, including the test Actors and Gear already present.
-- Records Foundry/system versions, active modules (including Adventurer's Tome), current profile, CORE/M10D status providers and registered setting definitions.
-- Does not read setting values, upload data, create fixtures, seed packs, or write to Foundry documents.
-- QA22 is a discovery/reporting build only. It does not complete M10D.5 or another roadmap gate.
-- Stable remains v1.12.0.
+- Carries forward QA22's GM-only, read-only inventory of existing world documents, embedded Actor Items and readable compendiums.
+- Fixes report export to use Foundry V13's native local-file save utility instead of a Blob URL.
+- Adds a selectable JSON copy fallback if local saving is unavailable.
+- No Foundry documents, settings, profiles, modules, or compendium entries are changed; no automatic upload.
+- Discovery/reporting only; no M10D gate closes. Stable remains v1.12.0.
 
-See TEST_PROTOCOL_v1.13.0-qa.22.md.
+See TEST_PROTOCOL_v1.13.0-qa.23.md.
