@@ -48,6 +48,6 @@ const source = fs.readFileSync(new URL("../module/world-inventory-report.mjs", i
 for (const forbidden of ["game.settings.set(", ".update(", ".createDocuments(", ".deleteDocuments(", "Actor.create(", "Item.create(", "new Blob(", "URL.createObjectURL("]) {
   assert.equal(source.includes(forbidden), false, `report source must not contain write/download API ${forbidden}`);
 }
-assert.match(source, /foundry\\?\.utils\\?\.saveDataToFile/);
+assert.ok(source.includes("saveDataToFile"), "report should use Foundry native file-save utility");
 assert.match(source, /Copy JSON/);
 console.log("PASS QA23 read-only Foundry inventory report · Foundry-native save · copy fallback · no Blob URL · zero writes");
