@@ -225,6 +225,6 @@ export function getTb2eControlledWisesStatus() {
 
 export function resetTb2eControlledWisesEvidence() {
   requireControlledGate();
-  runtimeEvidence.size = 0;
+  runtimeEvidence.clear();
   return getTb2eControlledWisesStatus();
 }
