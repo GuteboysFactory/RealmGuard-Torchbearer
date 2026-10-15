@@ -7,3 +7,4 @@
 # unresolved source boundaries remain manual; no automated Conflict; no PR14
 # Stable remains 1.12.0
 # Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.21.md; release workflow must pass before QA channel promotion
+# Rebuilt after removal of the stale QA21 release/tag collision
