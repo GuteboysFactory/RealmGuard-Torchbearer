@@ -121,7 +121,7 @@ export function tb2eBeginnersLuckShadowPlan({
 }={}){
   const values={abilityDice,wisesDice,helpDice,suppliesDice,gearDice,traitsDice,personaDice,channeledNatureDice,freshDice,otherBonusDice};
   for(const [key,value] of Object.entries(values)) if(!nonNegativeInteger(value)) return blocked("INVALID_BEGINNERS_LUCK_COMPONENT",{component:key,value});
-  if(Boolean(abilityZeroDueToInjuryOrSickness)) return blocked("ABILITY_ZERO_DUE_TO_INJURY_OR_SICKNESS");
+  if(Boolean(abilityZeroDueToInjuryOrSickness)||Number(abilityDice)===0) return blocked("ABILITY_ZERO_DUE_TO_INJURY_OR_SICKNESS");
   const preHalving=Number(abilityDice)+Number(wisesDice)+Number(helpDice)+Number(suppliesDice)+Number(gearDice);
   const halvedPool=Math.ceil(preHalving/2);
   const postHalving=Number(traitsDice)+Number(personaDice)+Number(channeledNatureDice)+Number(freshDice)+Number(otherBonusDice);
