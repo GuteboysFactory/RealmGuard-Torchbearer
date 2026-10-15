@@ -1,9 +1,8 @@
-1.13.0-qa.17
-# M10D Final Foundation Audit
-# 19 domains: 1 VERIFIED / 13 BOUNDED_PARTIAL / 4 SOURCE_BLOCKED / 1 MANUAL
-# All 14 source-supportable domains have verified bounded READ_ONLY shadows; no adapter gaps
-# Traits / Armor / Conflict / Magic remain SOURCE_BLOCKED; Narrative remains MANUAL
-# Audit permits controlled live-integration planning only; activation/profile switch/creation commit remain blocked
-# M10D.15 Character Creation FULL PASS / VERIFIED / CLOSED on qa.16
+1.13.0-qa.18
+# M10D.17 Controlled TB2E Wises QA handoff
+# qa.17 baseline; Wises is the first controlled pilot under M10D.10
+# QA-only and GM-only; TB2E remains FOUNDATION_ONLY, locked, inactive and unsupported
+# No dice evaluation/reroll, Fate/Persona spend, document/setting write, profile activation or creation commit
+# M10D.17 handoff slice only; no source-blocked domains or PR14
 # Stable remains 1.12.0
-# Foundry Final Foundation Audit QA pending TEST_PROTOCOL_v1.13.0-qa.17.md
+# Foundry verification pending TEST_PROTOCOL_v1.13.0-qa.18.md
