@@ -4,4 +4,5 @@
 # read-only inventory only; no document, setting, module, profile or compendium writes and no automatic upload
 # report feature only; does not close M10D.5 or another roadmap gate
 # Stable remains 1.12.0
+# Release check rerun after report export smoke assertion correction
 # Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.23.md; all release gates must pass before QA channel promotion
