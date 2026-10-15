@@ -7,6 +7,7 @@ import { buildTorchbearer2eConversionPreview, openTorchbearer2eConversionPreview
 import { tb2eWiseAidPlan, tb2eWiseCyclePlan, tb2eWiseModel, tb2eWiseRerollPlan, tb2eWiseShadowStatus, tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
 import { getTb2eControlledWisesStatus, getTb2eControlledWisesMatrix, runTb2eControlledWisesHandoff, resetTb2eControlledWisesEvidence } from "./m10d-tb2e-controlled-wises.mjs";
 import { getTb2eControlledTestsStatus, getTb2eControlledTestsMatrix, runTb2eControlledTestHandoff, resetTb2eControlledTestsEvidence } from "./m10d-tb2e-controlled-tests.mjs";
+import { getTb2eControlledBlNatureStatus, getTb2eControlledBlNatureMatrix, runTb2eControlledBlNatureHandoff, resetTb2eControlledBlNatureEvidence } from "./m10d-tb2e-controlled-bl-nature.mjs";
 import { tb2eBeginnersLuckHelpPlan, tb2eConflictHelpPlan, tb2eHelpConsequencePlan, tb2eHelpPlan, tb2eHelpShadowStatus } from "./m10d-tb2e-help-shadow.mjs";
 import { tb2eBeginnersLuckShadowPlan, tb2eDiceModel, tb2eLuckPlan, tb2eResolveObstacleShadow, tb2eResolveVersusShadow, tb2eTestPoolPlan, tb2eTestShadowStatus } from "./m10d-tb2e-test-shadow.mjs";
 import { tb2eChannelNaturePlan, tb2eChannelNatureTaxPlan, tb2eNatureAdvancementPlan, tb2eNatureLossPlan, tb2eNatureModel, tb2eNatureRecoveryPlan, tb2eNatureShadowStatus, tb2eNatureSubstitutionPlan, tb2eNatureSubstitutionTaxPlan } from "./m10d-tb2e-nature-shadow.mjs";
@@ -77,6 +78,7 @@ export function installM10DFoundation() {
       wises:Object.freeze({getStatus:tb2eWiseShadowStatus,model:tb2eWiseModel,usePlan:tb2eWiseUsePlan,aidPlan:tb2eWiseAidPlan,rerollPlan:tb2eWiseRerollPlan,cyclePlan:tb2eWiseCyclePlan}),
       controlledWises:Object.freeze({getStatus:getTb2eControlledWisesStatus,getMatrix:getTb2eControlledWisesMatrix,runHandoff:runTb2eControlledWisesHandoff,resetEvidence:resetTb2eControlledWisesEvidence}),
       controlledTests:Object.freeze({getStatus:getTb2eControlledTestsStatus,getMatrix:getTb2eControlledTestsMatrix,runHandoff:runTb2eControlledTestHandoff,resetEvidence:resetTb2eControlledTestsEvidence}),
+      controlledBlNature:Object.freeze({getStatus:getTb2eControlledBlNatureStatus,getMatrix:getTb2eControlledBlNatureMatrix,runHandoff:runTb2eControlledBlNatureHandoff,resetEvidence:resetTb2eControlledBlNatureEvidence}),
       helpShadowStatus:tb2eHelpShadowStatus,
       help:Object.freeze({getStatus:tb2eHelpShadowStatus,plan:tb2eHelpPlan,beginnersLuckPlan:tb2eBeginnersLuckHelpPlan,conflictPlan:tb2eConflictHelpPlan,consequencePlan:tb2eHelpConsequencePlan}),
       testShadowStatus:tb2eTestShadowStatus,
