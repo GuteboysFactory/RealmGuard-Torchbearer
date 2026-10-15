@@ -1,11 +1,12 @@
-# Realm Guard / Torchbearer v1.13.0-qa.19 — M10D.18 Controlled TB2E Basic Test Handoff
+# Realm Guard / Torchbearer v1.13.0-qa.20 — M10D.19 Controlled Beginner's Luck / Nature Handoff
 
-- Reuses the existing TB2E Tests/Dice read-only shadow and CORE M3 Test Engine.
-- Adds a QA-only, GM-only deterministic ordinary Ob Test handoff with caller-supplied source label, dice pool, Obstacle, modifiers and d6 faces.
-- Reports the M3 result and bounded route evidence in memory only.
-- Keeps TB2E FOUNDATION_ONLY, READ_ONLY, unsupported, inactive and unavailable for activation.
-- Does not generate random dice, automate skill Obstacle factors, create chat messages, spend resources, apply consequences, or write Actor/Item/Journal/Setting data.
-- Legacy Mixed remains the active profile; Strict RG, MG1E and MG2E are unchanged.
+- Reuses existing TB2E Beginner's Luck and Nature read-only plans and the CORE M3 Test Engine.
+- Adds a GM-only, QA-only deterministic handoff for nine bounded cases with caller-supplied d6 faces and Obstacle.
+- Blocks Beginner's Luck when the mapped ability is zero even if the separate injury/sickness flag is omitted.
+- Bases the Nature 7 retirement review on current Nature reaching 7; Maximum Nature alone does not trigger it. Retirement remains a manual end-of-session decision.
+- Nature tax is previewed only. No Persona/Fate is spent and no Nature, trait, skill, or advancement data is written.
+- Keeps the Torchbearer profile FOUNDATION_ONLY, READ_ONLY, unsupported, locked and inactive.
+- Legacy Mixed remains active; Strict RG, MG1E and MG2E are unchanged.
 - Stable remains v1.12.0.
 
-Source boundary: supplied Torchbearer 2E Quick Rules Guide pages 2 and 4 and Player Guide page 5; see M10D.18 plan and TEST_PROTOCOL_v1.13.0-qa.19.md.
+Source boundary: supplied Torchbearer 2E Quick Rules Guide pages 7, 10–19 and Character Creation Guide pages 26–30. See M10D_19_TB2E_CONTROLLED_BL_NATURE_HANDOFF.md and TEST_PROTOCOL_v1.13.0-qa.20.md.
