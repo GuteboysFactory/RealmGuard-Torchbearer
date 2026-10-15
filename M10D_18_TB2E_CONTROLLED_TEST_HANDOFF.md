@@ -4,7 +4,7 @@
 **Baseline:** v1.13.0-qa.18  
 **Foundry target:** 13.351  
 **Roadmap location:** M10D.10 Controlled Live Parity, next bounded handoff after M10D.17 Wises  
-**Status:** QA candidate implementation; Foundry verification pending.
+**Status:** PASS — Foundry verification completed 2026-10-15; all six required cases and zero-write/reload boundaries passed.
 
 ## Purpose
 
