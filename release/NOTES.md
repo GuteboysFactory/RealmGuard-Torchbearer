@@ -1,16 +1,10 @@
-# Realm Guard / Torchbearer v1.13.0-qa.17 — M10D Final Foundation Audit
+# Realm Guard / Torchbearer v1.13.0-qa.18 — M10D.17 Controlled TB2E Wises Handoff
 
-M10D.15 Character Creation Bounded Completion was live-verified and closed on v1.13.0-qa.16.
+- Adds a QA-runtime-only, GM-only path to select and record TB2E-owned Wises plans.
+- Reuses the qa.17 VERIFIED Wises shadow adapter; no Wises rules are reimplemented.
+- The handoff records only in-memory evidence. It does not evaluate or reroll dice, spend Fate/Persona, write Actor/Item/Journal/settings data, activate TB2E, or switch profiles.
+- Rejects missing/unrelated Wises, unavailable resources, ineligible dice and unknown effects without fallback.
+- Legacy Mixed, Strict Realm Guard, MG1E and MG2E remain outside the TB2E handoff.
+- Stable remains v1.12.0.
 
-- Adds the final source-bounded Torchbearer 2E foundation audit across all 19 domains.
-- Final classification: 1 VERIFIED, 13 BOUNDED_PARTIAL, 4 SOURCE_BLOCKED, 1 MANUAL.
-- Confirms all 14 source-supportable domains have a bounded READ_ONLY shadow adapter with no adapter gaps.
-- Wises remains the sole VERIFIED guide-bounded domain.
-- Traits, Armor, Conflict and Magic / invocations remain SOURCE_BLOCKED because the current project guides explicitly lack complete authoritative rules for those domains.
-- Narrative adjudication remains MANUAL / GM-facing and is not converted into numeric automation.
-- The audit explicitly allows only planning for future controlled live integration. It does not authorize activation, profile switching, Character Creation commits, live mutation or source-blocked automation.
-- Adds runtime finalAudit()/finalDomainAudit() inspection APIs and M10D_FINAL_FOUNDATION_AUDIT.md.
-- Existing Legacy Mixed / Strict RG / MG1E / MG2E profiles remain unchanged.
-- QA advances to v1.13.0-qa.17. Stable remains v1.12.0.
-
-Focused Foundry VTT 13.351 follow-up: TEST_PROTOCOL_v1.13.0-qa.17.md.
+Foundry VTT 13.351 validation: TEST_PROTOCOL_v1.13.0-qa.18.md.
