@@ -3,7 +3,20 @@
 **Planning baseline:** v1.13.0-qa.17  
 **Planning date:** 2026-10-14  
 **Foundry target:** 13.351  
-**Current status:** QA CANDIDATE IMPLEMENTED — Foundry handoff verification pending. The route remains QA-only and does not grant live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
+**Current status:** QA18 CONTROLLED HANDOFF SLICE — PASS (Foundry verification completed 2026-10-15). The route remains QA-only and does not grant live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
+
+
+
+## 0. QA18 Foundry verification — PASS
+
+On 2026-10-15, the user completed the v1.13.0-qa.18 Foundry protocol and reported the remaining checks complete. Gates A–D pass for this bounded Wises handoff slice:
+
+- QA/GM boundary held; Torchbearer remained FOUNDATION_ONLY, READ_ONLY, inactive and unavailable for activation. Legacy Mixed remained active; existing profile states remained available.
+- All 9 required supported/rejected handoff cases passed. Unsupported inputs failed closed.
+- No dice were evaluated or rerolled, no Fate/Persona was spent, and Actor/Item/Journal/Setting writes remained zero; the before/after state checks and existing Legacy Mixed, Strict RG, MG1E and MG2E regressions passed.
+- Evidence was MEMORY_ONLY and the case matrix reset to pending after reload.
+
+This closes only the M10D.17 controlled QA handoff execution slice. It does not close Wises live parity or M10D.10, authorize profile activation under M10D.11, or complete M10D.12 TB2E Core Live / Stable. Any next live-rule or mutation milestone requires a separate roadmap decision and authorization.
 
 ## 1. Entry evidence
 
