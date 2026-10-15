@@ -226,16 +226,21 @@ function escapeHtml(value) {
 }
 
 function downloadReport(report) {
-  const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `realm-guard-foundry-inventory-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-  link.style.display = "none";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const save = globalThis.foundry?.utils?.saveDataToFile;
+  if (typeof save !== "function") throw new Error("Foundry's native file-save utility is unavailable.");
+  const filename = `realm-guard-foundry-inventory-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+  save(JSON.stringify(report, null, 2), "application/json", filename);
+}
+
+async function showReportCopyFallback(report) {
+  const json = JSON.stringify(report, null, 2);
+  await foundry.applications.api.DialogV2.wait({
+    window: { title: "Copy Foundry World Inventory Report", resizable: true },
+    content: `<p>Foundry could not open its local save dialog. Click the text box, press <b>Ctrl+A</b>, then <b>Ctrl+C</b> to copy the report.</p><textarea readonly style="width:100%;height:60vh;resize:both;font-family:monospace;white-space:pre;">${escapeHtml(json)}</textarea>`,
+    modal: true,
+    rejectClose: false,
+    buttons: [{ action: "close", label: "Close", icon: "fa-solid fa-xmark", callback: () => null }]
+  });
 }
 
 async function openInventoryReport() {
@@ -246,15 +251,28 @@ async function openInventoryReport() {
   const rows = Object.entries(counts).map(([name, count]) => `<li><b>${escapeHtml(name)}</b>: ${count}</li>`).join("");
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Foundry World Inventory Report", resizable: true },
-    content: `<section><p>Complete read-only inventory of this world and all readable compendium entries.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules.</p><p>Setting values and authentication credentials are excluded. The JSON is downloaded locally and is not uploaded.</p></section>`,
+    content: `<section><p>Complete read-only inventory of this world and all readable compendium entries.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules.</p><p>Setting values and authentication credentials are excluded. The JSON is saved locally through Foundry. If local saving is unavailable, use Copy JSON to select and copy the report. It is never uploaded automatically.</p></section>`,
     modal: true,
     rejectClose: false,
     buttons: [
-      { action: "download", label: "Download JSON", icon: "fa-solid fa-download", default: true, callback: () => "download" },
+      {
+        action: "download", label: "Download JSON", icon: "fa-solid fa-download", default: true,
+        callback: async () => {
+          try {
+            downloadReport(report);
+            ui.notifications?.info?.("Foundry is saving the JSON report locally.");
+          } catch (error) {
+            console.error("Realm Guard report save failed; opening copy fallback.", error);
+            ui.notifications?.warn?.("Foundry could not start the local save. The report is available to copy.");
+            await showReportCopyFallback(report);
+          }
+          return "done";
+        }
+      },
+      { action: "copy", label: "Copy JSON", icon: "fa-solid fa-copy", callback: async () => { await showReportCopyFallback(report); return "done"; } },
       { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark", callback: () => null }
     ]
   });
-  if (result === "download") downloadReport(report);
 }
 
 export function installWorldInventoryReport() {
