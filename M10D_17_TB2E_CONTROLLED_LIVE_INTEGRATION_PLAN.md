@@ -3,7 +3,7 @@
 **Planning baseline:** v1.13.0-qa.17  
 **Planning date:** 2026-10-14  
 **Foundry target:** 13.351  
-**Current status:** PLANNING ONLY — no live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
+**Current status:** QA CANDIDATE IMPLEMENTED — Foundry handoff verification pending. The route remains QA-only and does not grant live rule authority, profile activation, Actor/Item/Journal/Setting writes, resource spending, or Character Creation commit.
 
 ## 1. Entry evidence
 
