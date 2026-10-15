@@ -16,7 +16,7 @@ const runtime = {
   users: { contents: [gm, { id: "player-1", name: "Player", role: 1, active: true, isGM: false }] },
   version: "13.351",
   world: { id: "qa-world", title: "QA World", system: "realm-guard", coreVersion: "13.351" },
-  system: { id: "realm-guard", title: "Realm Guard / Torchbearer", version: "1.13.0-qa.22" },
+  system: { id: "realm-guard", title: "Realm Guard / Torchbearer", version: "1.13.0-qa.23" },
   modules: { contents: [{ id: "adventurers-tome", title: "Adventurer's Tome", version: "1.0.0", active: true, manifest: { id: "adventurers-tome", version: "1.0.0" } }] },
   actors: { contents: [makeDoc({ _id: "actor-1", name: "Existing Test Adventurer", type: "character", items: [{ name: "Sword", type: "gear" }] })] },
   items: { contents: [makeDoc({ _id: "item-1", name: "Backpack", type: "gear" })] },
@@ -45,7 +45,9 @@ assert.equal(JSON.stringify(report).includes("SHOULD_NEVER_APPEAR"), false);
 await assert.rejects(() => buildWorldInventoryReport({ ...runtime, user: { isGM: false } }), /restricted to an active GM/);
 
 const source = fs.readFileSync(new URL("../module/world-inventory-report.mjs", import.meta.url), "utf8");
-for (const forbidden of ["game.settings.set(", ".update(", ".createDocuments(", ".deleteDocuments(", "Actor.create(", "Item.create("]) {
-  assert.equal(source.includes(forbidden), false, `report source must not contain write API ${forbidden}`);
+for (const forbidden of ["game.settings.set(", ".update(", ".createDocuments(", ".deleteDocuments(", "Actor.create(", "Item.create(", "new Blob(", "URL.createObjectURL("]) {
+  assert.equal(source.includes(forbidden), false, `report source must not contain write/download API ${forbidden}`);
 }
-console.log("PASS QA22 read-only Foundry inventory report · Actors/Items/Chat/Compendia · modules/settings metadata · M10D status · GM gate · zero writes");
+assert.match(source, /foundry\\?\.utils\\?\.saveDataToFile/);
+assert.match(source, /Copy JSON/);
+console.log("PASS QA23 read-only Foundry inventory report · Foundry-native save · copy fallback · no Blob URL · zero writes");
