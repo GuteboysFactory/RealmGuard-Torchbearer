@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.22 — read-only Foundry World Inventory Report (baseline qa.21; no M10D gate closure)
+**Current QA build:** v1.13.0-qa.23 — Foundry-native report saving + copy fallback (QA22 correction; no M10D gate closure)
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
 **M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
@@ -14,7 +14,7 @@
 
 **Controlled handoff record (2026-10-15):** M10D.17 Wises (qa.18), M10D.18 basic Test (qa.19), and M10D.19 Beginner's Luck / Nature (qa.20) passed their bounded Foundry protocols. M10D.19 passed all nine deterministic cases (9/9), reported zero failures and zero writes, reset to zero executed/nine pending after reload, and the user confirmed the Legacy regression PASS. This closes only the M10D.19 handoff slice; it does not authorize activation or close M10D.10.
 
-**QA22 discovery build (2026-10-15):** QA22 adds a GM-only, read-only Foundry report of the existing test world and readable compendiums to document the current Actors, Items/Gear, Tome state, module versions, active profile and M10D status before selecting further implementation. It reuses the existing Inventory/Gear shadow and Starter Gear catalogue; it creates no test fixtures and closes no M10D gate. See `TEST_PROTOCOL_v1.13.0-qa.22.md`.
+**QA22 discovery build (2026-10-15):** QA22 added the GM-only, read-only Foundry report of the existing test world and readable compendiums. It reuses existing inventory/catalogue content, creates no fixtures and closes no M10D gate. **QA23 correction:** replaces the unsupported Blob URL download with Foundry's native local-save utility and a selectable JSON copy fallback. It changes only report export; no M10D gate closes. See `TEST_PROTOCOL_v1.13.0-qa.23.md`.
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 
