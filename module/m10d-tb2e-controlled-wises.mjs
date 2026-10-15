@@ -15,7 +15,7 @@ const REQUIRED_CASES = Object.freeze([
   "INSUFFICIENT_PERSONA",
   "UNKNOWN_WISE_EFFECT"
 ]);
-const runtimeEvidence = [];
+const runtimeEvidence = new Map();
 
 function freeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
@@ -131,7 +131,7 @@ function record(plan, checks, gate, expectRejected) {
     destructiveMigration: false,
     activeProfileMutation: false
   });
-  runtimeEvidence.push(evidence);
+  runtimeEvidence.set(evidence.caseId, evidence);
   return evidence;
 }
 
@@ -157,28 +157,28 @@ export function runTb2eControlledWisesHandoff(effect, payload = {}) {
 
 export function getTb2eControlledWisesMatrix() {
   const gate = gateSnapshot();
-  const seen = new Set(runtimeEvidence.map(row => row.caseId));
+  const seen = new Set(runtimeEvidence.keys());
   const missingCases = REQUIRED_CASES.filter(id => !seen.has(id));
-  const allExecutedCasesPass = runtimeEvidence.length > 0 && runtimeEvidence.every(row => row.ok);
+  const allExecutedCasesPass = runtimeEvidence.size > 0 && [...runtimeEvidence.values()].every(row => row.ok);
   const passed = missingCases.length === 0 && allExecutedCasesPass;
-  const state = runtimeEvidence.some(row => !row.ok)
+  const state = [...runtimeEvidence.values()].some(row => !row.ok)
     ? "EXECUTED_FAIL"
     : passed
       ? "EXECUTED_PASS"
-      : runtimeEvidence.length
+      : runtimeEvidence.size
         ? "EXECUTING"
         : "READY_FOR_CONTROLLED_EXECUTION";
 
   return freeze([{
     id: DOMAIN_ID,
     state,
-    executed: runtimeEvidence.length > 0,
+    executed: runtimeEvidence.size > 0,
     passed,
-    executedCaseCount: runtimeEvidence.length,
-    passedCaseCount: runtimeEvidence.filter(row => row.ok).length,
-    failedCaseCount: runtimeEvidence.filter(row => !row.ok).length,
+    executedCaseCount: runtimeEvidence.size,
+    passedCaseCount: [...runtimeEvidence.values()].filter(row => row.ok).length,
+    failedCaseCount: [...runtimeEvidence.values()].filter(row => !row.ok).length,
     missingRequiredCases: missingCases,
-    evidence: [...runtimeEvidence],
+    evidence: [...runtimeEvidence.values()],
     gateLocked: gate.profileLocked,
     activationAvailable: gate.activationAvailable,
     writes: { actors: 0, items: 0, journals: 0, settings: 0 }
@@ -225,6 +225,6 @@ export function getTb2eControlledWisesStatus() {
 
 export function resetTb2eControlledWisesEvidence() {
   requireControlledGate();
-  runtimeEvidence.length = 0;
+  runtimeEvidence.size = 0;
   return getTb2eControlledWisesStatus();
 }

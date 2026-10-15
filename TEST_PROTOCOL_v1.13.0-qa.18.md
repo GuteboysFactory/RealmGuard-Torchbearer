@@ -44,7 +44,7 @@ For all cases confirm `liveApplication=false`, no dice evaluation/reroll, no Fat
 
 ### Gate D — Ephemeral evidence and stop condition
 
-- Run all six accepted/rejected input classes. Confirm `controlledWises.getStatus()` reports 9/9 required cases passed and no pending cases.
+- Run all nine required plan cases. Confirm `controlledWises.getStatus()` reports 9/9 required cases passed and no pending cases.
 - Runtime evidence is `MEMORY_ONLY`; reload and confirm the handoff matrix resets to pending.
 - A passing handoff closes only this bounded QA execution slice. It does not prove Wises live parity, ordinary TB2E test playability, M10D.10 completion, M10D.11 activation, or M10D.12 Core Live.
 - Stop if any rule is applied, any die is evaluated/rerolled, any resource or document is changed, or any fallback provider is used.
