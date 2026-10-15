@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.20 — M10D.19 controlled Beginner's Luck / Nature handoff PASS (baseline qa.19)
+**Current QA build:** v1.13.0-qa.21 — M10D.20 controlled Conditions / Recovery / Grind handoff candidate (baseline qa.20; Foundry verification pending)
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
 **M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
@@ -275,6 +275,8 @@ Audit får **inte** aktivera profilen.
 **Completed bounded handoffs:** M10D.18 basic ordinary Ob Test (qa.19) routes caller-supplied deterministic dice through the existing CORE M3 Test Engine under QA-only, GM-only controls. It does not automate skill Obstacle factors or enable a random/live TB2E roll. See [M10D.18 controlled Test handoff plan](M10D_18_TB2E_CONTROLLED_TEST_HANDOFF.md) and the qa.19 protocol.
 
 M10D.19 Beginner's Luck / Nature (qa.20) routes supplied deterministic dice through CORE M3. All nine handoff cases passed in Foundry; the user confirmed the Legacy regression PASS, zero writes were reported, and reload reset evidence to zero executed/nine pending. This closes only the M10D.19 slice; it does not establish general Test/Nature parity or TB2E playability.
+
+M10D.20 Conditions / Recovery / Grind (qa.21) is the next bounded candidate. It reuses the existing read-only shadows, exercises 13 QA-only cases, and keeps source-ambiguous recovery and Conflict behavior manual. Foundry protocol verification is pending; this candidate does not close M10D.4 or M10D.10 and does not authorize activation.
 
 M10D.10 remains in progress.
 
