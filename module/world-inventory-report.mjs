@@ -233,6 +233,10 @@ export async function buildWorldInventoryReport(runtime = globalThis.game, { sou
     compendiumDocuments: packs.reduce((sum, pack) => sum + (Number(pack.count) || 0), 0),
     activeModules: report.environment.foundry.modules.filter(module => module.active).length,
     registeredSettingDefinitions: report.environment.foundry.registeredSettings.length,
+    sourceFiles: Number(report.sourceInventory.inventory?.summary?.fileCount ?? 0),
+    indexedCodeFiles: Number(report.sourceInventory.inventory?.summary?.codeFileCount ?? 0),
+    indexedSymbols: Number(report.sourceInventory.inventory?.summary?.symbolCount ?? 0),
+    sourceInventoryStatus: report.sourceInventory.status,
     activeRulesProfile: report.environment.rules.activeProfile?.id ?? "unavailable"
   };
   return report;
@@ -270,7 +274,7 @@ async function openInventoryReport() {
   const rows = Object.entries(counts).map(([name, count]) => `<li><b>${escapeHtml(name)}</b>: ${count}</li>`).join("");
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Foundry World Inventory Report", resizable: true },
-    content: `<section><p>Read-only inventory of this world, readable compendiums, packaged source code and rules profiles.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules · <b>${report.summary.indexedCodeFiles}</b> indexed code files · <b>${report.summary.indexedSymbols}</b> declared code symbols · <b>${report.environment.rules.registeredRuleProfiles?.length ?? 0}</b> rules profiles.</p><p>Setting values and authentication credentials are excluded. Source inventory includes source files, declared functions/classes, imports, hooks, settings, GM Dock tools, sheet registrations, project-document headings and the M10D source matrix. Runtime registry entries for every profile are included. Static indexing cannot infer every behavior branch; its coverage limits are documented. The JSON is saved locally through Foundry. If local saving is unavailable, use Copy JSON to select and copy the report. It is never uploaded automatically.</p></section>`,
+    content: `<section><p>Read-only inventory of this world, readable compendiums, packaged source code and rules profiles.</p><ul>${rows}</ul><p><b>${report.summary.compendiumPacks}</b> packs · <b>${report.summary.compendiumDocuments}</b> compendium documents · <b>${report.summary.activeModules}</b> active modules · <b>${report.summary.indexedCodeFiles}</b> indexed code files · <b>${report.summary.indexedSymbols}</b> declared code symbols · <b>${report.environment.rules.registeredRuleProfiles?.length ?? 0}</b> rules profiles · Source index <b>${escapeHtml(report.summary.sourceInventoryStatus)}</b>.</p><p>Setting values and authentication credentials are excluded. Source inventory includes source files, declared functions/classes, imports, hooks, settings, GM Dock tools, sheet registrations, project-document headings and the M10D source matrix. Runtime registry entries for every profile are included. Static indexing cannot infer every behavior branch; its coverage limits are documented. The JSON is saved locally through Foundry. If local saving is unavailable, use Copy JSON to select and copy the report. It is never uploaded automatically.</p></section>`,
     modal: true,
     rejectClose: false,
     buttons: [
