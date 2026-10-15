@@ -55,8 +55,12 @@ assert.equal(finalLoss.retirementRequired,true);assert.equal(finalLoss.retiremen
 
 const advance=tb2eNatureAdvancementPlan({currentNature:3,maximumNature:5,advancementTriggered:true});
 assert.equal(advance.currentAfter,4);assert.equal(advance.maximumAfter,6);assert.equal(advance.taxDifferenceBefore,2);assert.equal(advance.taxDifferenceAfter,2);
-const advanceToSeven=tb2eNatureAdvancementPlan({currentNature:5,maximumNature:6,advancementTriggered:true});
-assert.equal(advanceToSeven.retirementCheckRequired,true);assert.equal(advanceToSeven.retirementTiming,"END_OF_SESSION");
+const advanceToMaximumSeven=tb2eNatureAdvancementPlan({currentNature:5,maximumNature:6,advancementTriggered:true});
+assert.equal(advanceToMaximumSeven.currentAfter,6);assert.equal(advanceToMaximumSeven.maximumAfter,7);
+assert.equal(advanceToMaximumSeven.retirementCheckRequired,false);assert.equal(advanceToMaximumSeven.retirementTiming,null);
+const advanceToCurrentSeven=tb2eNatureAdvancementPlan({currentNature:6,maximumNature:6,advancementTriggered:true});
+assert.equal(advanceToCurrentSeven.currentAfter,7);assert.equal(advanceToCurrentSeven.retirementCheckRequired,true);
+assert.equal(advanceToCurrentSeven.retirementTiming,"END_OF_SESSION");
 assert.equal(tb2eNatureAdvancementPlan({currentNature:7,maximumNature:7,advancementTriggered:true}).reasonCode,"MAXIMUM_NATURE_AT_CAP");
 
 assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before);
