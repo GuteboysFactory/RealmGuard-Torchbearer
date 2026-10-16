@@ -16,6 +16,24 @@
 
 Godkända M5-, M7- och TB2E-shadowresultat ska återanvändas inom den omfattning de faktiskt verifierat. En öppen roadmaprubrik eller avsaknad av ett separat nytt QA-protokoll är inte i sig bevis på en saknad funktion. Ny generell inventarie-QA eller repetition av Session-shadowtesterna är inte beställd.
 
+## Obligatoriskt i nästa QA — PC Overview
+
+**Beställt av Per 2026-10-17. Roadmap: M10D.2 Character Model + Sheet. Status: BESTÄLLT — ännu inte implementerat. Ska ingå i nästa QA-paket.**
+
+Overview på PC-bladet ska innehålla dessa fält i ordning:
+
+1. **Nature** — lägg till beskrivning/nyckelord.
+2. **Belief** — befintligt fält.
+3. **Goal** — befintligt fält.
+4. **Instinct** — befintligt fält.
+5. **Creed** — lägg till.
+
+Nature och Creed ska ha samma utseende och redigering som befintliga Belief, Goal och Instinct: återanvänd panel, etiketter, textfält, typsnitt och avstånd. Befintlig Nature-statistik (current/maximum) är separat och behålls.
+
+Kodkontroll: `templates/actor/character.hbs` har Overview-panelen med Belief/Goal/Instinct. `module/data-models.mjs` deklarerar dessa tre textfält och numerisk Nature; Creed saknas där. Befintliga Nature-beskrivningar används också av regelprofilernas Nature-dialoger. Vid implementationen ska befintlig beskrivningsdata återanvändas där den finns och eventuell lagring på karaktären hanteras utan att skriva över tidigare innehåll.
+
+**Acceptans i nästa QA:** öppna PC → Overview; alla fem fält syns i angiven ordning och med enhetligt utseende. Skriv och spara Nature-beskrivning och Creed; stäng bladet, öppna igen och ladda om världen. Texterna finns kvar och Belief/Goal/Instinct samt numerisk Nature är bevarade.
+
 ## Konkreta leveransändringar att genomföra
 
 Verifierat mot main `bd6107c569547a239999a981f14d80b61ef2aad7`:
