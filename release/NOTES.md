@@ -1,7 +1,7 @@
-Realm Guard / Torchbearer v1.13.0-qa.24
+Realm Guard / Torchbearer v1.13.0-qa.25
 
-QA24 extends the QA23 Foundry world and readable compendium report with a build-generated source-code index and a read-only runtime catalogue of all registered rules profiles and resolved Rules Registry entries.
+QA25 adds the bounded M10D.21 Character Creation preview/review handoff, reusing the existing CORE M9 character-creation engine and M10D.15 TB2E creation shadows. It verifies the FOUNDATION_ONLY lock, read-only preview/review and blocked commit boundary. It does not add a new creator UI, create documents, activate TB2E or close M10D.10.
 
-The report inventories repository files, code symbols, imports, discovered hooks/settings/tools/sheets, project-document headings, QA evidence, the qa.17 M10D source matrix, current profile state and all registered profile rules. It records limits where static indexing cannot establish runtime behavior. No world/profile/settings/compendium writes or automatic uploads are introduced. No M10D gate closes; Stable remains v1.12.0.
+The QA24 GM-only Foundry World Inventory Report and its generated source-inventory report tooling are removed from the active package and release checks. Game inventory/equipment rules are unchanged. QA22–24 historical files and releases remain unchanged. Stable remains v1.12.0.
 
-Foundry QA: TEST_PROTOCOL_v1.13.0-qa.24.md
+Foundry QA: TEST_PROTOCOL_v1.13.0-qa.25.md

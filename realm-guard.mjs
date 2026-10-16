@@ -7,7 +7,6 @@ import { RealmGuardItemSheet } from "./sheets/item-sheet.mjs";
 import { installTokenConditionHud, installConditionTokenHover, installGmMassConditionHud, installConditionRuleAlignment, syncConditionEffect } from "./module/conditions.mjs";
 import { installEndSession } from "./module/end-session.mjs";
 import { installGmDock } from "./module/gm-dock.mjs";
-import { installWorldInventoryReport } from "./module/world-inventory-report.mjs";
 import { installTurnManager } from "./module/turns.mjs";
 import { installRealmGuardArt } from "./module/theme-art.mjs";
 import { installInventoryQaTools } from "./module/qa-tools.mjs";
@@ -101,7 +100,6 @@ Hooks.once("init", () => {
   installDefaultSkillProvisioning();
   installConditionRuleAlignment();
   installGmDock();
-  installWorldInventoryReport();
   installTurnManager();
   installEndSession();
   installRealmGuardArt();

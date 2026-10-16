@@ -1,6 +1,5 @@
-1.13.0-qa.24
-# Complete read-only repository source, all rules profiles/registries, M10D source matrix, and existing Foundry world inventory
-# Does not create fixtures or mutate Foundry world, settings, profiles, modules, or compendiums; never auto-uploads
-# Inventory/discovery only; does not close any M10D gate; Stable remains 1.12.0
-# QA24 report-summary follow-up after the first CI run; release controls rerun the full suite
-# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.24.md; release automation runs the complete QA suite before channel promotion
+1.13.0-qa.25
+# Bounded M10D.21 creation preview/review; remove obsolete QA24 world/source inventory report
+# Reuses existing CORE M9 Character Creator and M10D.15 TB2E creation shadows; FOUNDATION_ONLY and no commits
+# Zero world, profile, settings, actor, item, journal or chat writes; no M10D gate closure; Stable remains 1.12.0
+# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.25.md; release automation runs the complete QA suite before channel promotion

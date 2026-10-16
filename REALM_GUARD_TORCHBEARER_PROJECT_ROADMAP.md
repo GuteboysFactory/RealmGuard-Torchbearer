@@ -2,7 +2,7 @@
 
 **Foundry target:** 13.351  
 **Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.24 — Complete read-only source, profile/rule registry and Foundry inventory (no M10D gate closure)
+**Current QA build:** v1.13.0-qa.25 — M10D.21 bounded Character Creation preview/review handoff; QA24 inventory report removed from active runtime (no M10D gate closure)
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
 **M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
@@ -12,11 +12,11 @@
 
 **Foundry verification (2026-10-14, installed qa.17):** User-run `game.realmGuard.core.m10d.finalAudit()` returned `auditComplete=true`, `domainCount=19`, `mappingIntegrity=true`, `adapterGapDomains=[]`, `unexpectedReadyDomains=[]`, and `nextPhase=CONTROLLED_TB2E_LIVE_INTEGRATION_PLANNING`. `liveActivationAuthorized=false`, `profileSwitchAuthorized=false`, and `creationCommitAuthorized=false`. This verifies the foundation audit in Foundry only; it does not enable live rules.
 
-**Controlled handoff record (2026-10-15):** M10D.17 Wises (qa.18), M10D.18 basic Test (qa.19), and M10D.19 Beginner's Luck / Nature (qa.20) passed their bounded Foundry protocols. M10D.19 passed all nine deterministic cases (9/9), reported zero failures and zero writes, reset to zero executed/nine pending after reload, and the user confirmed the Legacy regression PASS. This closes only the M10D.19 handoff slice; it does not authorize activation or close M10D.10.
+**Controlled handoff record:** M10D.17 Wises (qa.18), M10D.18 basic Test (qa.19), M10D.19 Beginner's Luck / Nature (qa.20), and M10D.20 Conditions/Recovery/Grind (qa.21) passed their bounded user tests. These close only the handoff slices; they do not authorize activation or close M10D.10.
 
 **QA22 discovery build (2026-10-15):** QA22 added the GM-only, read-only Foundry report of the existing test world and readable compendiums. It reuses existing inventory/catalogue content, creates no fixtures and closes no M10D gate. **QA23 correction:** replaces the unsupported Blob URL download with Foundry's native local-save utility and a selectable JSON copy fallback. It changes only report export; no M10D gate closes. See `TEST_PROTOCOL_v1.13.0-qa.23.md`.
 
-**QA24 inventory build:** combines QA23's read-only world/compendium report with a generated index of repository files, declared code symbols, imports, discovered runtime registrations, project-document headings, QA evidence and the qa.17 M10D source-coverage matrix. It also reports every registered Rules Profile, resolved domains, full Rules Registry entries and capabilities, alongside the active Foundry profile/status. Static-index limits are explicit; no M10D gate closes. See `TEST_PROTOCOL_v1.13.0-qa.24.md`.
+**QA24 inventory build (historical):** combined QA23's read-only world/compendium report with a generated source index and live rules-profile catalogue. **QA25 removes this report tool and its active source-index generation/checks because the inventory is no longer needed.** QA22–24 files and release records remain historical and unchanged.
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 
@@ -1421,3 +1421,6 @@ Superseded by v1.0.8.2 before GOLD promotion.
 ## Version discipline
 
 Every package receives its own QA protocol. Stable 1.x work is built from the latest verified GOLD baseline and remains non-destructive wherever possible. **v1.0.8.3 is the current GOLD/public baseline; v1.0.8.44 is the active QA hotfix, then v1.1.0 remains the next major feature target.** Patch/hotfix versions may be inserted when QA requires them without changing the planned feature order.
+
+
+**QA25 / M10D.21:** a bounded GM-only handoff checks the existing M10D.15 creation preview and CORE M9 profile presentation/review/commit boundary. TB2E remains FOUNDATION_ONLY and inactive; all evidence is memory-only with zero writes. No new player-facing creator is built and no M10D gate closes. See `M10D_21_TB2E_CHARACTER_CREATION_PREVIEW_REVIEW_HANDOFF.md` and `TEST_PROTOCOL_v1.13.0-qa.25.md`.

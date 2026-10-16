@@ -67,8 +67,6 @@ jobs:
             node --check "$file"
           done
 
-          node qa/generate-source-inventory.mjs
-
           for smoke in qa/*-smoke.mjs; do
             [[ -f "$smoke" ]] || continue
             node "$smoke"
