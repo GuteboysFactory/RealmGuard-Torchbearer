@@ -18,6 +18,14 @@
 
 **QA24 inventory build (historical):** combined QA23's read-only world/compendium report with a generated source index and live rules-profile catalogue. **QA25 removes this report tool and its active source-index generation/checks because the inventory is no longer needed.** QA22–24 files and release records remain historical and unchanged.
 
+## Betaleverans och speltest — beslut 2026-10-17
+
+Per har beslutat arbetsordningen **spelbar TB2E-beta via befintlig QA-kanal → speltest med förväntade resultat → gemensam bugglista → rättningar i följande QA-versioner → stable efter uttryckligt godkännande**. Detta genomför befintlig M10D.10–12-omfattning; det lägger inte till nya regelområden.
+
+Nästa leverans ska göra den stödda TB2E-grunden spelbar med befintliga motorer. Redan godkända funktioner och shadowtester ska återanvändas inom sin verifierade omfattning. Förslagen att upprepa generell inventarie-QA eller Session-shadowtestning är tillbakadragna. Eventuell hjälmbegränsning får hanteras efter ett faktiskt speltestfynd och blockerar inte betan.
+
+Se [TB2E — beta, speltest och bugglista](TB2E_BETA_PLAYTEST.md) för bekräftade implementeringsbehov, acceptanskrav och fynd. Dokumentet är ett utkast inför betan; qa.25 är fortfarande publicerad version. Detta beslut markerar inget live-/aktiveringssteg som verifierat eller stängt.
+
 ## M10D — TORCHBEARER 2E CORE LIVE
 
 ## qa.17 carry-forward — reuse the existing implementation
