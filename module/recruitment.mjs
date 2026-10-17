@@ -1380,6 +1380,10 @@ async function createRanger(state) {
 const STEPS = [identityStep, natureStep, homelandStep, lifeExperienceStep, serviceStep, wisesStep, resourcesCirclesStep, traitsStep, relationshipsStep, bgiGearStep, reviewStep];
 
 export async function openRecruitmentWizard({ mode = null } = {}) {
+  if (activeCreationPolicy().rulesProfileId === "torchbearer2e-beta") {
+    const { openTb2eBetaCreation } = await import("./tb2e-beta-creation-ui.mjs");
+    return openTb2eBetaCreation();
+  }
   const state = blankState();
   if (["guided", "quick"].includes(String(mode))) state.mode = String(mode);
   let index = 0;
@@ -1496,8 +1500,8 @@ function injectActorDirectoryRecruitmentTools(html) {
     const recruit = document.createElement("button");
     recruit.type = "button";
     recruit.className = "rg-actor-recruit primary";
-    recruit.title = "Recruit Ranger — full guided Realm Guard Recruitment";
-    recruit.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>Recruit Ranger</span>`;
+    recruit.title = activeCreationPolicy().rulesProfileId === "torchbearer2e-beta" ? "Create a Torchbearer 2E character" : "Recruit Ranger";
+    recruit.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>${activeCreationPolicy().rulesProfileId === "torchbearer2e-beta" ? "Create TB2E character" : "Recruit Ranger"}</span>`;
     recruit.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); void openRecruitmentWizard({ mode: "guided" }); });
     bar.append(recruit);
 

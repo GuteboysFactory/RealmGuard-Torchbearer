@@ -1,3 +1,5 @@
+import { isTb2eBeta, tb2eTestBlocker } from "./tb2e-beta-policy.mjs";
+import { tb2eWiseUsePlan } from "./m10d-tb2e-wise-shadow.mjs";
 import { conditionRollData, hasActiveCondition } from "./conditions.mjs";
 import { claimPlayerTurnTest, playerTurnSpendHtml, currentTurnPhase, turnManagerEnabled, awardTraitChecks } from "./turns.mjs";
 import { resolveTokenPowerUse, tokenPowerChatText } from "./tokens-of-power.mjs";
@@ -79,7 +81,7 @@ export class RealmGuardActor extends Actor {
     const policy = familyPolicy();
     const ratedWises = policy.ratedWises;
     const angry = !policy.mg1eTraits && !policy.mg2eWises && hasActiveCondition(this, "Angry");
-    const trait = traitId ? this.items.get(traitId) : null;
+    const trait = !isTb2eBeta() && traitId ? this.items.get(traitId) : null;
     const requestedWise = wiseId ? this.items.get(wiseId) : null;
     const requestedMode = trait?.type === "trait" ? String(traitMode || "help") : "none";
     const traitStatus = trait?.type === "trait" ? traitPositiveStatus(this, trait) : null;
@@ -134,6 +136,7 @@ export class RealmGuardActor extends Actor {
   }
 
   async _applyWiseReroll(baseFaces, wise, assist = null) {
+    if (isTb2eBeta()) return applyMg2eWiseEffect(this, baseFaces, wise, { usePlan: tb2eWiseUsePlan, profileLabel: "Torchbearer 2E", resourceSource: "TB2E_WISE" });
     if (familyPolicy().mg2eWises) return applyMg2eWiseEffect(this, baseFaces, wise);
     if (usesMg1eTraitRules()) {
       const trait = assist?.trait;
@@ -420,6 +423,7 @@ export class RealmGuardActor extends Actor {
     let current = Math.max(0, before.current-tax), maximum=before.maximum, collapsed=false;
     if (current <= 0 && maximum > 0) { maximum=Math.max(0, maximum-1); current=maximum; collapsed=true; }
     await this.update({"system.attributes.nature.value":current,"system.attributes.nature.maximum":maximum});
+    if (collapsed && isTb2eBeta()) await this.update({ "flags.realm-guard.abilityLearning.nature": { passed: 0, failed: 0 } });
     if (collapsed) ui.notifications.warn(maximum>0 ? `Realm Guard: Nature taxed to 0. Maximum Nature drops to ${maximum}; change an appropriate Trait for the event.` : "Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");
     return {tax,current,maximum,collapsed,reason};
   }
@@ -434,6 +438,8 @@ export class RealmGuardActor extends Actor {
   }
 
   async rollRole(role, { modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within" } = {}) {
+    const blocked = tb2eTestBlocker(this, role.name, role.system.rating, true);
+    if (blocked) return ui.notifications.warn(blocked);
     const personaDice = personaDiceCount(persona);
     const esc = foundry.utils.escapeHTML;
     const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: false });
@@ -506,6 +512,8 @@ export class RealmGuardActor extends Actor {
     const personaDice=personaDiceCount(persona);
     const key=String(abilityKey??"").toLowerCase(); const stat=this.system.attributes?.[key];
     if(!stat) return ui.notifications.warn(`Realm Guard: Unknown ability ${abilityKey}.`);
+    const blocked = tb2eTestBlocker(this, key, stat.value, false);
+    if (blocked) return ui.notifications.warn(blocked);
     const label=this._abilityLabel(key), assist=this._rollAssist({traitId,wiseId,traitMode,versus:false});
     const power=this._tokenPowerUse(tokenPowerId,label,{isSkill:false}); if(tokenPowerId&&!power)return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for this roll.");
     const conditionData=ignoreConditions?{active:[],dice:0}:this._activeConditionRollData(label,{isSkill:false});

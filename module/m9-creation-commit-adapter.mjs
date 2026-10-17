@@ -1,3 +1,4 @@
+import { tb2eConditionDefinition } from "./tb2e-beta-policy.mjs";
 import { ensureDefaultSkills, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS, isDefaultCondition } from "./conditions.mjs";
 import { ensureM8RecruitmentNetwork } from "./m8-social-network-service.mjs";
@@ -169,14 +170,14 @@ async function ensurePlannedConditions(actor, plan) {
       if (!isDefaultCondition(found)) await found.setFlag("realm-guard", "defaultCondition", true);
       continue;
     }
-    const source = definitions.get(key);
+    const source = tb2eConditionDefinition(definitions.get(key), actor);
     if (!source) continue;
     create.push({
       name: source.name,
       type: "condition",
       flags: { "realm-guard": { defaultCondition: true, profileProvisionedCondition: true } },
       system: {
-        active: false,
+        active: (plan.provisioning?.canonicalConditions?.activeNames ?? []).includes(source.name),
         icon: source.icon,
         rollModifier: source.rollModifier,
         appliesTo: source.appliesTo ?? "all",

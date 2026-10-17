@@ -24,7 +24,7 @@ Per har beslutat arbetsordningen **spelbar TB2E-beta via befintlig QA-kanal → 
 
 Nästa leverans ska göra den stödda TB2E-grunden spelbar med befintliga motorer. Redan godkända funktioner och shadowtester ska återanvändas inom sin verifierade omfattning. Förslagen att upprepa generell inventarie-QA eller Session-shadowtestning är tillbakadragna. Eventuell hjälmbegränsning får hanteras efter ett faktiskt speltestfynd och blockerar inte betan.
 
-Se [TB2E — beta, speltest och bugglista](TB2E_BETA_PLAYTEST.md) för bekräftade implementeringsbehov, acceptanskrav och fynd. Dokumentet är ett utkast inför betan; qa.25 är fortfarande publicerad version. Detta beslut markerar inget live-/aktiveringssteg som verifierat eller stängt.
+Se [TB2E — beta, speltest och bugglista](TB2E_BETA_PLAYTEST.md) för bekräftade implementeringsbehov, acceptanskrav och fynd. QA26 implementerar den uttryckligt godkända spelbara betan. Automatiska kodkontroller är genomförda; Foundry-speltest och stable-godkännande återstår.
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 
@@ -1432,3 +1432,11 @@ Every package receives its own QA protocol. Stable 1.x work is built from the la
 
 
 **QA25 / M10D.21 user-run result (2026-10-16): PASS.** All four preview/review/commit-boundary cases passed; the user confirmed the QA24 inventory report is gone after reload. The post-reload status reset to 0 executed / 4 pending. TB2E remained FOUNDATION_ONLY and inactive, with zero writes. This closes only the bounded M10D.21 handoff slice; **M10D.10 remains open**. No new player-facing creator was built. See `M10D_21_TB2E_CHARACTER_CREATION_PREVIEW_REVIEW_HANDOFF.md` and `TEST_PROTOCOL_v1.13.0-qa.25.md`.
+
+## QA26 – godkänd TB2E-betaleverans (2026-10-17)
+
+Per har uttryckligen godkänt implementation och publicering av beta-paketet. QA26 lägger till den separata QA-profilen Torchbearer 2E – Playtest Beta, ansluter befintliga skapandeplaner till M9-sparning och lägger Nature/Creed i PC Overview. Befintliga slag/hjälp/föremål återanvänds. Adventure/Camp/Town och standard-Recovery får avgränsade liveanslutningar.
+
+M10D.2: de beställda Overview-fälten implementerade. M10D.10: betans liveanslutningar kodtestade, Foundry-speltest väntar. M10D.11: QA-aktivering uttryckligen godkänd för betan. M10D.12: beta under speltest; stable är inte godkänd. Historiska qa.17–25-resultat och tidigare foundationbegränsningar ovan gäller deras respektive versioner.
+
+Full spelomfattning och manuella moment: [QA26-protokoll](TEST_PROTOCOL_v1.13.0-qa.26.md). Registrerade fynd och stablebeslut: [beta och bugglista](TB2E_BETA_PLAYTEST.md).

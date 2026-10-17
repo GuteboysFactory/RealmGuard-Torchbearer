@@ -14,7 +14,7 @@ export class RealmGuardCharacterData extends TypeDataModel {
       concept: str(), rank: str(), homeland: str(), age: str(), ancestry: str(),
       lineage: str(), insignia: str(), seniorArtisan: str(), friend: str(),
       cloak: str(), weapon: str(), mentor: str(), enemy: str(), parents: str(),
-      belief: str(), goal: str(), instinct: str(),
+      natureDescriptors: str(), belief: str(), goal: str(), instinct: str(), creed: str(),
       attributes: new fields.SchemaField({
         nature: new fields.SchemaField({ value: int(4, 0, 7), maximum: int(4, 0, 7) }),
         will: rating(3, 6), health: rating(3, 6), resources: rating(2, 10), circles: rating(2, 10)

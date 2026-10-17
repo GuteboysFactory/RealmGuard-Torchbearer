@@ -1,5 +1,3 @@
-1.13.0-qa.25
-# Bounded M10D.21 creation preview/review; remove obsolete QA24 world/source inventory report
-# Reuses existing CORE M9 Character Creator and M10D.15 TB2E creation shadows; FOUNDATION_ONLY and no commits
-# Zero world, profile, settings, actor, item, journal or chat writes; no M10D gate closure; Stable remains 1.12.0
-# Foundry test protocol: TEST_PROTOCOL_v1.13.0-qa.25.md; release automation runs the complete QA suite before channel promotion
+1.13.0-qa.26
+# Approved TB2E playtest beta; M10D.2 and M10D.10-12. Stable unchanged.
+# TEST_PROTOCOL_v1.13.0-qa.26.md

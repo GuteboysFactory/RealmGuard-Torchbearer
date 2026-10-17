@@ -2179,3 +2179,8 @@ This file is the development history. It is **not** a substitute for the version
 - Increased default Recruitment, GM Control and Obstacle Control widths to preserve whitespace with the larger type.
 - Recruitment Step 9 now separates **Parents** into side-by-side **Mom** and **Dad** fields while preserving a combined legacy `system.parents` value and dedicated Recruitment metadata for compatibility.
 - Simplifies **Custom Roll** to open directly as **Free Dice Pool**; linked Skill/Ability choices are removed because standard rolls already have dedicated automated controls.
+
+
+## v1.13.0-qa.26 – TB2E playtest beta
+
+Approved by Per. QA-selectable independent beta profile; source-plan character creation committed through CORE M9; Nature description and Creed in PC Overview; existing roll/Help/inventory reuse; TB2E Wise and condition/recovery adapters; GM-guided Adventure/Camp/Town. Stable unchanged. See TEST_PROTOCOL_v1.13.0-qa.26.md and TB2E_BETA_PLAYTEST.md for expected results and explicit manual boundaries.

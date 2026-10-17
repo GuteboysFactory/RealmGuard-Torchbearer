@@ -1,3 +1,5 @@
+import { isTb2eBeta, isTb2eCharacter, tb2eConditionRollData, tb2eConditionDefinition } from "./tb2e-beta-policy.mjs";
+import { TB2E_CONDITIONS } from "./profiles/torchbearer2e-beta-creation.mjs";
 import {
   getActiveM10BConditionRecoveryPolicy,
   familyConditionRollEffects,
@@ -8,6 +10,8 @@ import {
 import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
+  { name: "Exhausted", icon: "systems/realm-guard/assets/conditions/tired.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 3, recoveryNote: "TB2E: Health Ob 3 in camp or town; exhausted Instinct actions cost a turn and +1 Ob.", description: "Exhausted: Instinct actions are no longer free." },
+  { name: "Dead", icon: "systems/realm-guard/assets/conditions/condition.svg", rollModifier: 0, appliesTo: "none", recoveryType: "manual", recoveryObstacle: 0, recoveryNote: "GM adjudication.", description: "Dead. GM adjudication required." },
   { name: "Angry", icon: "systems/realm-guard/assets/conditions/angry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 2, recoveryNote: "Recover with an Ob 2 Will test. While Angry, beneficial Trait and Wise effects are unavailable; precision/social Ob increases remain GM-adjudicated.", description: "Angry subtracts 1 from disposition for conflicts that use Will as their base. Supplementary Torchbearer alignment also blocks beneficial Trait/Wise effects while Angry." },
   { name: "Tired", icon: "systems/realm-guard/assets/conditions/tired.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 3, recoveryNote: "Recover from fatigue with an Ob 3 Health test.", description: "Tired subtracts 1 from disposition for all conflicts. It does not penalize ordinary Skill tests." },
   { name: "Strained", icon: "systems/realm-guard/assets/conditions/strained.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Realm Guard: recover with an Ob 4 Will test. Failure leaves Strained active; counsel may be required. Seeking counsel during the GM Turn costs two Checks.", description: "Mental fatigue and stress impose -1D to Nature, Will, Health and skill tests. This penalty does not apply to Resources or Circles tests, nor to Will or Health recovery tests." },
@@ -40,6 +44,7 @@ export function conditionAppliesToRoll(condition, rollName, { isSkill = true } =
 }
 
 export function conditionRollData(actor, rollName, { isSkill = true } = {}) {
+  if (isTb2eBeta()) return tb2eConditionRollData(actor, rollName, { isSkill });
   const policy = getActiveM10BConditionRecoveryPolicy();
   if (policy.familySemantics) {
     const family = familyConditionRollEffects(actor, rollName, { isSkill }, policy);
@@ -165,9 +170,10 @@ export async function ensureDefaultConditions(actor) {
   const existing = new Map(actor.conditions.map(c => [normalize(c.name), c]));
   const create = [];
   const policy = getActiveM10BConditionRecoveryPolicy();
-  const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
+  const wanted = isTb2eCharacter(actor) ? TB2E_CONDITIONS : policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
   const defaults = RG_DEFAULT_CONDITIONS.filter(c => wanted.some(name => normalize(name) === normalize(c.name)));
-  for (const c of defaults) {
+  for (const baseDefinition of defaults) {
+    const c = tb2eConditionDefinition(baseDefinition, actor);
     const found = existing.get(normalize(c.name));
     if (found) {
       if (!isDefaultCondition(found)) await found.setFlag("realm-guard", "defaultCondition", true);
@@ -213,11 +219,11 @@ async function migrateAndProvisionConditions() {
 
 async function enrichCanonicalConditionData(actor) {
   const policy = getActiveM10BConditionRecoveryPolicy();
-  const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
+  const wanted = isTb2eCharacter(actor) ? TB2E_CONDITIONS : policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
   for (const condition of actor.conditions ?? []) {
     if (!isDefaultCondition(condition)) continue;
     if (!wanted.some(name => normalize(name) === normalize(condition.name))) continue;
-    const def = RG_DEFAULT_CONDITIONS.find(c => normalize(c.name) === normalize(condition.name));
+    const def = tb2eConditionDefinition(RG_DEFAULT_CONDITIONS.find(c => normalize(c.name) === normalize(condition.name)), actor);
     if (!def) continue;
     const update = {};
     // Rule metadata was introduced in v0.9.1. Populate it for canonical defaults.

@@ -1,3 +1,6 @@
+import { isTb2eBeta } from "../module/tb2e-beta-policy.mjs";
+import { recoverTb2eCondition } from "../module/tb2e-beta-session.mjs";
+import { tb2eBeginnersLuckAbilityPlan } from "../module/m10d-tb2e-abilities-shadow.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
 import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
@@ -488,6 +491,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       trainedRoleCount: trainedRoles.length,
       untrainedRoleCount: untrainedRoles.length,
       stationOptions: Object.fromEntries(Object.entries(RG_STATIONS).map(([key, value]) => [key, value.label])),
+      isTb2eBeta: isTb2eBeta(),
       stationSelected: String(actor.system.rank ?? "").toLowerCase(),
       station: RG_STATIONS[String(actor.system.rank ?? "").toLowerCase()] ?? null,
       traits: actor.traits,
@@ -705,6 +709,11 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const role = this.actor.items.get(id);
     if (!role || Number(role.system.rating ?? 0) > 0) return;
     let abilityKey = String(role.system.beginnerAbility ?? "").toLowerCase();
+    if (isTb2eBeta()) {
+      const plan = tb2eBeginnersLuckAbilityPlan({ skillName: role.name });
+      if (!plan.ok) return ui.notifications.warn(plan.reasonCode);
+      abilityKey = String(plan.ability).toLowerCase();
+    }
     if (!abilityKey) {
       const suggested = this.actor._tiebreakOptions(role.name, "role");
       if (suggested.length === 1) abilityKey = suggested[0];
@@ -1090,7 +1099,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const isNatureRoll = String(abilityKey) === "nature";
     const natureExcluded = new Set(family.nature.tapExcludedAbilities.map(value => String(value).toLowerCase()));
     const canTapNature = family.nature.tapNature && !isNatureRoll && !natureExcluded.has(String(abilityKey).toLowerCase()) && natureCurrent > 0;
-    const natureDescriptors = natureDescriptorText(family);
+    const natureDescriptors = String(this.actor.system.natureDescriptors || natureDescriptorText(family));
     const natureLabel = natureProfileLabel(family);
     const noPersona = personaValue < 1 ? ` <b class="rg-disabled-reason">Unavailable — requires 1 Persona.</b>` : "";
     const natureBlock = isNatureRoll
@@ -1136,7 +1145,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         : workflow === "baseline" && !ruleSpecific
           ? `<div class="rg-obstacle-live-status approved" data-rg-obstacle-live-status><i class="fa-solid fa-link"></i> Ob ${initialObstacle} · Baseline</div>`
           : "";
-    const canCountLearning = Boolean(isSkill || abilityKey);
+    const canCountLearning = Boolean(isSkill || abilityKey) && !(isTb2eBeta() && hasActiveCondition(this.actor, "Sick"));
 
     const automaticModifier = Number(modifier || 0) + Number(conditionData.dice || 0);
     const modifierBreakdown = conditionData.active.length ? conditionData.active.map(c => `${foundry.utils.escapeHTML(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(" · ") : "No automatic Condition modifier.";
@@ -1165,7 +1174,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         ${canCountLearning ? `<fieldset class="rg-learning-choice"><legend>Learning & Advancement <span class="rg-help-tip" title="Pass and Fail results are tracked automatically. When both requirements are met, the Skill or Ability advances immediately.">?</span></legend><label><input type="checkbox" name="countLearning" ${this.actor.type === "npc" ? "" : "checked"}> Count this test for Learning</label><small>${beginnerLuck ? "This marks one Beginner's Luck attempt only. It does not advance the Will/Health base Ability." : "Turn this off only when this test should not earn an advancement mark."}</small></fieldset>` : ""}
         <fieldset><legend>Spend before roll</legend><label>Persona dice <select name="persona" ${personaValue < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= Math.max(0, personaValue)).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select> <small>(${personaValue} available; max +3D)${personaValue < 1 ? ` <b class="rg-disabled-reason">No Persona available.</b>` : ""}</small></label></fieldset>
         ${tokenPowerBlock}${talentBlock}
-        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${family.mg2eWises ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => !family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id)).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : family.mg2eWises ? " (Fate / Persona effect)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
+        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId" ${isTb2eBeta() ? "disabled" : ""}><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode" ${isTb2eBeta() ? "disabled" : ""}><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${isTb2eBeta() ? "TB2E beta: Trait effects and earned Checks are adjudicated by the GM and entered with the existing modifier/Checks controls." : family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${(family.mg2eWises || isTb2eBeta()) ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => !family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id)).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : (family.mg2eWises || isTb2eBeta()) ? " (Fate / Persona effect)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
       </div>`;
 
     const DialogV2 = foundry.applications.api.DialogV2;
@@ -1334,6 +1343,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const id = target.closest("[data-item-id]")?.dataset.itemId;
     const item = this.actor.items.get(id);
     if (!item || !item.system.active) return;
+    if (isTb2eBeta()) return recoverTb2eCondition(this.actor, item);
 
     if (String(item.name).toLowerCase() === "fresh") {
       await setConditionActive(this.actor, item, false);

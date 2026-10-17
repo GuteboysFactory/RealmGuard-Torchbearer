@@ -1,3 +1,4 @@
+import { installTb2eBetaSession } from "./module/tb2e-beta-session.mjs";
 import { installDefaultSkillProvisioning } from "./module/default-skills.mjs";
 import { RealmGuardCharacterData, RealmGuardNpcData, RealmGuardRoleData, RealmGuardTraitData, RealmGuardGearData, RealmGuardConditionData, RealmGuardWiseData, RealmGuardTokenOfPowerData, RealmGuardTalentData } from "./module/data-models.mjs";
 import { RealmGuardActor } from "./module/documents.mjs";
@@ -106,6 +107,7 @@ Hooks.once("init", () => {
   installInventoryQaTools();
   installInventoryMigration();
   installRecruitment();
+  installTb2eBetaSession();
   installObstacleWorkflow();
   installTeamworkWorkflow();
   installNpcBuilder();
