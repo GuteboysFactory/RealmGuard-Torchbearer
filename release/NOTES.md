@@ -1,11 +1,9 @@
-Realm Guard / Torchbearer v1.13.0-qa.26
+# 1.13.0-qa.27 — QA25 restoration + approved Overview fields
 
-Playable TB2E playtest beta, explicitly authorized by Per. The new QA-only Torchbearer 2E - Playtest Beta profile is independent of the historical locked foundation and the other rule trees.
+Restores system code to the approved 1.13.0-qa.25 baseline. Only runtime differences from QA25 are the Nature descriptive text and Creed fields in PC Overview, with the approved QA26 layout. Numeric Nature is unchanged.
 
-PC Overview now includes Nature description and Creed alongside Belief, Goal and Instinct. Numeric Nature is preserved. The existing actor-directory entry routes TB2E creation choices through source-bounded plans into CORE M9 transactional creation. Six class drafts, provenance, initial Fresh, skill/condition provisioning and rollback are covered by automated checks.
+QA26 is superseded and must not be used. Its separate creator, beta profile, session flow and rule changes are removed from this package. Existing QA25 wizard and rules remain the baseline. TB2E live beta is not enabled by this restoration. Stable remains 1.12.0.
 
-Existing roll, paid Wise reroll, Help and inventory services are reused. Adventure/Camp/Town uses a GM-guided phase/turn panel and source-planned standard recovery with Check spending and persisted attempts. The beta does not use MG free-player-turn costs. Source-blocked Conflict, Armor, Magic and Trait effects remain manual. Starting gear uses existing Items; Grind conditions, events, accommodation and lifestyle bookkeeping remain GM-guided.
+Before updating from QA26: if Torchbearer 2E Playtest Beta is selected, switch back to your previous supported profile in Profile Management (Legacy Mixed if that was your previous profile). The removed beta profile ID is not available in QA25.
 
-Playtest and expected results: TEST_PROTOCOL_v1.13.0-qa.26.md
-Bug log and stable gate: TB2E_BETA_PLAYTEST.md
-Stable remains unchanged. Foundry playtest approval is still pending.
+Install through the usual QA manifest. See TEST_PROTOCOL_v1.13.0-qa.27.md.

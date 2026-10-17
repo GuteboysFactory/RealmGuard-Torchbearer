@@ -18,14 +18,6 @@
 
 **QA24 inventory build (historical):** combined QA23's read-only world/compendium report with a generated source index and live rules-profile catalogue. **QA25 removes this report tool and its active source-index generation/checks because the inventory is no longer needed.** QA22–24 files and release records remain historical and unchanged.
 
-## Betaleverans och speltest — beslut 2026-10-17
-
-Per har beslutat arbetsordningen **spelbar TB2E-beta via befintlig QA-kanal → speltest med förväntade resultat → gemensam bugglista → rättningar i följande QA-versioner → stable efter uttryckligt godkännande**. Detta genomför befintlig M10D.10–12-omfattning; det lägger inte till nya regelområden.
-
-Nästa leverans ska göra den stödda TB2E-grunden spelbar med befintliga motorer. Redan godkända funktioner och shadowtester ska återanvändas inom sin verifierade omfattning. Förslagen att upprepa generell inventarie-QA eller Session-shadowtestning är tillbakadragna. Eventuell hjälmbegränsning får hanteras efter ett faktiskt speltestfynd och blockerar inte betan.
-
-Se [TB2E — beta, speltest och bugglista](TB2E_BETA_PLAYTEST.md) för bekräftade implementeringsbehov, acceptanskrav och fynd. QA26 implementerar den uttryckligt godkända spelbara betan. Automatiska kodkontroller är genomförda; Foundry-speltest och stable-godkännande återstår.
-
 ## M10D — TORCHBEARER 2E CORE LIVE
 
 ## qa.17 carry-forward — reuse the existing implementation
@@ -1431,12 +1423,8 @@ Superseded by v1.0.8.2 before GOLD promotion.
 Every package receives its own QA protocol. Stable 1.x work is built from the latest verified GOLD baseline and remains non-destructive wherever possible. **v1.0.8.3 is the current GOLD/public baseline; v1.0.8.44 is the active QA hotfix, then v1.1.0 remains the next major feature target.** Patch/hotfix versions may be inserted when QA requires them without changing the planned feature order.
 
 
-**QA25 / M10D.21 user-run result (2026-10-16): PASS.** All four preview/review/commit-boundary cases passed; the user confirmed the QA24 inventory report is gone after reload. The post-reload status reset to 0 executed / 4 pending. TB2E remained FOUNDATION_ONLY and inactive, with zero writes. This closes only the bounded M10D.21 handoff slice; **M10D.10 remains open**. No new player-facing creator was built. See `M10D_21_TB2E_CHARACTER_CREATION_PREVIEW_REVIEW_HANDOFF.md` and `TEST_PROTOCOL_v1.13.0-qa.25.md`.
+**QA25 / M10D.21:** a bounded GM-only handoff checks the existing M10D.15 creation preview and CORE M9 profile presentation/review/commit boundary. TB2E remains FOUNDATION_ONLY and inactive; all evidence is memory-only with zero writes. No new player-facing creator is built and no M10D gate closes. See `M10D_21_TB2E_CHARACTER_CREATION_PREVIEW_REVIEW_HANDOFF.md` and `TEST_PROTOCOL_v1.13.0-qa.25.md`.
 
-## QA26 – godkänd TB2E-betaleverans (2026-10-17)
+## 2026-10-17 — 1.13.0-qa.27: restore approved QA25 baseline
 
-Per har uttryckligen godkänt implementation och publicering av beta-paketet. QA26 lägger till den separata QA-profilen Torchbearer 2E – Playtest Beta, ansluter befintliga skapandeplaner till M9-sparning och lägger Nature/Creed i PC Overview. Befintliga slag/hjälp/föremål återanvänds. Adventure/Camp/Town och standard-Recovery får avgränsade liveanslutningar.
-
-M10D.2: de beställda Overview-fälten implementerade. M10D.10: betans liveanslutningar kodtestade, Foundry-speltest väntar. M10D.11: QA-aktivering uttryckligen godkänd för betan. M10D.12: beta under speltest; stable är inte godkänd. Historiska qa.17–25-resultat och tidigare foundationbegränsningar ovan gäller deras respektive versioner.
-
-Full spelomfattning och manuella moment: [QA26-protokoll](TEST_PROTOCOL_v1.13.0-qa.26.md). Registrerade fynd och stablebeslut: [beta och bugglista](TB2E_BETA_PLAYTEST.md).
+User rejected QA26 because it introduced separate flows outside the agreed shared architecture. QA26 is superseded. System runtime restored from QA25 (d5581985b4427c9b58e5f72e26dc895efc396af3), retaining only approved Nature descriptive text and Creed in PC Overview. Existing wizard, rules and profile gates are restored. This is a correction within the existing M10D work, not a new milestone or approval of a live TB2E beta. Stable remains 1.12.0. Future changes must reuse existing functions; ask Per when their existence or behavior is uncertain. Test scope: installation, Overview persistence and existing wizard entry only.

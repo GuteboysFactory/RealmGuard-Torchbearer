@@ -1,4 +1,3 @@
-import { isTb2eBeta } from "./tb2e-beta-policy.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
@@ -1839,7 +1838,6 @@ export function installConflictEngine() {
 }
 
 export function openConflictWindow() {
-  if (isTb2eBeta()) return ui.notifications.info("TB2E beta: resolve conflicts, armor and weapon effects manually with the GM.");
   const state = currentState();
   if (!isActive(state)) return game.user?.isGM ? startConflictDialog() : ui.notifications.info("Realm Guard: No active conflict.");
   dismissedConflictId = null; renderConflictWindow(state, { force: true });

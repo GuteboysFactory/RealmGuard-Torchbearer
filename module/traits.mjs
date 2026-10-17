@@ -1,4 +1,3 @@
-import { isTb2eBeta } from "./tb2e-beta-policy.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
 
 function usesMg1eTraits() { return getActiveM10BFamilyRulePolicy().mg1eTraits; }
@@ -54,7 +53,6 @@ export function traitPositiveSuccessBonus(actor, trait, { baseSuccesses = 0, tar
 }
 
 export function traitPositiveStatus(actor, trait) {
-  if (isTb2eBeta()) return { level: traitLevel(trait), available: false, remaining: 0, label: "TB2E beta: GM adjudicates Trait effects", effect: "MANUAL" };
   const level = traitLevel(trait);
   if (level === 1 || level === 2) {
     const limit = traitPositiveLimit(trait);

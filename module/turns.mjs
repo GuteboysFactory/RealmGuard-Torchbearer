@@ -1,4 +1,3 @@
-import { isTb2eBeta } from "./tb2e-beta-policy.mjs";
 import { registerGmDockTool, renderGmDock } from "./gm-dock.mjs";
 import { participantActorReference, participantActors, resolveParticipantActor } from "./session-participants.mjs";
 import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authority-bridge.mjs";
@@ -47,7 +46,6 @@ function refreshTurnSheets() {
 }
 
 export function turnManagerEnabled() {
-  if (isTb2eBeta()) return false; // TB2E uses adventure/camp/town, not MG free player turns.
   try { return Boolean(game.settings.get(SYSTEM_ID, ENABLED_KEY)); }
   catch (_error) { return true; }
 }

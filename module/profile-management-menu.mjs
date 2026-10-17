@@ -1,4 +1,4 @@
-import { showTorchbearer2eConversionPreview, previewTorchbearer2eConversion } from "./m10d-tb2e-foundation.mjs";
+import { showTorchbearer2eConversionPreview } from "./m10d-tb2e-foundation.mjs";
 import { previewMg1eConversion, previewMg2eConversion, previewStrictConversion, showMg1eConversionPreview, showMg2eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { profileActivationStatus, switchRulesProfile } from "./m10-profile-activation.mjs";
@@ -28,7 +28,7 @@ async function switchProfileAction(event, target) {
   const profileId = String(button?.dataset?.profileId ?? "").trim();
   if (!profileId) return;
   const resolved = resolveRulesProfile(profileId).profile;
-  const preview = profileId === "torchbearer2e-beta" ? previewTorchbearer2eConversion({ actors: game.actors?.contents ?? [], worldItems: game.items?.contents ?? [] }) : profileId === "mg2e" ? previewMg2eConversion() : profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
+  const preview = profileId === "mg2e" ? previewMg2eConversion() : profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
   const confirmed = await foundry.applications.api.DialogV2.wait({
     window:{title:`Realm Guard · Activate ${resolved.name}`,resizable:true},
     content:`<div class="realm-guard"><h2>Switch this world to ${resolved.name}?</h2>

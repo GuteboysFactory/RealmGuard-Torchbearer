@@ -89,7 +89,7 @@ export function profileActivationStatus() {
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
-    profiles: Object.freeze([legacy, strict, mg1e, mg2e, activationProfileSummary("torchbearer2e-beta")]),
+    profiles: Object.freeze([legacy, strict, mg1e, mg2e]),
     strictProfileId: strict.id,
     strictProfileVersion: strict.version,
     strictActivationState: strict.activationState,

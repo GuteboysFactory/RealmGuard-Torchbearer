@@ -1,5 +1,3 @@
-import { isTb2eCharacter } from "./tb2e-beta-policy.mjs";
-import { TB2E_SKILLS } from "./profiles/torchbearer2e-beta-creation.mjs";
 export const RG_DEFAULT_SKILLS = [
   "Administrator",
   "Alchemist",
@@ -49,7 +47,7 @@ export async function ensureDefaultSkills(actor) {
   const existing = new Map(roles.map(r => [normalizeSkillName(r.name), r]));
   const create = [];
 
-  for (const name of (isTb2eCharacter(actor) ? TB2E_SKILLS : RG_DEFAULT_SKILLS)) {
+  for (const name of RG_DEFAULT_SKILLS) {
     const found = existing.get(normalizeSkillName(name));
     if (found) {
       // Adopt an already-existing canonical skill without changing its rating or learning data.

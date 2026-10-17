@@ -1,3 +1,2 @@
-1.13.0-qa.26
-# Approved TB2E playtest beta; M10D.2 and M10D.10-12. Stable unchanged.
-# TEST_PROTOCOL_v1.13.0-qa.26.md
+1.13.0-qa.27
+# Restore QA25 runtime; retain only approved Overview Nature and Creed fields.

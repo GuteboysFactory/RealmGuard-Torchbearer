@@ -10,10 +10,7 @@ import { buildProfileCapabilities } from "./profile-capabilities.mjs";
 
 import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-foundation.mjs";
 
-import { TORCHBEARER2E_BETA_PROFILE } from "./profiles/torchbearer2e-beta.mjs";
-
 const resolver = new ProfileResolver([
-  TORCHBEARER2E_BETA_PROFILE,
   MG1E_FOUNDATION_PROFILE,
   MG2E_FOUNDATION_PROFILE,
   TORCHBEARER2E_FOUNDATION_PROFILE,

@@ -2181,6 +2181,6 @@ This file is the development history. It is **not** a substitute for the version
 - Simplifies **Custom Roll** to open directly as **Free Dice Pool**; linked Skill/Ability choices are removed because standard rolls already have dedicated automated controls.
 
 
-## v1.13.0-qa.26 – TB2E playtest beta
+## 2026-10-17 — 1.13.0-qa.27: restore approved QA25 baseline
 
-Approved by Per. QA-selectable independent beta profile; source-plan character creation committed through CORE M9; Nature description and Creed in PC Overview; existing roll/Help/inventory reuse; TB2E Wise and condition/recovery adapters; GM-guided Adventure/Camp/Town. Stable unchanged. See TEST_PROTOCOL_v1.13.0-qa.26.md and TB2E_BETA_PLAYTEST.md for expected results and explicit manual boundaries.
+User rejected QA26 because it introduced separate flows outside the agreed shared architecture. QA26 is superseded. System runtime restored from QA25 (d5581985b4427c9b58e5f72e26dc895efc396af3), retaining only approved Nature descriptive text and Creed in PC Overview. Existing wizard, rules and profile gates are restored. This is a correction within the existing M10D work, not a new milestone or approval of a live TB2E beta. Stable remains 1.12.0. Future changes must reuse existing functions; ask Per when their existence or behavior is uncertain. Test scope: installation, Overview persistence and existing wizard entry only.

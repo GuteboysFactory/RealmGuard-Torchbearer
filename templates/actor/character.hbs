@@ -11,10 +11,10 @@
       <input class="rg-name" name="name" type="text" value="{{actor.name}}" placeholder="Ranger name" />
       <div class="rg-grid-4 compact">
         <label>Station / Rank
-          {{#if isTb2eBeta}}<input name="system.rank" value="{{system.rank}}">{{else}}<select data-rg-station-select>
+          <select data-rg-station-select>
             <option value="">Select station…</option>
             {{selectOptions stationOptions selected=stationSelected}}
-          </select>{{/if}}
+          </select>
         </label>
         <label>Homeland<input name="system.homeland" value="{{system.homeland}}" /></label>
         <label>Age<input type="number" name="system.age" value="{{system.age}}" {{#if station}}min="{{station.ageMin}}" max="{{station.ageMax}}" placeholder="{{station.ageMin}}–{{station.ageMax}}"{{/if}} />{{#if station}}<small class="rg-age-range">{{station.ageMin}}–{{station.ageMax}}</small>{{/if}}</label>

@@ -1,4 +1,3 @@
-import { isTb2eBeta } from "./tb2e-beta-policy.mjs";
 const NS = "realm-guard";
 
 export const ABILITY_KEYS = ["nature", "will", "health", "resources", "circles"];
@@ -87,7 +86,6 @@ export async function autoAdvanceAbility(actor, key) {
 }
 
 export async function recordAbilityTest(actor, key, passed, { count = true } = {}) {
-  if (isTb2eBeta() && actor?.conditions?.some(c => c.name === "Sick" && c.system.active)) return false;
   if (!count || !actor || !ABILITY_KEYS.includes(String(key))) return false;
   const view = abilityLearning(actor, key);
   if (view.maxRating) return false;
@@ -117,7 +115,6 @@ async function postSkillAdvanceChat(actor, role, oldRating, newRating) {
 }
 
 export async function recordHelperSkillTest(actor, roleId, passed) {
-  if (isTb2eBeta() && actor?.conditions?.some(c => c.name === "Sick" && c.system.active)) return false;
   const role = actor?.items?.get?.(roleId);
   if (!role || role.type !== "role") return false;
   const rating = Math.max(0, Number(role.system?.rating ?? 0));
