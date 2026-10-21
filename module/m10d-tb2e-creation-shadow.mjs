@@ -119,17 +119,18 @@ export function tb2eSkillRedistributionPlan({className="",proposedSkills={}}={})
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"SKILL_REDISTRIBUTION_SHADOW",className:c,baseTotal,proposedTotal,skills:values,maximumRating:4,newSkillsAllowed:false,skillMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 
-function raisedSkillPreview(currentRating){
+// CC 14 grants a new upbringing skill at 3; CC 15, 23-24 grant new skills at 2.
+function raisedSkillPreview(currentRating,newSkillRating=2){
   const n=Number(currentRating??0);
   if(!Number.isFinite(n)||n<0||n>4)return null;
-  return n>=1?Math.min(4,n+1):3;
+  return n>=1?Math.min(4,n+1):newSkillRating;
 }
 
 export function tb2eHumanUpbringingPlan({stock="HUMAN",skill="",currentRating=0}={}){
   const s=key(stock),sk=key(skill);
   if(s!=="HUMAN")return blocked("HUMAN_UPBRINGING_REQUIRES_HUMAN_STOCK",{stock:s});
   if(!HUMAN_UPBRINGING.includes(sk))return blocked("INVALID_HUMAN_UPBRINGING_SKILL",{skill:sk});
-  const finalRating=raisedSkillPreview(currentRating);if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
+  const finalRating=raisedSkillPreview(currentRating,3);if(finalRating===null)return blocked("INVALID_CURRENT_SKILL_RATING",{currentRating});
   return freezeTb2e({ok:true,phase:"M10D.15",profileId:PROFILE_ID,mode:"HUMAN_UPBRINGING_SHADOW",skill:sk,currentRating:Number(currentRating),finalRating,maximumRating:4,skillMutationCommitted:false,liveApplication:false,writesPlanned:0});
 }
 

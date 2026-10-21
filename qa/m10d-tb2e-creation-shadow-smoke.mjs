@@ -29,10 +29,10 @@ assert.equal(tb2eHumanUpbringingPlan({stock:"Human",skill:"Haggler",currentRatin
 assert.equal(tb2eHumanUpbringingPlan({stock:"Elf",skill:"Haggler"}).reasonCode,"HUMAN_UPBRINGING_REQUIRES_HUMAN_STOCK");
 
 const home=tb2eHomePlan({stock:"Elf",home:"Elfhome",skill:"Healer",trait:"Calm",currentSkillRating:0});
-assert.equal(home.finalSkillRating,3);assert.equal(home.homeTraitLevelPreview,1);
+assert.equal(home.finalSkillRating,2);assert.equal(home.homeTraitLevelPreview,1);
 assert.equal(tb2eHomePlan({stock:"Human",home:"Elfhome",skill:"Healer",trait:"Calm"}).reasonCode,"HOME_NOT_AVAILABLE_TO_STOCK");
 assert.equal(tb2eSocialGracePlan({skill:"Orator",currentRating:2}).finalRating,3);
-assert.equal(tb2eSpecialtyPlan({skill:"Scout",currentRating:0,alreadyTakenByParty:false}).finalRating,3);
+assert.equal(tb2eSpecialtyPlan({skill:"Scout",currentRating:0,alreadyTakenByParty:false}).finalRating,2);
 assert.equal(tb2eSpecialtyPlan({skill:"Scout",alreadyTakenByParty:true}).reasonCode,"SPECIALTY_ALREADY_TAKEN_BY_PARTY");
 
 const dwWises=tb2eStartingWisesPlan({stock:"Dwarf",stockWise:"Dwarven Chronicles",customWise:"Troll-wise"});
@@ -62,3 +62,12 @@ assert.equal(JSON.stringify(existingIds.map(id=>resolveRulesProfile(id))),before
 const source=fs.readFileSync("module/m10d-tb2e-creation-shadow.mjs","utf8");
 for(const forbidden of ["game.settings.set","Actor.create","Item.create","JournalEntry.create","createEmbeddedDocuments","deleteEmbeddedDocuments",".update(","new Roll("]) assert.equal(source.includes(forbidden),false);
 console.log("PASS M10D.15 TB2E Character Creation bounded completion · class/stock · redistribution · upbringing/home · graces/specialty/wises · Nature questionnaire · equipment/drives/level1/final details · zero writes");
+
+// Source regression: new-skill ratings differ, existing skills rise by one up to four.
+for (const [rating, expected] of [[0,2],[1,2],[2,3],[3,4],[4,4]]) {
+  assert.equal(tb2eHomePlan({stock:"Elf",home:"Elfhome",skill:"Healer",trait:"Calm",currentSkillRating:rating}).finalSkillRating, expected);
+  assert.equal(tb2eSocialGracePlan({skill:"Orator",currentRating:rating}).finalRating, expected);
+  assert.equal(tb2eSpecialtyPlan({skill:"Scout",currentRating:rating}).finalRating, expected);
+  assert.equal(tb2eHumanUpbringingPlan({skill:"Criminal",currentRating:rating}).finalRating, rating === 0 ? 3 : expected);
+}
+console.log("PASS TB2E CC 14/15/23/24 source-based starting skill ratings");
