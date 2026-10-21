@@ -52,7 +52,7 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
   let draft=engine.createDraft(dwarf);
   assert.equal(draft.derivedValues.abilities.resources,1);
   assert.equal(draft.derivedValues.nature,3);
-  assert.equal(draft.derivedValues.traitChecks["Born Of Earth And Stone"],2);
+  assert.equal(draft.derivedValues.traitChecks["Born of Earth and Stone"],2);
   assert.ok(draft.derivedValues.natureDescriptors.includes("Negotiating"));
   const human=sample("WARRIOR");
   human.answers.natureAnswers={q1:"PREPARE",q2:"LISTEN_ELDERS",q3:"FIGHT"};
@@ -85,7 +85,7 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
   const next=sample("RANGER");
   const after=engine.updateDraft(before,{answers:next.answers,allocations:next.allocations});
   assert.equal(after.derivedValues.identity.stock,"ELF");
-  assert.equal(after.derivedValues.traitChecks["Born Of Earth And Stone"],undefined);
+  assert.equal(after.derivedValues.traitChecks["Born of Earth and Stone"],undefined);
   assert.equal(after.derivedValues.traitChecks["First Born"],1);
 
   let created=0,deleted=0,provenance=0;
@@ -107,6 +107,28 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
   assert.equal(deleted,5);
   const result=await adapter.execute(live,{rulesSnapshot});
   assert.equal(result.rolledBack,false);assert.equal(provenance,1);
+
+  // Exercise the actual M9 skill/item provisioners with a document-shaped runtime.
+  const materialized={id:"materialized",items:[],async createEmbeddedDocuments(type,docs){
+    const made=docs.map((doc,i)=>({...structuredClone(doc),id:"item-"+(this.items.length+i)}));
+    this.items.push(...made);return made;
+  },async updateEmbeddedDocuments(type,updates){
+    for(const update of updates){
+      const item=this.items.find(x=>x.id===update._id);
+      for(const [path,val] of Object.entries(update))if(path.startsWith("system."))item.system[path.slice(7)]=val;
+    }
+  },async setFlag(){},async delete(){}};
+  const actualAdapter=new FoundryCreationCommitAdapter({shadowOnly:false,runtime:{
+    ...tb2eWizardTest.adapter.runtime,
+    ensureFolder:async()=>({id:"pc"}),createActor:async()=>materialized,normalizeRelationships:async()=>{}
+  }});
+  await actualAdapter.execute(live,{rulesSnapshot});
+  assert.equal(materialized.items.filter(x=>x.type==="role").length,33);
+  assert.equal(materialized.items.find(x=>x.name==="Carpenter"&&x.type==="role").system.rating,2);
+  assert.equal(materialized.items.find(x=>x.name==="Criminal"&&x.type==="role").system.rating,3);
+  assert.equal(materialized.items.find(x=>x.name==="Fresh").system.active,true);
+  assert.ok(!materialized.items.some(x=>x.name==="Strained"||x.name==="Tired"));
+  assert.equal(materialized.items.filter(x=>x.type==="condition").length,8);
   // Production entry point remains closed until both source readiness and profile authority are available.
   await assert.rejects(commitTb2eWizard(sample("WARRIOR")),/verification/);
 

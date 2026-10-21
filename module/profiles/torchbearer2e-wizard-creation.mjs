@@ -9,6 +9,8 @@ import { tb2eConditionModel } from "../m10d-tb2e-conditions-shadow.mjs";
   const ID = "torchbearer2e";
   const key = value => String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
   const label = value => {
+    const names={WIZARDS_SIGHT:"Wizard's Sight",BORN_OF_EARTH_AND_STONE:"Born of Earth and Stone",TOUCHED_BY_THE_GODS:"Touched by the Gods",HEART_OF_BATTLE:"Heart of Battle",HUNGRY_THIRSTY:"Hungry & Thirsty"};
+    if(names[key(value)])return names[key(value)];
     const known = SKILLS.find(name => key(name) === key(value));
     if (known) return known;
     return String(value ?? "").toLowerCase().split("_").map(word => word ? word[0].toUpperCase()+word.slice(1) : "").join(" ");
@@ -111,7 +113,7 @@ import { tb2eConditionModel } from "../m10d-tb2e-conditions-shadow.mjs";
     }
     if(stepId==="gear") {
       const gear=a.gear??[];
-      need(gear.some(x=>["BACKPACK","SATCHEL"].includes(key(x.name))),"gear","Choose your existing Backpack or Satchel Item.");
+      need(gear.filter(x=>["BACKPACK","SATCHEL"].includes(key(x.system?.inventory?.containerType)) || ["BACKPACK","SATCHEL"].includes(key(x.name))).length === 1,"gear","Choose exactly one existing Backpack or Satchel Item.");
       need(gear.every(x=>x.type==="gear" && clean(x.name) && x.system && !x._id),"gear","Equipment must be copied from existing Gear Items.");
       need(a.gearReviewed,"gearReviewed","Confirm the starting equipment with your GM.");
       if(["MAGICIAN","THEURGE"].includes(key(a.className))) need(clean(a.magicNotes),"magicNotes","Record the starting spells or relics/invocations agreed with your GM.");

@@ -380,4 +380,4 @@ async function showStep(state, { current, total = 11, title, subtitle, body, com
 
 
 export { openTb2eRecruitmentWizard, openTb2eRecruitmentGuide, commitTb2eWizard };
-export const tb2eWizardTest = Object.freeze({engine,STEPS,blankAnswers,copyGear,reviewHtml});
+export const tb2eWizardTest = Object.freeze({engine,adapter,STEPS,blankAnswers,copyGear,reviewHtml});
