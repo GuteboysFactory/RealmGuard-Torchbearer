@@ -95,7 +95,7 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
     applySkillRatings:async()=>{},createPlannedItems:async()=>{},ensureConditions:async()=>{},normalizeRelationships:async()=>{}
   }});
   const raw=engine.buildCommitPlan(engine.createDraft(sample("WARRIOR")),party);
-  await assert.rejects(adapter.execute(raw),/not enabled/);
+  assert.throws(()=>adapter.execute(raw),/not enabled/);
   assert.equal(created,0);
   const live=new CreationCommitPlan({...raw,transaction:{...raw.transaction,liveExecution:true}});
   const rulesSnapshot={profileId:"torchbearer2e",profileVersion:1,rulesSnapshotHash:"test-only"};
