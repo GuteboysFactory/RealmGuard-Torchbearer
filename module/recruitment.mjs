@@ -1380,6 +1380,10 @@ async function createRanger(state) {
 const STEPS = [identityStep, natureStep, homelandStep, lifeExperienceStep, serviceStep, wisesStep, resourcesCirclesStep, traitsStep, relationshipsStep, bgiGearStep, reviewStep];
 
 export async function openRecruitmentWizard({ mode = null } = {}) {
+  if (activeCreationPolicy().rulesProfileId === "torchbearer2e") {
+    const { openTb2eRecruitmentWizard } = await import("./tb2e-recruitment.mjs");
+    return openTb2eRecruitmentWizard({ mode });
+  }
   const state = blankState();
   if (["guided", "quick"].includes(String(mode))) state.mode = String(mode);
   let index = 0;
@@ -1459,6 +1463,10 @@ function guideContent() {
 }
 
 export async function openRecruitmentGuide() {
+  if (activeCreationPolicy().rulesProfileId === "torchbearer2e") {
+    const { openTb2eRecruitmentGuide } = await import("./tb2e-recruitment.mjs");
+    return openTb2eRecruitmentGuide();
+  }
   return new foundry.applications.api.DialogV2({
     window: { title: "Realm Guard · Recruitment Guide", resizable: true },
     position: { width: 700, height: 720 },
@@ -1491,21 +1499,22 @@ function injectActorDirectoryRecruitmentTools(html) {
   const bar = document.createElement("div");
   bar.className = "rg-actor-recruitment-tools";
   bar.dataset.rgActorRecruitmentTools = "true";
+  const tb2e = activeCreationPolicy().rulesProfileId === "torchbearer2e";
 
   if (canCreateActors()) {
     const recruit = document.createElement("button");
     recruit.type = "button";
     recruit.className = "rg-actor-recruit primary";
-    recruit.title = "Recruit Ranger — full guided Realm Guard Recruitment";
-    recruit.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>Recruit Ranger</span>`;
+    recruit.title = tb2e ? "Create Adventurer — guided Torchbearer 2E creation" : "Recruit Ranger — full guided Realm Guard Recruitment";
+    recruit.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>${tb2e ? "Create Adventurer" : "Recruit Ranger"}</span>`;
     recruit.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); void openRecruitmentWizard({ mode: "guided" }); });
     bar.append(recruit);
 
     const quick = document.createElement("button");
     quick.type = "button";
     quick.className = "rg-actor-recruit";
-    quick.title = "Create Ranger — same Recruitment rules with less explanatory text";
-    quick.innerHTML = `<i class="fa-solid fa-bolt"></i><span>Create Ranger</span>`;
+    quick.title = tb2e ? "Create Adventurer — quick Torchbearer 2E creation" : "Create Ranger — same Recruitment rules with less explanatory text";
+    quick.innerHTML = `<i class="fa-solid fa-bolt"></i><span>${tb2e ? "Quick Adventurer" : "Create Ranger"}</span>`;
     quick.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); void openRecruitmentWizard({ mode: "quick" }); });
     bar.append(quick);
   }

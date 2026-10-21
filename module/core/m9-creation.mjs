@@ -88,7 +88,8 @@ export class CreationValidator {
     const a = draft.answers ?? {};
     const d = draft.derivedValues ?? {};
     if (!String(a.name ?? "").trim()) errors.push({ code: "NAME_REQUIRED", field: "name" });
-    if (!String(a.rank ?? "").trim()) errors.push({ code: "STATION_REQUIRED", field: "rank" });
+    const identityField = this.profile.rules.identityField ?? "rank";
+    if (!String(a[identityField] ?? "").trim()) errors.push({ code: identityField === "rank" ? "STATION_REQUIRED" : "IDENTITY_REQUIRED", field: identityField });
     if (Number(d.nature ?? 0) < 2 || Number(d.nature ?? 0) > 6) errors.push({ code: "NATURE_RANGE", field: "nature", value: d.nature });
 
     const specialty = String(a.specialty ?? "").trim();

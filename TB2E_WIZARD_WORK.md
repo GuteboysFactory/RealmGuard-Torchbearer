@@ -1,42 +1,38 @@
-# TB2E wizard work — approved scope and integration boundary
+# TB2E wizard implementation candidate
 
-Baseline: main 5f7cd80b2da2f7d8613126b6c2cceae8691cefcb, version 1.13.0-qa.27.
-Per reported QA27 A/B/C PASS. Stable stays 1.12.0.
+Baseline: qa.27; isolated branch `work/tb2e-wizard-qa28`.
+No release, channel promotion, profile activation or existing-world migration.
 
-## Approved by Per
-Copy the existing Recruitment wizard and adapt that copy for TB2E.
-Preserve its guided/quick modes, layout, explanatory help, Back/Next, review and creation quality.
-Use existing CORE M9 and TB2E planners. Route entry points by active rules profile.
-Other profiles continue to use their existing wizard.
-No unrelated changes. No replacement simplified creator. No PR14 work.
+## Approved scope
+Copy the existing Recruitment wizard's presentation and interaction shell for TB2E, retaining guided/quick modes, Back/Next, cancellation and final review.
+Reuse CORE M9 for drafts, validation, commit plans and rollback. Reuse existing TB2E source-owned planners.
+Other rules retain their existing wizard.
 
-Roadmap placement: M10D.8 character creation / M10D.10 controlled integration.
-This does not itself close M10D.11 activation or M10D.12 supported release.
+Roadmap: M10D.8 / M10D.10 implementation, followed by M10D.11 activation and Per's Foundry playtest only after readiness.
 
-## Implemented in this working branch
-Correct a verified prerequisite in the existing TB2E creation planner:
-- Human Upbringing: a new skill is 3 (CC page 14).
-- Home: a new skill is 2 (CC page 15).
-- Social Graces: a new skill is 2 (CC page 23).
-- Specialty: a new skill is 2 (CC page 24).
-- Existing skills gain one, capped at 4 in each case.
+## Implementation
+- `module/tb2e-recruitment.mjs`: isolated 11-step wizard. The shell, CSS classes, dialog dimensions and navigation derive from qa.27 Recruitment.
+- `module/profiles/torchbearer2e-wizard-creation.mjs`: candidate M9 creation profile; uses existing TB2E class/skills/Nature/Wises/Circles/equipment planners.
+- Existing recruitment entry functions route to the TB2E copy only for the active TB2E rules profile. Others keep the original path.
+- M9 generic validation accepts a profile-owned identity field. Default remains rank, preserving other profiles. TB2E uses className, never a fake Ranger station.
+- Equipment is copied from visible existing world Gear Items, preserving source data and resetting old placement references. No new catalog, actor migration or automatic NPC creation.
+- Party members are selected for the specialty uniqueness check; unrelated test Actors are excluded.
+- Explicit TB2E condition documents are provisioned through the existing adapter's runtime extension. Fresh starts active; gameplay effects remain the responsibility of M10D.11.
+- Keepsake/gold alternatives become treasure records and Gear Items. Magic choices and level-1 benefits are recorded; spells/invocations are not invented.
+- Original TB2E foundation profile stays registered until M10D.11. The candidate is not substituted into the active registry yet.
 
-Source: supplied 538386285-Torchbearer-2E-Character-Creation-Guide.pdf.
-Added a rating matrix regression. Existing other-profile snapshots remain checked.
-Branch-only CI has read permissions and no release or channel promotion steps.
+## Verification
+`qa/tb2e-wizard-smoke.mjs` covers all six class/stock paths, skills, Nature side effects, Wises, social/Loner paths, class changes, invalid distributions, specialty collisions, template escaping, Back/Cancel, source Gear preservation and CORE M9 rollback.
+The branch-only workflow runs syntax checks and existing regression smokes. Consult the linked Actions run for actual results; a test file is not evidence of passing by itself.
 
-## Confirmed integration decision required before activation
-QA27's torchbearer2e rules profile is FOUNDATION_ONLY, not selectable and has no live rule authority.
-module/m10-profile-activation.mjs excludes it from selectable profiles.
-module/m10b-character-creation.mjs correctly refuses live creation for a foundation-only rules profile.
-module/profiles/torchbearer2e-creation.mjs explicitly rejects creation commits.
+## Explicit release blocker
+Starting Fate/Persona values have not been verified. Existing source-owned TB2E planners do not declare a starting grant. The supplied PDF was rediscovered but current Library reads return no readable content.
+Do not infer the Realm Guard 1/1 grant, nor ship the candidate's zero placeholders as confirmed TB2E rules.
+The candidate metadata has releaseReady=false and the production entry/commit functions refuse execution even if a profile is activated.
+Obtain the relevant source text or Per's explicit ruling, then update the award values, review and tests.
+Until that is resolved, the wizard is an implementation candidate, not complete or ready for M10D.11.
 
-A profile-routed TB2E wizard therefore cannot be used to create a real PC in the installed QA27 world yet.
-Changing the global profile to QA_ACTIVE also affects the authority boundary for other TB2E domains.
-Do not clear those gates merely to make the wizard run.
-
-Before connecting live creation, Per must choose whether this package also includes the separately scoped M10D.11 activation work, or whether the wizard remains built for later activation. Do not publish a preview-only QA as if it were the agreed complete wizard.
-
-## Current release state
-Wizard implementation is not complete. No new QA release has been published.
-QA/stable install links, release/READY, main and all existing world data remain unchanged.
+## QA work still required
+Actual Foundry rendering and character creation must be tested by Per after M10D.11 activation.
+Automatic tests use mocks and do not prove Foundry UI appearance.
+QA27 remains the approved installed baseline.
