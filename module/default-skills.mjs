@@ -1,3 +1,5 @@
+import { isTb2eWizardActor } from "./tb2e-wizard-qa.mjs";
+
 export const RG_DEFAULT_SKILLS = [
   "Administrator",
   "Alchemist",
@@ -42,6 +44,7 @@ export const isDefaultSkill = item => Boolean(item?.getFlag?.("realm-guard", "de
 
 export async function ensureDefaultSkills(actor) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
+  if (isTb2eWizardActor(actor)) return [];
 
   const roles = actor.items.filter(i => i.type === "role");
   const existing = new Map(roles.map(r => [normalizeSkillName(r.name), r]));

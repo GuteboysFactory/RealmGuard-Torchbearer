@@ -9,6 +9,10 @@ import { REALM_GUARD_STRICT_PROFILE } from "./profiles/realm-guard-strict.mjs";
 import { buildProfileCapabilities } from "./profile-capabilities.mjs";
 
 import { TORCHBEARER2E_FOUNDATION_PROFILE } from "./profiles/torchbearer2e-foundation.mjs";
+import { TB2E_WIZARD_QA_PROFILE } from "./profiles/torchbearer2e-wizard-qa.mjs";
+import { tb2eWizardQaEnabled, TB2E_WIZARD_QA_SETTING } from "./tb2e-wizard-qa.mjs";
+
+const tb2eQaResolver = new ProfileResolver([TB2E_WIZARD_QA_PROFILE]);
 
 const resolver = new ProfileResolver([
   MG1E_FOUNDATION_PROFILE,
@@ -31,7 +35,8 @@ function resolveRequestedProfileId(profileId = null) {
 
 export function resolveRulesProfile(profileId = null) {
   const requestedProfileId = resolveRequestedProfileId(profileId);
-  const profile = resolver.resolve(requestedProfileId);
+  const profile = requestedProfileId === "torchbearer2e" && tb2eWizardQaEnabled()
+    ? tb2eQaResolver.resolve(requestedProfileId) : resolver.resolve(requestedProfileId);
   const registry = new RulesRegistry(profile);
   const snapshot = createProfileSnapshot(profile);
   return Object.freeze({ profile, registry, snapshot });
@@ -176,7 +181,7 @@ function exposeCoreApi() {
     resolveProfileCapabilities,
     resolveRulesProfile,
     refreshRulesProfileRuntime,
-    registeredProfiles: () => resolver.list().map(profile => ({
+    registeredProfiles: () => resolver.list().map(row => resolveRulesProfile(row.id).profile).map(profile => ({
       id: profile.id,
       version: profile.version,
       name: profile.name,
@@ -192,6 +197,11 @@ function exposeCoreApi() {
 }
 
 export function installRulesProfileInfrastructure() {
+  game.settings.register("realm-guard", TB2E_WIZARD_QA_SETTING, {
+    name:"Enable TB2E character creation QA",
+    hint:"Test worlds only. Enables selection of the TB2E creation profile in Manage Rules Profile on QA builds. Select the profile and reload before creating characters. Other TB2E gameplay automation is not enabled.",
+    scope:"world", config:true, type:Boolean, default:false, requiresReload:true
+  });
   registerGmDockTool({
     id: "rules-registry",
     icon: "fa-solid fa-scale-balanced",
@@ -214,7 +224,7 @@ export function installRulesProfileInfrastructure() {
   // profile switch updates the world settings. qa.1 intentionally exposes no switch UI.
   Hooks.on("updateSetting", setting => {
     const key = String(setting?.key ?? "");
-    if (!["realm-guard.activeRulesProfileId", "realm-guard.activeRulesProfileVersion"].includes(key)) return;
+    if (!["realm-guard.activeRulesProfileId", "realm-guard.activeRulesProfileVersion", `realm-guard.${TB2E_WIZARD_QA_SETTING}`].includes(key)) return;
     try {
       const before = runtime?.profile?.id ?? "";
       const state = refreshRulesProfileRuntime();
@@ -238,7 +248,7 @@ export function installRulesProfileInfrastructure() {
 
 export function getRulesProfileCatalog() {
   return resolver.list().map((registered) => {
-    const resolved = resolver.resolve(registered.id);
+    const resolved = resolveRulesProfile(registered.id).profile;
     const registry = new RulesRegistry(resolved);
     return {
       id: resolved.id, name: resolved.name, version: resolved.version,

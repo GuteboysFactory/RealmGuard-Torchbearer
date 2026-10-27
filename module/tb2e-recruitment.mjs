@@ -3,6 +3,7 @@ import { CharacterCreationEngine, CreationPartyContext, CreationCommitPlan } fro
 import { FoundryCreationCommitAdapter } from "./m9-creation-commit-adapter.mjs";
 import { getActiveM10BCharacterCreationPolicy } from "./m10b-character-creation.mjs";
 import { TB2E_WIZARD_CREATION_PROFILE, MODEL, STEP_IDS, STEP_TITLES, blankAnswers, label, key } from "./profiles/torchbearer2e-wizard-creation.mjs";
+import { tb2eWizardQaEnabled } from "./tb2e-wizard-qa.mjs";
 
   const engine=new CharacterCreationEngine(TB2E_WIZARD_CREATION_PROFILE);
   const adapter=new FoundryCreationCommitAdapter({shadowOnly:false,runtime:{ensureConditions:async(actor,plan)=>{
@@ -251,6 +252,7 @@ import { TB2E_WIZARD_CREATION_PROFILE, MODEL, STEP_IDS, STEP_TITLES, blankAnswer
     return !!globalThis.game?.user?.isGM || !!globalThis.game?.user?.can?.("ACTOR_CREATE");
   }
   function assertCreationEnabled() {
+    if(!tb2eWizardQaEnabled()) throw new Error("TB2E character creation awaits QA activation in this test world.");
     if(TB2E_WIZARD_CREATION_PROFILE.metadata.releaseReady !== true) throw new Error("TB2E wizard awaits verification of starting Fate/Persona before release.");
     const policy=getActiveM10BCharacterCreationPolicy();
     if(policy.rulesProfileId!=="torchbearer2e" || !policy.liveCommit || policy.foundationOnly) throw new Error("TB2E character creation awaits M10D.11 activation.");

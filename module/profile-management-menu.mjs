@@ -2,6 +2,8 @@ import { showTorchbearer2eConversionPreview } from "./m10d-tb2e-foundation.mjs";
 import { previewMg1eConversion, previewMg2eConversion, previewStrictConversion, showMg1eConversionPreview, showMg2eConversionPreview, showStrictConversionPreview } from "./m10-profile-service.mjs";
 import { getRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
 import { profileActivationStatus, switchRulesProfile } from "./m10-profile-activation.mjs";
+import { buildTorchbearer2eConversionPreview } from "./m10-profile-conversion-preview.mjs";
+import { tb2eWizardQaEnabled } from "./tb2e-wizard-qa.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -28,13 +30,16 @@ async function switchProfileAction(event, target) {
   const profileId = String(button?.dataset?.profileId ?? "").trim();
   if (!profileId) return;
   const resolved = resolveRulesProfile(profileId).profile;
-  const preview = profileId === "mg2e" ? previewMg2eConversion() : profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
+  const preview = profileId === "torchbearer2e"
+    ? buildTorchbearer2eConversionPreview({fromProfile:getRulesProfileRuntime().profile,toProfile:resolved,actors:game.actors?.contents??[],worldItems:game.items?.contents??[]})
+    : profileId === "mg2e" ? previewMg2eConversion() : profileId === "mg1e" ? previewMg1eConversion() : previewStrictConversion();
   const confirmed = await foundry.applications.api.DialogV2.wait({
     window:{title:`Realm Guard · Activate ${resolved.name}`,resizable:true},
     content:`<div class="realm-guard"><h2>Switch this world to ${resolved.name}?</h2>
       <p>This is a <b>${resolved.metadata?.qaActivationOnly ? "QA-only" : "supported"} profile switch</b>. Existing Actors and Items are preserved; only the active Rules Profile world settings are changed.</p>
       <p><b>World impact:</b> ${preview.worldImpact?.rangers ?? 0} Rangers · ${preview.worldImpact?.wiseItems ?? 0} Wise Items · ${preview.worldImpact?.actorsWithProfileSpecificConditions ?? 0} Actor(s) with profile-specific Conditions.</p>
       <p>No automatic Wise rating, Talent deletion, Condition deletion or inventory migration will occur.</p>
+      ${profileId === "torchbearer2e" ? "<p><b>Character creation QA only.</b> Test the wizard in a separate world. TB2E gameplay automation remains outside this activation.</p>" : ""}
       <p><b>Reload the world after switching.</b></p></div>`,
     modal:true,rejectClose:false,
     buttons:[
@@ -130,11 +135,12 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       },
       impactRows:impactRows(mg2Preview.worldImpact),
       previewAvailable:true,
+      tb2eWizardQaEnabled:tb2eWizardQaEnabled(),
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
       phase:"M10C.8",
-      nextStep:"MG2E is explicitly selectable in QA after M10C.7 FULL PASS; switching preserves campaign data"
+      nextStep:tb2eWizardQaEnabled() ? "Select Torchbearer 2E for character creation QA in this test world; other TB2E gameplay automation remains disabled" : "MG2E is explicitly selectable in QA after M10C.7 FULL PASS; switching preserves campaign data"
     }, { inplace:false });
   }
 }

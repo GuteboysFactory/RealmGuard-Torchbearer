@@ -19,7 +19,7 @@ Roadmap: M10D.8 / M10D.10 implementation, followed by M10D.11 activation and Per
 - Party members are selected for the specialty uniqueness check; unrelated test Actors are excluded.
 - Explicit TB2E condition documents are provisioned through the existing adapter's runtime extension. Fresh starts active; gameplay effects remain the responsibility of M10D.11.
 - Keepsake/gold alternatives become treasure records and Gear Items. Magic choices and level-1 benefits are recorded; spells/invocations are not invented.
-- Original TB2E foundation profile stays registered until M10D.11. The candidate is not substituted into the active registry yet.
+- Original TB2E foundation profile remains the default. M10D.11 adds opt-in QA resolution of the same profile id for character creation only; the source-audit foundation is preserved.
 
 ## Verification
 `qa/tb2e-wizard-smoke.mjs` covers all six class/stock paths, skills, Nature side effects, Wises, social/Loner paths, class changes, invalid distributions, specialty collisions, template escaping, Back/Cancel, source Gear preservation and CORE M9 rollback.
@@ -50,7 +50,7 @@ The four approved files were saved to `work/tb2e-wizard-qa28` in commit `ee04989
 ## QA work still required
 Actual Foundry rendering and character creation must be tested by Per after M10D.11 activation.
 Automatic tests use mocks and do not prove Foundry UI appearance.
-QA27 remains the approved installed baseline.
+QA28 is the published baseline; the user confirmed that the update and existing functionality appear correct.
 
 ## M10D.11 handoff and user QA
 M10D.8's starting-rewards source completion is implemented, saved to the work branch and verified by local tests and the full branch workflow. The branch implementation is ready for the separately approved M10D.11 activation and Foundry playtest.
@@ -64,4 +64,24 @@ After explicit user approval for M10D.11, prepare controlled QA activation and r
 5. Copy existing Gear Items; confirm source Items stay unchanged and old placement references are cleared. Check magic notes and keepsake/gold alternatives.
 6. Confirm other rules profiles retain their existing wizard. Verify failure rollback leaves no partial character, and record Foundry version, branch commit, reproduction steps and console errors for any failure.
 
-Before that approval the TB2E foundation/liveCommit gate must continue blocking actual wizard creation. M10D.11 activation and playtest fixes are the next step; stable 1.13.0 requires separate user approval after QA.
+The user subsequently approved M10D.11 controlled activation on 2026-10-27. Stable 1.13.0 still requires separate user approval after QA.
+
+## M10D.11 controlled creation QA — qa.29
+The world setting `tb2eWizardQaEnabled` defaults to false. On QA builds only, enabling it makes the creation-only Torchbearer 2E profile selectable in Manage Rules Profile. Selection remains GM-only and changes the two profile settings without migrating or deleting Actors, Items or Journals. Other profiles and the source-audit foundation retain their previous behavior when QA is disabled.
+
+The generic creation registry resolves the completed 11-step wizard while this opt-in QA profile is enabled. Actual creation still requires both the active TB2E profile and Actor-create permission. Stable builds, disabled QA, and inactive profiles cannot commit the wizard. This activation enables character creation only: existing source-blocked gameplay domains remain read-only shadows; full TB2E gameplay parity is not claimed.
+
+TB2E wizard Actors are protected from legacy default-skill provisioning and Condition enrichment after reload or profile rollback. This preserves the wizard's 33 skills and eight source-owned Condition documents instead of adding Weather Watcher, Tired or Strained or replacing TB2E Condition metadata with Realm Guard rules.
+
+`qa/m10d11-tb2e-wizard-activation-smoke.mjs` exercises opt-in, profile selection, the production wizard commit for all six classes through CORE M9, real item/relationship provisioners against simulated Foundry documents, failed-item rollback, profile UI data, stable/inactive/player blocks and reload preservation. `qa/lib/tb2e-wizard-fixtures.mjs` is shared with the original wizard smoke. Actual Foundry rendering and user creation testing remain outstanding.
+
+Local verification on Node 24.22.1 passed: 159 runtime syntax checks, all 120 smoke tests and release preflight. GitHub checks and the release workflow must verify the published candidate too; these results are not a user Foundry playtest PASS.
+
+### User setup and first test
+1. Update Foundry to 1.13.0-qa.29 and open a separate test world as GM.
+2. In Configure Settings, enable **Enable TB2E character creation QA**, save and reload.
+3. Open **Manage Rules Profile**, switch to **Torchbearer 2E · Character Creation QA**, then reload again.
+4. Open the usual Character Creation / Recruitment guide; it now routes to the TB2E copy. Follow the six-class checklist above. Start with Warrior and confirm Fate 0, Persona 0, Fresh and the final Review values.
+5. Reload after creating the character and confirm that skills/Conditions remain unchanged. Switch back to the previous profile to verify rollback; existing test Actors must be preserved. Switch away from TB2E before disabling its QA setting.
+
+Record the class, mode, step, expected/actual result, Foundry version and any console error when reporting a failure. Do not report M10D.11 Foundry PASS until the user has completed these tests.

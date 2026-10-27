@@ -8,6 +8,7 @@ import { MG1E_CREATION_PROFILE } from "./profiles/mg1e-creation.mjs";
 import { MG2E_CREATION_PROFILE } from "./profiles/mg2e-creation.mjs";
 
 import { TORCHBEARER2E_CREATION_PROFILE } from "./profiles/torchbearer2e-creation.mjs";
+import { TB2E_WIZARD_CREATION_PROFILE } from "./profiles/torchbearer2e-wizard-creation.mjs";
 
 const CREATION_PROFILES = new Map([
   [REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE.id, REALM_GUARD_LEGACY_MIXED_CREATION_PROFILE],
@@ -17,6 +18,7 @@ const CREATION_PROFILES = new Map([
   [TORCHBEARER2E_CREATION_PROFILE.id, TORCHBEARER2E_CREATION_PROFILE]
 ]);
 const ENGINES = new Map([...CREATION_PROFILES.entries()].map(([id, profile]) => [id, new CharacterCreationEngine(profile)]));
+const tb2eWizardEngine = new CharacterCreationEngine(TB2E_WIZARD_CREATION_PROFILE);
 const previewAdapter = new FoundryCreationCommitAdapter({ shadowOnly: true });
 
 function freeze(value) {
@@ -46,7 +48,8 @@ export function resolveM10BCharacterCreationPolicy(profileId = null) {
   const { profile } = resolveRulesProfile(profileId);
   const capabilities = buildProfileCapabilities(profile);
   const creationProfileId = creationProfileIdForRulesProfile(profile);
-  const creationProfile = CREATION_PROFILES.get(creationProfileId) ?? null;
+  const creationWizardQa = profile.metadata?.creationWizardQa === true;
+  const creationProfile = creationWizardQa ? TB2E_WIZARD_CREATION_PROFILE : CREATION_PROFILES.get(creationProfileId) ?? null;
   const active = activeProfileIdSafe() === profile.id;
   const profileAllowsLiveCommit = liveAuthorityAllowsCommit(profile, capabilities);
 
@@ -61,6 +64,7 @@ export function resolveM10BCharacterCreationPolicy(profileId = null) {
     supported: profile.metadata?.supported !== false,
     active,
     creationProfileId,
+    creationWizardQa,
     creationProfileVersion: Number(creationProfile?.version ?? capabilities.rules.creation.profileVersion ?? 0),
     creationProfileName: String(creationProfile?.name ?? ""),
     coreEngine: String(capabilities.rules.creation.coreEngine || "CORE_M9"),
@@ -102,14 +106,14 @@ export function getActiveM10BCharacterCreationPolicy() {
 
 export function resolveCharacterCreationProfile(profileId = null) {
   const policy = resolveM10BCharacterCreationPolicy(profileId);
-  const profile = CREATION_PROFILES.get(policy.creationProfileId);
+  const profile = policy.creationWizardQa ? TB2E_WIZARD_CREATION_PROFILE : CREATION_PROFILES.get(policy.creationProfileId);
   if (!profile) throw new Error(`No CharacterCreationProfile is registered for Rules Profile '${policy.rulesProfileId}'.`);
   return profile;
 }
 
 export function resolveCharacterCreationEngine(profileId = null) {
   const profile = resolveCharacterCreationProfile(profileId);
-  const engine = ENGINES.get(profile.id);
+  const engine = profile === TB2E_WIZARD_CREATION_PROFILE ? tb2eWizardEngine : ENGINES.get(profile.id);
   if (!engine) throw new Error(`No CharacterCreationEngine is registered for Creation Profile '${profile.id}'.`);
   return engine;
 }

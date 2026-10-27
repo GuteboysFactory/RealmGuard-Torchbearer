@@ -6,6 +6,7 @@ import {
   familyRecoveryMethods
 } from "./m10b-conditions-recovery.mjs";
 import { currentTurnPhase, turnLabel, recoveryAttempted, markRecoveryAttempt, turnManagerEnabled, spendRecoveryChecks } from "./turns.mjs";
+import { isTb2eWizardActor } from "./tb2e-wizard-qa.mjs";
 
 export const RG_DEFAULT_CONDITIONS = [
   { name: "Angry", icon: "systems/realm-guard/assets/conditions/angry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 2, recoveryNote: "Recover with an Ob 2 Will test. While Angry, beneficial Trait and Wise effects are unavailable; precision/social Ob increases remain GM-adjudicated.", description: "Angry subtracts 1 from disposition for conflicts that use Will as their base. Supplementary Torchbearer alignment also blocks beneficial Trait/Wise effects while Angry." },
@@ -162,6 +163,7 @@ export async function recoverCondition(actor, condition) {
 
 export async function ensureDefaultConditions(actor) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
+  if (isTb2eWizardActor(actor)) return [];
   const existing = new Map(actor.conditions.map(c => [normalize(c.name), c]));
   const create = [];
   const policy = getActiveM10BConditionRecoveryPolicy();
@@ -212,6 +214,7 @@ async function migrateAndProvisionConditions() {
 
 
 async function enrichCanonicalConditionData(actor) {
+  if (isTb2eWizardActor(actor)) return;
   const policy = getActiveM10BConditionRecoveryPolicy();
   const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
   for (const condition of actor.conditions ?? []) {

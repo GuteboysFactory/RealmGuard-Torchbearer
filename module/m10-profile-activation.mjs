@@ -1,5 +1,6 @@
 import { LEGACY_PROFILE_ID, LEGACY_PROFILE_VERSION } from "./core-baseline.mjs";
 import { getRulesProfileRuntime, refreshRulesProfileRuntime, resolveRulesProfile } from "./rules-profile-service.mjs";
+import { tb2eWizardQaEnabled } from "./tb2e-wizard-qa.mjs";
 
 const NS = "realm-guard";
 const PROFILE_ID_KEY = "activeRulesProfileId";
@@ -89,7 +90,7 @@ export function profileActivationStatus() {
     activeProfileId: active.id,
     activeProfileVersion: active.version,
     activeSnapshotHash: active.rulesSnapshotHash,
-    profiles: Object.freeze([legacy, strict, mg1e, mg2e]),
+    profiles: Object.freeze([legacy, strict, mg1e, mg2e, ...(tb2eWizardQaEnabled() ? [activationProfileSummary("torchbearer2e")] : [])]),
     strictProfileId: strict.id,
     strictProfileVersion: strict.version,
     strictActivationState: strict.activationState,
