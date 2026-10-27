@@ -45,7 +45,7 @@ Local verification passed on Node 24.22.1:
 - `qa/m10d-tb2e-creation-shadow-smoke.mjs`.
 
 These are mock-based local checks, not a new GitHub Actions result. The existing branch workflow uses Node 22 and runs the full smoke suite after a push.
-Full branch regression results must be checked in GitHub Actions after commit. Foundry visual verification remains outstanding.
+The four approved files were saved to `work/tb2e-wizard-qa28` in commit `ee04989efee6128c7a51d5f0e28dc63587e34801`. The full branch workflow passed on that commit: [GitHub Actions 40588851451](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/40588851451). This includes syntax checks and every `qa/*-smoke.mjs` test on Node 22. Foundry visual verification remains outstanding.
 
 ## QA work still required
 Actual Foundry rendering and character creation must be tested by Per after M10D.11 activation.
@@ -53,7 +53,7 @@ Automatic tests use mocks and do not prove Foundry UI appearance.
 QA27 remains the approved installed baseline.
 
 ## M10D.11 handoff and user QA
-M10D.8's starting-rewards source completion is implemented and locally verified. Saving the four approved files to the work branch and verifying its full Actions run are still required before treating the branch delivery as complete.
+M10D.8's starting-rewards source completion is implemented, saved to the work branch and verified by local tests and the full branch workflow. The branch implementation is ready for the separately approved M10D.11 activation and Foundry playtest.
 No activation, release, version bump, channel promotion or registry change is part of this completion. `releaseReady=true` is candidate source-readiness metadata, not authorization to publish.
 
 After explicit user approval for M10D.11, prepare controlled QA activation and run the following in a disposable Foundry test world:
