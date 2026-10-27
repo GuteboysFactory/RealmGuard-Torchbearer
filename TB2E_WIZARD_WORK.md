@@ -25,14 +25,43 @@ Roadmap: M10D.8 / M10D.10 implementation, followed by M10D.11 activation and Per
 `qa/tb2e-wizard-smoke.mjs` covers all six class/stock paths, skills, Nature side effects, Wises, social/Loner paths, class changes, invalid distributions, specialty collisions, template escaping, Back/Cancel, source Gear preservation and CORE M9 rollback.
 The branch-only workflow runs syntax checks and existing regression smokes. Consult the linked Actions run for actual results; a test file is not evidence of passing by itself.
 
-## Explicit release blocker
-Starting Fate/Persona values have not been verified. Existing source-owned TB2E planners do not declare a starting grant. The supplied PDF was rediscovered but current Library reads return no readable content.
-Do not infer the Realm Guard 1/1 grant, nor ship the candidate's zero placeholders as confirmed TB2E rules.
-The candidate metadata has releaseReady=false and the production entry/commit functions refuse execution even if a profile is activated.
-Obtain the relevant source text or Per's explicit ruling, then update the award values, review and tests.
-Until that is resolved, the wizard is an implementation candidate, not complete or ready for M10D.11.
+## Starting rewards source resolved
+Dungeoneer's Handbook, printed/PDF p. 47, "Starting Rewards": a new character starts with Fate 0 and Persona 0.
+"Heir to the Pauper's Throne" on the same page permits a replacement for a deceased character to inherit their remaining Fate/Persona, capped at 3 each. This exception remains GM-adjudicated; ordinary creation grants 0/0.
+The existing zero values are retained, with source provenance and explanatory Final Details / Review text.
+Candidate metadata now has readyWhenActive=true, releaseReady=true and pendingSource=[]. These flags resolve the wizard's source blocker only; they do not activate the TB2E profile or bypass its separate liveCommit gate.
+
+## Verification of source completion (2026-10-27)
+The local wizard smoke passed against baseline commit 78a3a2422a69b7a2cbee2df6bdac56d32f415ee3 plus this completion. It checks 0/0 and refusal to create before profile activation for all six classes, the p. 47 citation and GM replacement exception in Final Details, Review text and readiness metadata, alongside the existing validation/navigation/rollback checks.
+The other locally present module files were compared with the baseline's Git blob hashes (normalizing CRLF to LF); only the two approved wizard modules differ.
+
+Local verification passed on Node 24.22.1:
+- Syntax checks for the two changed modules and `qa/tb2e-wizard-smoke.mjs`.
+- `qa/tb2e-wizard-smoke.mjs`.
+- `qa/m9-creation-foundation-smoke.mjs`.
+- `qa/m9-creation-commit-plan-shadow-smoke.mjs`.
+- `qa/m9-core-live-commit-smoke.mjs`.
+- `qa/m10b-character-creation-smoke.mjs`.
+- `qa/m10d-tb2e-creation-shadow-smoke.mjs`.
+
+These are mock-based local checks, not a new GitHub Actions result. The existing branch workflow uses Node 22 and runs the full smoke suite after a push.
+Full branch regression results must be checked in GitHub Actions after commit. Foundry visual verification remains outstanding.
 
 ## QA work still required
 Actual Foundry rendering and character creation must be tested by Per after M10D.11 activation.
 Automatic tests use mocks and do not prove Foundry UI appearance.
 QA27 remains the approved installed baseline.
+
+## M10D.11 handoff and user QA
+M10D.8's starting-rewards source completion is implemented and locally verified. Saving the four approved files to the work branch and verifying its full Actions run are still required before treating the branch delivery as complete.
+No activation, release, version bump, channel promotion or registry change is part of this completion. `releaseReady=true` is candidate source-readiness metadata, not authorization to publish.
+
+After explicit user approval for M10D.11, prepare controlled QA activation and run the following in a disposable Foundry test world:
+1. Check all 11 steps in both Guided and Quick mode, layout, prompts, Back/Next, retained choices and final Review. Cancel must create no Actor or Items.
+2. Create one character of each of the six classes. Confirm Fate 0 / Persona 0, level 1, Fresh, class/stock, Nature, skills, traits, Wises and relationships against the review. Newly learned Home, Social Graces and Specialty skills start at 2; human Upbringing starts a new skill at 3.
+3. Confirm Final Details cites Dungeoneer's Handbook p. 47 and explains the GM-adjudicated inheritance of a deceased character's remaining Fate/Persona, at most 3 each. Ordinary creation must not apply that transfer automatically.
+4. Exercise invalid skill distributions, duplicate party specialties and class changes. Confirm validation prevents creation and that previous stock data does not survive a class change.
+5. Copy existing Gear Items; confirm source Items stay unchanged and old placement references are cleared. Check magic notes and keepsake/gold alternatives.
+6. Confirm other rules profiles retain their existing wizard. Verify failure rollback leaves no partial character, and record Foundry version, branch commit, reproduction steps and console errors for any failure.
+
+Before that approval the TB2E foundation/liveCommit gate must continue blocking actual wizard creation. M10D.11 activation and playtest fixes are the next step; stable 1.13.0 requires separate user approval after QA.

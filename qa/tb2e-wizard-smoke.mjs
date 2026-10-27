@@ -39,6 +39,9 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
     assert.equal(plan.actor.system.attributes.circles.value,4);
     assert.equal(plan.actor.system.attributes.resources.value,0);
     assert.equal(plan.actor.system.creed,"");
+    assert.equal(plan.actor.system.resources.fate.value,0);
+    assert.equal(plan.actor.system.resources.persona.value,0);
+    assert.match(plan.actor.flags["realm-guard"].tb2eCreation.startingRewards.source,/p\. 47/);
     assert.equal(plan.provisioning.canonicalConditions.documents.find(x=>x.name==="Fresh").system.active,true);
     assert.equal(plan.provisioning.canonicalConditions.documents.filter(x=>x.system.active).length,1);
     assert.equal(plan.provisioning.canonicalSkills.ratings.Carpenter.rating,2);
@@ -130,7 +133,9 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
   assert.ok(!materialized.items.some(x=>x.name==="Strained"||x.name==="Tired"));
   assert.equal(materialized.items.filter(x=>x.type==="condition").length,8);
   // Production entry point remains closed until both source readiness and profile authority are available.
-  await assert.rejects(commitTb2eWizard(sample("WARRIOR")),/verification/);
+  globalThis.game={user:{isGM:true},settings:{get:(_ns,key)=>key==="activeRulesProfileId"?"torchbearer2e":undefined}};
+  for(const className of MODEL.classes) await assert.rejects(commitTb2eWizard(sample(className)),/activation/);
+  assert.equal(created,6,"The activation gate must not create Actors.");
 
   let dialogConfig,action="cancel",form={elements:{}},warnings=[];
   globalThis.game={user:{isGM:true},actors:{contents:[]},items:{contents:[]}};
@@ -147,6 +152,12 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
     assert.match(dialogConfig.content,/rg-recruitment/);
     assert.match(dialogConfig.content,new RegExp(`STEP ${i+1}/11`));
     assert.equal(dialogConfig.buttons.some(x=>x.action==="back"),i>0);
+    if(i===9) {
+      assert.match(dialogConfig.content,/Starting rewards: Fate 0, Persona 0/);
+      assert.match(dialogConfig.content,/Dungeoneer&#39;s Handbook|Dungeoneer's Handbook/);
+      assert.match(dialogConfig.content,/p\. 47/);
+      assert.match(dialogConfig.content,/deceased character may inherit up to 3 of each/);
+    }
   }
   const backState=sample("WARRIOR");action="back";
   form={elements:{belief:{value:"Changed belief"},goal:{value:"Changed goal"},instinct:{value:"Changed instinct"}}};
@@ -162,5 +173,8 @@ import { tb2eWizardTest, commitTb2eWizard } from "../module/tb2e-recruitment.mjs
   assert.equal(copied._id,undefined);assert.equal(copied.system.inventory.containerId,"");
   assert.equal(copied.system.inventory.capacity,6);assert.equal(copied.flags.custom.preserved,true);
   assert.equal(item.toObject().system.inventory.containerId,"old");
-  assert.equal(TB2E_WIZARD_CREATION_PROFILE.metadata.releaseReady,false);
-  console.log("PASS TB2E wizard candidate: six classes, source-derived values, validation, isolated UI shell, Back/Cancel, escaping, existing Gear copies, M9 rollback and closed release gate.");
+  assert.equal(TB2E_WIZARD_CREATION_PROFILE.metadata.releaseReady,true);
+  assert.equal(TB2E_WIZARD_CREATION_PROFILE.metadata.readyWhenActive,true);
+  assert.deepEqual(TB2E_WIZARD_CREATION_PROFILE.metadata.pendingSource,[]);
+  assert.match(dialogConfig.content,/Fate 0 \/ Persona 0/);
+  console.log("PASS TB2E wizard candidate: six classes, source-derived values, validation, isolated UI shell, Back/Cancel, escaping, existing Gear copies, M9 rollback and closed activation gate.");

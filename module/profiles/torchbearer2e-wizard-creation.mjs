@@ -171,7 +171,7 @@ import { tb2eConditionModel } from "../m10d-tb2e-conditions-shadow.mjs";
           tb2eCreation:{stock:d.identity.stock,className:d.identity.className,level:1,raiment:a.raiment,
             familyName:a.familyName??"",parentsProfession:a.parentsProfession??"",magicNotes:a.magicNotes??"",
             levelOneBenefits:d.levelOne,startingTreasure:treasure,
-            startingRewards:"NO_AUTOMATIC_GRANT_PENDING_SOURCE_CONFIRMATION",
+            startingRewards:{fate:0,persona:0,source:"Dungeoneer's Handbook, p. 47, Starting Rewards",replacementCharacterTransfer:"GM adjudication: deceased character balances, maximum 3 each"},
             urdr:d.identity.className==="THEURGE"?1:null,
             equipmentReviewed:!!a.gearReviewed}
         }}
@@ -208,7 +208,7 @@ import { tb2eConditionModel } from "../m10d-tb2e-conditions-shadow.mjs";
     dimensions:[{id:"stock",label:"Stock"},{id:"className",label:"Class"},{id:"level",label:"Level"}],
     steps:STEP_IDS.map((id,i)=>({id,label:STEP_TITLES[i]})),
     rules:{identityField:"className",wiseMode:"UNRATED",startingSkillCap:4},
-    metadata:{mode:"IMPLEMENTATION_CANDIDATE",readyWhenActive:false,releaseReady:false,pendingSource:["STARTING_FATE_PERSONA"],liveAuthority:"CORE_M9_WHEN_ACTIVE",automaticNpcCreation:false},
+    metadata:{mode:"READY_FOR_QA_ACTIVATION",readyWhenActive:true,releaseReady:true,pendingSource:[],startingRewardsSource:"Dungeoneer's Handbook, p. 47, Starting Rewards",liveAuthority:"CORE_M9_WHEN_ACTIVE",automaticNpcCreation:false},
     derive,validateStep,buildCommitSpec
   });
 

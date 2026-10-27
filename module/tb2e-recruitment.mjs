@@ -226,7 +226,7 @@ import { TB2E_WIZARD_CREATION_PROFILE, MODEL, STEP_IDS, STEP_TITLES, blankAnswer
         textInput(`Age (${range?.min}–${range?.max})`,"age",a.age,{type:"number",min:range?.min,max:range?.max})+
         textarea("Raiment / Appearance","raiment",a.raiment)+
         `<h3>Level 1 benefits</h3><ul>${d.levelOne.map(x=>`<li>${esc(label(x))}</li>`).join("")}</ul>`+
-        rulesNote("Starting Fate and Persona awards still need source confirmation before this wizard can be released. No awards are inferred.");
+        rulesNote("Starting rewards: Fate 0, Persona 0 (Dungeoneer's Handbook, p. 47). A replacement for a deceased character may inherit up to 3 of each; agree that exception with the GM.");
     },form=>{state.answers.age=numberValue(form,"age");state.answers.raiment=value(form,"raiment");});
   }
   function reviewHtml(state) {
@@ -240,7 +240,7 @@ import { TB2E_WIZARD_CREATION_PROFILE, MODEL, STEP_IDS, STEP_TITLES, blankAnswer
       `<h3>Drives</h3>`+rows(a.drives)+
       `<h3>Equipment</h3><p>${esc(a.gear.map(x=>x.name).join(", "))}</p>`+
       (a.magicNotes?`<p>${esc(a.magicNotes)}</p>`:"")+
-      `<h3>Final Details</h3><p>${esc(a.hometown)} · Age ${esc(a.age)} · ${esc(a.raiment)} · Fresh</p>`;
+      `<h3>Starting Rewards</h3><p>Fate 0 / Persona 0</p><h3>Final Details</h3><p>${esc(a.hometown)} · Age ${esc(a.age)} · ${esc(a.raiment)} · Fresh</p>`;
   }
   async function reviewStep(state) {
     return step(state,10,"Review the complete character. Back lets you revise; Cancel creates nothing.",
