@@ -1,9 +1,11 @@
-# 1.13.0-qa.27 — QA25 restoration + approved Overview fields
+# 1.13.0-qa.28 — M10D.8 TB2E wizard candidate
 
-Restores system code to the approved 1.13.0-qa.25 baseline. Only runtime differences from QA25 are the Nature descriptive text and Creed fields in PC Overview, with the approved QA26 layout. Numeric Nature is unchanged.
+Publishes the isolated 11-step Torchbearer 2E wizard built from the existing Recruitment shell, retaining Guided/Quick modes, Back/Next, Cancel and final Review. Other rules profiles retain their existing wizards. Creation reuses CORE M9 validation, plans and rollback.
 
-QA26 is superseded and must not be used. Its separate creator, beta profile, session flow and rule changes are removed from this package. Existing QA25 wizard and rules remain the baseline. TB2E live beta is not enabled by this restoration. Stable remains 1.12.0.
+Starting Fate/Persona are 0/0, sourced to Dungeoneer's Handbook, printed/PDF p. 47, Starting Rewards. Heir to the Pauper's Throne allows a replacement for a deceased character to inherit remaining rewards, at most 3 each; that exception stays GM-adjudicated and is not automatically applied.
 
-Before updating from QA26: if Torchbearer 2E Playtest Beta is selected, switch back to your previous supported profile in Profile Management (Legacy Mixed if that was your previous profile). The removed beta profile ID is not available in QA25.
+Home, Social Graces and Specialty grant a new skill at 2; human Upbringing grants a new skill at 3. Tests cover all six classes, invalid choices, navigation, source Gear preservation, rollback and refusal to create before activation.
 
-Install through the usual QA manifest. See TEST_PROTOCOL_v1.13.0-qa.27.md.
+This QA publication does not activate the TB2E profile, replace its foundation registry entry, migrate worlds or enable liveCommit. The new TB2E wizard remains blocked until separately approved M10D.11 activation. Existing supported profiles can be checked for regression now; the six-class Foundry creation playtest follows activation.
+
+Update using the usual QA manifest. See TB2E_WIZARD_WORK.md for the test checklist and M10D.11 handoff. Stable remains 1.12.0; publishing stable 1.13.0 requires separate user approval.
