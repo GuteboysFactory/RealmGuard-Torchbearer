@@ -127,13 +127,23 @@ import { sample } from "./lib/tb2e-wizard-fixtures.mjs";
     dialogConfig=config;
     return config.buttons.find(x=>x.action===action)?.callback(null,{form})??null;
   }}}}};
-  for(let i=0;i<11;i++) {
-    const state=sample("WARRIOR"),snapshot=JSON.stringify(state);
+  const guidedReviews=new Map();
+  for(const className of MODEL.classes) for(const mode of ["guided","quick"]) for(let i=0;i<11;i++) {
+    const state=sample(className);state.mode=mode;
+    const snapshot=JSON.stringify(state);
     assert.equal(await tb2eWizardTest.STEPS[i](state),"cancel");
     assert.equal(JSON.stringify({...state,draft:undefined}),snapshot,"Cancel must not commit form values.");
     assert.match(dialogConfig.content,/rg-recruitment/);
     assert.match(dialogConfig.content,new RegExp(`STEP ${i+1}/11`));
     assert.equal(dialogConfig.buttons.some(x=>x.action==="back"),i>0);
+    assert.match(dialogConfig.content,new RegExp(mode.toUpperCase()));
+    if(i===0) assert.equal(dialogConfig.content.includes('class="rg-recruit-guide"'),mode==="guided","Quick must omit the guided explanatory panel");
+    if(i===10) {
+      const review=tb2eWizardTest.reviewHtml(state);
+      assert.match(review,/Fate 0 \/ Persona 0/);
+      if(mode==="guided") guidedReviews.set(className,review);
+      else assert.equal(review,guidedReviews.get(className),className+": both modes must review the same character values");
+    }
     if(i===9) {
       assert.match(dialogConfig.content,/Starting rewards: Fate 0, Persona 0/);
       assert.match(dialogConfig.content,/Dungeoneer&#39;s Handbook|Dungeoneer's Handbook/);
@@ -159,4 +169,4 @@ import { sample } from "./lib/tb2e-wizard-fixtures.mjs";
   assert.equal(TB2E_WIZARD_CREATION_PROFILE.metadata.readyWhenActive,true);
   assert.deepEqual(TB2E_WIZARD_CREATION_PROFILE.metadata.pendingSource,[]);
   assert.match(dialogConfig.content,/Fate 0 \/ Persona 0/);
-  console.log("PASS TB2E wizard candidate: six classes, source-derived values, validation, isolated UI shell, Back/Cancel, escaping, existing Gear copies, M9 rollback and closed activation gate.");
+  console.log("PASS TB2E wizard candidate: six classes in Guided/Quick across all 11 steps, matching reviews, source-derived values, validation, Back/Cancel, escaping, existing Gear copies, M9 rollback and closed activation gate.");

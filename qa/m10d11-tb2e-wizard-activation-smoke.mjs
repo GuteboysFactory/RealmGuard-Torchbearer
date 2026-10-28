@@ -66,8 +66,10 @@ globalThis.Actor={create:async(data,options)=>{
     async delete(){this.deleted=true;}
   };actors.push(actor);return actor;
 }};
-for(const className of MODEL.classes) {
-  const result=await commitTb2eWizard(sample(className));
+const guidedDocuments=new Map();
+for(const className of MODEL.classes) for(const mode of ["guided","quick"]) {
+  const state=sample(className);state.mode=mode;
+  const result=await commitTb2eWizard(state);
   const actor=result.actor;
   assert.equal(result.rolledBack,false);
   assert.equal(actor.system.resources.fate.value,0);
@@ -76,10 +78,14 @@ for(const className of MODEL.classes) {
   assert.equal(actor.conditions.length,8);
   assert.equal(actor.conditions.find(c=>c.name==="Fresh").system.active,true);
   assert.equal(actor.items.filter(i=>i.type==="role").length,33);
+  const documents=JSON.stringify({system:actor.system,tb2eCreation:actor.getFlag("realm-guard","tb2eCreation"),items:actor.items});
+  if(mode==="guided") guidedDocuments.set(className,documents);
+  else assert.equal(documents,guidedDocuments.get(className),className+": Guided and Quick must create identical character data");
   const data=JSON.stringify(actor);
   await ensureDefaultSkills(actor);await ensureDefaultConditions(actor);
   assert.equal(JSON.stringify(actor),data,"Default provisioning must preserve TB2E-created documents");
 }
+assert.equal(actors.length,12,"All six classes must be committed in both modes");
 installConditionRuleAlignment();
 await ready();
 assert.equal(actors.every(a=>a.conditions.length===8),true,"Reload must preserve the TB2E Condition set and metadata");
@@ -111,4 +117,4 @@ refreshRulesProfileRuntime();
 assert.equal(profileActivationAvailable("torchbearer2e"),false);
 assert.equal(JSON.stringify(ids.map(id=>resolveRulesProfile(id))),before);
 assert.equal(writes.length,4,"Switching there and back writes only the two profile settings each time");
-console.log("PASS M10D.11 opt-in QA activation · six real wizard commits through CORE M9 · rollback · stable/inactive/player guards · UI profile row · reload preservation · no changes to other profiles");
+console.log("PASS M10D.11 opt-in QA activation · six classes in Guided/Quick through CORE M9 · identical character data in both modes · rollback · stable/inactive/player guards · UI profile row · reload preservation · no changes to other profiles");
