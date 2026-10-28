@@ -1,2 +1,2 @@
-1.13.0
-# User-authorized stable release of existing Legacy Mixed, Strict, MG1E and MG2E functionality; TB2E deferred.
+1.13.1
+# Stable startup performance fix: skip unchanged Condition/effect writes and batch actual repairs.

@@ -197,26 +197,37 @@ async function migrateAndProvisionConditions() {
   const activeGMs = game.users.filter(u => u.active && u.isGM).sort((a,b) => String(a.id).localeCompare(String(b.id)));
   if (activeGMs.length && activeGMs[0].id !== game.user.id) return;
   rgConditionMigrationRunning = true;
+  const started = performance.now();
+  const report = { actorsScanned:0, createdConditions:0, conditionUpdates:0, effectChanges:0, completed:false };
   try {
     for (const actor of game.actors?.contents ?? []) {
       if (!["character", "npc"].includes(actor.type)) continue;
+      report.actorsScanned++;
       const quickNpc = actor.getFlag?.("realm-guard", "quickNpc");
       const skipNpcDefaults = actor.type === "npc" && quickNpc?.addDefaultConditions === false;
-      if (!skipNpcDefaults) await ensureDefaultConditions(actor);
-      await enrichCanonicalConditionData(actor);
+      if (!skipNpcDefaults) report.createdConditions += (await ensureDefaultConditions(actor)).length;
+      const changes = await enrichCanonicalConditionData(actor);
+      report.conditionUpdates += changes.conditionUpdates;
+      report.effectChanges += changes.effectChanges;
     }
+    report.completed = true;
   } catch (err) {
     console.error("Realm Guard | Condition rule-alignment migration failed", err);
   } finally {
     rgConditionMigrationRunning = false;
+    game.realmGuard ??= {};
+    game.realmGuard.startup ??= {};
+    game.realmGuard.startup.conditionAlignment = Object.freeze({ ...report, durationMs:Math.round((performance.now()-started)*10)/10 });
   }
 }
 
 
 async function enrichCanonicalConditionData(actor) {
-  if (isTb2eWizardActor(actor)) return;
+  if (isTb2eWizardActor(actor)) return { conditionUpdates:0, effectChanges:0 };
   const policy = getActiveM10BConditionRecoveryPolicy();
   const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
+  const updates = [];
+  const active = [];
   for (const condition of actor.conditions ?? []) {
     if (!isDefaultCondition(condition)) continue;
     if (!wanted.some(name => normalize(name) === normalize(condition.name))) continue;
@@ -233,9 +244,18 @@ async function enrichCanonicalConditionData(actor) {
     // v0.17.0 aligns canonical default rule text/mechanics; custom Conditions remain untouched.
     update["system.rollModifier"] = Number(def.rollModifier ?? 0);
     update["system.description"] = `<p>${def.description}</p>`;
-    await condition.update(update, { realmGuardSkipConditionSync: true });
-    if (condition.system.active) await syncConditionEffect(actor, condition);
+    const changed = Object.fromEntries(Object.entries(update).filter(([key,value]) => condition.system?.[key.slice(7)] !== value));
+    if (Object.keys(changed).length) updates.push({ _id:condition.id, ...changed });
+    if (condition.system.active) active.push(condition);
   }
+  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates, { realmGuardSkipConditionSync:true });
+  let effectChanges = 0;
+  for (const condition of active) {
+    const current = actor.items?.get?.(condition.id) ?? actor.conditions.find(entry => entry.id === condition.id) ?? condition;
+    if (await syncConditionEffect(actor, current, { refreshTokens:false })) effectChanges++;
+  }
+  if (effectChanges) await refreshActorTokens(actor);
+  return { conditionUpdates:updates.length, effectChanges };
 }
 
 export function installConditionRuleAlignment() {
@@ -268,27 +288,39 @@ async function refreshActorTokens(actor) {
   }
 }
 
-export async function syncConditionEffect(actor, item) {
+export async function syncConditionEffect(actor, item, { refreshTokens = true } = {}) {
   if (!actor || item?.type !== "condition") return;
   const existing = actor.effects.find(e => e.getFlag("realm-guard", "conditionItemId") === item.id);
   const active = Boolean(item.system.active);
   if (!active) {
     if (existing) await existing.delete({ realmGuardConditionSync: true });
-    await refreshActorTokens(actor);
-    return;
+    if (refreshTokens) await refreshActorTokens(actor);
+    return Boolean(existing);
   }
   const icon = item.system.icon || FALLBACK_ICON;
   const data = {
     name: item.name,
-    icon,
+    img: icon,
     disabled: false,
     statuses: [conditionStatusId(item)],
     description: item.system.description || "",
     flags: { "realm-guard": { conditionItemId: item.id, conditionIcon: icon } }
   };
-  if (existing) await existing.update(data, { realmGuardConditionSync: true });
-  else await actor.createEmbeddedDocuments("ActiveEffect", [data], { realmGuardConditionSync: true });
-  await refreshActorTokens(actor);
+  const statuses = Array.from(existing?.statuses ?? []);
+  const changed = !existing
+    || existing.name !== data.name
+    || (existing.img ?? existing.icon) !== icon
+    || Boolean(existing.disabled) !== data.disabled
+    || (existing.description ?? "") !== data.description
+    || statuses.length !== data.statuses.length || statuses.some(status => !data.statuses.includes(status))
+    || existing.getFlag("realm-guard", "conditionItemId") !== item.id
+    || existing.getFlag("realm-guard", "conditionIcon") !== icon;
+  if (changed) {
+    if (existing) await existing.update(data, { realmGuardConditionSync: true });
+    else await actor.createEmbeddedDocuments("ActiveEffect", [data], { realmGuardConditionSync: true });
+  }
+  if (refreshTokens) await refreshActorTokens(actor);
+  return changed;
 }
 
 export async function setConditionActive(actor, item, active) {

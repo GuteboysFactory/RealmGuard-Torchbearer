@@ -1,18 +1,15 @@
-# 1.13.0 — Supported profiles stable release
+# 1.13.1 — Reduce repeated world-startup writes
 
-Publishes the existing usable functionality for Realm Guard Legacy Mixed, Strict Realm Guard, Mouse Guard 1E and Mouse Guard 2E. No additional TB2E gameplay integration is included.
+Fixes repeated Condition alignment work during world startup in stable 1.13.0. Previously every canonical Condition was saved on every GM startup even when already current; active Conditions also rewrote their ActiveEffects and redrew their tokens. These document updates create avoidable network/server work and sheet/token refreshes in worlds containing many Actors.
 
-Mouse Guard 1E is promoted from QA-only selection to supported stable, using the recorded M10B.11 Foundry 13.351 Gates A–L FULL PASS on 1.12.0-qa.11 and current regression checks. Its gameplay rules are unchanged. GM-only confirmation, reversible settings-only switching, CORE M9 creation and existing-data preservation remain in place.
+Now only changed canonical Condition fields are written, in one embedded-Item batch per affected Actor. Current ActiveEffects are left untouched; missing or stale effects are still repaired. Startup redraws occur only for repaired effects and are coalesced per Actor. Normal Condition toggles keep their immediate updates and redraws. ActiveEffect artwork uses the current Foundry img field.
 
-The release retains the existing supported-profile tools, Recruitment, roll/conflict/session tools and QA27 Overview fields. Profile-specific automation and manual boundaries remain those of each existing profile; this release does not promise complete automation of every source-book rule.
+## Verification
+A reproducible document-shaped test world with 60 current Actors and one active Fresh effect/token each produced 420 Condition writes, 60 effect writes and 60 token redraws with 1.13.0. The optimized startup performs zero writes or redraws for the same unchanged world. Tests also cover batched repairs, active-description/icon synchronization, repeated startup, normal toggles, all four stable profiles, custom/TB2E document preservation and primary-GM authority. These are simulated operation counts, not a measured loading time in the user's Foundry world.
 
-## TB2E deferred
-Torchbearer 2E remains a read-only preview in stable. Its separate opt-in character creation QA cannot be enabled in stable, even if a world saved that QA flag previously. The QA setting is hidden in stable. The published QA channel remains 1.13.0-qa.29 for later TB2E work. Existing TB2E-created Actors retain their data and remain protected from legacy skill/Condition enrichment.
+No rules, profile availability or campaign-data policies change. Missing default Conditions are still added as before, and outdated canonical metadata is still repaired. The Starter Library already has a version-gated seed path and is unchanged. The QA channel stays at qa.29.
 
-## Updating
-Use the stable channel manifest:
-https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json
+## Check the improvement
+Update through the stable channel, enter the same world, then reload it again and compare time to a usable table. The first load may still apply needed repairs. Report the measured seconds and whether the delay occurs before the join screen or after joining. If delay remains, the latest read-only Condition startup report is available at game.realmGuard.startup.conditionAlignment to distinguish this work from other loading costs.
 
-A system installed from the QA channel continues following that channel; use the stable manifest to move to stable. If a test world currently uses Torchbearer 2E, switch that world back to its previous supported profile before updating. Existing MG1E, MG2E, Strict and Legacy profile selections are preserved; no automatic Actor, Item, Wise, Condition, Gear or Journal conversion is performed by profile switching.
-
-The release workflow runs syntax checks, all smoke tests and preflight, validates the Foundry ZIP, publishes and downloads back both assets, and only then promotes the stable channel. See TEST_PROTOCOL_v1.13.0.md for post-update checks.
+See TEST_PROTOCOL_v1.13.1.md. All required syntax, regression, release preflight and package checks run before the stable channel is promoted.

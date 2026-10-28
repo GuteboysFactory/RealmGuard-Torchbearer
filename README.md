@@ -1,9 +1,13 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.0
+**Version:** 1.13.1
 **Target:** Foundry VTT 13.351  
 **Status:** Stable public release / GOLD  
-**Current stable baseline:** v1.13.0
+**Current stable baseline:** v1.13.1
+
+## 1.13.1 startup performance
+
+Avoids rewriting unchanged canonical Conditions and ActiveEffects at every world startup; actual repairs are batched and redundant token redraws are skipped. See RELEASE_NOTES_v1.13.1.md for measured test operation counts and the post-update timing check.
 
 ## Supported stable profiles
 
@@ -43,7 +47,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard.zip` from the GitHub release for 1.13.0 and extract its contents into Foundry’s `Data/systems/realm-guard/` directory. QA-channel installations continue following QA until changed to the stable manifest.
+Download `realm-guard.zip` from the GitHub release for 1.13.1 and extract its contents into Foundry’s `Data/systems/realm-guard/` directory. QA-channel installations continue following QA until changed to the stable manifest.
 
 ## Rules identity
 
