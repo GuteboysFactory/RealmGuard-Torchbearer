@@ -3,6 +3,7 @@ name: Release Realm Guard / Torchbearer
 on:
   workflow_dispatch:
   push:
+    branches: ["main"]
     paths:
       - "release/READY"
 
@@ -15,6 +16,7 @@ concurrency:
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +28,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          REMOTE_SHA="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "$GITHUB_REF" != "refs/heads/main" || "$REMOTE_SHA" != "$GITHUB_SHA" ]]; then
+            echo "Only the current main commit may build and publish release assets."
+            exit 1
+          fi
           VERSION="$(node -p "require('./system.json').version")"
           test -n "$VERSION"
           if [[ "$VERSION" == *-* ]]; then CHANNEL="qa"; else CHANNEL="stable"; fi
