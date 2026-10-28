@@ -141,7 +141,7 @@ export function buildProfileConversionPreview({fromProfile,toProfile,actors=[],w
       preserveExistingActors:true,preserveWiseItems:true,preserveTalentItems:true,preserveInventoryMetadata:true,
       preserveConditionItems:true,preserveTokenOfPowerItems:true,preserveProgressionData:true
     },
-    nextStep: targetId==="torchbearer2e" ? "M10D.1 source review only · TB2E FOUNDATION_ONLY · activation and creation commit remain locked" : targetId===MG1E_TARGET_ID ? "M10B MG1E preview only · activation remains QA-gated" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E supported stable · activation is a separate explicit GM action · this preview makes no writes" : "Strict profile remains supported and reversible"
+    nextStep: targetId==="torchbearer2e" ? "M10D.1 source review only · TB2E FOUNDATION_ONLY · activation and creation commit remain locked" : targetId===MG1E_TARGET_ID ? "MG1E supported stable · activation is a separate explicit GM action · this preview makes no writes" : targetId===MG2E_TARGET_ID ? "M10C.8 MG2E supported stable · activation is a separate explicit GM action · this preview makes no writes" : "Strict profile remains supported and reversible"
   });
 }
 
@@ -183,7 +183,7 @@ export function profileConversionPreviewHtml(preview){
       <div><small>Current</small><br><b>${esc(preview.source.name)}</b><br><small>${esc(preview.source.rulesSnapshotHash)}</small></div>
       <div><small>Preview target</small><br><b>${esc(preview.target.name)}</b><br><small>${esc(preview.target.rulesSnapshotHash)}</small></div>
     </div>
-    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id==="torchbearer2e"?"Torchbearer 2E is FOUNDATION_ONLY / READ_ONLY. No live activation, profile switch, creation commit or conversion is available. Guides are incomplete rule sources.":preview.target.id===MG1E_TARGET_ID?"MG1E activation remains a separate QA-gated action.":preview.target.id===MG2E_TARGET_ID?"MG2E is supported stable (M10C.8). Activation is a separate explicit GM action; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
+    <div style="margin:12px 0;padding:9px;border-left:3px solid currentColor;background:rgba(128,128,128,.08);"><b>${preview.target.id==="torchbearer2e"?"Torchbearer 2E is FOUNDATION_ONLY / READ_ONLY. No live activation, profile switch, creation commit or conversion is available. Guides are incomplete rule sources.":preview.target.id===MG1E_TARGET_ID?"MG1E is supported stable. Activation is a separate explicit GM action; this preview does not activate MG1E.":preview.target.id===MG2E_TARGET_ID?"MG2E is supported stable (M10C.8). Activation is a separate explicit GM action; this preview does not activate MG2E.":"Strict activation remains a separate explicit action."}</b><br><small>Writes planned: 0 · destructive conversion: NO.</small></div>
     <section><h3>World impact scan</h3>${impact}</section>
     <section><h3>Profile deltas</h3><small>${preview.domainDiff.length} technical domain differences · ${preview.deltas.length} reviewed deltas.</small>${deltas}</section>
   </div>`;

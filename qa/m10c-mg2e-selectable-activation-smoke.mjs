@@ -32,7 +32,7 @@ assert.equal(MG2E_FOUNDATION_PROFILE.metadata.qaActivationOnly,false);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.explicitActivationAuthorized,true);
 assert.equal(MG2E_FOUNDATION_PROFILE.metadata.liveParityVerifiedRelease,"1.12.0-qa.18");
 assert.equal(activation.profileActivationAvailable("mg2e"),true);
-assert.equal(activation.profileActivationAvailable("mg1e"),false); // MG1E retains its separate QA-only gate.
+assert.equal(activation.profileActivationAvailable("mg1e"),true); // MG1E is promoted independently to supported stable.
 await activation.switchToMg2e();
 assert.equal(activation.activeRulesProfileId(),"mg2e");
 await activation.switchToLegacyMixed();
@@ -177,4 +177,4 @@ assert.equal(game.realmGuard.core.m10.switchToMg2e,activation.switchToMg2e);
 assert.equal(game.realmGuard.core.m10.mg2e.liveParityStatus().verifiedRelease,"1.12.0-qa.18");
 assert.equal(game.realmGuard.core.m10.mg2e.readinessAudit().activationAvailable,true);
 assert.equal(writes.every(row=>["activeRulesProfileId","activeRulesProfileVersion"].includes(row.key)),true);
-console.log("PASS M10C.8 MG2E supported stable activation · GM gate / MG1E QA gate · settings rollback/idempotence · source-owned live Wise/Conflict · creation authority · existing data preserved");
+console.log("PASS M10C.8 MG2E supported stable activation · GM gate / MG1E stable coexistence · settings rollback/idempotence · source-owned live Wise/Conflict · creation authority · existing data preserved");

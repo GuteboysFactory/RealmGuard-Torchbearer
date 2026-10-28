@@ -1,15 +1,17 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.0.8.44  
+**Version:** 1.13.0
 **Target:** Foundry VTT 13.351  
 **Status:** Stable public release / GOLD  
-**Current stable baseline:** v1.0.8.44
+**Current stable baseline:** v1.13.0
 
-## v1.0.8.44 GOLD
+## Supported stable profiles
 
-Realm Guard / Torchbearer v1.0.8.44 is the current verified GOLD release. It carries forward the complete 1.0.x feature line and adds the latest live-tested stability, portrait, Conflict and readability improvements.
+Stable supports Realm Guard Legacy Mixed, Strict Realm Guard, Mouse Guard 1E and Mouse Guard 2E. Profile selection is explicit and preserves campaign data. Torchbearer 2E remains a preview in stable; separate character creation QA stays on the QA channel for later development.
 
-Highlights include:
+Mouse Guard 1E stable promotion retains its previously Foundry-verified rules and creation path. See RELEASE_NOTES_v1.13.0.md and TEST_PROTOCOL_v1.13.0.md for scope and update checks.
+
+Existing tools include the following; their rules and automation follow the selected profile:
 
 - automatic Skill and Ability advancement
 - Beginner's Luck + Tap Nature integration
@@ -37,15 +39,15 @@ The internal Foundry package id remains `realm-guard` to preserve compatibility 
 
 In Foundry VTT, open **Game Systems > Install System** and paste this Manifest URL:
 
-`https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/system.json`
+`https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json`
 
 ### Manual installation
 
-Download `realm-guard-foundry-v1.0.8.44.zip` from this repository and extract the `realm-guard` folder into your Foundry `Data/systems/` directory.
+Download `realm-guard.zip` from the GitHub release for 1.13.0 and extract its contents into Foundry’s `Data/systems/realm-guard/` directory. QA-channel installations continue following QA until changed to the stable manifest.
 
 ## Rules identity
 
-This fan-made game system deliberately combines:
+The explicit profiles use their own rule policies. The Legacy Mixed compatibility profile deliberately combines:
 
 1. **Realm Guard: Rangers of the North** rules where that hack defines or overrides play;
 2. inherited **Mouse Guard RPG 2nd Edition** core mechanics where Realm Guard does not replace them;
@@ -69,7 +71,7 @@ Realm Guard / Torchbearer displays the description saved in Foundry under **Edit
 
 ## Data preservation
 
-The 1.0.x line keeps the internal system id `realm-guard` and is designed to preserve existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment data, Inventory, Conditions, Tokens, Talents and progression are not deliberately reset by these updates.
+The system keeps the internal system id `realm-guard` and is designed to preserve existing World data. Existing Actors, NPCs, Scenes, Journals, Items, Compendiums, Recruitment data, Inventory, Conditions, Tokens, Talents and progression are not deliberately reset by these updates.
 
 ## Project repository
 

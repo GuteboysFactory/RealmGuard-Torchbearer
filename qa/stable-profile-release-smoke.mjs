@@ -1,0 +1,54 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { profileActivationAvailable, switchRulesProfile } from "../module/m10-profile-activation.mjs";
+import { refreshRulesProfileRuntime, installRulesProfileInfrastructure } from "../module/rules-profile-service.mjs";
+import { getActiveM10BCharacterCreationPolicy } from "../module/m10b-character-creation.mjs";
+import { commitTb2eWizard } from "../module/tb2e-recruitment.mjs";
+import { tb2eWizardQaEnabled, TB2E_WIZARD_QA_SETTING } from "../module/tb2e-wizard-qa.mjs";
+
+const manifest=JSON.parse(fs.readFileSync("system.json","utf8"));
+const stableVersion=manifest.version.replace(/-.+$/,"");
+const supported=["realm-guard-legacy-mixed","realm-guard-strict","mg1e","mg2e"];
+const settings=new Map([["activeRulesProfileId",supported[0]],["activeRulesProfileVersion",1],[TB2E_WIZARD_QA_SETTING,true]]);
+const writes=[],registrations=new Map();
+const actor={id:"preserve",type:"character",system:{rank:"guardmouse"},items:[{type:"wise",system:{rating:3}},{type:"gear",system:{inventory:{location:"back"}}}]};
+const original=JSON.stringify(actor);
+globalThis.game={system:{version:stableVersion},user:{id:"gm",isGM:true},actors:{contents:[actor]},items:{contents:[]},
+  settings:{get:(_ns,key)=>settings.get(key),set:async(_ns,key,value)=>{writes.push([key,value]);settings.set(key,value);},register:(_ns,key,options)=>registrations.set(key,options)}};
+globalThis.Hooks={on(){},once(){},callAll(){}};
+globalThis.foundry={utils:{mergeObject:(a,b)=>({...a,...b})},applications:{api:{ApplicationV2:class{async _prepareContext(){return {}; }},HandlebarsApplicationMixin:Base=>Base}}};
+refreshRulesProfileRuntime();
+installRulesProfileInfrastructure();
+assert.equal(registrations.get(TB2E_WIZARD_QA_SETTING).config,false,"Stable must hide TB2E QA opt-in controls");
+assert.equal(tb2eWizardQaEnabled(),false,"A saved QA opt-in must not enable TB2E in stable");
+assert.equal(profileActivationAvailable("torchbearer2e"),false);
+await assert.rejects(commitTb2eWizard({}),/QA activation/);
+assert.deepEqual(writes,[]);
+for(const id of supported) {
+  assert.equal(profileActivationAvailable(id),true,id+" must be selectable in stable");
+  game.user.isGM=false;
+  const count=writes.length;
+  await assert.rejects(switchRulesProfile(id),/GM-only/);
+  assert.equal(writes.length,count);
+  game.user.isGM=true;
+  await switchRulesProfile(id);
+  assert.equal(getActiveM10BCharacterCreationPolicy().rulesProfileId,id);
+  assert.equal(getActiveM10BCharacterCreationPolicy().liveCommit,true);
+  assert.equal(JSON.stringify(actor),original,"Profile selection must preserve campaign documents");
+}
+const count=writes.length;
+await assert.rejects(switchRulesProfile("torchbearer2e"),/foundation-only/);
+assert.equal(writes.length,count);
+const { RealmGuardProfileManagement }=await import("../module/profile-management-menu.mjs");
+const context=await new RealmGuardProfileManagement()._prepareContext({});
+assert.equal(context.qaRuntime,false);
+assert.equal(context.tb2eWizardQaEnabled,false);
+assert.equal(context.activationRows.some(row=>row.id==="torchbearer2e"),false);
+assert.equal(context.activationRows.find(row=>row.id==="mg1e").canActivate,true);
+await switchRulesProfile(supported[0]);
+assert.equal(JSON.stringify(actor),original);
+assert.ok(writes.every(([key])=>["activeRulesProfileId","activeRulesProfileVersion"].includes(key)));
+game.system.version=stableVersion+"-qa.1";
+refreshRulesProfileRuntime();
+assert.equal(tb2eWizardQaEnabled(),true,"TB2E opt-in development remains available in QA");
+console.log("PASS stable release: Legacy/Strict/MG1E/MG2E selectable, GM-only settings changes, campaign data preserved, TB2E opt-in hidden and blocked even with a saved QA flag");

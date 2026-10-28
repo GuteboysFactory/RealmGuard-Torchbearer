@@ -18,8 +18,8 @@ assert.ok(mg1e.version>=4,"MG1E source-manifest preview remains valid after late
 assert.equal(mg1e.metadata.foundationOnly,false);
 assert.equal(mg1e.metadata.selectable,true);
 assert.equal(mg1e.metadata.supported,true);
-assert.equal(mg1e.metadata.activationState,"QA_ACTIVE");
-assert.equal(mg1e.metadata.qaActivationOnly,true);
+assert.equal(mg1e.metadata.activationState,"SUPPORTED");
+assert.equal(mg1e.metadata.qaActivationOnly,false);
 assert.equal(mg1e.metadata.liveRuleAuthority,true);
 assert.deepEqual(mg1e.domains.nature.descriptors,["Escaping","Climbing","Hiding","Foraging"]);
 assert.equal(mg1e.domains.inventory.policy,"LOOSE");
@@ -75,4 +75,4 @@ for(const forbidden of ["game.settings.set","createEmbeddedDocuments","deleteEmb
   assert.equal(previewSource.includes(forbidden),false,`MG1E preview must remain read-only: ${forbidden}`);
 }
 
-console.log("PASS M10B.2 MG1E Source Manifest + Conversion Preview · preview remains read-only across later QA-selectable activation");
+console.log("PASS M10B.2 MG1E Source Manifest + Conversion Preview · preview remains read-only across supported stable activation");

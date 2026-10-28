@@ -4,11 +4,11 @@ const MG1E_SOURCE = "Mouse Guard Roleplaying Game (2008 / 1E)";
 
 export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
   id: "mg1e",
-  version: 11,
+  version: 12,
   name: "Mouse Guard 1E",
-  classification: "SOURCE PROFILE / QA SELECTABLE",
+  classification: "SOURCE PROFILE / SUPPORTED STABLE",
   domains: {
-    profile: { activationState: "QA_ACTIVE" },
+    profile: { activationState: "SUPPORTED" },
     tests: { mode: "MG1E", ordinary: true, versus: true, beginnersLuck: true },
     abilities: { advancement: "PASS_FAIL" },
     nature: { mode: "MG1E", label: "Nature (Mouse)", descriptors: ["Escaping", "Climbing", "Hiding", "Foraging"], tax: true, tapNature: true, doubleTapNature: true, tapExcludedAbilities: ["Resources", "Circles"], zeroRatingNatureFallback: true },
@@ -177,8 +177,8 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     foundationOnly: false,
     selectable: true,
     supported: true,
-    activationState: "QA_ACTIVE",
-    qaActivationOnly: true,
+    activationState: "SUPPORTED",
+    qaActivationOnly: false,
     sourceLineage: ["Mouse Guard RPG 2008 / 1E"],
     gameplayChangeIntended: true,
     liveRuleAuthority: true,
@@ -187,6 +187,11 @@ export const MG1E_FOUNDATION_PROFILE = new RulesProfile({
     liveReadinessClosure: true,
     profileActivationQaReady: true,
     creationReadyWhenActive: true,
-    nextStep: "M10B.11 MG1E Selectable QA Activation"
+    activationMilestoneStatus: "FULL PASS / VERIFIED / CLOSED",
+    activationVerifiedRelease: "1.12.0-qa.11",
+    activationEvidenceAuthority: "PROJECT_RECORDED_FOUNDRY_13_351_GATES_A_L_PASS",
+    stablePromotionAuthorized: true,
+    stablePromotionRelease: "1.13.0",
+    nextStep: "MG1E supported stable; existing rules and reversible settings-only activation retained"
   }
 });

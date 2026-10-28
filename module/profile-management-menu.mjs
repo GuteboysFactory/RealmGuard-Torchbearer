@@ -136,11 +136,12 @@ export class RealmGuardProfileManagement extends HandlebarsApplicationMixin(Appl
       impactRows:impactRows(mg2Preview.worldImpact),
       previewAvailable:true,
       tb2eWizardQaEnabled:tb2eWizardQaEnabled(),
+      qaRuntime:activation.qaRuntime,
       activationRows,
       canSwitchLegacy:active.profile.id !== "realm-guard-legacy-mixed",
       reloadRecommended:true,
       phase:"M10C.8",
-      nextStep:tb2eWizardQaEnabled() ? "Select Torchbearer 2E for character creation QA in this test world; other TB2E gameplay automation remains disabled" : "MG2E is explicitly selectable in QA after M10C.7 FULL PASS; switching preserves campaign data"
+      nextStep:tb2eWizardQaEnabled() ? "Select Torchbearer 2E for character creation QA in this test world; other TB2E gameplay automation remains disabled" : "Legacy Mixed, Strict Realm Guard, Mouse Guard 1E and Mouse Guard 2E are available; switching preserves campaign data"
     }, { inplace:false });
   }
 }

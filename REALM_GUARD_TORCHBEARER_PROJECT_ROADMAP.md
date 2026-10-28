@@ -1,8 +1,8 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
 **Foundry target:** 13.351  
-**Current GOLD baseline:** v1.12.0 — 🟢✅ STABLE / GOLD
-**Current QA build:** v1.13.0-qa.25 — M10D.21 bounded Character Creation preview/review handoff; QA24 inventory report removed from active runtime (no M10D gate closure)
+**Stable release scope (2026-10-28):** v1.13.0 — user-authorized publication of existing Legacy Mixed / Strict / MG1E / MG2E functionality; TB2E work deferred. Release/channel verification is tracked by GitHub Actions.
+**Published QA build:** v1.13.0-qa.29 — opt-in TB2E character creation QA; retained unchanged for later TB2E work.
 **Current CORE milestone:** M10 — Explicit Profiles / Profile Conversion — 🟡 IN PROGRESS  
 **Current CORE gate:** M10D.1–M10D.12 — replacement TB2E Core Live roadmap · baseline v1.13.0-qa.17
 **M10D planning boundary:** v1.13.0-qa.17. Later implementation and roadmap decisions do not define this M10D scope.
@@ -17,6 +17,10 @@
 **QA22 discovery build (2026-10-15):** QA22 added the GM-only, read-only Foundry report of the existing test world and readable compendiums. It reuses existing inventory/catalogue content, creates no fixtures and closes no M10D gate. **QA23 correction:** replaces the unsupported Blob URL download with Foundry's native local-save utility and a selectable JSON copy fallback. It changes only report export; no M10D gate closes. See `TEST_PROTOCOL_v1.13.0-qa.23.md`.
 
 **QA24 inventory build (historical):** combined QA23's read-only world/compendium report with a generated source index and live rules-profile catalogue. **QA25 removes this report tool and its active source-index generation/checks because the inventory is no longer needed.** QA22–24 files and release records remain historical and unchanged.
+
+## Stable 1.13.0 scope decision — 2026-10-28
+
+The user approved publishing the existing usable profiles and explicitly deferred further TB2E integration. MG1E stable promotion carries forward its recorded M10B.11 Gates A–L Foundry FULL PASS and current regression coverage. Stable exposes Legacy Mixed, Strict, MG1E and MG2E; TB2E remains excluded from stable activation. Historical M10D plans and QA evidence below are preserved and do not block this reduced stable scope.
 
 ## M10D — TORCHBEARER 2E CORE LIVE
 

@@ -94,7 +94,7 @@ function registryHtml(state) {
     <header style="margin-bottom:14px;">
       <div style="font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.75;">MG-FAMILY CORE · M10</div>
       <h2 style="margin:3px 0 4px;">Active Rules Registry</h2>
-      <p style="margin:0;">The Registry shows current rules ownership. M10B.11 keeps MG1E QA-selectable. M10C.8 makes MG2E explicitly QA-selectable after verified controlled parity. MG2E Wise and weapon/armor adapters own their source rules; profile switching preserves existing campaign data.</p>
+      <p style="margin:0;">The Registry shows current rules ownership. Legacy Mixed, Strict Realm Guard, Mouse Guard 1E and Mouse Guard 2E are supported. Profile switching preserves existing campaign data. Torchbearer 2E remains outside stable activation.</p>
     </header>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;">
       <div><small>Profile</small><br><b>${esc(state.profile.name)}</b></div>
@@ -200,7 +200,7 @@ export function installRulesProfileInfrastructure() {
   game.settings.register("realm-guard", TB2E_WIZARD_QA_SETTING, {
     name:"Enable TB2E character creation QA",
     hint:"Test worlds only. Enables selection of the TB2E creation profile in Manage Rules Profile on QA builds. Select the profile and reload before creating characters. Other TB2E gameplay automation is not enabled.",
-    scope:"world", config:true, type:Boolean, default:false, requiresReload:true
+    scope:"world", config:/-qa(?:\.|-|$)/i.test(String(game.system?.version ?? "")), type:Boolean, default:false, requiresReload:true
   });
   registerGmDockTool({
     id: "rules-registry",

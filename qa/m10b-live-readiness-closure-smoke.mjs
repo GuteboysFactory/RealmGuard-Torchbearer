@@ -47,7 +47,7 @@ assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveReadinessClosure, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.creationReadyWhenActive, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.selectable, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.supported, true);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.qaActivationOnly, true);
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.qaActivationOnly, false);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 const mgCaps = resolveProfileCapabilities("mg1e");
 assert.equal(mgCaps.rules.wises.rated, true);
@@ -57,16 +57,18 @@ assert.equal(mgCaps.rules.creation.readyWhenActive, true);
 assert.equal(mgCaps.rules.creation.liveAuthority, "CORE_M9_WHEN_ACTIVE");
 
 assert.equal(activation.profileActivationAvailable("realm-guard-strict"), true);
-assert.equal(activation.profileActivationAvailable("mg1e"), false);
+assert.equal(activation.profileActivationAvailable("mg1e"), true);
 const activationStatus = activation.profileActivationStatus();
 assert.equal(activationStatus.phase, "M10C.8");
-assert.equal(activationStatus.mg1eActivationAvailable, false);
+assert.equal(activationStatus.mg1eActivationAvailable, true);
 assert.equal(activationStatus.mg1eSelectable, true);
 assert.equal(activationStatus.mg1eSupported, true);
 
 settingWrites.length = 0;
-await assert.rejects(() => activation.switchRulesProfile("mg1e"), /not in an activatable state/i);
-assert.equal(settingWrites.length, 0, "Rejected MG1E activation must not write profile settings.");
+game.user.isGM=false;
+await assert.rejects(() => activation.switchRulesProfile("mg1e"), /GM-only/i);
+game.user.isGM=true;
+assert.equal(settingWrites.length, 0, "Rejected non-GM MG1E activation must not write profile settings.");
 
 const itemSheet = fs.readFileSync("sheets/item-sheet.mjs","utf8");
 const itemTemplate = fs.readFileSync("templates/item/item.hbs","utf8");
@@ -258,4 +260,4 @@ const m8 = fs.readFileSync("module/core/m8-social-network.mjs","utf8");
 assert.ok(m8.includes("creationRelationships"));
 assert.ok(m8.includes("PROFILE_CREATION_RELATIONSHIPS"));
 
-console.log("PASS M10B.10 MG1E Live Readiness Closure · activation gate closed · generic live surfaces · creation ready-when-active · rollback verified");
+console.log("PASS M10B.10 MG1E Live Readiness Closure · GM activation gate retained · generic live surfaces · creation ready-when-active · rollback verified");

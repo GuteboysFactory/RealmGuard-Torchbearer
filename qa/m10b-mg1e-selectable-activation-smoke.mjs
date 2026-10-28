@@ -32,25 +32,28 @@ const activation = await import("../module/m10-profile-activation.mjs");
 const creation = await import("../module/m10b-character-creation.mjs");
 const { MG1E_FOUNDATION_PROFILE } = await import("../module/profiles/mg1e-foundation.mjs");
 
-assert.equal(MG1E_FOUNDATION_PROFILE.version, 11);
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.activationState, "QA_ACTIVE");
-assert.equal(MG1E_FOUNDATION_PROFILE.metadata.qaActivationOnly, true);
+assert.ok(MG1E_FOUNDATION_PROFILE.version >= 12);
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.activationState, "SUPPORTED");
+assert.equal(MG1E_FOUNDATION_PROFILE.metadata.qaActivationOnly, false);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.selectable, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.supported, true);
 assert.equal(MG1E_FOUNDATION_PROFILE.metadata.liveRuleAuthority, true);
 
-// Stable runtime must keep the QA-only profile closed.
+// Stable promotion retains explicit GM authority and zero writes on rejection.
 assert.equal(activation.qaProfileActivationRuntime(), false);
-assert.equal(activation.profileActivationAvailable("mg1e"), false);
+assert.equal(activation.profileActivationAvailable("mg1e"), true);
 writes.length = 0;
-await assert.rejects(() => activation.switchRulesProfile("mg1e"), /not in an activatable state/i);
+game.user.isGM=false;
+await assert.rejects(() => activation.switchRulesProfile("mg1e"), /GM-only/i);
+game.user.isGM=true;
 assert.equal(writes.length, 0);
 
-// QA runtime opens the explicit activation gate.
+// The same supported profile is also selectable in QA.
 game.system.version = "1.12.0-qa.11";
 assert.equal(activation.qaProfileActivationRuntime(), true);
 assert.equal(activation.profileActivationAvailable("mg1e"), true);
 
+game.system.version = "1.13.0";
 writes.length = 0;
 const first = await activation.switchRulesProfile("mg1e");
 assert.equal(first.changed, true);
@@ -138,4 +141,4 @@ assert.ok(source.includes("restoreProfileSettings"));
 assert.ok(source.includes("realmGuardRulesProfileChanged"));
 assert.ok(source.includes("qaProfileActivationRuntime"));
 
-console.log("PASS M10B.11 MG1E Selectable QA Activation · QA-only gate · reversible settings-only switch · live CORE M9 creation routing");
+console.log("PASS M10B.11 MG1E supported stable activation · GM gate · reversible settings-only switch · live CORE M9 creation routing");

@@ -85,3 +85,17 @@ Local verification on Node 24.22.1 passed: 159 runtime syntax checks, all 120 sm
 5. Reload after creating the character and confirm that skills/Conditions remain unchanged. Switch back to the previous profile to verify rollback; existing test Actors must be preserved. Switch away from TB2E before disabling its QA setting.
 
 Record the class, mode, step, expected/actual result, Foundry version and any console error when reporting a failure. Do not report M10D.11 Foundry PASS until the user has completed these tests.
+
+## qa.29 verification follow-up — 2026-10-28
+The user reports that everything appears to work in Foundry. This is recorded as positive initial Foundry feedback; the exact classes and modes exercised were not specified, so the full manual test matrix is not marked complete.
+
+The automated matrix now covers all six classes in both Guided and Quick mode:
+- All eleven UI steps render in each combination (132 step cases), with Cancel preserving the answers and Back available at the expected steps. Quick omits the guided explanatory panel.
+- Final reviews are identical between the modes for each class, including Fate 0 / Persona 0.
+- Twelve calls to the production wizard commit create matching character system data, TB2E flags and Items between Guided and Quick, using CORE M9 and simulated Foundry documents.
+- Default provisioning/reload preservation, failed-item rollback, profile rollback and stable/inactive/player permission guards remain covered.
+
+Both expanded smoke tests and their syntax checks pass locally. GitHub's branch workflow verifies the full suite after saving. These changes affect only tests and this work log: no new Foundry package, profile activation change or stable promotion is required. The installed version remains 1.13.0-qa.29, and stable 1.13.0 still requires separate user approval.
+
+## Scope decision — 2026-10-28
+The user authorized stable publication of the existing usable profiles and deferred further TB2E work. Stable 1.13.0 supports Legacy Mixed, Strict, MG1E and MG2E. TB2E remains preview-only in stable, with its opt-in creation QA retained in the separate qa.29 package. The QA channel is not promoted or overwritten by the stable release. No additional TB2E gameplay integration or full-game verification is claimed.

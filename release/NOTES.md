@@ -1,20 +1,18 @@
-# 1.13.0-qa.29 — M10D.11 controlled TB2E character creation QA
+# 1.13.0 — Supported profiles stable release
 
-Enables the completed 11-step TB2E wizard for explicit testing in a separate QA world. Ordinary updates do not switch a world's rules profile or enable this opt-in setting.
+Publishes the existing usable functionality for Realm Guard Legacy Mixed, Strict Realm Guard, Mouse Guard 1E and Mouse Guard 2E. No additional TB2E gameplay integration is included.
 
-## Start testing
-1. Update through the usual QA channel and open a separate test world as GM.
-2. In Configure Settings, enable **Enable TB2E character creation QA**, save and reload.
-3. Open **Manage Rules Profile**, switch to **Torchbearer 2E · Character Creation QA**, and reload again.
-4. Open the usual Character Creation / Recruitment guide. The active TB2E profile now uses its own wizard; other profiles keep their existing wizard. Starting Equipment selects existing world Gear Items, so import suitable Gear including a Backpack or Satchel if needed.
+Mouse Guard 1E is promoted from QA-only selection to supported stable, using the recorded M10B.11 Foundry 13.351 Gates A–L FULL PASS on 1.12.0-qa.11 and current regression checks. Its gameplay rules are unchanged. GM-only confirmation, reversible settings-only switching, CORE M9 creation and existing-data preservation remain in place.
 
-Test all six classes in Guided and Quick modes, navigation/cancellation, final review, and creation. Starting Fate/Persona remain 0/0; the GM-adjudicated replacement-character exception is capped at 3 each. Newly learned Home, Social Graces and Specialty skills start at 2; human Upbringing starts a new skill at 3. Check that the created character matches the review, has Fresh active and retains the same skills and Conditions after reload.
+The release retains the existing supported-profile tools, Recruitment, roll/conflict/session tools and QA27 Overview fields. Profile-specific automation and manual boundaries remain those of each existing profile; this release does not promise complete automation of every source-book rule.
 
-## Scope and verification
-Only character creation receives live QA authority through CORE M9. This does not enable the remaining TB2E gameplay domains or claim complete gameplay parity. The setting defaults to off and cannot enable the wizard in stable builds. Actual creation requires the active TB2E profile and Actor-create permission. Profile switching preserves existing Actors and Items. Switch back to the previous profile before disabling the TB2E QA setting.
+## TB2E deferred
+Torchbearer 2E remains a read-only preview in stable. Its separate opt-in character creation QA cannot be enabled in stable, even if a world saved that QA flag previously. The QA setting is hidden in stable. The published QA channel remains 1.13.0-qa.29 for later TB2E work. Existing TB2E-created Actors retain their data and remain protected from legacy skill/Condition enrichment.
 
-TB2E wizard characters are protected from legacy skill/Condition provisioning and Condition metadata enrichment on reload. This prevents Weather Watcher, Tired or Strained from being added and prevents source-owned Condition data from being overwritten.
+## Updating
+Use the stable channel manifest:
+https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json
 
-Local checks passed: 159 syntax checks, all 120 smoke tests, and release preflight. GitHub branch workflow 40594796845 passed too. The new activation smoke uses the production wizard commit and CORE M9 provisioners with simulated Foundry documents for all six classes, checks rollback and stable/inactive/player guards, and verifies UI profile data and reload preservation. Actual Foundry user testing remains outstanding; see TB2E_WIZARD_WORK.md for the full checklist.
+A system installed from the QA channel continues following that channel; use the stable manifest to move to stable. If a test world currently uses Torchbearer 2E, switch that world back to its previous supported profile before updating. Existing MG1E, MG2E, Strict and Legacy profile selections are preserved; no automatic Actor, Item, Wise, Condition, Gear or Journal conversion is performed by profile switching.
 
-The release workflow is restricted to main and checks its source ref before publishing assets. Stable remains 1.12.0. Publishing stable 1.13.0 still requires separate user approval.
+The release workflow runs syntax checks, all smoke tests and preflight, validates the Foundry ZIP, publishes and downloads back both assets, and only then promotes the stable channel. See TEST_PROTOCOL_v1.13.0.md for post-update checks.

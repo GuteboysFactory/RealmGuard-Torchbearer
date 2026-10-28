@@ -17,11 +17,13 @@
   <section style="padding:12px;border:1px solid var(--color-border-light-tertiary);border-radius:6px;margin-bottom:12px;">
     <h3 style="margin:0 0 8px;">Available / Preview Profiles</h3>
     <div style="padding:12px 0;border-bottom:1px solid rgba(128,128,128,.22);" data-rg-contract="profile-tb2e-foundation">
-      <b>Torchbearer 2E · Character Creation QA</b>
+      <b>Torchbearer 2E · Preview / QA</b>
       {{#if tb2eWizardQaEnabled}}
         <p>The 11-step character creation wizard is available for QA. Select Torchbearer 2E under Rules Profile Activation below and reload. Other TB2E gameplay automation remains disabled.</p>
-      {{else}}
+      {{else if qaRuntime}}
         <p>Live creation remains locked. In a separate test world running a QA build, open Configure Settings, enable “Enable TB2E character creation QA”, save and reload. Then select Torchbearer 2E under Rules Profile Activation here.</p>
+      {{else}}
+        <p>Preview only. Torchbearer 2E is not included among the supported stable profiles. Its character creation QA remains available in QA builds for later development.</p>
       {{/if}}
       <button type="button" data-action="previewTb2e" data-rg-contract="profile-preview-tb2e">Preview TB2E Source Coverage / Conversion</button>
     </div>
@@ -46,7 +48,7 @@
       <button type="button" data-action="previewMg1e" data-rg-contract="profile-preview-mg1e" {{#unless previewAvailable}}disabled{{/unless}}>
         <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG1E Conversion
       </button>
-      <p style="margin-bottom:0;"><small>Mouse Guard 1E remains QA-selectable; stable runtime keeps its activation gate closed.</small></p>
+      <p style="margin-bottom:0;"><small>Mouse Guard 1E is supported in stable. Switching changes only the active profile settings and preserves existing campaign data.</small></p>
     </div>
 
     <div style="padding:12px 0 2px;">
@@ -58,7 +60,7 @@
       <button type="button" data-action="previewMg2e" data-rg-contract="profile-preview-mg2e" {{#unless mg2eProfile.conversionPreviewAvailable}}disabled{{/unless}}>
         <i class="fa-solid fa-magnifying-glass-chart"></i> Preview MG2E Conversion
       </button>
-      <p style="margin-bottom:0;"><small>Mouse Guard 2E is now QA-selectable after verified controlled parity. Switching changes only the active profile settings; existing Wises, inventory, Conditions and provenance are preserved. Stable builds keep the MG2E activation gate closed.</small></p>
+      <p style="margin-bottom:0;"><small>Mouse Guard 2E is supported in stable. Switching changes only the active profile settings; existing Wises, inventory, Conditions and provenance are preserved.</small></p>
     </div>
   </section>
 

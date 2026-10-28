@@ -82,8 +82,8 @@ assert.ok(activationSource.includes("qaProfileActivationRuntime"), "Generic acti
 assert.equal(activation.profileActivationAvailable("realm-guard-strict"), true, "Supported Strict activation must remain available in stable runtime.");
 assert.equal(activationSource.includes("activation is QA-only"), false, "Supported Strict activation must remain available in stable runtime.");
 assert.ok(activationSource.includes("reloadRecommended:true"), "Supported activation must recommend reload.");
-assert.equal(activation.profileActivationAvailable("mg1e"), false, "MG1E QA-only activation must remain blocked in stable runtime.");
-assert.equal(beforeStatus.mg1eActivationAvailable, false);
+assert.equal(activation.profileActivationAvailable("mg1e"), true, "MG1E supported activation must be available in stable runtime.");
+assert.equal(beforeStatus.mg1eActivationAvailable, true);
 
 const profileMenu = fs.readFileSync("module/profile-management-menu.mjs","utf8");
 const profileTemplate = fs.readFileSync("templates/apps/profile-management.hbs","utf8");
@@ -205,4 +205,4 @@ assert.ok(strictReference.includes("STRICT_ACTIVE_REFERENCE"));
 assert.ok(genericReference.includes("ACTIVE RULES PROFILE"));
 assert.ok(manual.includes("openProfileRulesReference"));
 
-console.log("PASS M10A.9 stable activation regression · Strict stable-runtime selectable · MG1E QA-only gate isolated · Legacy rollback retained");
+console.log("PASS M10A.9 stable activation regression · Strict stable-runtime selectable · MG1E stable activation available · Legacy rollback retained");
