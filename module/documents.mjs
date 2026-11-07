@@ -1,3 +1,5 @@
+import { scopeLegacyMixedClass } from "./legacy-mixed-scope.mjs";
+import { RealmGuardActor as BaselineClass } from "./baseline-1.13.1/documents.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
 import { applyTalentReroll } from "./talents.mjs";
 import { conditionRollData, hasActiveCondition } from "./conditions.mjs";
@@ -777,3 +779,5 @@ export class RealmGuardActor extends Actor {
   }
 
 }
+
+scopeLegacyMixedClass(RealmGuardActor, BaselineClass);

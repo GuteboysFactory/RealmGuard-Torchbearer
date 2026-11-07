@@ -1,8 +1,7 @@
 import { mg2eWiseUsePlan } from "./m10c-mg2e-shadow-adapters.mjs";
-import { spendRollResource } from "./roll-chat.mjs";
 
 /** The caller is the active MG2E Actor roll pipeline, before Fate/open sixes. */
-export async function applyMg2eWiseEffect(actor, baseFaces, wise, { choose = null, excludedIndexes = [], chatDecision = null } = {}) {
+export async function applyMg2eWiseEffect(actor, baseFaces, wise, { choose = null, excludedIndexes = [] } = {}) {
   const unchanged = () => ({ faces: [...baseFaces], rerollFaces: [], traitRerollFaces: [], rerolledIndexes: [] });
   if (wise?.type !== "wise") return unchanged();
   const eligible = baseFaces.map((face, index) => face < 4 && !excludedIndexes.includes(index) ? index : -1).filter(index => index >= 0);
@@ -11,11 +10,7 @@ export async function applyMg2eWiseEffect(actor, baseFaces, wise, { choose = nul
   const fate = Number(resources.fate?.value ?? 0);
   const persona = Number(resources.persona?.value ?? 0);
   if (fate < 1 && persona < 1) return unchanged();
-  const chatChoices = [
-    ...(fate > 0 ? eligible.map(index => ({ label: `Deeper Understanding · die ${index + 1} · 1 Fate`, value: { effect: "Deeper Understanding", index } })) : []),
-    ...(persona > 0 ? [{ label: "Of Course · all failures · 1 Persona", value: { effect: "Of Course" } }] : [])
-  ];
-  const selection = choose ? await choose({ eligible, fate, persona }) : chatDecision ? await chatDecision.ask(`Use ${wise.name}?`, chatChoices) : await foundry.applications.api.DialogV2.wait({
+  const selection = choose ? await choose({ eligible, fate, persona }) : await foundry.applications.api.DialogV2.wait({
     window: { title: "Mouse Guard 2E · Wise", resizable: true },
     content: `<div class="realm-guard"><p>Use <b>${foundry.utils.escapeHTML(wise.name)}</b> on this test?</p>
       <p>Deeper Understanding spends 1 Fate to reroll one failed die. Of Course spends 1 Persona to reroll all failed dice, before opening sixes.</p>
@@ -37,7 +32,7 @@ export async function applyMg2eWiseEffect(actor, baseFaces, wise, { choose = nul
   // Evaluate before spending; an evaluation error leaves resources untouched.
   const roll = await new Roll(`${indexes.length}d6`).evaluate();
   const rerollFaces = roll.dice.flatMap(die => die.results.map(result => result.result));
-  const spent = await spendRollResource(actor, kind, 1, { source: "MG2E_WISE", reason: plan.effect });
+  const spent = await actor.spendTrackedResource(kind, 1, { source: "MG2E_WISE", reason: plan.effect });
   if (spent?.ok === false) throw new Error(`Could not spend ${kind} for this Wise effect.`);
   const faces = [...baseFaces];
   indexes.forEach((index, n) => { faces[index] = rerollFaces[n]; });

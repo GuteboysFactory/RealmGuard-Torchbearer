@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.14.0-qa.1
+**Version:** 1.14.0-qa.2
 **Target:** Foundry VTT 13.351  
 **Status:** Conflict / session QA candidate
 **Current stable baseline:** v1.13.1
 
-The next patch addresses the 14 collected table-play points: inline roll decisions, Conflict flexibility and corrections, shared visibility, session rewards and custom Skill editing. See RELEASE_NOTES_v1.14.0-qa.1.md and TEST_PROTOCOL_v1.14.0-qa.1.md. The accepted 1.13.1 startup optimization is retained.
+This QA patch addresses the 18 collected table-play checks **only for Legacy Mixed**: inline roll decisions, Conflict flexibility/corrections and hidden cards, remembered End Session participants with search, session rewards and custom Skill editing. Strict Realm Guard, MG1E, MG2E and TB2E retain their previous behavior. See RELEASE_NOTES_v1.14.0-qa.2.md and TEST_PROTOCOL_v1.14.0-qa.2.md. The accepted 1.13.1 startup optimization is retained.
 
 ## 1.13.1 startup performance
 

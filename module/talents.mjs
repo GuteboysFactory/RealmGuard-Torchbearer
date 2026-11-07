@@ -1,3 +1,4 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { progressionView } from "./progression.mjs";
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
@@ -29,7 +30,7 @@ export function talentEffectSummary(talent) {
   const frequency = String(talent?.system?.frequency ?? "session");
   const mode = String(talent?.system?.effectMode ?? "dice");
   const bonus = Math.max(0, Number(talent?.system?.diceBonus ?? 0));
-  if (mode === "reroll") return `${frequency === "conflict" ? "Once/conflict" : frequency === "passive" ? "Passive" : "Once/session"} · reroll failed dice`;
+  if (legacyMixedPolishEnabled() && mode === "reroll") return `${frequency === "conflict" ? "Once/conflict" : frequency === "passive" ? "Passive" : "Once/session"} · reroll failed dice`;
   if (mode === "manual") return `${frequency === "session" ? "Once/session · " : frequency === "conflict" ? "Once/conflict · " : ""}Manual effect`;
   const freq = frequency === "passive" ? "Passive" : frequency === "conflict" ? "Once/conflict" : "Once/session";
   return `${freq} · +${bonus}D`;
@@ -72,14 +73,12 @@ export function resolveTalentUse(actor, talentId, sourceName, { isSkill = true, 
     if (String(talent.system?.conflict?.usedId ?? "") === String(contextKey)) return null;
   }
   const manual = String(talent.system?.effectMode ?? "dice") === "manual";
-  const reroll = String(talent.system?.effectMode ?? "dice") === "reroll";
+  const reroll = legacyMixedPolishEnabled() && String(talent.system?.effectMode ?? "dice") === "reroll";
   return {
     talent,
-    sourceName,
-    isSkill,
+    ...(legacyMixedPolishEnabled() ? { sourceName, isSkill, reroll } : {}),
     frequency,
     manual,
-    reroll,
     diceBonus: manual || reroll ? 0 : Math.max(0, Number(talent.system?.diceBonus ?? 0)),
     contextKey: String(contextKey ?? ""),
     linkSummary: talentLinkSummary(talent),
@@ -133,7 +132,7 @@ export async function postTalentUseChat(actor, use, { label = "Test" } = {}) {
 
 export async function applyTalentReroll(actor, baseFaces, use, { chatDecision = null, excludedIndexes = [] } = {}) {
   const unchanged = () => ({ faces: [...baseFaces], rerollFaces: [], rerolledIndexes: [] });
-  if (!use?.reroll || !use.talent || !chatDecision) return unchanged();
+  if (!legacyMixedPolishEnabled() || !use?.reroll || !use.talent || !chatDecision) return unchanged();
   const eligible = baseFaces.map((face, index) => face < 4 && !excludedIndexes.includes(index) ? index : -1).filter(index => index >= 0);
   if (!eligible.length) return unchanged();
   if (!await chatDecision.ask(`Use ${use.talent.name} to reroll failed dice?`, [{ label: "Use Talent reroll", value: true }], { skip: false })) return unchanged();

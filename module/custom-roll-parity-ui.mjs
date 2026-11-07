@@ -1,3 +1,5 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { installCustomRollParityAction as baselineInstall } from "./baseline-1.13.1/custom-roll-parity-ui.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
 import { baselineObstacle } from "./obstacles.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
@@ -61,6 +63,11 @@ export function installCustomRollParityAction(ActorSheetClass) {
   const actions = ActorSheetClass?.DEFAULT_OPTIONS?.actions;
   if (!actions || typeof actions.customRoll !== "function") return false;
   if (actions.customRoll._rgM3CustomRollParity) return true;
-  actions.customRoll = customRollWithParity;
+  const BaselineSheet = { DEFAULT_OPTIONS: { actions: { customRoll: function () {} } } };
+  baselineInstall(BaselineSheet);
+  actions.customRoll = function (...args) {
+    return (legacyMixedPolishEnabled() ? customRollWithParity : BaselineSheet.DEFAULT_OPTIONS.actions.customRoll).apply(this, args);
+  };
+  Object.defineProperty(actions.customRoll, "_rgM3CustomRollParity", { value: true });
   return true;
 }

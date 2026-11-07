@@ -1,8 +1,8 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
-## Active table-play patch — 2026-11-07
+## Active table-play patch — 2026-11-08
 
-Candidate **1.14.0-qa.1** starts from published stable **1.13.1**. The user has accepted the startup optimization, including the large-world check. Current work covers the 14 collected Realm Guard playtest points, with Conflict as the main focus and clarified inline chat decisions. Scope, automated sandbox evidence and the user checklist are in `RELEASE_NOTES_v1.14.0-qa.1.md` and `TEST_PROTOCOL_v1.14.0-qa.1.md`. This is a QA candidate; stable promotion requires separate acceptance. TB2E remains deferred. Private Vault and GM Notes / Token Note Hover belong to Tome and are outside this patch.
+Candidate **1.14.0-qa.2** starts from published stable **1.13.1**. All 18 collected playtest checks apply **only to Legacy Mixed**. QA.2 restores the affected other-profile behavior from stable, adds hidden opposing cards with explicit action flips, a remembered/searchable End Session roster and Realm Guard End Session styling. QA.1 is superseded for testing. The user accepted startup performance, including the large-world check. Scope and acceptance checks are in `RELEASE_NOTES_v1.14.0-qa.2.md` and `TEST_PROTOCOL_v1.14.0-qa.2.md`. Stable promotion needs separate acceptance; TB2E activation remains deferred. Tome functions are outside this patch.
 
 The milestone history below is retained as historical context.
 

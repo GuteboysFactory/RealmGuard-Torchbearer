@@ -4297,6 +4297,41 @@ body:has(#join-game) {
   }
 }
 /* Conflict / session playtest polish. */
+/* Legacy Mixed End Session: parchment information, forest/gold controls. */
+.application:has(.rg-eos-legacy) { max-width:calc(100vw - 20px); max-height:calc(100vh - 20px); }
+.application:has(.rg-eos-legacy) .window-content { background:#eddbb6 url("../assets/ui/conflict-parchment.svg") center/cover; color:#2b2115; overflow:auto; }
+.application:has(.rg-eos-legacy) .window-header { background:#252d22; color:#f5e7c4; border-bottom:2px solid #9b753d; }
+.rg-end-session.rg-eos-legacy { --rg-ink:#2b2115; min-width:0; width:100%; max-width:none; color:#2b2115; gap:14px; font-family:Georgia,serif; }
+.rg-eos-legacy .rg-brand { color:#755126; font-size:10px; letter-spacing:.18em; font-weight:800; }
+.rg-eos-legacy .rg-eos-intro h2 { display:flex; align-items:center; justify-content:space-between; color:#2b2115; border-bottom:1px solid #9f7e49; padding-bottom:8px; }
+.rg-eos-legacy .rg-eos-intro h2 span { font-size:12px; color:#66543b; }
+.rg-eos-legacy .rg-eos-roster,.rg-eos-legacy .rg-eos-nominations { border:1px solid #ab8e5c; border-radius:6px; padding:12px; background:#f8eccd99; }
+.rg-eos-legacy .rg-eos-roster header { display:flex; justify-content:space-between; gap:8px; }
+.rg-eos-legacy h3 { margin:0; color:#38543a; font-weight:800; }
+.rg-eos-legacy .rg-eos-roster p { margin:6px 0 10px; font-size:12px; }
+.rg-eos-legacy .rg-eos-roster-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.rg-eos-legacy .rg-eos-roster-chip { display:flex; align-items:center; gap:8px; border:1px solid #8e7549; border-radius:4px; background:#f6e7bf; padding:3px 5px 3px 9px; }
+.rg-eos-legacy .rg-eos-roster-chip button { width:24px; min-height:24px; padding:0; line-height:1; font-size:18px; }
+.rg-eos-legacy .rg-eos-search-label { display:grid; gap:4px; font-weight:700; }
+.rg-eos-legacy input:not([type="checkbox"]),.rg-eos-legacy select { background:#fff5dc; color:#2b2115; border:1px solid #9b8050; }
+.rg-eos-legacy input[type="checkbox"] { accent-color:#38543a; }
+.rg-eos-legacy .rg-eos-search-results { display:grid; gap:4px; max-height:160px; overflow:auto; margin-top:6px; }
+.rg-eos-legacy .rg-eos-search-results button { display:flex; align-items:center; justify-content:space-between; text-align:left; }
+.rg-eos-legacy .rg-eos-search-results small { display:block; opacity:.8; }
+.rg-eos-legacy button,.application:has(.rg-eos-legacy) .dialog-buttons button { background:#38543a; color:#fff0cf; border:1px solid #a38044; border-radius:4px; }
+.rg-eos-legacy button:hover,.application:has(.rg-eos-legacy) .dialog-buttons button:hover { background:#49694b; }
+.rg-eos-legacy .rg-eos-save-status { display:block; margin-top:6px; min-height:14px; font-size:11px; color:#38543a; }
+.rg-eos-legacy .rg-eos-guidance { border-left:3px solid #9b753d; padding:5px 10px; font-size:12px; }
+.rg-eos-legacy summary { cursor:pointer; font-weight:700; }
+.rg-eos-legacy .rg-eos-nominations > fieldset { grid-column:1/-1; border-color:#b39b70; }
+.rg-eos-legacy [data-eos-embodiment] { display:flex; flex-wrap:wrap; gap:8px 18px; }
+.rg-eos-legacy [data-eos-embodiment] label { display:flex; gap:5px; }
+.rg-eos-legacy .rg-eos-card-list { max-height:none; overflow:visible; padding:0; }
+.rg-eos-legacy .rg-eos-card,.rg-eos-legacy .rg-eos-review-card { background:#f8eccdcc; border-color:#ab8e5c; padding:12px; }
+.rg-eos-legacy .rg-eos-card > header strong,.rg-eos-legacy .rg-eos-review-card > header strong { color:#38543a; font-size:16px; }
+.rg-eos-legacy .rg-eos-bgi p,.rg-eos-legacy .rg-eos-awards fieldset,.rg-eos-legacy .rg-eos-review-grid section { border-color:#b6a17b; }
+.rg-eos-legacy .rg-eos-bgi b,.rg-eos-legacy .rg-eos-awards legend,.rg-eos-legacy .rg-eos-review-grid h3 { color:#755126; }
+@media (max-width:600px) { .rg-eos-legacy .rg-eos-card > header,.rg-eos-legacy .rg-eos-review-card > header { flex-direction:column; align-items:flex-start; } }
 .rg-chat-question { border:2px solid #bd8b35; padding:10px; border-radius:6px; animation:rg-question-pulse 1.5s ease-in-out infinite; }
 .rg-chat-roll-pipeline { background:#25241e; color:#f5ead3; padding:10px; border:1px solid #98744a; border-radius:6px; }
 .rg-chat-question-buttons button { background:#ecd4a5; color:#292218; border:1px solid #98744a; }
@@ -4312,12 +4347,12 @@ body:has(#join-game) {
 .rg-conflict-instructions > summary { cursor:pointer; padding:8px; }
 @keyframes rg-question-pulse { 0%,100% { box-shadow:0 0 0 0 #bd8b3530; } 50% { box-shadow:0 0 0 4px #bd8b3580; } }
 @media (prefers-reduced-motion: reduce) { .rg-chat-question { animation:none; border-width:3px; } }
-.rg-conflict-window:not(.minimized) { min-width:min(520px,calc(100vw - 16px)); min-height:min(300px,calc(100vh - 16px)); }
+.rg-conflict-window.rg-legacy-polish:not(.minimized) { min-width:min(520px,calc(100vw - 16px)); min-height:min(300px,calc(100vh - 16px)); }
 @media (max-width:900px) {
-  .rg-conflict-window .rg-conflict-plans,.rg-conflict-window .rg-action-versus-grid { grid-template-columns:minmax(0,1fr); }
-  .rg-conflict-window .rg-conflict-goals { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-  .rg-conflict-window .rg-conflict-goals article { min-height:64px; padding:8px; }
-  .rg-conflict-window .rg-conflict-goals article p { min-height:0; font-size:13px; margin-top:5px; }
-  .rg-conflict-window .rg-action-clash,.rg-conflict-window .rg-conflict-emblem { display:none; }
-  .rg-conflict-window .rg-conflict-body { min-width:0; }
+  .rg-conflict-window.rg-legacy-polish .rg-conflict-plans,.rg-conflict-window.rg-legacy-polish .rg-action-versus-grid { grid-template-columns:minmax(0,1fr); }
+  .rg-conflict-window.rg-legacy-polish .rg-conflict-goals { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .rg-conflict-window.rg-legacy-polish .rg-conflict-goals article { min-height:64px; padding:8px; }
+  .rg-conflict-window.rg-legacy-polish .rg-conflict-goals article p { min-height:0; font-size:13px; margin-top:5px; }
+  .rg-conflict-window.rg-legacy-polish .rg-action-clash,.rg-conflict-window.rg-legacy-polish .rg-conflict-emblem { display:none; }
+  .rg-conflict-window.rg-legacy-polish .rg-conflict-body { min-width:0; }
 }

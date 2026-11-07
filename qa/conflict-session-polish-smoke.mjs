@@ -37,7 +37,7 @@ function ranger(profile='realm-guard-legacy-mixed') {
   const actor=new RealmGuardActor(actorData()); game.actors.length=0;game.actors.push(actor);return actor;
 }
 
-for(const profile of ['realm-guard-legacy-mixed','realm-guard-strict','mg1e','mg2e']) {
+for(const profile of ['realm-guard-legacy-mixed']) {
   let actor=ranger(profile);fixture.dice.push([4,2,5]);
   let result=await complete(actor.rollRole(actor.items.get('fighter')));
   assert.equal(result.successes,2);assert.equal(fixture.messages.length,1);assert.equal(actor.system.resources.fate.value,3);
@@ -67,14 +67,6 @@ actor=ranger();fixture.dice.push([1,6,3]);
 result=await complete(actor.rollRole(actor.items.get('fighter'),{wiseId:'wise'}),['skip','skip']);
 assert.equal(result.successes,1);assert.equal(fixture.dice.length,0);
 
-actor=ranger('mg2e');fixture.dice.push([1,6,3],[4,5]);
-result=await complete(actor.rollRole(actor.items.get('fighter'),{wiseId:'wise'}),['2','skip']);
-assert.equal(result.successes,3);assert.equal(actor.system.resources.persona.value,2);assert.equal(actor.system.resources.fate.value,3);
-actor=ranger('mg2e');actor.system.resources.persona.value=1;fixture.dice.push([1,2,4,5]);
-result=await complete(actor.rollRole(actor.items.get('fighter'),{wiseId:'wise',persona:1}),['skip']);
-assert.equal(actor.system.resources.persona.value,0,'Pre-roll Persona is committed before Wise choices');
-assert.doesNotMatch(fixture.messages[0].content,/Of Course · all failures · 1 Persona<\/button>/);
-
 actor=ranger();
 const talent={id:'reroll-talent',name:'Second Chance',type:'talent',system:{minLevel:2,frequency:'session',effectMode:'reroll',linkedSkill:'Fighter',linkType:'skill',session:{used:false}},async update(data){ for(const [key,value]of Object.entries(data)){if(key==='system.session.used')this.system.session.used=value;}}};
 actor.items.push(talent); fixture.dice.push([1,2,4]);
@@ -91,10 +83,6 @@ result=await complete(actor.rollRole(actor.items.get('fighter'),{tokenPowerId:'t
 fixture.messages.length=0;fixture.dice.push([1,2,4],[5,4]);
 result=await complete(actor.rollRole(actor.items.get('fighter'),{tokenPowerId:'token'}),['0']);assert.equal(result.successes,3);assert.equal(token.system.session.used,true);
 
-actor=ranger('mg1e');const trait={id:'trait',name:'Bold',type:'trait',system:{rating:3,session:{positiveUses:0}},async update(update){const{assignPaths}=await import('./lib/playtest-foundry-fixture.mjs');assignPaths(this,update);}};actor.items.push(trait);fixture.dice.push([1,2,4]);
-result=await complete(actor.rollRole(actor.items.get('fighter'),{traitId:'trait',traitMode:'help'}),['skip']);assert.equal(result.successes,1);
-fixture.messages.length=0;fixture.dice.push([1,2,4],[4,5]);
-result=await complete(actor.rollRole(actor.items.get('fighter'),{traitId:'trait',traitMode:'help'}),['0']);assert.equal(result.successes,3);
 actor=ranger();let tiedOpponent=new RealmGuardActor(actorData('opponent'));fixture.dice.push([4,1,1],[4,1]);
 result=await complete(actor.rollAutomaticVersus(actor.items.get('fighter'),tiedOpponent,{kind:'role',name:'Scout',rating:2}),['skip']);assert.equal(result.tied,true);
 actor=ranger();tiedOpponent=new RealmGuardActor(actorData('opponent'));fixture.dice.push([4,1,1],[4,1],[4,4,1,1],[1,1,1,1]);
@@ -126,4 +114,4 @@ assert.equal(validateDispositionAllocation(state,{a:{start:3,current:-1},b:{star
 assert.equal(validateDispositionAllocation(state,{a:{start:3,current:0},b:{start:5,current:4},outsider:{start:0,current:0}}),false);
 assert.throws(()=>createTemporaryOpposition({id:'x',name:'Rain',rating:-1}));
 const opponent=createTemporaryOpposition({id:'rain',name:'Rain',rating:4});assert.equal(opponent.system.attributes.health.value,4);assert.equal(opponent.items.length,0);assert.equal(game.actors.some(a=>a.id==='rain'),false);
-console.log('PASS conflict-session-polish-smoke · four profiles, original chat dice, optional Wise/Fate/Talent, double-click/ownership guards, resource order, concurrency, allocation and temporary opposition');
+console.log('PASS conflict-session-polish-smoke · Legacy Mixed only, original chat dice, optional Wise/Fate/Talent, double-click/ownership guards, resource order, concurrency, allocation and temporary opposition');

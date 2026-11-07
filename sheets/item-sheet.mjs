@@ -1,3 +1,4 @@
+import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
 import { normalizeContainerPreset, detachContainedGear } from "../module/inventory.mjs";
 import { getActiveProfileCapabilities } from "../module/rules-profile-service.mjs";
 const { ItemSheetV2 } = foundry.applications.sheets;
@@ -61,6 +62,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
       item: this.item,
       system: this.item.system,
       isRole: this.item.type === "role",
+      legacyMixedPolish: legacyMixedPolishEnabled(),
       beginnerAbilityAutomatic: !["will", "health"].includes(this.item.system.beginnerAbility),
       beginnerAbilityWill: this.item.system.beginnerAbility === "will",
       beginnerAbilityHealth: this.item.system.beginnerAbility === "health",

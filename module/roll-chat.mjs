@@ -1,3 +1,4 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 
 const pending = new Map();
@@ -76,6 +77,7 @@ export function resolveRollChatChoice(messageId, nonce, choiceId, user = game.us
 }
 
 export function installRollChat() {
+  if (!legacyMixedPolishEnabled()) return;
   Hooks.once("ready", () => {
     document.addEventListener("click", event => {
       const button = event.target?.closest?.("[data-rg-chat-choice]");

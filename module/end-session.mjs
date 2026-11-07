@@ -1,3 +1,6 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { END_SESSION_ROSTER_KEY, endSessionRosterActors, saveEndSessionRoster, endSessionRosterHtml, bindEndSessionRoster } from "./end-session-roster.mjs";
+import { installEndSession as baselineInstall, openEndSession as baselineOpen } from "./baseline-1.13.1/end-session.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { getActiveM10BSessionCirclesProgressionPolicy, familyEndSessionValidation } from "./m10b-session-circles-progression.mjs";
 import { resetTokenPowerSessionState } from "./tokens-of-power.mjs";
@@ -24,9 +27,7 @@ function value(form, name) {
 }
 
 function participantActors() {
-  return game.actors
-    .filter(actor => actor.type === "character")
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return endSessionRosterActors();
 }
 
 function legacyAwardProposal(actor, criteria, mvpId, workhorseId) {
@@ -72,7 +73,7 @@ function actorCard(actor) {
   const goal = esc(actor.system.goal || "—");
   const instinct = esc(actor.system.instinct || "—");
   return `<article class="rg-eos-card" data-actor-id="${actor.id}">
-    <header><label><input type="checkbox" name="participate_${actor.id}" checked> <strong>${esc(actor.name)}</strong></label><span>Fate ${Number(actor.system.resources?.fate?.value ?? 0)} · Persona ${Number(actor.system.resources?.persona?.value ?? 0)}</span></header>
+    <header><strong>${esc(actor.name)}</strong><input type="checkbox" name="participate_${actor.id}" checked hidden><span>Fate ${Number(actor.system.resources?.fate?.value ?? 0)} · Persona ${Number(actor.system.resources?.persona?.value ?? 0)}</span></header>
     <div class="rg-eos-bgi"><p><b>Belief</b>${belief}</p><p><b>Goal</b>${goal}</p><p><b>Instinct</b>${instinct}</p></div>
     <div class="rg-eos-awards">
       <fieldset><legend>Fate</legend>
@@ -92,14 +93,16 @@ function nomineeOptions(actors) {
   return [`<option value="">None</option>`, ...actors.map(actor => `<option value="${actor.id}">${esc(actor.name)}</option>`)].join("");
 }
 
-async function collectCriteria(actors, cycle) {
+async function collectCriteria(actors, cycle, draft = null) {
   const options = nomineeOptions(actors);
-  const content = `<div class="rg-end-session">
-    <header class="rg-eos-intro"><h2>End of Session · Cycle ${cycle}</h2><p>Review each participating Ranger's Belief, Goal and Instinct with the group, then mark the rewards the group agrees were earned.</p><p><small>Goal rule: Working Toward a Goal earns Fate only when the Goal was not accomplished. Persona is capped at 4 per session.</small></p></header>
+  const content = `<div class="realm-guard rg-end-session rg-eos-legacy">
+    <header class="rg-eos-intro"><div class="rg-brand">REALM GUARD</div><h2>End of Session <span>Cycle ${cycle}</span></h2><p>Review the session together, then choose the rewards earned.</p></header>
+    ${endSessionRosterHtml(actors)}
+    <details class="rg-eos-guidance"><summary>Reward guidance</summary><p>Review each participant's Belief, Goal and Instinct with the group. Working toward a Goal earns Fate only when the Goal was not accomplished. Persona is capped at 4 per session.</p></details>
     <section class="rg-eos-nominations">
       <label><span>MVP <small>(Most Valuable Player)</small></span><select name="mvp">${options}</select></label>
       <label><span>Workhorse <small>(carried the patrol)</small></span><select name="workhorse">${options}</select></label>
-      <fieldset><legend>Embodiment · best embodied the Ranger</legend>${actors.map(actor => `<label><input type="checkbox" name="personaEmbodiment_${actor.id}"> ${esc(actor.name)}</label>`).join("")}</fieldset>
+      <fieldset><legend>Embodiment · best embodied the character</legend><div data-eos-embodiment>${actors.map(actor => `<label><input type="checkbox" name="personaEmbodiment_${actor.id}"> ${esc(actor.name)}</label>`).join("")}</div></fieldset>
       <small><b>MVP:</b> the crucial contribution that let the patrol complete the mission. <b>Workhorse:</b> the Ranger who carried the group through the hard work. They must be different Rangers.</small>
     </section>
     <div class="rg-eos-card-list">${actors.map(actorCard).join("")}</div>
@@ -107,6 +110,8 @@ async function collectCriteria(actors, cycle) {
 
   return foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · End of Session · ${cycle}`, resizable: true },
+    position: { width: 820 },
+    render: (_event, dialog) => bindEndSessionRoster(dialog.element?.querySelector(".rg-eos-legacy"), actors, { actorCard, nomineeOptions, draft }),
     content,
     modal: false,
     rejectClose: false,
@@ -118,7 +123,7 @@ async function collectCriteria(actors, cycle) {
         default: true,
         callback: (event, button) => {
           const form = button.form;
-          const participating = actors.filter(actor => checked(form, `participate_${actor.id}`));
+          const participating = actors.filter(actor => game.actors.get(actor.id) && checked(form, `participate_${actor.id}`));
           if (!participating.length) return { error: "Select at least one participating Ranger." };
 
           const participatingIds = new Set(participating.map(actor => actor.id));
@@ -201,10 +206,11 @@ async function reviewAndApprove(result, cycle) {
     </article>`;
   }).join("");
 
-  const content = `<div class="rg-end-session rg-eos-review"><header class="rg-eos-intro"><h2>Review Awards · Cycle ${cycle}</h2><p>Finish Session approves all rewards shown below. Use Back to change the selections.</p></header><div class="rg-eos-card-list">${rowsHtml}</div></div>`;
+  const content = `<div class="realm-guard rg-end-session rg-eos-legacy rg-eos-review"><header class="rg-eos-intro"><div class="rg-brand">REALM GUARD</div><h2>Review Awards <span>Cycle ${cycle}</span></h2><p>Finish Session approves all rewards shown below. Use Back to change the selections.</p></header><div class="rg-eos-card-list">${rowsHtml}</div></div>`;
 
   return foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Approve End of Session · ${cycle}`, resizable: true },
+    position: { width: 820 },
     content,
     modal: false,
     rejectClose: false,
@@ -389,6 +395,8 @@ function installEndSessionDockTool() {
 }
 
 export function installEndSession() {
+  if (!legacyMixedPolishEnabled()) return baselineInstall();
+  game.settings.register(NS, END_SESSION_ROSTER_KEY, { name: "Legacy Mixed End Session participants", scope: "world", config: false, type: Object, default: { initialized: false, actorIds: [] } });
   game.settings.register(NS, CYCLE_KEY, {
     name: "End of Session Cycle",
     hint: "Internal Realm Guard session-cycle counter used to prevent duplicate end-of-session rewards.",
@@ -409,9 +417,10 @@ export function installEndSession() {
 }
 
 export async function openEndSession() {
+  if (!legacyMixedPolishEnabled()) return baselineOpen();
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: End of Session is GM-controlled.");
   const actors = participantActors();
-  if (!actors.length) return ui.notifications.warn("Realm Guard: No character Actors are available for End of Session.");
+  await saveEndSessionRoster(actors);
 
   let cycle = Number(game.settings.get(NS, CYCLE_KEY) ?? 1);
   if (game.settings.get(NS, FINALIZED_KEY)) {
@@ -420,13 +429,15 @@ export async function openEndSession() {
     cycle = Number(game.settings.get(NS, CYCLE_KEY) ?? cycle + 1);
   }
 
+  let draft = null;
   while (true) {
-    const criteria = await collectCriteria(actors, cycle);
+    const criteria = await collectCriteria(actors, cycle, draft);
     if (!criteria) return;
     if (criteria.error) {
       ui.notifications.warn(`Realm Guard: ${criteria.error}`);
       continue;
     }
+    draft = criteria;
     const approval = await reviewAndApprove(criteria, cycle);
     if (!approval) return;
     if (approval.back) continue;

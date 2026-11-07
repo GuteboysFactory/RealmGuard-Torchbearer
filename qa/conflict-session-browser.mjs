@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
-const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard';
+const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard, gmHandleRangerPlan, cardPlannerHtml';
 const server = http.createServer(async (request,response) => {
   try {
     const url=new URL(request.url,'http://localhost');
-    if(url.pathname==='/') { response.setHeader('Content-Type','text/html'); response.end('<!doctype html><html><head><link rel="stylesheet" href="/styles/realm-guard.css"><link rel="stylesheet" href="/styles/conflict-parchment-prototype.css"></head><body><div id="chat-sandbox"></div></body></html>');return; }
+    if(url.pathname==='/') { const manifest=JSON.parse(await fs.readFile(path.join(root,'system.json'),'utf8'));response.setHeader('Content-Type','text/html'); response.end(`<!doctype html><html><head>${manifest.styles.map(file=>`<link rel="stylesheet" href="/${file}">`).join('')}</head><body><div id="chat-sandbox"></div></body></html>`);return; }
     const filename=path.resolve(root,'.'+decodeURIComponent(url.pathname));
     if(!filename.startsWith(root))throw Error('Outside test root');
     let data=await fs.readFile(filename);
@@ -123,5 +123,86 @@ try {
  assert.ok(await page.evaluate(()=>{const r=document.querySelector('#rg-conflict-window').getBoundingClientRect();return r.right<=innerWidth&&r.bottom<=innerHeight;}));
  if(process.env.PLAYTEST_SCREENSHOT)await page.screenshot({path:process.env.PLAYTEST_SCREENSHOT});
  assert.deepEqual(errors,[]);
- console.log('PASS conflict-session-browser · real Chromium DOM: scroll, resize, observer visibility, action override, flashing chat decisions, declined spend, zero Disposition, nine temporary opposition types, reopen and session approval');
+ // Submitted cards stay hidden until the explicit flip, including in the GM UI.
+ assert.ok(await page.evaluate(async()=>{
+   game.user=fx.gm;const s=baseState();s.stage='rangerPlan';s.locks.gm=true;
+   await conflict.setPrivateState({conflictId:s.id,gmPlan:['attack','defend','feint'].map(action=>({action,actorId:'enemy'}))});
+   await conflict.setPublicState(s);
+   await conflict.gmHandleRangerPlan({senderId:fx.player.id,conflictId:s.id,payload:{plan:[{action:'defend',actorId:'ranger'},{action:'feint',actorId:'ranger2'},{action:'maneuver',actorId:'ranger'}],weaponIds:{}}},s);
+   const next=conflict.currentState();
+   if(next.stage!=='ready'||next.revealed.length!==0)return false;
+   conflict.renderConflictWindow(next,{force:true});
+   const ranger=document.querySelector('.rg-side-plan.ranger');
+   if(ranger.querySelector('.own-plan,.editable')||ranger.querySelectorAll('.rg-plan-slot.locked').length!==3)return false;
+   if(!document.querySelector('[data-conflict-action="reveal"]'))return false;
+   await conflict.revealCurrentAction(next);
+   const revealed=conflict.currentState();
+   conflict.renderConflictWindow(revealed,{force:true});
+   if(revealed.revealed.length!==1||document.querySelectorAll('.rg-side-plan.ranger .revealed').length!==1||document.querySelectorAll('.rg-side-plan.ranger .locked').length!==2)return false;
+   game.user=fx.player;conflict.renderConflictWindow(revealed,{force:true});
+   if(document.querySelectorAll('.rg-side-plan.gm .revealed').length!==1||document.querySelectorAll('.rg-side-plan.gm .locked').length!==2)return false;
+   game.user=fx.observer;conflict.renderConflictWindow(revealed,{force:true});
+   return !document.querySelector('.rg-side-plan .own-plan');
+ }));
+ // Actual End Session render callback binds search/add/remove without resetting awards.
+ await page.evaluate(async()=>{
+   game.user=fx.gm;document.querySelector('#rg-conflict-window')?.remove();document.querySelector('#chat-sandbox').innerHTML='';
+   window.roster=await import('/module/end-session-roster.mjs');session.installEndSession();
+   const gmOnly=new actorModule.RealmGuardActor({...game.actors.get('ranger').toObject?.(),id:'gm-only',name:'GM character',type:'character',ownership:{gm:3},system:game.actors.get('ranger').system});game.actors.push(gmOnly);
+   const originalWait=foundry.applications.api.DialogV2.wait;
+   foundry.applications.api.DialogV2.wait=async options=>{
+     document.querySelector('#eos-test-app')?.remove();
+     const element=document.createElement('section');element.id='eos-test-app';element.className='application dialog';element.style.cssText='position:fixed;inset:10px;overflow:auto;padding:0;';
+     element.innerHTML=`<header class="window-header" style="padding:10px">Realm Guard · End Session</header><form class="window-content" style="padding:16px">${options.content}<footer class="dialog-buttons" style="display:flex;gap:8px;margin-top:14px">${options.buttons.map(button=>`<button type="button">${button.label}</button>`).join('')}</footer></form>`;
+     document.body.append(element);options.render?.(null,{element});window.lastEosOptions=options;return null;
+   };
+   window.showEndSession=async()=>{window.rosterActors=roster.endSessionRosterActors();await session.collectCriteria(rosterActors,1);};
+   await showEndSession();window.restoreWait=()=>{foundry.applications.api.DialogV2.wait=originalWait;};
+ });
+ assert.equal(await page.locator('[data-eos-remove="gm-only"]').count(),0);
+ assert.equal(await page.locator('[data-eos-remove="enemy"]').count(),0);
+ await page.locator('[name="fateBelief_ranger"]').check();
+ await page.locator('[name="mvp"]').selectOption('ranger');
+ await page.locator('[data-eos-search]').fill('enemy');
+ await page.locator('[data-eos-add="enemy"]').click();
+ await page.waitForFunction(()=>game.settings.get('realm-guard','legacyMixedEndSessionRoster').actorIds.includes('enemy'));
+ assert.equal(await page.locator('[data-eos-remove="enemy"]').count(),1);
+ assert.equal(await page.locator('[name="fateBelief_ranger"]').isChecked(),true);
+ assert.equal(await page.locator('[name="mvp"]').inputValue(),'ranger');
+ await page.locator('[data-eos-remove="ranger2"]').click();
+ await page.waitForFunction(()=>!game.settings.get('realm-guard','legacyMixedEndSessionRoster').actorIds.includes('ranger2'));
+ await page.evaluate(()=>showEndSession());
+ assert.equal(await page.locator('[data-eos-remove="enemy"]').count(),1);
+ assert.equal(await page.locator('[data-eos-remove="ranger2"]').count(),0);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&getComputedStyle(document.querySelector('.rg-eos-legacy')).color==='rgb(43, 33, 21)'&&getComputedStyle(document.querySelector('[name="mvp"]')).color==='rgb(43, 33, 21)'));
+ if(process.env.PLAYTEST_SCREENSHOT)await page.screenshot({path:process.env.PLAYTEST_SCREENSHOT.replace(/\.png$/, '-end-session.png')});
+ // Review / Back retains criteria; choosing nobody stays empty after reopening.
+ assert.ok(await page.evaluate(async()=>{
+   const actors=roster.endSessionRosterActors();await session.collectCriteria(actors,1,{rows:[{actor:actors.find(a=>a.id==='ranger'),criteria:{fateBelief:true,personaEmbodiment:true}}],mvpId:'ranger'});
+   return document.querySelector('[name="fateBelief_ranger"]').checked&&document.querySelector('[name="personaEmbodiment_ranger"]').checked&&document.querySelector('[name="mvp"]').value==='ranger';
+ }));
+ await page.locator('[data-eos-remove="enemy"]').click();await page.locator('[data-eos-remove="ranger"]').click();
+ await page.waitForFunction(()=>game.settings.get('realm-guard','legacyMixedEndSessionRoster').actorIds.length===0);
+ await page.evaluate(()=>showEndSession());assert.equal(await page.locator('.rg-eos-card').count(),0);
+ await page.locator('[data-eos-search]').fill('ranger');await page.locator('[data-eos-add="ranger"]').click();
+ assert.equal(await page.locator('.rg-eos-card').count(),1);
+ await page.evaluate(()=>restoreWait());
+ // Other profile installers actually select the stable conflict / End Session flows.
+ for(const profile of ['realm-guard-strict','mg1e','mg2e','torchbearer2e']) {
+   const other=await browser.newPage({viewport:{width:800,height:600}});other.on('pageerror',error=>errors.push(error.message));
+   await other.goto(`http://127.0.0.1:${server.address().port}`);
+   assert.ok(await other.evaluate(async ({profile,state})=>{
+     const {installPlaytestFixture,actorData}=await import('/qa/lib/playtest-foundry-fixture.mjs');const f=installPlaytestFixture();f.settings.set('activeRulesProfileId',profile);
+     const {refreshRulesProfileRuntime}=await import('/module/rules-profile-service.mjs');refreshRulesProfileRuntime();
+     const {RealmGuardActor}=await import('/module/documents.mjs');for(const id of ['ranger','ranger2','enemy'])game.actors.push(new RealmGuardActor(actorData(id)));
+     const {installConflictEngine,openConflictWindow}=await import('/module/conflicts.mjs');installConflictEngine();f.settings.set('conflictState',JSON.stringify(state));openConflictWindow();
+     if(!document.querySelector('#rg-conflict-window')||document.querySelector('.rg-legacy-polish,.rg-individual-disposition,.rg-conflict-instructions'))return false;
+     const {installEndSession,openEndSession}=await import('/module/end-session.mjs');installEndSession();let criteriaHtml='',reviewHtml='';
+     f.dialogs.push(options=>{criteriaHtml=options.content;return {rows:[{actor:game.actors.get('ranger'),criteria:{},proposal:{fate:1,persona:1}}]};},options=>{reviewHtml=options.content;return null;});await openEndSession();
+     return !criteriaHtml.includes('rg-eos-roster')&&!criteriaHtml.includes('rg-eos-legacy')&&reviewHtml.includes('approveFate_ranger')&&reviewHtml.includes('approvePersona_ranger')&&!f.settings.has('legacyMixedEndSessionRoster');
+   },{profile,state:await page.evaluate(()=>baseState())}),`${profile} must use the old installers and UI`);
+   await other.close();
+ }
+ assert.deepEqual(errors,[]);
+ console.log('PASS conflict-session-browser · Chromium DOM: conflict/chat regressions; hidden plans and explicit flips; saved/searchable End Session roster, preserved selections, Back, empty list and parchment layout; four other profile installers retain stable UI');
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}

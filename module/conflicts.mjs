@@ -1,3 +1,5 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { installConflictEngine as baselineInstall, openConflictWindow as baselineOpen } from "./baseline-1.13.1/conflicts.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
@@ -433,7 +435,6 @@ async function editIndividualDisposition(state) {
   const next = clone(latest); next.ranger.individualDisposition = result === "shared" ? null : result;
   next.log.push(result === "shared" ? "GM selected shared Disposition." : "GM allocated individual Disposition.");
   await setPublicState(next);
-  if (next.stage === "ready") await revealCurrentAction(next);
 }
 
 function skillOverrideHtml(state) {
@@ -644,6 +645,8 @@ function planWeaponSummary(actor, state, side) {
   return `<div class="rg-plan-weapon rg-plan-weapon-locked" data-rg-help="This Actor's Conflict Weapon / Tool is declared once for the entire three-Action Exchange. Change it in the Exchange Weapon / Tool section before locking the cards." data-rg-help-title="Exchange Weapon / Tool"><span>Exchange Weapon / Tool</span><b>${esc(name)}</b></div>`;
 }
 function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) {
+  const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
+  editable = editable && ownSideView;
   const locked = Boolean(state.locks?.[side]);
   const revealed = state.revealed?.find(r => r.index === index);
   if (revealed) {
@@ -653,7 +656,6 @@ function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) 
     return `<div class="rg-plan-slot revealed"><span class="rg-plan-no">${index + 1}</span>${conflictCard(action, side, { small: true })}<div class="rg-plan-summary"><b>${esc(actor?.name ?? "")}</b><span>${esc(planWeaponName(actor, state, side, weaponId))}</span></div></div>`;
   }
   if (locked) {
-    const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
     if (ownSideView && planEntry?.action) {
       const actor = side === "ranger" ? actorById(planEntry.actorId) : actorById(state.gm.actorId);
       return `<div class="rg-plan-slot locked own-plan"><span class="rg-plan-no">${index + 1}</span>${conflictCard(planEntry.action, side, { small: true })}<div class="rg-plan-summary"><b>${esc(actor?.name ?? "Locked")}</b><span>${esc(planWeaponName(actor, state, side, state?.weaponIds?.[actor?.id] ?? planEntry.weaponId))}</span></div></div>`;
@@ -705,7 +707,8 @@ function planActionChoice(action, side) {
 }
 
 function cardPlannerHtml(side, state, editable) {
-  const plan = planFor(side, state);
+  const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
+  const plan = ownSideView ? planFor(side, state) : [];
   const filled = [0,1,2].filter(i => plan[i]?.action).length;
   return `<div class="rg-card-planner ${editable ? "editable" : "readonly"}">
     ${editable ? `<div class="rg-plan-step-head"><div><b>Choose three Actions</b><span>Declare each Actor’s Exchange Weapon / Tool above, then choose the three Actions and assign the acting Ranger.</span></div><strong>${filled}/3</strong></div><div class="rg-card-deck">${ACTIONS.map(action => planActionChoice(action, side)).join("")}</div>${weaponPlannerHtml(side, state, editable)}` : ""}
@@ -778,7 +781,7 @@ function conflictGuidanceHtml(state) {
   if (state.stage === "goals") return `<section class="rg-conflict-guidance current"><b>Step 1 · Goals & Stakes</b><span>Each side writes its Conflict Goal and presses Save. Saving marks that side Ready automatically; when both sides are green, Starting Disposition begins.</span></section>`;
   if (state.stage === "disposition") return `<section class="rg-conflict-guidance"><b>Step 2 · Starting Disposition</b><span>Generate disposition for each side. Calculated, Nature, Fixed and Manual opposition methods are supported.</span></section>`;
   if (state.stage === "gmPlan") return `<section class="rg-conflict-guidance"><b>Step 3 · GM plans secretly</b><span>GM chooses three action cards and locks them. Rangers do not see them.</span></section>`;
-  if (state.stage === "rangerPlan") return `<section class="rg-conflict-guidance"><b>Step 4 · Rangers plan secretly</b><span>The Conflict Captain chooses three cards and assigns Rangers. Locking the plan reveals Action 1 automatically.</span></section>`;
+  if (state.stage === "rangerPlan") return `<section class="rg-conflict-guidance"><b>Step 4 · Rangers plan secretly</b><span>The Conflict Captain chooses three cards and assigns Rangers. Once both plans are locked, the GM flips one Action at a time.</span></section>`;
   if (state.stage === "ready") return `<section class="rg-conflict-guidance"><b>Next action loading</b><span>No extra reveal click is normally needed.</span></section>`;
   if (state.stage === "action" && pair) {
     const waiting = []; if (!state.rolls?.gm && pair.gmMode !== "trumped") waiting.push("GM / Opposition"); if (!state.rolls?.ranger && pair.rangerMode !== "trumped") waiting.push("Ranger");
@@ -815,11 +818,11 @@ function controlsHtml(state) {
     return `<div class="rg-conflict-controls"><button class="rg-conflict-primary gm" data-conflict-action="lock-plan" data-side="gm" data-rg-help="Lock the GM’s three hidden Actions. Once locked, the GM plan is ready and the Ranger side can finish planning." data-rg-help-title="Lock GM Plan"><i class="fa-solid fa-lock"></i> Lock GM Cards</button></div>`;
   }
   if (state.stage === "rangerPlan") {
-    if (!canCaptainControl(state)) return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-user-shield"></i> Conflict Captain is choosing and assigning three hidden cards…</div>`;
-    return `<div class="rg-conflict-controls"><button class="rg-conflict-primary ranger" data-conflict-action="lock-plan" data-side="ranger" data-rg-help="Lock the Rangers’ three hidden Actions. When both plans are locked, the next Action reveals automatically." data-rg-help-title="Lock Ranger Plan"><i class="fa-solid fa-lock"></i> Lock Ranger Cards</button></div>`;
+    if (game.user?.isGM || !canCaptainControl(state)) return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-user-shield"></i> Conflict Captain is choosing and assigning three hidden cards…</div>`;
+    return `<div class="rg-conflict-controls"><button class="rg-conflict-primary ranger" data-conflict-action="lock-plan" data-side="ranger" data-rg-help="Lock the Rangers’ three hidden Actions. The GM flips one Action at a time when both sides are ready." data-rg-help-title="Lock Ranger Plan"><i class="fa-solid fa-lock"></i> Lock Ranger Cards</button></div>`;
   }
-  if (state.stage === "ready" && game.user?.isGM) return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-spinner fa-spin"></i> Plans locked · revealing Action ${state.currentIndex + 1} automatically… <button type="button" class="rg-conflict-retry" data-conflict-action="reveal" title="Use only if the automatic reveal did not complete">Retry reveal</button></div>`;
-  if (state.stage === "ready") return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-lock"></i> Plans locked · Action ${state.currentIndex + 1} is revealing automatically.</div>`;
+  if (state.stage === "ready" && game.user?.isGM) return `<div class="rg-conflict-controls"><button type="button" class="rg-conflict-primary gm" data-conflict-action="reveal"><i class="fa-solid fa-clone"></i> Flip Action ${state.currentIndex + 1}</button><span>Both plans are locked. Later cards stay hidden.</span></div>`;
+  if (state.stage === "ready") return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-lock"></i> Plans locked · waiting for the GM to flip Action ${state.currentIndex + 1}.</div>`;
   return "";
 }
 
@@ -830,14 +833,14 @@ function renderConflictWindow(state = currentState(), { force = false } = {}) {
   if (!force && dismissedConflictId === state.id && !old) return;
   let root = old;
   if (!root) {
-    root = document.createElement("section"); root.id = WINDOW_ID; root.className = "rg-conflict-window"; document.body.append(root);
+    root = document.createElement("section"); root.id = WINDOW_ID; root.className = "rg-conflict-window rg-legacy-polish"; document.body.append(root);
   }
   root.dataset.stage = state.stage;
   root.dataset.conflictId = state.id;
   const gmActor = actorById(state.gm.actorId);
   const captain = actorById(state.ranger.captainId);
   const gmEditable = state.stage === "gmPlan" && game.user?.isGM && !state.locks.gm;
-  const rangerEditable = state.stage === "rangerPlan" && canCaptainControl(state) && !state.locks.ranger;
+  const rangerEditable = !game.user?.isGM && state.stage === "rangerPlan" && canCaptainControl(state) && !state.locks.ranger;
   root.innerHTML = `<header class="rg-conflict-titlebar" data-conflict-drag><div><span>REALM GUARD</span><h2>${esc(state.name)}</h2><small>${esc(conflictTypeLabel(state.type))} · ${esc(stageLabel(state.stage))} · Exchange ${state.exchange}</small></div><div class="rg-conflict-window-actions"><button type="button" data-conflict-action="close" title="Minimize / Restore Conflict Window"><i class="fa-solid fa-window-minimize"></i></button></div></header>
     <div class="rg-conflict-body">
       <div class="rg-conflict-goals"><article class="gm"><b>${esc(gmActor?.name ?? "Opposition")}</b><span>GM GOAL</span><p>${esc(state.gm.goal || "No goal entered")}</p></article><div class="rg-conflict-emblem"><i class="fa-solid fa-khanda"></i></div><article class="ranger"><b>Rangers · Captain ${esc(captain?.name ?? "—")}</b><span>RANGER GOAL</span><p>${esc(state.ranger.goal || "No goal entered")}</p></article></div>
@@ -1032,7 +1035,6 @@ async function lockPlan(side, state) {
     const p = privateState(); p.conflictId = state.id; p.rangerPlan = validatedPlan; await setPrivateState(p);
     lockedPlanCache.set(state.id, { ...(lockedPlanCache.get(state.id) ?? {}), rangerPlan: clone(validatedPlan) });
     const next = clone(state); next.weaponIds = { ...(next.weaponIds ?? {}), ...rangerWeaponIds }; next.locks.ranger = true; next.stage = "ready"; next.pendingActionCounts = validated.counts; next.pendingLastRangerActorId = validated.lastActorId; next.log.push(`Exchange ${next.exchange}: Ranger cards locked.`); await setPublicState(next);
-    await revealCurrentAction(next);
   } else {
     game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: "submitRangerPlan", conflictId: state.id, senderId: game.user.id, payload: { plan: validatedPlan, weaponIds: rangerWeaponIds } });
     ui.notifications.info("Realm Guard: Ranger action cards sent to the GM and locked.");
@@ -1057,7 +1059,6 @@ async function gmHandleRangerPlan(message, state) {
   const p = privateState(); p.conflictId = state.id; p.rangerPlan = validatedPlan; await setPrivateState(p);
   lockedPlanCache.set(state.id, { ...(lockedPlanCache.get(state.id) ?? {}), rangerPlan: clone(validatedPlan) });
   const next = clone(state); next.weaponIds = { ...(next.weaponIds ?? {}), ...weaponIds }; next.locks.ranger = true; next.stage = "ready"; next.pendingActionCounts = validated.counts; next.pendingLastRangerActorId = validated.lastActorId; next.log.push(`Exchange ${next.exchange}: Ranger cards locked.`); await setPublicState(next);
-  await revealCurrentAction(next);
 }
 
 function sideHasMissile(actor, state, side, weaponId = null) {
@@ -1976,7 +1977,7 @@ async function advanceAfterAction(state, { coreExpected = null } = {}) {
   if (next.currentIndex < 2) {
     next.currentIndex += 1; next.stage = "ready";
     const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "ACTION_ADVANCEMENT", conflictId: next.id, legacyState: next, coreState: coreCandidate });
-    await setPublicState(handoff.state); await revealCurrentAction(handoff.state); return;
+    await setPublicState(handoff.state); return;
   }
   next.actionCounts = next.pendingActionCounts ?? next.actionCounts; next.lastRangerActorId = next.pendingLastRangerActorId ?? next.lastRangerActorId;
   next.pendingActionCounts = null; next.pendingLastRangerActorId = null;
@@ -2050,6 +2051,7 @@ function onConflictSettingUpdate(setting) {
 }
 
 export function installConflictEngine() {
+  if (!legacyMixedPolishEnabled()) return baselineInstall();
   Hooks.on("renderApplicationV2", (_app, html) => {
     const root = html instanceof HTMLElement ? html : html?.[0];
     if (root?.querySelector?.('.rg-conflict-roll-dialog, .rg-conflict-setup')) collapseConflictHelp(root);
@@ -2073,6 +2075,7 @@ export function installConflictEngine() {
 }
 
 export function openConflictWindow() {
+  if (!legacyMixedPolishEnabled()) return baselineOpen();
   const state = currentState();
   if (!isActive(state) && state?.stage !== "complete") return game.user?.isGM ? startConflictDialog() : ui.notifications.info("Realm Guard: No active conflict.");
   dismissedConflictId = null; renderConflictWindow(state, { force: true });

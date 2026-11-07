@@ -4,16 +4,18 @@
 
   {{#if isRole}}
     <label>Rating<input type="number" name="system.rating" value="{{system.rating}}" min="0" /></label>
+    {{#if legacyMixedPolish}}
     <label>Beginner's Luck ability<select name="system.beginnerAbility"><option value="" {{#if beginnerAbilityAutomatic}}selected{{/if}}>Automatic for standard Skill</option><option value="will" {{#if beginnerAbilityWill}}selected{{/if}}>Will</option><option value="health" {{#if beginnerAbilityHealth}}selected{{/if}}>Health</option></select></label>
-    <fieldset><legend>Learning · manual correction</legend><small>Correct recorded ticks here. Saving does not automatically advance the Skill.</small>
+    {{/if}}
+    {{#if legacyMixedPolish}}<fieldset><legend>Learning · manual correction</legend><small>Correct recorded ticks here. Saving does not automatically advance the Skill.</small>{{/if}}
     <div class="rg-grid-4 compact">
       <label>Pass<input type="number" name="system.learning.passed" value="{{system.learning.passed}}" min="0" /></label>
       <label>Needed<input type="number" name="system.learning.passNeeded" value="{{system.learning.passNeeded}}" min="0" /></label>
       <label>Fail<input type="number" name="system.learning.failed" value="{{system.learning.failed}}" min="0" /></label>
       <label>Needed<input type="number" name="system.learning.failNeeded" value="{{system.learning.failNeeded}}" min="0" /></label>
     </div>
-    <label>Beginner's Luck attempts<input type="number" name="system.beginnerAttempts" value="{{system.beginnerAttempts}}" min="0" step="1" /></label>
-    </fieldset>
+    {{#if legacyMixedPolish}}<label>Beginner's Luck attempts<input type="number" name="system.beginnerAttempts" value="{{system.beginnerAttempts}}" min="0" step="1" /></label>
+    </fieldset>{{/if}}
     <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
   {{/if}}
 
@@ -105,7 +107,7 @@
         <label>Minimum Level<input type="number" name="system.minLevel" value="{{system.minLevel}}" min="2" max="10" /></label>
         <label>Frequency<select name="system.frequency"><option value="session" {{#if talentFrequencySession}}selected{{/if}}>Once per session</option><option value="conflict" {{#if talentFrequencyConflict}}selected{{/if}}>Once per conflict</option><option value="passive" {{#if talentFrequencyPassive}}selected{{/if}}>Passive / every applicable test</option></select></label>
         <label>Link type<select name="system.linkType"><option value="skill" {{#if talentLinkSkill}}selected{{/if}}>Linked Skill</option><option value="ability" {{#if talentLinkAbility}}selected{{/if}}>Linked Ability</option><option value="general" {{#if talentLinkGeneral}}selected{{/if}}>General / table-approved</option></select></label>
-        <label>Effect<select name="system.effectMode"><option value="dice" {{#if talentEffectDice}}selected{{/if}}>Automatic +D</option><option value="reroll" {{#if talentEffectReroll}}selected{{/if}}>Optional reroll of failed dice</option><option value="manual" {{#if talentEffectManual}}selected{{/if}}>Manual / written effect</option></select></label>
+        <label>Effect<select name="system.effectMode"><option value="dice" {{#if talentEffectDice}}selected{{/if}}>Automatic +D</option>{{#if legacyMixedPolish}}<option value="reroll" {{#if talentEffectReroll}}selected{{/if}}>Optional reroll of failed dice</option>{{/if}}<option value="manual" {{#if talentEffectManual}}selected{{/if}}>Manual / written effect</option></select></label>
       </div>
       {{#if talentLinkSkill}}<label>Linked Skill<input type="text" name="system.linkedSkill" value="{{system.linkedSkill}}" placeholder="Fighter" /><small>Exact Skill-name match.</small></label>{{/if}}
       {{#if talentLinkAbility}}<label>Linked Ability<select name="system.linkedAbility"><option value="will" {{#if talentAbilityWill}}selected{{/if}}>Will</option><option value="health" {{#if talentAbilityHealth}}selected{{/if}}>Health</option><option value="nature" {{#if talentAbilityNature}}selected{{/if}}>Nature</option><option value="resources" {{#if talentAbilityResources}}selected{{/if}}>Resources</option><option value="circles" {{#if talentAbilityCircles}}selected{{/if}}>Circles</option></select></label>{{/if}}

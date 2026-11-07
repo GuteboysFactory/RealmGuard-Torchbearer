@@ -1,3 +1,5 @@
+import { scopeLegacyMixedClass } from "../module/legacy-mixed-scope.mjs";
+import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1/actor-sheet.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
 import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
@@ -1756,3 +1758,5 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     await this.actor.update({ [`system.resources.${name}.value`]: next });
   }
 }
+
+scopeLegacyMixedClass(RealmGuardActorSheet, BaselineClass);
