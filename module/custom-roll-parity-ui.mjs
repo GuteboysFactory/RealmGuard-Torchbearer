@@ -1,5 +1,5 @@
+import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
 import { baselineObstacle } from "./obstacles.mjs";
-import { spendTrackedResource } from "./progression.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 import { observeCustomRollParity } from "./test-parity-service.mjs";
 
@@ -19,16 +19,20 @@ async function customRollWithParity() {
   if (result.persona > persona) return ui.notifications.warn("Realm Guard: Not enough Persona.");
   const pool = Math.max(0, result.dice + result.extra + result.persona);
   if (!pool) return ui.notifications.warn("Realm Guard: Custom Roll dice pool is 0.");
+  if (!claimActorRoll(this.actor)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
+  let rollChat = null;
+  try {
   const roll = await new Roll(`${pool}d6`).evaluate();
   const faces = roll.dice.flatMap(d => d.results.map(r => r.result));
+    await spendRollResource(this.actor, "persona", result.persona, { reason: `Custom Roll · ${result.label}` });
+    rollChat = await beginRollChat(this.actor, result.label, faces);
   let bonusFaces = [];
   const sixes = faces.filter(v=>v===6).length;
   let spendFate = false;
   if (sixes && fate > 0) {
-    spendFate = await this.actor._askFateAfterSixes({ roleName: result.label, sixCount: sixes });
-    if (spendFate) { bonusFaces = await this.actor._explodeSixes(faces); await spendTrackedResource(this.actor, "fate", 1, { reason: `Custom Roll · ${result.label}` }); }
+    spendFate = await this.actor._askFateAfterSixes({ chatDecision: rollChat, roleName: result.label, sixCount: sixes });
+    if (spendFate) { bonusFaces = await this.actor._explodeSixes(faces); await spendRollResource(this.actor, "fate", 1, { reason: `Custom Roll · ${result.label}` }); }
   }
-  if (result.persona) await spendTrackedResource(this.actor, "persona", result.persona, { reason: `Custom Roll · ${result.label}` });
   const all = faces.concat(bonusFaces);
   const successes = all.filter(v=>v>=4).length;
   const passed = successes >= result.obstacle;
@@ -46,7 +50,9 @@ async function customRollWithParity() {
     margin: Math.abs(successes - result.obstacle),
     fateSpent: spendFate
   });
-  await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>` });
+  await rollChat.finish( `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>`);
+    } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this.actor); }
+
 }
 
 Object.defineProperty(customRollWithParity, "_rgM3CustomRollParity", { value: true });

@@ -1,3 +1,4 @@
+import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
 import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
@@ -518,7 +519,20 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   }
 
   static async _createItem(event, target, type, name) {
-    await this.actor.createEmbeddedDocuments("Item", [{ name, type }]);
+    if (!this.isEditable) return;
+    let data = { name, type };
+    if (type === "role") {
+      const result = await foundry.applications.api.DialogV2.wait({
+        window: { title: "Create Custom Skill", resizable: true }, modal: false, rejectClose: false,
+        content: '<label>Skill name<input name="skillName" value="New Skill" maxlength="100"></label><label>Rating<input name="rating" type="number" min="0" max="12" value="0"></label><label>Beginner\'s Luck ability<select name="beginnerAbility"><option value="will">Will</option><option value="health">Health</option></select></label>',
+        buttons: [{ action: "create", label: "Create Skill", default: true, callback: (_event, button) => ({ name: button.form.elements.skillName.value.trim(), rating: Number(button.form.elements.rating.value), ability: button.form.elements.beginnerAbility.value }) }, { action: "cancel", label: "Cancel", callback: () => null }]
+      });
+      if (!result) return;
+      if (!result.name || !Number.isInteger(result.rating) || result.rating < 0 || result.rating > 12 || !["will", "health"].includes(result.ability)) return ui.notifications.warn("Enter a name, a whole rating from 0 to 12, and Will or Health.");
+      data = { name: result.name, type, system: { rating: result.rating, beginnerAbility: result.ability } };
+    }
+    const created = await this.actor.createEmbeddedDocuments("Item", [data]);
+    created?.[0]?.sheet?.render({ force: true });
   }
   static _createRole(e,t){ return RealmGuardActorSheet._createItem.call(this,e,t,"role","New Role"); }
   static _createTrait(e,t){ return RealmGuardActorSheet._createItem.call(this,e,t,"trait","New Trait"); }
@@ -561,6 +575,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   }
   static async _commitTalentAfterRoll(use, label) {
     if (!use?.talent) return;
+    if (use.reroll) return; // Optional rerolls commit only after acceptance in chat.
     await commitTalentUse(use);
     await postTalentUseChat(this.actor, use, { label });
   }
@@ -742,11 +757,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       opposition = opponent ? RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId) : null;
       if (!opposition || opposition.rating <= 0) return ui.notifications.warn("Realm Guard: Choose a valid Versus opposition.");
     }
-    const result = await this.actor.rollBeginnerLuck(role, { abilityKey, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope });
+    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, `${role.name} · Beginner's Luck`);
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} · Beginner's Luck`);
-    if (personaCost) await spendTrackedResource(this.actor, "persona", personaCost, { reason: `Beginner's Luck · ${role.name}${tapNature ? " · Tap Nature" : ""}` });
     if (countLearning && !result.tied) {
       const current = this.actor.items.get(role.id);
       const needed = Math.max(1, Number(this.actor.system.attributes?.nature?.maximum ?? this.actor.system.attributes?.nature?.value ?? 1));
@@ -836,15 +850,14 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       if (!opposition || opposition.rating <= 0) {
         return ui.notifications.warn(`Realm Guard: Choose a valid Versus opposition for ${opponent.name}.`);
       }
-      result = await this.actor.rollAutomaticVersus(role, opponent, opposition, { modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
+      result = await this.actor.rollAutomaticVersus(role, opponent, opposition, { talentUse, modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
     } else {
       if (versus && game.user.targets.size > 1) ui.notifications.warn("Realm Guard: Automatic Versus needs exactly one target; using manual Obstacle instead.");
-      result = await this.actor.rollRole(role, { modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
+      result = await this.actor.rollRole(role, { talentUse, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
     }
     if (result) {
       await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, role.name);
       await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} Help`);
-      if (personaCost) await spendTrackedResource(this.actor, "persona", personaCost, { reason: `${role.name}${tapNature ? " · Tap Nature" : ""}` });
       const learningResult = Object.prototype.hasOwnProperty.call(result, "learningResult") ? result.learningResult : result.passed;
       if (countLearning && !result.tied && learningResult !== null && learningResult !== undefined) {
         await RealmGuardActorSheet._recordLearning.call(this, role, Boolean(learningResult));
@@ -880,11 +893,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (personaCost && Number(this.actor.system.resources.persona.value ?? 0) < personaCost) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
     if (doubleTapNature && natureUse !== "within") return ui.notifications.warn("Realm Guard: Double-Tapping Nature is only available while acting within Nature.");
     const result = key === "nature" && natureVersus && natureTarget
-      ? await this.actor.rollNatureVersus(natureTarget, { modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, natureUse, doubleTapNature })
-      : await this.actor.rollAbility(key, { modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, natureUse, doubleTapNature });
+      ? await this.actor.rollNatureVersus(natureTarget, { talentUse, modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, natureUse, doubleTapNature })
+      : await this.actor.rollAbility(key, { talentUse, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, natureUse, doubleTapNature });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, ability.name);
-    if (personaCost) await spendTrackedResource(this.actor, "persona", personaCost, { reason: `${ability.name} roll` });
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${ability.name} Help`);
     if (countLearning && !result.tied && result.passed !== null && result.passed !== undefined) {
       await recordAbilityTest(this.actor, key, Boolean(result.passed));
@@ -1209,18 +1221,24 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (result.persona > persona) return ui.notifications.warn("Realm Guard: Not enough Persona.");
     const pool = Math.max(0, result.dice + result.extra + result.persona);
     if (!pool) return ui.notifications.warn("Realm Guard: Custom Roll dice pool is 0.");
+    if (!claimActorRoll(this.actor)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
+    let rollChat = null;
+    try {
     const roll = await new Roll(`${pool}d6`).evaluate();
     const faces = roll.dice.flatMap(d => d.results.map(r => r.result));
+    await spendRollResource(this.actor, "persona", result.persona, { reason: `Custom Roll · ${result.label}` });
+    rollChat = await beginRollChat(this.actor, result.label, faces);
     let bonusFaces = [];
     const sixes = faces.filter(v=>v===6).length;
     let spendFate = false;
     if (sixes && fate > 0) {
-      spendFate = await this.actor._askFateAfterSixes({ roleName: result.label, sixCount: sixes });
-      if (spendFate) { bonusFaces = await this.actor._explodeSixes(faces); await spendTrackedResource(this.actor, "fate", 1, { reason: `Custom Roll · ${result.label}` }); }
+      spendFate = await this.actor._askFateAfterSixes({ chatDecision: rollChat, roleName: result.label, sixCount: sixes });
+      if (spendFate) { bonusFaces = await this.actor._explodeSixes(faces); await spendRollResource(this.actor, "fate", 1, { reason: `Custom Roll · ${result.label}` }); }
     }
-    if (result.persona) await spendTrackedResource(this.actor, "persona", result.persona, { reason: `Custom Roll · ${result.label}` });
     const all = faces.concat(bonusFaces); const successes = all.filter(v=>v>=4).length; const passed = successes >= result.obstacle;
-    await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>` });
+    await rollChat.finish( `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>`);
+    } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this.actor); }
+
   }
 
   static async _toggleRoleVersus(event, target) {
@@ -1380,8 +1398,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (!spent.ok) return ui.notifications.warn(`Realm Guard: ${spent.reason}`);
 
     const result = method.kind === "role"
-      ? await this.actor.rollRole(method.item, { modifier, extraDice, help, obstacle: method.obstacle, versus: false, persona, traitId, traitMode, wiseId, tokenPowerId, ignoreConditions: true })
-      : await this.actor.rollAbility(method.key, { modifier, extraDice, help, obstacle: method.obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, ignoreConditions: true });
+      ? await this.actor.rollRole(method.item, { talentUse, modifier, extraDice, help, obstacle: method.obstacle, versus: false, persona, traitId, traitMode, wiseId, tokenPowerId, ignoreConditions: true })
+      : await this.actor.rollAbility(method.key, { talentUse, modifier, extraDice, help, obstacle: method.obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, ignoreConditions: true });
 
     // A Players' Turn roll may still be blocked by alternation or lack of Free Test/Checks. In that case no recovery attempt is recorded.
     if (!result) {
@@ -1394,7 +1412,6 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     await finishRecoveryAttempt(this.actor, item, { spent, result });
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, `${item.name} Recovery`);
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${item.name} Recovery`);
-    if (persona) await spendTrackedResource(this.actor, "persona", persona, { reason: `${item.name} Recovery` });
     if (countLearning && !result.tied) {
       if (method.kind === "ability") await recordAbilityTest(this.actor, method.key, Boolean(result.passed));
       if (method.kind === "role") await RealmGuardActorSheet._recordLearning.call(this, method.item, Boolean(result.passed));

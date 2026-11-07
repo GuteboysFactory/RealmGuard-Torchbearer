@@ -1,3 +1,4 @@
+import { installRollChat } from "./module/roll-chat.mjs";
 import { installDefaultSkillProvisioning } from "./module/default-skills.mjs";
 import { RealmGuardCharacterData, RealmGuardNpcData, RealmGuardRoleData, RealmGuardTraitData, RealmGuardGearData, RealmGuardConditionData, RealmGuardWiseData, RealmGuardTokenOfPowerData, RealmGuardTalentData } from "./module/data-models.mjs";
 import { RealmGuardActor } from "./module/documents.mjs";
@@ -112,6 +113,7 @@ Hooks.once("init", () => {
   installContextHelp();
   installTokenNameHover();
   installConflictEngine();
+  installRollChat();
   installGmTools();
   installProgression();
   installStarterCompendiums();

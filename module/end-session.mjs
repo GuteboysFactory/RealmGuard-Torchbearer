@@ -83,7 +83,6 @@ function actorCard(actor) {
       <fieldset><legend>Persona</legend>
         <label><input type="checkbox" name="personaGoal_${actor.id}"> Accomplished Goal</label>
         <label><input type="checkbox" name="personaAgainstBelief_${actor.id}"> Played against Belief dramatically</label>
-        <label title="Embodiment rewards especially strong portrayal of the Ranger's conditions and traits."><input type="checkbox" name="personaEmbodiment_${actor.id}"> Embodiment <small>(best embodied the Ranger)</small></label>
       </fieldset>
     </div>
   </article>`;
@@ -100,6 +99,7 @@ async function collectCriteria(actors, cycle) {
     <section class="rg-eos-nominations">
       <label><span>MVP <small>(Most Valuable Player)</small></span><select name="mvp">${options}</select></label>
       <label><span>Workhorse <small>(carried the patrol)</small></span><select name="workhorse">${options}</select></label>
+      <fieldset><legend>Embodiment · best embodied the Ranger</legend>${actors.map(actor => `<label><input type="checkbox" name="personaEmbodiment_${actor.id}"> ${esc(actor.name)}</label>`).join("")}</fieldset>
       <small><b>MVP:</b> the crucial contribution that let the patrol complete the mission. <b>Workhorse:</b> the Ranger who carried the group through the hard work. They must be different Rangers.</small>
     </section>
     <div class="rg-eos-card-list">${actors.map(actorCard).join("")}</div>
@@ -195,13 +195,13 @@ async function reviewAndApprove(result, cycle) {
     return `<article class="rg-eos-review-card">
       <header><strong>${esc(row.actor.name)}</strong><span>Current: Fate ${Number(row.actor.system.resources?.fate?.value ?? 0)} · Persona ${Number(row.actor.system.resources?.persona?.value ?? 0)}</span></header>
       <div class="rg-eos-review-grid">
-        <section><h3>Fate +${row.proposal.fate}</h3><p>${labels.fate.length ? labels.fate.map(esc).join(" · ") : "No Fate criteria selected"}</p><label><input type="checkbox" name="approveFate_${row.actor.id}" ${row.proposal.fate ? "" : "disabled"}> GM approves Fate</label></section>
-        <section><h3>Persona +${row.proposal.persona}</h3><p>${labels.persona.length ? labels.persona.map(esc).join(" · ") : "No Persona criteria selected"}</p><label><input type="checkbox" name="approvePersona_${row.actor.id}" ${row.proposal.persona ? "" : "disabled"}> GM approves Persona</label></section>
+        <section><h3>Fate +${row.proposal.fate}</h3><p>${labels.fate.length ? labels.fate.map(esc).join(" · ") : "No Fate criteria selected"}</p></section>
+        <section><h3>Persona +${row.proposal.persona}</h3><p>${labels.persona.length ? labels.persona.map(esc).join(" · ") : "No Persona criteria selected"}</p></section>
       </div>${suppressed}${capped}
     </article>`;
   }).join("");
 
-  const content = `<div class="rg-end-session rg-eos-review"><header class="rg-eos-intro"><h2>Review & Approve · Cycle ${cycle}</h2><p>Fate and Persona are approved separately. Only approved rewards are applied when the session is finished.</p></header><div class="rg-eos-card-list">${rowsHtml}</div></div>`;
+  const content = `<div class="rg-end-session rg-eos-review"><header class="rg-eos-intro"><h2>Review Awards · Cycle ${cycle}</h2><p>Finish Session approves all rewards shown below. Use Back to change the selections.</p></header><div class="rg-eos-card-list">${rowsHtml}</div></div>`;
 
   return foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Approve End of Session · ${cycle}`, resizable: true },
@@ -216,8 +216,8 @@ async function reviewAndApprove(result, cycle) {
         default: true,
         callback: (event, button) => ({
           approvals: Object.fromEntries(result.rows.map(row => [row.actor.id, {
-            fate: checked(button.form, `approveFate_${row.actor.id}`),
-            persona: checked(button.form, `approvePersona_${row.actor.id}`)
+            fate: true,
+            persona: true
           }]))
         })
       },

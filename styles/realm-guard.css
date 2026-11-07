@@ -4296,3 +4296,28 @@ body:has(#join-game) {
     justify-self:end;
   }
 }
+/* Conflict / session playtest polish. */
+.rg-chat-question { border:2px solid #bd8b35; padding:10px; border-radius:6px; animation:rg-question-pulse 1.5s ease-in-out infinite; }
+.rg-chat-roll-pipeline { background:#25241e; color:#f5ead3; padding:10px; border:1px solid #98744a; border-radius:6px; }
+.rg-chat-question-buttons button { background:#ecd4a5; color:#292218; border:1px solid #98744a; }
+.rg-chat-question-buttons { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.rg-chat-question-buttons button { flex:1 1 auto; }
+.rg-chat-question-buttons .rg-chat-skip { flex:0 0 28px; width:28px; min-width:28px; padding:0; font-size:20px; }
+.rg-first-roll { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px; border-bottom:1px solid #98744a; }
+.rg-first-roll > b { flex-basis:100%; }
+.rg-roll-decisions { font-size:12px; padding-left:20px; }
+.rg-individual-disposition { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; padding:8px; border:1px solid #98744a; }
+.rg-individual-disposition > b,.rg-individual-disposition > strong { flex-basis:100%; }
+.rg-individual-disposition .is-out { opacity:.7; text-decoration:line-through; }
+.rg-conflict-instructions > summary { cursor:pointer; padding:8px; }
+@keyframes rg-question-pulse { 0%,100% { box-shadow:0 0 0 0 #bd8b3530; } 50% { box-shadow:0 0 0 4px #bd8b3580; } }
+@media (prefers-reduced-motion: reduce) { .rg-chat-question { animation:none; border-width:3px; } }
+.rg-conflict-window:not(.minimized) { min-width:min(520px,calc(100vw - 16px)); min-height:min(300px,calc(100vh - 16px)); }
+@media (max-width:900px) {
+  .rg-conflict-window .rg-conflict-plans,.rg-conflict-window .rg-action-versus-grid { grid-template-columns:minmax(0,1fr); }
+  .rg-conflict-window .rg-conflict-goals { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .rg-conflict-window .rg-conflict-goals article { min-height:64px; padding:8px; }
+  .rg-conflict-window .rg-conflict-goals article p { min-height:0; font-size:13px; margin-top:5px; }
+  .rg-conflict-window .rg-action-clash,.rg-conflict-window .rg-conflict-emblem { display:none; }
+  .rg-conflict-window .rg-conflict-body { min-width:0; }
+}

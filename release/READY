@@ -1,2 +1,1 @@
-1.13.1
-# Stable startup performance fix: skip unchanged Condition/effect writes and batch actual repairs.
+1.14.0-qa.1

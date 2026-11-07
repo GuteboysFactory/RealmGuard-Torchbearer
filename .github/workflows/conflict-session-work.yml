@@ -1,0 +1,37 @@
+name: Conflict and session patch checks
+on:
+  push:
+    branches: ["work/conflict-session-polish"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Release contract, syntax and regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node qa/release-preflight.mjs
+          node --check realm-guard.mjs
+          find module sheets -type f -name '*.mjs' -print0 | while IFS= read -r -d '' file; do node --check "$file"; done
+          for smoke in qa/*-smoke.mjs; do node "$smoke"; done
+      - name: Install isolated browser test runtime
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Run actual DOM sandbox against production modules
+        env:
+          PLAYTEST_SCREENSHOT: qa/conflict-session-sandbox.png
+        run: node qa/conflict-session-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conflict-session-sandbox
+          path: qa/conflict-session-sandbox.png

@@ -1,9 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.1
+**Version:** 1.14.0-qa.1
 **Target:** Foundry VTT 13.351  
-**Status:** Stable public release / GOLD  
+**Status:** Conflict / session QA candidate
 **Current stable baseline:** v1.13.1
+
+The next patch addresses the 14 collected table-play points: inline roll decisions, Conflict flexibility and corrections, shared visibility, session rewards and custom Skill editing. See RELEASE_NOTES_v1.14.0-qa.1.md and TEST_PROTOCOL_v1.14.0-qa.1.md. The accepted 1.13.1 startup optimization is retained.
 
 ## 1.13.1 startup performance
 
