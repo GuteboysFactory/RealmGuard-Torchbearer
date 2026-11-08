@@ -1,4 +1,4 @@
-// Additive conflict controls. Shared disposition remains the default.
+// One team pool; new multi-player conflicts require an explicit distribution.
 export function activeConflictParticipants(state) {
   const ids = state?.ranger?.participantIds ?? [];
   const allocation = state?.ranger?.individualDisposition;
@@ -19,6 +19,7 @@ export function createTemporaryOpposition(data) {
 
 export function dispositionAllocationPending(state) {
   const allocation = state?.ranger?.individualDisposition;
+  if (state?.dispositionAllocationRequired && state.ranger?.disposition?.rolled && state.ranger.participantIds.length > 1 && !allocation) return true;
   return Boolean(allocation && (state.ranger.participantIds ?? []).reduce((n, id) => n + Number(allocation[id]?.current ?? 0), 0) !== Number(state.ranger.disposition.current));
 }
 

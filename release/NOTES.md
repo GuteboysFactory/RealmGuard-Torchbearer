@@ -1,31 +1,28 @@
-# 1.14.0-qa.3 — Legacy Mixed session routines and simpler conflicts
+# 1.13.2 — Legacy Mixed table-play update
 
-QA.3 implements the collected QA.2 feedback **only for Realm Guard Legacy Mixed**. Stable remains 1.13.1. Strict Realm Guard, Mouse Guard 1E/2E and TB2E retain their previous workflows and reward rules. The accepted startup optimization is preserved. No Tome work, TB2E activation or stable promotion is included.
+User-authorized stable release after the 1.14.0-qa.1–qa.3 playtests. The requested stable version is **1.13.2**, following 1.13.1; the QA version numbers do not rename the stable line.
 
-## End Session
+All new table-play behavior applies **only to Realm Guard Legacy Mixed**. Strict Realm Guard, Mouse Guard 1E/2E and TB2E retain their existing workflows and rule behavior. The accepted 1.13.1 startup optimization remains unchanged. No TB2E activation, Tome work or campaign-data migration is included.
 
-Creed is displayed with Belief, Goal and Instinct. Mortal Crisis awards 1 Persona when Creed causes inner turmoil or is fiercely defended at great risk. Persona choices now align Belief first and Goal second with the corresponding Fate choices; Instinct explicitly includes beneficial or detrimental play.
+## Final conflict changes
 
-Teamworker / Workhorse and MVP must go to different participants. At most one participant may receive Embodiment, enforced both in the form and on review. All earned Persona is awarded without the old four-point session cap or truncation at the old balance maximum. Manual Persona adjustments retain that balance. The other profiles retain their prior caps and validation. Back, Cancel and duplicate-cycle protection remain.
+- Back sits beside Abort in the GM footer. Preparation steps can be reviewed without repeating either side's Disposition roll. Returning to the latest resolved action uses the existing correction checkpoint and preserves resource costs, Learning and Nature tax; it does not grant a fresh roll or refund.
+- GM makes one opposition Disposition roll and the captain makes **one shared roll for the player team**, optionally with Help. Each side's roll is reserved and committed once; repeated clicks or competing submissions cannot add another team total. A changed or reloaded roll client releases its abandoned reservation.
+- With multiple players, that shared total must be distributed before equipment/cards. GM or a participating player can distribute the points; the sum must equal the existing team total. Invalid or stale submissions cannot mint or overwrite points. A solo player receives the total directly, without a distribution step.
+- The player manually chooses from the acting character's own Skills for both team Disposition and action tests, including Skills outside the conflict type's standard list. No Skill is silently chosen. Its real rating or Beginner's Luck is used in the ordinary roll dialog.
 
-## Conflict setup and equipment
+## Included QA improvements
 
-- Two searchable add/remove lists replace the large participant checklist. The player roster is remembered independently of End Session. Both sides accept existing characters/NPCs; the GM can create multiple temporary opponents that exist solely in the current conflict state, without creating Actors or Contacts.
-- Each exchange begins with a separate equipment step. Each participant explicitly declares a weapon, inventory item or Custom tool before the hidden cards are planned. Nothing is automatically selected as Unarmed.
-- Any inventory item may be declared; unknown equipment receives no invented bonus. Custom permits a table-approved effect and an optional inventory reference, for example travel boots +1D. Temporary opponents cannot save campaign content.
-- Maneuver Disarm can disable the declared Custom or inventory benefit. It does not delete or automatically damage the inventory item. Disabled benefits are scoped to their participant and conflict; an invalidated tool grants no automatic Unarmed penalty.
-- Goals, allocations and explanations are folded into expandable sections. Scroll/expanded information is retained during updates within a step; changing steps starts at the relevant new content.
+- End Session: saved/searchable participant list, Realm Guard styling, Creed and Mortal Crisis, aligned Belief/Goal choices, distinct MVP and Teamworker/Workhorse recipients, one Embodiment recipient and uncapped earned Persona.
+- Conflict: searchable teams, multiple temporary opponents without Actor/Contact creation, explicit equipment preparation, inventory and Custom benefits, per-participant card assignment, hidden cards and one-action flips. Disarm disables the declared benefit without deleting inventory.
+- One active player has no actor selector. Two players alternate. Three or more choose freely without consecutive actions by the same active player. Knockouts invalidate exhausted assignments; a sole survivor can act repeatedly.
+- Normal and conflict rolls show original dice immediately, keep decisions and final results on one chat card, and highlight pending choices. A prepared Wise is used once; an unprepared relevant Wise may reroll failures for 1 available Persona, with a clear decline option.
 
-## Cards and rolls
+## Verification and installation
 
-The group manually assigns cards through its captain. With one active player, the actor is selected automatically and the selector is hidden. Two players alternate, including across exchange boundaries. With three or more, the group chooses freely, without a forced equal-distribution rule; nobody takes two consecutive actions while another active participant remains. Knockouts invalidate exhausted assignments and permit a sole survivor to act repeatedly. GM cards can likewise be assigned manually among multiple opposition participants. Opposing card choices remain hidden until each action is flipped.
+Automated checks cover runtime syntax, the full regression suite, other-profile isolation and real Chromium forms with all system stylesheets. The final tests exercise the shared team roll, cross-client reservation/reply flow, manual off-list Skill choice, GM/player distribution, stale/invalid submissions, solo bypass and Back without rerolls. Controlled fixtures supplement the user's earlier Foundry QA tests; they are not a claim of a new live multiplayer Foundry session.
 
-Optional GM Nature/fixed/manual disposition methods remain behind a folded menu. Calculated Starting Disposition and action rolls now use the **same production roll dialog as ordinary character-sheet rolls**, with applicable Traits, Persona, Nature, Wises, Tokens, Talents and Help. Conflict context is folded away; modifiers and permitted helpers follow the conflict. Player-turn currency is not spent and Learning is recorded by conflict resolution.
+Use the **stable manifest**:
+https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json
 
-A Wise prepared before the roll is used once as part of that roll and is not offered again. If no Wise was prepared, a relevant unused Wise can instead reroll failures after the initial dice for **1 Persona**, when available. Declining costs nothing; availability and cost are checked again on acceptance. This applies to ordinary and conflict rolls. Pending chat choices have a conspicuous pulsing banner, readable buttons and a clear × decline control; reduced-motion preferences keep a static highlight.
-
-## Verification
-
-The automated regression suite and controlled Chromium tests cover production modules, all system stylesheets, real form/button callbacks, five-point Creed rewards, nomination exclusions, player-roster persistence, multiple temporary opponents without Actor creation, ordinary roll-dialog reuse, mandatory equipment, per-card actors, hidden flips, Custom disarm without inventory deletion, Wise costs/declines/reuse and other-profile isolation.
-
-This is controlled browser testing with Foundry document/settings fixtures, **not live multiplayer acceptance in Foundry**. Follow TEST_PROTOCOL_v1.14.0-qa.3.md with a GM and a player client before acceptance. Stable publication requires separate approval.
+Testers coming from 1.14.0-qa.3 are moving to a lower numbered stable release. The QA manifest continues to point at its QA build; use the stable manifest to switch channels and check that the installed version becomes 1.13.2. World/character data is preserved. See TEST_PROTOCOL_v1.13.2.md for verification.

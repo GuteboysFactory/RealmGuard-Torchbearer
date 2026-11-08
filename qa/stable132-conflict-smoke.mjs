@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {dispositionAllocationPending,validateDispositionAllocation,activeConflictParticipants} from '../module/conflict-polish.mjs';
+const state={dispositionAllocationRequired:true,ranger:{participantIds:['a','b'],disposition:{start:7,current:7,rolled:true}}};
+assert.equal(dispositionAllocationPending(state),true,'A shared team roll must be distributed before a multi-player team continues');
+state.ranger.individualDisposition={a:{start:3,current:3},b:{start:4,current:4}};
+assert.equal(validateDispositionAllocation(state,state.ranger.individualDisposition),true);assert.equal(dispositionAllocationPending(state),false);
+assert.equal(validateDispositionAllocation(state,{a:{start:3,current:3},b:{start:5,current:5}}),false,'Distribution cannot create points');
+assert.equal(validateDispositionAllocation(state,{a:{start:3,current:3.5},b:{start:4,current:3.5}}),false);
+state.ranger.disposition.current=4;assert.equal(dispositionAllocationPending(state),true);
+state.ranger.individualDisposition={a:{start:3,current:0},b:{start:4,current:4}};assert.equal(dispositionAllocationPending(state),false);assert.deepEqual(activeConflictParticipants(state),['b']);
+const solo={dispositionAllocationRequired:false,ranger:{participantIds:['a'],disposition:{start:7,current:7,rolled:true}}};assert.equal(dispositionAllocationPending(solo),false);
+console.log('PASS stable132-conflict-smoke · one shared total, mandatory multi-player distribution, no minted/fractional points, solo bypass and knockout filtering');

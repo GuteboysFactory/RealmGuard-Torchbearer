@@ -4387,3 +4387,12 @@ body:has(#join-game) {
 .rg-conflict-tool-editor[data-temporary-opponent="true"] .rg-conflict-inline-choice { display:none; }
 .rg-disposition-method h3 { color:#2b2115 !important; font-size:18px; }
 .rg-disposition-method label[hidden] { display:none !important; }
+
+.rg-conflict-window.rg-legacy-polish .rg-conflict-admin { display:flex; justify-content:flex-end; gap:8px; }
+.application:has(.rg-disposition-allocation) .window-content { background:#eddbb6 url("../assets/ui/conflict-parchment.svg") center/cover; color:#2b2115; }
+.rg-disposition-allocation { color:#2b2115; }
+.rg-disposition-allocation h3 { color:#38543a; }
+.rg-disposition-allocation fieldset { display:flex; gap:10px; margin:8px 0; border-color:#9f8354; }
+.rg-disposition-allocation label { display:grid; flex:1; gap:4px; }
+.rg-disposition-allocation input { background:#fff1cf !important; color:#2b2115 !important; }
+.application:has(.rg-disposition-allocation) .dialog-buttons button { background:#38543a; color:#fff1cf; border:1px solid #a78853; }

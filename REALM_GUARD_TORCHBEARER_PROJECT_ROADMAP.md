@@ -2,7 +2,7 @@
 
 ## Active table-play patch — 2026-11-08
 
-Candidate **1.14.0-qa.3** implements the QA.2 feedback **only for Legacy Mixed**. Scope: Creed/Mortal Crisis, the campaign nomination rules and uncapped Persona awards; searchable conflict rosters and multiple ephemeral opponents; a separate mandatory equipment step; manual participant assignment with solo/two-player/three-plus rules and knockout handling; ordinary roll dialogs and 1-Persona unused-Wise rerolls. QA.3 supersedes QA.2 for testing. See `RELEASE_NOTES_v1.14.0-qa.3.md` and `TEST_PROTOCOL_v1.14.0-qa.3.md`. Other profiles retain stable behavior, startup performance is accepted, TB2E remains deferred, Tome is outside scope and stable promotion requires separate acceptance.
+The user authorized stable **1.13.2**, continuing the 1.13.1 stable line after QA.3 playtesting. All table-play improvements remain **Legacy Mixed only**. Final scope adds Back next to Abort, one Disposition roll per side, GM/player distribution of the single player-team total, solo bypass and manual player Skill selection. Other profiles retain their earlier behavior, accepted startup optimization is preserved, TB2E remains deferred and Tome is outside scope. See `RELEASE_NOTES_v1.13.2.md` and `TEST_PROTOCOL_v1.13.2.md`.
 
 The milestone history below is retained as historical context.
 

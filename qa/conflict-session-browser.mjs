@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
-const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard, gmHandleRangerPlan, cardPlannerHtml, applyEquipment, actorById, rollDisposition, advanceAfterAction, gmApplyManeuverChoice, gearActionModifiers, availableConflictWeapons';
+const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard, gmHandleRangerPlan, cardPlannerHtml, applyEquipment, actorById, rollDisposition, advanceAfterAction, gmApplyManeuverChoice, gearActionModifiers, availableConflictWeapons, applyDispositionAllocation, reserveDispositionAuthoritative, releaseDispositionRoll, onSocket, rollCurrentAction';
 const server = http.createServer(async (request,response) => {
   try {
     const url=new URL(request.url,'http://localhost');
@@ -52,8 +52,8 @@ try {
  assert.ok(await page.evaluate(()=>{game.user=fx.observer;const s=baseState();s.stage='rangerPlan';s.locks={gm:true,ranger:false};conflict.renderConflictWindow(s,{force:true});return Boolean(document.querySelector('#rg-conflict-window'))&&!document.querySelector('[data-conflict-action="lock-plan"]')&&!document.querySelector('[data-conflict-action="story-modifier"]');}));
  // GM exception changes only the current action, and player callers cannot set it.
  await page.evaluate(async()=>{game.user=fx.gm;const s=baseState();s.stage='action';s.revealed=[{index:0,gmAction:'attack',rangerAction:'attack',rangerActorId:'ranger',gmMode:'versus',rangerMode:'versus'}];await conflict.setPublicState(s);fx.dialogs.push('fighter');await conflict.handleWindowAction('skill-override','ranger',s);});
- assert.deepEqual(await page.evaluate(()=>conflict.eligibleActionRoles(game.actors.get('ranger'),conflict.currentState(),'ranger','attack').map(row=>row.name)),['Fighter']);
- assert.ok(await page.evaluate(()=>{const s=conflict.currentState();s.currentIndex=1;return conflict.eligibleActionRoles(game.actors.get('ranger'),s,'ranger','attack').every(row=>row.name!=='Fighter');}));
+ assert.deepEqual(await page.evaluate(()=>conflict.eligibleActionRoles(game.actors.get('ranger'),conflict.currentState(),'ranger','attack').map(row=>row.name)),['Fighter','Scout']);
+ assert.ok(await page.evaluate(()=>{const s=conflict.currentState();s.currentIndex=1;return conflict.eligibleActionRoles(game.actors.get('ranger'),s,'ranger','attack').some(row=>row.name==='Fighter');}));
  // Real DOM chat interaction: original dice are visible, skip has an accessible label, question pulses.
  await page.evaluate(()=>{game.user=fx.player;game.actors.get('ranger').items.splice(game.actors.get('ranger').items.findIndex(item=>item.id==='wise'),1);fx.dice.push([6,1,2]);window.chatPromise=conflict.executeActorPool({actor:game.actors.get('ranger'),source:{id:'fighter',name:'Fighter',rating:3,kind:'role'}}).catch(error=>{window.chatError=error.stack;});});
  try { await page.locator('.rg-chat-question').waitFor({timeout:5000}); } catch(error) { console.log(await page.evaluate(()=>({error:window.chatError,notices:fx.notices,content:document.querySelector('#chat-sandbox').innerHTML})));throw error; }
@@ -201,6 +201,7 @@ try {
        try{const config=options.buttons.find(row=>row.action===button.dataset.dialogAction),result=await config.callback(event,{form:element.querySelector('form')});element.remove();resolve(result);}catch(error){window.qa3DialogError=error.stack;resolve(null);}
      });
    });
+   window.actualFormDialogWait=foundry.applications.api.DialogV2.wait;
    game.user=fx.gm;window.criteriaActors=[game.actors.get('ranger'),game.actors.get('ranger2')];criteriaActors[0].system.creed='Protect the lost at great personal risk.';
    window.criteriaPromise=session.collectCriteria(criteriaActors,1);
  });
@@ -299,6 +300,66 @@ try {
  await page.locator('[data-conflict-action="lock-plan"][data-side="ranger"]').click();
  assert.deepEqual(await page.evaluate(()=>lastIntent.payload.plan.map(row=>row.actorId)),['ranger','ranger2','ranger']);
  console.log("// Other profile installers");
+ // Stable 1.13.2: one roll per side, shared team points and Back without rerolls.
+ console.log('Stable 1.13.2 · one team roll, manual Skills, GM/player distribution and Back');
+ await page.evaluate(async()=>{
+   game.user=fx.gm;foundry.applications.api.DialogV2.wait=actualFormDialogWait;
+   const s=baseState();s.id='stable-team';s.stage='disposition';s.dispositionAllocationRequired=true;s.equipmentRequired=true;s.equipmentLocks={gm:false,ranger:false};s.allocationRevision=0;
+   s.gm.disposition={start:0,current:0,rolled:false};s.ranger.disposition={start:0,current:0,rolled:false};
+   game.actors.get('ranger').system.resources.persona.value=0;game.actors.get('ranger').system.resources.fate.value=0;
+   game.actors.get('ranger2').ownership={observer:3};
+   await conflict.setPublicState(s);window.transportMessages=[];game.socket.emit=(_channel,message)=>transportMessages.push(structuredClone(message));
+   window.teamInitialCards=fx.messages.filter(message=>message.content.includes('First roll · Starting Disposition')).length;
+ });
+ assert.deepEqual(await page.evaluate(async()=>{
+   const s=conflict.currentState();const results=await Promise.all([conflict.reserveDispositionAuthoritative({side:'gm',token:'first'},s,fx.gm),conflict.reserveDispositionAuthoritative({side:'gm',token:'second'},s,fx.gm)]);
+   await conflict.gmApplyDisposition({side:'gm',disposition:999,claimToken:'wrong'},s);if(conflict.currentState().gm.disposition.rolled)throw Error('A foreign claim committed a roll');
+   await conflict.releaseDispositionRoll({side:'gm',claimToken:'first'},s,fx.gm);return results;
+ }),[true,false]);
+ await page.evaluate(()=>{fx.dice.push([4,4]);window.teamGmPromise=conflict.rollDisposition('gm',conflict.currentState());});
+ await page.locator('.rg-roll-dialog').waitFor();await page.evaluate(()=>conflict.rollDisposition('gm',conflict.currentState()));assert.equal(await page.locator('.rg-roll-dialog').count(),1);
+ await page.locator('[data-dialog-action="roll"]').click();await page.evaluate(()=>teamGmPromise);
+ assert.equal(await page.evaluate(()=>conflict.currentState().gm.disposition.current),6);
+ await page.evaluate(()=>{game.user=fx.player;fx.dice.push([4,4,4]);window.teamPlayerPromise=conflict.rollDisposition('ranger',conflict.currentState());});
+ await page.locator('[name="source"]').waitFor();assert.equal(await page.locator('[name="source"]').inputValue(),'');
+ assert.ok(await page.locator('[name="source"] option[value="fighter"]').count());
+ await page.locator('[name="source"]').selectOption('fighter');await page.locator('[data-dialog-action="continue"]').click();
+ await page.locator('.rg-roll-dialog').waitFor();await page.locator('[data-dialog-action="roll"]').click();
+ await page.waitForFunction(()=>transportMessages.some(message=>message.intent==='reserveDispositionRoll'));
+ await page.evaluate(async()=>{game.user=fx.gm;await conflict.onSocket(transportMessages.find(message=>message.intent==='reserveDispositionRoll'));});
+ await page.evaluate(async()=>{game.user=fx.player;await conflict.onSocket(transportMessages.find(message=>message.type==='conflict-disposition-reply'));});
+ await page.evaluate(()=>teamPlayerPromise);
+ await page.evaluate(async()=>{game.user=fx.gm;for(const message of transportMessages.filter(message=>['submitDisposition','releaseDispositionRoll'].includes(message.intent)))await conflict.onSocket(message);});
+ assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,gm:conflict.currentState().gm.disposition.current,team:conflict.currentState().ranger.disposition.current,newRollCards:fx.messages.filter(message=>message.content.includes('First roll · Starting Disposition')).length-teamInitialCards,diceLeft:fx.dice.length})),{stage:'allocation',gm:6,team:7,newRollCards:2,diceLeft:0});
+ await page.evaluate(()=>conflict.rollDisposition('ranger',conflict.currentState()));assert.equal(await page.locator('#qa3-dialog').count(),0);
+ // A participating player who is not the captain can distribute the shared total.
+ await page.evaluate(()=>{game.user=fx.observer;conflict.renderConflictWindow(conflict.currentState(),{force:true});});
+ await page.locator('[data-conflict-action="allocate-disposition"]').click();
+ await page.locator('[name="current_ranger"]').fill('3');await page.locator('[name="current_ranger2"]').fill('4');
+ assert.match(await page.locator('[data-allocation-total]').textContent(),/7 \/ 7/);
+ await page.locator('[data-dialog-action="save"]').click();
+ await page.waitForFunction(()=>transportMessages.some(message=>message.intent==='submitAllocation'));
+ await page.evaluate(async()=>{game.user=fx.gm;window.playerAllocationMessage=transportMessages.find(message=>message.intent==='submitAllocation');await conflict.onSocket(playerAllocationMessage);});
+ assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,allocation:conflict.currentState().ranger.individualDisposition})),{stage:'equipment',allocation:{ranger:{start:3,current:3},ranger2:{start:4,current:4}}});
+ assert.ok(await page.evaluate(async()=>{const s=conflict.currentState(),before=JSON.stringify(s);await conflict.applyDispositionAllocation({...playerAllocationMessage.payload,revision:s.allocationRevision},s,{id:'outsider',isGM:false});await conflict.applyDispositionAllocation(playerAllocationMessage.payload,s,fx.player);return JSON.stringify(conflict.currentState())===before;}));
+ await page.evaluate(()=>{window.gmAllocationPromise=conflict.handleWindowAction('allocate-disposition',null,conflict.currentState());});
+ for(const [id,points] of [['ranger',4],['ranger2',3]])for(const prefix of ['start','current'])await page.locator(`[name="${prefix}_${id}"]`).fill(String(points));
+ await page.locator('[data-dialog-action="save"]').click();await page.evaluate(()=>gmAllocationPromise);
+ assert.deepEqual(await page.locator('.rg-conflict-admin button').evaluateAll(buttons=>buttons.map(button=>button.dataset.conflictAction)),['back','abort']);
+ await page.locator('[data-conflict-action="back"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'allocation');
+ await page.locator('[data-conflict-action="back"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'disposition');
+ assert.equal(await page.locator('[data-conflict-action="disposition"]').count(),0);
+ await page.locator('[data-conflict-action="disposition-continue"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'equipment');
+ assert.equal(await page.evaluate(()=>fx.messages.filter(message=>message.content.includes('First roll · Starting Disposition')).length-teamInitialCards),2,'Back cannot repeat either team roll');
+ // Skill choice stays manual during action rolls too, including an off-list Skill.
+ await page.evaluate(async()=>{const s=conflict.currentState();s.stage='action';s.revealed=[{index:0,gmAction:'attack',rangerAction:'attack',rangerActorId:'ranger',gmActorId:'enemy',gmMode:'independent',rangerMode:'independent'}];await conflict.setPublicState(s);game.user=fx.player;window.manualActionPromise=conflict.rollCurrentAction('ranger',s);});
+ await page.locator('[name="source"]').waitFor();assert.equal(await page.locator('[name="source"]').inputValue(),'');await page.locator('[name="source"]').selectOption('fighter');
+ await page.locator('[data-dialog-action="continue"]').click();await page.locator('.rg-roll-dialog').waitFor();await page.locator('[data-dialog-action="cancel"]').click();await page.evaluate(()=>manualActionPromise);
+ // A solo player receives the team total directly, without a distribution screen.
+ await page.evaluate(async()=>{game.user=fx.gm;const s=baseState();s.id='stable-solo';s.stage='disposition';s.ranger.participantIds=['ranger'];s.dispositionAllocationRequired=false;s.equipmentRequired=true;s.gm.disposition={start:0,current:0,rolled:false};s.ranger.disposition={start:0,current:0,rolled:false};await conflict.setPublicState(s);await conflict.gmApplyDisposition({side:'gm',disposition:6},s);await conflict.gmApplyDisposition({side:'ranger',disposition:7},conflict.currentState());});
+ assert.equal(await page.evaluate(()=>conflict.currentState().stage),'equipment');assert.equal(await page.locator('[data-conflict-action="allocate-disposition"]').count(),0);
+ if(process.env.PLAYTEST_SCREENSHOT)await page.screenshot({path:process.env.PLAYTEST_SCREENSHOT.replace(/\.png$/,'-shared-disposition.png')});
+ await page.evaluate(()=>{foundry.applications.api.DialogV2.wait=savedDialogWait;});
  // Other profile installers actually select the stable conflict / End Session flows.
  for(const profile of ['realm-guard-strict','mg1e','mg2e','torchbearer2e']) {
    const other=await browser.newPage({viewport:{width:800,height:600}});other.on('pageerror',error=>errors.push(error.message));
