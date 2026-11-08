@@ -75,6 +75,14 @@ export function bindEndSessionRoster(root, actors, { actorCard, nomineeOptions, 
     embodiment.innerHTML = actors.map(actor => `<label><input type="checkbox" name="personaEmbodiment_${esc(actor.id)}" ${checked.has(`personaEmbodiment_${actor.id}`) ? "checked" : ""}> ${esc(actor.name)}</label>`).join("");
     refreshSearch();
   };
+  root.addEventListener("change", event => {
+    const input = event.target;
+    if (input.matches('[data-eos-embodiment] input') && input.checked) for (const other of root.querySelectorAll('[data-eos-embodiment] input')) if (other !== input) other.checked = false;
+    if (["mvp", "workhorse"].includes(input.name) && input.value) {
+      const other = root.querySelector(`[name="${input.name === "mvp" ? "workhorse" : "mvp"}"]`);
+      if (other.value === input.value) other.value = "";
+    }
+  });
   search.addEventListener("input", refreshSearch);
   root.addEventListener("click", event => {
     const add = event.target.closest("[data-eos-add]"), remove = event.target.closest("[data-eos-remove]");

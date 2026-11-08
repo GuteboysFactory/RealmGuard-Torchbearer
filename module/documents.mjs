@@ -1,3 +1,4 @@
+import { applyLegacyWiseReroll } from "./legacy-wise-roll.mjs";
 import { scopeLegacyMixedClass } from "./legacy-mixed-scope.mjs";
 import { RealmGuardActor as BaselineClass } from "./baseline-1.13.1/documents.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
@@ -147,6 +148,10 @@ export class RealmGuardActor extends Actor {
   }
 
   async _applySelectedWiseReroll(baseFaces, wise, assist = null) {
+    return applyLegacyWiseReroll(this, baseFaces, wise, assist?.chatDecision);
+  }
+
+  async _profileWiseRerollBeforeLegacyPatch(baseFaces, wise, assist = null) {
     if (familyPolicy().mg2eWises) return applyMg2eWiseEffect(this, baseFaces, wise, { chatDecision: assist?.chatDecision });
     if (usesMg1eTraitRules()) {
       const trait = assist?.trait;

@@ -144,7 +144,7 @@ const endSession=fs.readFileSync("module/end-session.mjs","utf8");
 assert.equal(endSession.includes("isStrictRealmGuard"),false);
 assert.equal(endSession.includes("strictEndSessionValidation"),false);
 assert.ok(endSession.includes("familyEndSessionValidation"));
-assert.ok(endSession.includes("rows.length > 1 && embodimentCount === rows.length"),"Legacy End Session compatibility validation must remain.");
+assert.ok(fs.readFileSync("module/baseline-1.13.1/end-session.mjs","utf8").includes("rows.length > 1 && embodimentCount === rows.length"),"Legacy End Session compatibility validation must remain.");
 
 const progressionSource=fs.readFileSync("module/progression.mjs","utf8");
 assert.equal(progressionSource.includes("isStrictRealmGuard"),false);

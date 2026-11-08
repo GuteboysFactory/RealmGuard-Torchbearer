@@ -13,6 +13,7 @@ import { evaluateM7RewardProposalLiveHandoff, evaluateM7RewardCommitLiveHandoff 
 const NS = "realm-guard";
 const CYCLE_KEY = "endSessionCycle";
 const FINALIZED_KEY = "endSessionFinalized";
+const REWARD_POLICY = Object.freeze({ personaCap: null, mortalCrisis: true });
 
 function esc(value) {
   return foundry.utils.escapeHTML(String(value ?? ""));
@@ -42,12 +43,13 @@ function legacyAwardProposal(actor, criteria, mvpId, workhorseId) {
     Number(accomplishedGoal) +
     Number(Boolean(criteria.personaAgainstBelief)) +
     Number(Boolean(criteria.personaEmbodiment)) +
+    Number(Boolean(criteria.personaMortalCrisis)) +
     Number(actor.id === mvpId) +
     Number(actor.id === workhorseId);
 
   return {
     fate,
-    persona: Math.min(4, personaRaw),
+    persona: personaRaw,
     personaRaw,
     goalFateSuppressed: Boolean(criteria.fateGoal) && accomplishedGoal
   };
@@ -63,7 +65,7 @@ function awardProposal(actor, criteria, mvpId, workhorseId) {
       actorId: actor?.id ?? "",
       criteria,
       mvpId,
-      workhorseId
+      workhorseId, rewardPolicy: REWARD_POLICY
     })
   });
 }
@@ -72,18 +74,20 @@ function actorCard(actor) {
   const belief = esc(actor.system.belief || "—");
   const goal = esc(actor.system.goal || "—");
   const instinct = esc(actor.system.instinct || "—");
+  const creed = esc(actor.system.creed || "—");
   return `<article class="rg-eos-card" data-actor-id="${actor.id}">
     <header><strong>${esc(actor.name)}</strong><input type="checkbox" name="participate_${actor.id}" checked hidden><span>Fate ${Number(actor.system.resources?.fate?.value ?? 0)} · Persona ${Number(actor.system.resources?.persona?.value ?? 0)}</span></header>
-    <div class="rg-eos-bgi"><p><b>Belief</b>${belief}</p><p><b>Goal</b>${goal}</p><p><b>Instinct</b>${instinct}</p></div>
+    <div class="rg-eos-bgi"><p><b>Belief</b>${belief}</p><p><b>Goal</b>${goal}</p><p><b>Instinct</b>${instinct}</p><p class="rg-eos-creed"><b>Creed</b>${creed}</p></div>
     <div class="rg-eos-awards">
       <fieldset><legend>Fate</legend>
         <label><input type="checkbox" name="fateBelief_${actor.id}"> Acted on Belief</label>
         <label><input type="checkbox" name="fateGoal_${actor.id}"> Worked toward Goal, but did not accomplish it</label>
-        <label><input type="checkbox" name="fateInstinct_${actor.id}"> Played Instinct</label>
+        <label><input type="checkbox" name="fateInstinct_${actor.id}"> Played Instinct · beneficial or detrimental</label>
       </fieldset>
       <fieldset><legend>Persona</legend>
+        <label><input type="checkbox" name="personaAgainstBelief_${actor.id}"> Played against Belief</label>
         <label><input type="checkbox" name="personaGoal_${actor.id}"> Accomplished Goal</label>
-        <label><input type="checkbox" name="personaAgainstBelief_${actor.id}"> Played against Belief dramatically</label>
+        <label><input type="checkbox" name="personaMortalCrisis_${actor.id}"> Mortal Crisis · Creed</label>
       </fieldset>
     </div>
   </article>`;
@@ -98,12 +102,12 @@ async function collectCriteria(actors, cycle, draft = null) {
   const content = `<div class="realm-guard rg-end-session rg-eos-legacy">
     <header class="rg-eos-intro"><div class="rg-brand">REALM GUARD</div><h2>End of Session <span>Cycle ${cycle}</span></h2><p>Review the session together, then choose the rewards earned.</p></header>
     ${endSessionRosterHtml(actors)}
-    <details class="rg-eos-guidance"><summary>Reward guidance</summary><p>Review each participant's Belief, Goal and Instinct with the group. Working toward a Goal earns Fate only when the Goal was not accomplished. Persona is capped at 4 per session.</p></details>
+    <details class="rg-eos-guidance"><summary>Reward guidance</summary><p>Review Belief, Goal, Instinct and Creed together. Mortal Crisis earns 1 Persona when Creed causes inner turmoil, or is fiercely defended at great risk. Working toward a Goal earns Fate only when the Goal was not accomplished. All earned Persona is awarded; there is no per-session Persona cap. Only one character may receive Embodiment.</p></details>
     <section class="rg-eos-nominations">
       <label><span>MVP <small>(Most Valuable Player)</small></span><select name="mvp">${options}</select></label>
-      <label><span>Workhorse <small>(carried the patrol)</small></span><select name="workhorse">${options}</select></label>
+      <label><span>Teamworker / Workhorse <small>(carried the patrol)</small></span><select name="workhorse">${options}</select></label>
       <fieldset><legend>Embodiment · best embodied the character</legend><div data-eos-embodiment>${actors.map(actor => `<label><input type="checkbox" name="personaEmbodiment_${actor.id}"> ${esc(actor.name)}</label>`).join("")}</div></fieldset>
-      <small><b>MVP:</b> the crucial contribution that let the patrol complete the mission. <b>Workhorse:</b> the Ranger who carried the group through the hard work. They must be different Rangers.</small>
+      <small><b>MVP:</b> the crucial contribution that let the patrol complete the mission. <b>Teamworker / Workhorse:</b> the Ranger who carried the group through the hard work. They must be different Rangers.</small>
     </section>
     <div class="rg-eos-card-list">${actors.map(actorCard).join("")}</div>
   </div>`;
@@ -130,8 +134,8 @@ async function collectCriteria(actors, cycle, draft = null) {
           const mvpId = value(form, "mvp");
           const workhorseId = value(form, "workhorse");
           if (mvpId && !participatingIds.has(mvpId)) return { error: "The MVP must be a participating Ranger." };
-          if (workhorseId && !participatingIds.has(workhorseId)) return { error: "The Workhorse must be a participating Ranger." };
-          if (mvpId && workhorseId && mvpId === workhorseId) return { error: "A Ranger cannot be both MVP and Workhorse in the same session." };
+          if (workhorseId && !participatingIds.has(workhorseId)) return { error: "The Teamworker / Workhorse must be a participating Ranger." };
+          if (mvpId && workhorseId && mvpId === workhorseId) return { error: "A Ranger cannot be both MVP and Teamworker / Workhorse in the same session." };
 
           const rows = participating.map(actor => {
             const criteria = {
@@ -140,35 +144,17 @@ async function collectCriteria(actors, cycle, draft = null) {
               fateInstinct: checked(form, `fateInstinct_${actor.id}`),
               personaGoal: checked(form, `personaGoal_${actor.id}`),
               personaAgainstBelief: checked(form, `personaAgainstBelief_${actor.id}`),
-              personaEmbodiment: checked(form, `personaEmbodiment_${actor.id}`)
+              personaEmbodiment: checked(form, `personaEmbodiment_${actor.id}`),
+              personaMortalCrisis: checked(form, `personaMortalCrisis_${actor.id}`)
             };
             const legacyProposal = legacyAwardProposal(actor, criteria, mvpId, workhorseId);
             const proposal = awardProposal(actor, criteria, mvpId, workhorseId);
-            observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, legacyProposal });
+            observeM7RewardProposal({ actor, criteria, mvpId, workhorseId, rewardPolicy: REWARD_POLICY, legacyProposal });
             return { actor, criteria, proposal };
           });
 
           const embodimentCount = rows.filter(row => row.criteria.personaEmbodiment).length;
-          const sessionPolicy = getActiveM10BSessionCirclesProgressionPolicy();
-          if (sessionPolicy.familySemantics) {
-            const profileValidation = familyEndSessionValidation({
-              participantIds: rows.map(row => row.actor.id),
-              mvpId,
-              workhorseId,
-              embodimentIds: rows.filter(row => row.criteria.personaEmbodiment).map(row => row.actor.id)
-            }, sessionPolicy);
-            if (!profileValidation.ok) {
-              const code = profileValidation.errors[0] ?? "PROFILE_END_SESSION_INVALID";
-              const message = code === "EMBODIMENT_CANNOT_BE_EVERYONE"
-                ? "MG1E-family: Embodiment may be awarded to more than one Ranger, but never to every participating Ranger."
-                : code === "MVP_WORKHORSE_MUST_DIFFER"
-                  ? "A Ranger cannot be both MVP and Workhorse in the same session."
-                  : "Realm Guard: End Session selections are not valid for the active Rules Profile.";
-              return { error: message };
-            }
-          } else if (rows.length > 1 && embodimentCount === rows.length) {
-            return { error: "Embodiment may be awarded to more than one Ranger, but not to everyone in a multi-Ranger session." };
-          }
+          if (embodimentCount > 1) return { error: "Only one character may receive Embodiment per session." };
 
           return { rows, mvpId, workhorseId };
         }
@@ -187,8 +173,9 @@ function criteriaLabels(row, mvpId, workhorseId) {
   if (row.criteria.personaGoal) persona.push("Goal accomplished");
   if (row.criteria.personaAgainstBelief) persona.push("Against Belief");
   if (row.actor.id === mvpId) persona.push("MVP");
-  if (row.actor.id === workhorseId) persona.push("Workhorse");
+  if (row.actor.id === workhorseId) persona.push("Teamworker / Workhorse");
   if (row.criteria.personaEmbodiment) persona.push("Embodiment");
+  if (row.criteria.personaMortalCrisis) persona.push("Mortal Crisis · Creed");
   return { fate, persona };
 }
 
@@ -196,7 +183,7 @@ async function reviewAndApprove(result, cycle) {
   const rowsHtml = result.rows.map(row => {
     const labels = criteriaLabels(row, result.mvpId, result.workhorseId);
     const suppressed = row.proposal.goalFateSuppressed ? `<p class="rg-eos-note">Goal progress Fate is not counted because the Goal was accomplished.</p>` : "";
-    const capped = row.proposal.personaRaw > 4 ? `<p class="rg-eos-note">Persona proposal capped from ${row.proposal.personaRaw} to 4 by the per-session limit.</p>` : "";
+    const capped = "";
     return `<article class="rg-eos-review-card">
       <header><strong>${esc(row.actor.name)}</strong><span>Current: Fate ${Number(row.actor.system.resources?.fate?.value ?? 0)} · Persona ${Number(row.actor.system.resources?.persona?.value ?? 0)}</span></header>
       <div class="rg-eos-review-grid">
@@ -253,7 +240,7 @@ async function applyAwards(result, approval, cycle) {
     const currentFate = Number(actor.system.resources?.fate?.value ?? 0);
     const currentPersona = Number(actor.system.resources?.persona?.value ?? 0);
     const fateMax = Number(actor.system.resources?.fate?.max ?? 999);
-    const personaMax = Number(actor.system.resources?.persona?.max ?? 999);
+    const personaMax = currentPersona + Math.max(0, Number(row.proposal.persona ?? 0));
     const approvedFate = actorApproval.fate ? row.proposal.fate : 0;
     const approvedPersona = actorApproval.persona ? row.proposal.persona : 0;
     const legacyCommit = {

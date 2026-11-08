@@ -4297,6 +4297,33 @@ body:has(#join-game) {
   }
 }
 /* Conflict / session playtest polish. */
+/* Legacy Mixed QA.3: compact, explicit preparation and readable pending choices. */
+.rg-eos-legacy .rg-eos-creed { grid-column:1/-1; }
+.rg-eos-legacy .rg-eos-awards label { min-height:52px; display:flex; align-items:center; gap:7px; }
+.rg-conflict-roster-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.rg-conflict-roster,.rg-equipment-step { border:1px solid #a78853; background:#f6e7bf99; border-radius:6px; padding:12px; color:#2b2115; }
+.rg-conflict-roster h3,.rg-equipment-step h3 { color:#38543a; margin:0 0 10px; }
+.rg-conflict-roster [data-roster-chips] { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.rg-roster-chip { display:flex; align-items:center; gap:8px; background:#fff1cc; border:1px solid #9b8050; border-radius:4px; padding:4px 6px; }
+.rg-roster-chip button { width:26px; min-height:26px; padding:0; }
+.rg-conflict-roster [data-roster-results] { max-height:170px; overflow:auto; display:grid; gap:5px; margin-top:6px; }
+.rg-conflict-roster label,.rg-custom-opponent label { display:grid; gap:4px; margin:7px 0; }
+.rg-conflict-setup-simple details,.rg-equipment-step details { margin-top:12px; }
+.rg-conflict-setup-simple summary,.rg-equipment-step summary { cursor:pointer; font-weight:bold; }
+.rg-equipment-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; padding:10px 0; border-bottom:1px solid #b39a70; }
+.rg-equipment-row > b { grid-column:1/-1; }
+.rg-equipment-row select { width:100%; min-width:0; }
+.rg-equipment-row button,.rg-equipment-step button,.rg-conflict-roster button { background:#38543a; color:#fff1cc; border:1px solid #a78853; border-radius:4px; }
+.rg-conflict-window.rg-legacy-polish .rg-conflict-titlebar h2 { font-size:24px; }
+.rg-conflict-window.rg-legacy-polish .rg-conflict-overview { border-bottom:1px solid #a78853; padding:5px 0; margin-bottom:8px; }
+.rg-conflict-window.rg-legacy-polish .rg-conflict-overview > summary { cursor:pointer; font-weight:bold; padding:6px; }
+.rg-conflict-window.rg-legacy-polish .rg-card-planner .rg-plan-step-head { display:none; }
+.rg-chat-roll-pipeline .rg-chat-question { background:#332b18 !important; color:#fff1cc !important; border:3px solid #edb443 !important; }
+.rg-chat-roll-pipeline .rg-chat-question strong { display:block; color:#fff1cc !important; margin:6px 0; }
+.rg-chat-roll-pipeline .rg-decision-alert { display:block; padding:4px 6px; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:#211b10 !important; background:#edb443; }
+.rg-chat-roll-pipeline .rg-chat-question-buttons button { color:#251b0d !important; background:#f6dfaa !important; opacity:1; min-height:32px; font-weight:bold; }
+.rg-chat-roll-pipeline .rg-chat-question-buttons button:hover { background:#fff1cc !important; }
+@media(max-width:700px) { .rg-conflict-roster-columns { grid-template-columns:1fr; } }
 /* Legacy Mixed End Session: parchment information, forest/gold controls. */
 .application:has(.rg-eos-legacy) { max-width:calc(100vw - 20px); max-height:calc(100vh - 20px); }
 .application:has(.rg-eos-legacy) .window-content { background:#eddbb6 url("../assets/ui/conflict-parchment.svg") center/cover; color:#2b2115; overflow:auto; }
@@ -4356,3 +4383,7 @@ body:has(#join-game) {
   .rg-conflict-window.rg-legacy-polish .rg-action-clash,.rg-conflict-window.rg-legacy-polish .rg-conflict-emblem { display:none; }
   .rg-conflict-window.rg-legacy-polish .rg-conflict-body { min-width:0; }
 }
+
+.rg-conflict-tool-editor[data-temporary-opponent="true"] .rg-conflict-inline-choice { display:none; }
+.rg-disposition-method h3 { color:#2b2115 !important; font-size:18px; }
+.rg-disposition-method label[hidden] { display:none !important; }

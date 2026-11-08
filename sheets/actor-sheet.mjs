@@ -1059,7 +1059,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
   }
 
-  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null, allowHelp = true } = {}) {
+  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null, allowHelp = true, conflictContext = null } = {}) {
     const personaValue = Number(this.actor.system.resources.persona.value ?? 0);
     const target = game.user.targets.size === 1 ? [...game.user.targets][0] : null;
     const opponent = target?.actor ?? null;
@@ -1089,7 +1089,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const teamworkTestKind = role?.type === "wise" ? "Wise" : (isSkill ? "Skill" : "Ability");
     const teamworkSessionId = allowHelp
-      ? createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [opponent?.id].filter(Boolean) })
+      ? createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [opponent?.id].filter(Boolean), ...(conflictContext ? { allowedActorIds: conflictContext.participants } : {}) })
       : null;
     const teamworkHelp = family.helperSourcePolicy === "MG1E_TYPED"
       ? (teamworkTestKind === "Ability"
@@ -1102,18 +1102,19 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const n = this.actor.system.attributes?.nature ?? {}, natureCurrent = Math.max(0, Number(n.value ?? 0)), natureMaximum = Math.max(natureCurrent, Number(n.maximum ?? natureCurrent));
     const isNatureRoll = String(abilityKey) === "nature";
+    const canDoubleTapNature = family.nature.doubleTapNature && conflictContext?.allowTapNature !== false;
     const natureExcluded = new Set(family.nature.tapExcludedAbilities.map(value => String(value).toLowerCase()));
-    const canTapNature = family.nature.tapNature && !isNatureRoll && !natureExcluded.has(String(abilityKey).toLowerCase()) && natureCurrent > 0;
+    const canTapNature = family.nature.tapNature && conflictContext?.allowTapNature !== false && !isNatureRoll && !natureExcluded.has(String(abilityKey).toLowerCase()) && natureCurrent > 0;
     const natureDescriptors = natureDescriptorText(family);
     const natureLabel = natureProfileLabel(family);
     const noPersona = personaValue < 1 ? ` <b class="rg-disabled-reason">Unavailable — requires 1 Persona.</b>` : "";
     const natureBlock = isNatureRoll
-      ? `<fieldset class="rg-nature-roll"><legend>${foundry.utils.escapeHTML(natureLabel)} · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Nature is special: acting against its descriptors can Tax it. Advancement uses Maximum Nature.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label>Test is <select name="natureUse"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label>${natureTarget ? `<label><input type="checkbox" name="natureVersus"> Versus target: ${foundry.utils.escapeHTML(natureTarget.name)} · Nature</label>` : ""}${family.nature.doubleTapNature ? `<label><input type="checkbox" name="doubleTapNature" ${personaValue < 1 ? "disabled" : ""}> Double-Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label>` : ""}<small>${family.nature.doubleTapNature ? "Double-Tap is within Nature only. " : ""}Against Nature failures tax by Margin of Failure.</small></fieldset>`
+      ? `<fieldset class="rg-nature-roll"><legend>${foundry.utils.escapeHTML(natureLabel)} · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Nature is special: acting against its descriptors can Tax it. Advancement uses Maximum Nature.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label>Test is <select name="natureUse"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label>${natureTarget ? `<label><input type="checkbox" name="natureVersus"> Versus target: ${foundry.utils.escapeHTML(natureTarget.name)} · Nature</label>` : ""}${canDoubleTapNature ? `<label><input type="checkbox" name="doubleTapNature" ${personaValue < 1 ? "disabled" : ""}> Double-Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label>` : ""}<small>${family.nature.doubleTapNature ? "Double-Tap is within Nature only. " : ""}Against Nature failures tax by Margin of Failure.</small></fieldset>`
       : (canTapNature ? `<fieldset class="rg-nature-roll"><legend>Tap Nature · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Spend 1 Persona to add current Nature to this test. Acting against Nature can Tax it.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label><input type="checkbox" name="tapNature" ${personaValue < 1 ? "disabled" : ""}> Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label><label>Test is <select name="natureScope"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label><small>${beginnerLuck ? `Beginner's Luck: Tap Nature dice are added after halving. ` : ""}Within + PASS: no tax. Against + PASS: tax 1. Failed tapped test: tax by Margin of Failure. Not available for ${family.nature.tapExcludedAbilities.join("/") || "profile-excluded abilities"}.</small></fieldset>` : "");
     const tokenRollIsSkill = tokenSourceIsSkill === null || tokenSourceIsSkill === undefined ? isSkill : Boolean(tokenSourceIsSkill);
     const tokenOptions = tokenPowerOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
     const tokenPowerBlock = tokenOptions.length ? `<fieldset class="rg-token-roll-choice"><legend><i class="fa-solid fa-gem"></i> Token of Power</legend><label>Invoke Token <select name="tokenPowerId"><option value="">None</option>${tokenOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Skill-linked Tokens are filtered to this roll. Specific-use Tokens are marked TABLE CHECK.</small></fieldset>` : "";
-    const talentOptions = getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled ? talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill }) : [];
+    const talentOptions = getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled ? talentOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill, contextKey: conflictContext?.id ?? "" }) : [];
     const talentBlock = talentOptions.length ? `<fieldset class="rg-talent-roll-choice"><legend><i class="fa-solid fa-sparkles"></i> Talent</legend><label>Use Talent <select name="talentId"><option value="">None</option>${talentOptions.map(t => `<option value="${t.id}" ${t.disabled ? "disabled" : ""}>${foundry.utils.escapeHTML(t.label)}</option>`).join("")}</select></label><small>Once/session Talents are consumed only after a committed roll.</small></fieldset>` : "";
 
     const circlesBlock = String(abilityKey) === "circles" && circlesContext
@@ -1150,7 +1151,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         : workflow === "baseline" && !ruleSpecific
           ? `<div class="rg-obstacle-live-status approved" data-rg-obstacle-live-status><i class="fa-solid fa-link"></i> Ob ${initialObstacle} · Baseline</div>`
           : "";
-    const canCountLearning = Boolean(isSkill || abilityKey);
+    const canCountLearning = !conflictContext && Boolean(isSkill || abilityKey);
 
     const automaticModifier = Number(modifier || 0) + Number(conditionData.dice || 0);
     const modifierBreakdown = conditionData.active.length ? conditionData.active.map(c => `${foundry.utils.escapeHTML(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(" · ") : "No automatic Condition modifier.";
@@ -1166,13 +1167,16 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         : (level === 3 ? "+1s · always when relevant" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
       return `<option value="${trait.id}">${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
     }).join("");
-    const content = `<div class="rg-roll-dialog"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
+    const content = `<div class="rg-roll-dialog${conflictContext ? " rg-conflict-standard-roll" : ""}"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
         <div class="rg-roll-dialog-head"><strong>${foundry.utils.escapeHTML(role.name)}</strong><span>${beginnerLuck ? `BEGINNER'S LUCK · ${String(beginnerAbility).toUpperCase()}` : (versus ? "VERSUS" : "TEST")} · ${targetText}</span></div>
+        ${conflictContext ? `<details class="rg-conflict-roll-context"><summary>${foundry.utils.escapeHTML(conflictContext.title)} · context</summary><p>${foundry.utils.escapeHTML(conflictContext.notes || "Conflict modifiers are already included. Learning is recorded when the action resolves.")}</p></details>` : ""}
+        ${conflictContext?.requirement ? `<label class="rg-conflict-requirement"><input type="checkbox" name="weaponRequirementMet" checked> Requirement met: ${foundry.utils.escapeHTML(conflictContext.requirement)}</label>` : ""}
+        ${conflictContext?.swordChoice ? `<label><input type="checkbox" name="lockSword"> Declare Sword +1D for ${foundry.utils.escapeHTML(conflictContext.actionLabel)} this conflict</label>` : ""}
         ${versusChoice}
         <div class="rg-obstacle-panel"><div class="rg-roll-dialog-grid rg-roll-core-fields">
           <div class="rg-roll-field rg-roll-field-obstacle"><div class="rg-roll-field-head"><span>Obstacle <span class="rg-help-tip" title="Obstacle (Ob) is the number of successes required. Skill factors can set the exact value; the GM may always adjust it.">?</span></span><input type="number" name="obstacle" min="0" max="10" value="${initialObstacle}" ${obReadonly}></div>${obStatus}<small class="rg-obstacle-guide" data-rg-obstacle-guide>${foundry.utils.escapeHTML(obstacleDifficultyText(initialObstacle))}</small></div>
           <div class="rg-roll-field rg-roll-field-modifier"><div class="rg-roll-field-head"><span>Modifier (automatic) <span class="rg-help-tip" title="Read-only. Automatic dice changes from active Conditions and other system effects. Custom Conditions are included when configured for this roll.">?</span></span><input type="number" name="automaticModifier" value="${automaticModifier}" readonly></div><small class="rg-auto-modifier-breakdown">${modifierBreakdown}</small><input type="hidden" name="modifier" value="${Number(modifier) || 0}"></div>
-          <div class="rg-roll-field rg-roll-field-extra"><div class="rg-roll-field-head"><span>Extra Dice <span class="rg-help-tip" title="Manual or situational bonus dice. Use this only when a GM ruling, gear effect or special circumstance grants extra dice. Conditions belong under Modifier; accepted Help is tracked in Teamwork.">?</span></span><input type="number" name="extraDice" min="0" value="0"></div><small>Manual / situational bonus dice only.</small></div>
+          <div class="rg-roll-field rg-roll-field-extra"><div class="rg-roll-field-head"><span>Extra Dice <span class="rg-help-tip" title="Manual or situational bonus dice. Use this only when a GM ruling, gear effect or special circumstance grants extra dice. Conditions belong under Modifier; accepted Help is tracked in Teamwork.">?</span></span><input type="number" name="extraDice" min="0" value="0" ${conflictContext && !game.user?.isGM ? "readonly" : ""}></div><small>Manual / situational bonus dice only.</small></div>
         </div></div>
         ${circlesBlock}${teamworkBlock}${natureBlock}
         <div class="rg-condition-roll-preview"><span>ACTIVE CONDITIONS${conditionData.dice ? ` · ${conditionData.dice > 0 ? "+" : ""}${conditionData.dice}D` : ""}</span><div>${conditionPreview}</div>${hardConditionNotes.length ? `<small>${hardConditionNotes.map(foundry.utils.escapeHTML).join(" · ")}</small>` : ""}</div>
@@ -1189,11 +1193,13 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         const form = button.form; if (!form) return null;
         if (review) await review.promise;
         const elements = form.elements;
-        const help = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
+        const acceptedHelp = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
+        const help = Number.isFinite(conflictContext?.maxHelpers) ? acceptedHelp.slice(0, conflictContext.maxHelpers) : acceptedHelp;
         return {
           obstacle: review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
-          modifier: Number(elements.modifier?.value ?? 0), extraDice: Math.max(0, Number(elements.extraDice?.value ?? 0)), help,
+          modifier: Number(elements.modifier?.value ?? 0), extraDice: conflictContext && !game.user?.isGM ? 0 : Math.max(0, Number(elements.extraDice?.value ?? 0)), help,
           persona: Math.max(0, Math.min(3, Number(elements.persona?.value ?? 0))), countLearning: canCountLearning ? Boolean(elements.countLearning?.checked) : false,
+          lockSword: Boolean(elements.lockSword?.checked), weaponRequirementMet: !elements.weaponRequirementMet || Boolean(elements.weaponRequirementMet.checked),
           traitId: elements.traitId?.value || null, traitMode: elements.traitMode?.value || "help", wiseId: elements.wiseId?.value || null,
           tokenPowerId: elements.tokenPowerId?.value || null, talentId: elements.talentId?.value || null, oppositionId: elements.oppositionId?.value || null,
           tapNature: Boolean(elements.tapNature?.checked), natureScope: elements.natureScope?.value || "within", natureUse: elements.natureUse?.value || "within",
@@ -1754,7 +1760,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static _checksUp(){ return RealmGuardActorSheet._adjustResource.call(this,"checks",1); }
   static async _adjustResource(name, delta) {
     const resource = this.actor.system.resources[name];
-    const next = Math.max(0, Math.min(resource.max, resource.value + delta));
+    const next = Math.max(0, Math.min(name === "persona" ? Number.POSITIVE_INFINITY : resource.max, resource.value + delta));
     await this.actor.update({ [`system.resources.${name}.value`]: next });
   }
 }

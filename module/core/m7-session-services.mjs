@@ -133,7 +133,7 @@ export class RewardEngine {
     this.authority = authority;
   }
 
-  proposal({ actorId = "", criteria = {}, mvpId = "", workhorseId = "" } = {}) {
+  proposal({ actorId = "", criteria = {}, mvpId = "", workhorseId = "", rewardPolicy = {} } = {}) {
     const accomplishedGoal = Boolean(criteria.personaGoal);
     const fate = Math.min(3,
       Number(Boolean(criteria.fateBelief)) +
@@ -144,11 +144,12 @@ export class RewardEngine {
       Number(accomplishedGoal) +
       Number(Boolean(criteria.personaAgainstBelief)) +
       Number(Boolean(criteria.personaEmbodiment)) +
+      Number(rewardPolicy.mortalCrisis === true && Boolean(criteria.personaMortalCrisis)) +
       Number(String(actorId) === String(mvpId) && Boolean(mvpId)) +
       Number(String(actorId) === String(workhorseId) && Boolean(workhorseId));
     return freeze({
       fate,
-      persona: Math.min(4, personaRaw),
+      persona: rewardPolicy.personaCap === null ? personaRaw : Math.min(4, personaRaw),
       personaRaw,
       goalFateSuppressed: Boolean(criteria.fateGoal) && accomplishedGoal,
       authority: this.authority.mode

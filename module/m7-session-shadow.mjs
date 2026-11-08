@@ -81,13 +81,13 @@ export function observeM7Lifecycle(type, details = {}) {
   });
 }
 
-export function observeM7RewardProposal({ actor, criteria = {}, mvpId = "", workhorseId = "", legacyProposal = {} } = {}) {
+export function observeM7RewardProposal({ actor, criteria = {}, mvpId = "", workhorseId = "", rewardPolicy = {}, legacyProposal = {} } = {}) {
   const services = createM7Services();
   const coreProposal = services.rewardEngine.proposal({
     actorId: actor?.id ?? "",
     criteria,
     mvpId,
-    workhorseId
+    workhorseId, rewardPolicy
   });
   const comparableLegacy = {
     fate: Math.max(0, Number(legacyProposal?.fate ?? 0)),

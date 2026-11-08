@@ -1,31 +1,31 @@
-# 1.14.0-qa.2 — Legacy Mixed conflict and session playtest
+# 1.14.0-qa.3 — Legacy Mixed session routines and simpler conflicts
 
-This QA release combines the table-play improvements with the later card-secrecy and End Session requests. **All new playtest behavior is restricted to Realm Guard Legacy Mixed.** QA.1 incorrectly applied shared changes to other profiles; QA.2 restores the affected Strict Realm Guard, Mouse Guard 1E/2E and TB2E flows to their stable 1.13.1 implementations. Existing campaign documents are preserved. Stable remains 1.13.1; promotion requires separate user acceptance.
+QA.3 implements the collected QA.2 feedback **only for Realm Guard Legacy Mixed**. Stable remains 1.13.1. Strict Realm Guard, Mouse Guard 1E/2E and TB2E retain their previous workflows and reward rules. The accepted startup optimization is preserved. No Tome work, TB2E activation or stable promotion is included.
 
-## Rolls
+## End Session
 
-- Original dice appear immediately on the same chat card that later holds optional decisions, their history and the final result. This includes normal Skill/Ability tests, Beginner's Luck, automatic Versus, Nature Versus, Conflict and free-pool Custom Roll.
-- Relevant Wise, explicitly configured Talent, Token of Power and Fate/Open 6s choices appear inline. Questions pulse until answered; the small accessible × declines without spending. Reduced-motion preferences receive a static highlight. Only the originating user's client answers; repeated clicks cannot spend twice.
-- Persona bonus dice and Nature tapping retain their pre-roll choices. Trait effects follow the existing Legacy Mixed rules: this patch does not import MG1E's level-3 Trait reroll into Legacy Mixed. Existing dice/success effects are preserved. Explicit Talent rerolls remain an optional authored effect; prose is never interpreted as a new rule.
-- A second local roll for the same character waits until pending decisions finish. Reloaded pending cards identify the interruption rather than replaying the roll or refunding committed costs.
+Creed is displayed with Belief, Goal and Instinct. Mortal Crisis awards 1 Persona when Creed causes inner turmoil or is fiercely defended at great risk. Persona choices now align Belief first and Goal second with the corresponding Fate choices; Instinct explicitly includes beneficial or detrimental play.
 
-## Conflict
+Teamworker / Workhorse and MVP must go to different participants. At most one participant may receive Embodiment, enforced both in the form and on review. All earned Persona is awarded without the old four-point session cap or truncation at the old balance maximum. Manual Persona adjustments retain that balance. The other profiles retain their prior caps and validation. Back, Cancel and duplicate-cycle protection remain.
 
-- GM can grant a Skill exception for the current action. Actual ratings and Beginner's Luck still apply, and the used Skill/Ability is clear on the result card.
-- Optional individual Disposition divides the existing team total. GM allocates points and losses; zero blocks acting and Help. Unallocated changes must be resolved before continuing.
-- Any conflict type can use temporary named opposition without creating a world Actor.
-- The resizable window adapts to small screens and retains scroll, expanded explanations and unfinished compromise notes. Instructions can be folded away. Connected observers follow public progress.
-- Opposing plans stay hidden in both GM and player views, including after locking. **GM flips one action at a time with Flip Action.** Future cards remain hidden. This is normal interface secrecy; the GM still owns the underlying conflict authority.
-- Accidental completion can be reopened, and the latest resolved action corrected. Existing resource costs, Learning and Nature tax are not applied again or automatically refunded. Serialized submissions reject stale actions and player submissions for the GM side.
+## Conflict setup and equipment
 
-## End Session and Skill editing
+- Two searchable add/remove lists replace the large participant checklist. The player roster is remembered independently of End Session. Both sides accept existing characters/NPCs; the GM can create multiple temporary opponents that exist solely in the current conflict state, without creating Actors or Contacts.
+- Each exchange begins with a separate equipment step. Each participant explicitly declares a weapon, inventory item or Custom tool before the hidden cards are planned. Nothing is automatically selected as Unarmed.
+- Any inventory item may be declared; unknown equipment receives no invented bonus. Custom permits a table-approved effect and an optional inventory reference, for example travel boots +1D. Temporary opponents cannot save campaign content.
+- Maneuver Disarm can disable the declared Custom or inventory benefit. It does not delete or automatically damage the inventory item. Disabled benefits are scoped to their participant and conflict; an invalidated tool grants no automatic Unarmed penalty.
+- Goals, allocations and explanations are folded into expandable sections. Scroll/expanded information is retained during updates within a step; changing steps starts at the relevant new content.
 
-- End Session starts with player-owned/assigned character Actors, excluding NPCs and GM-only characters. The GM can adjust that list immediately; it is remembered for later sessions. Searching by name adds characters or NPCs, and × removes them. Deleted Actors and duplicate saved IDs are ignored; an explicitly empty list stays empty. Adding/removing someone preserves the other award selections.
-- End Session uses Realm Guard's parchment, forest and gold appearance, readable controls and collapsible guidance. Embodiment sits beside MVP/Workhorse. Back retains selected criteria; Finish Session is the reward approval, without per-character approval checkboxes.
-- Skill editing exposes manual Learning/Beginner's Luck corrections. Custom Skill creation and editing allow Will or Health as the Beginner's Luck basis.
+## Cards and rolls
 
-## Verification and boundaries
+The group manually assigns cards through its captain. With one active player, the actor is selected automatically and the selector is hidden. Two players alternate, including across exchange boundaries. With three or more, the group chooses freely, without a forced equal-distribution rule; nobody takes two consecutive actions while another active participant remains. Knockouts invalidate exhausted assignments and permit a sole survivor to act repeatedly. GM cards can likewise be assigned manually among multiple opposition participants. Opposing card choices remain hidden until each action is flipped.
 
-Automated checks cover runtime syntax, the full regression smoke suite, direct comparison with preserved stable implementations, and Chromium tests of production modules with controlled Foundry documents/settings. Browser checks cover hidden cards/explicit flips, all nine temporary opposition types, scroll/resize, chat decisions, correction/reopening, roster search/persistence/removal/empty selection, Back, readable styling and the unchanged other-profile installers.
+Optional GM Nature/fixed/manual disposition methods remain behind a folded menu. Calculated Starting Disposition and action rolls now use the **same production roll dialog as ordinary character-sheet rolls**, with applicable Traits, Persona, Nature, Wises, Tokens, Talents and Help. Conflict context is folded away; modifiers and permitted helpers follow the conflict. Player-turn currency is not spent and Learning is recorded by conflict resolution.
 
-These are controlled browser tests, not a live Foundry multiplayer acceptance session. Follow TEST_PROTOCOL_v1.14.0-qa.2.md in a test world before accepting the patch. The accepted 1.13.1 startup optimization is retained. No Tome work, profile activation, data migration or stable promotion is included.
+A Wise prepared before the roll is used once as part of that roll and is not offered again. If no Wise was prepared, a relevant unused Wise can instead reroll failures after the initial dice for **1 Persona**, when available. Declining costs nothing; availability and cost are checked again on acceptance. This applies to ordinary and conflict rolls. Pending chat choices have a conspicuous pulsing banner, readable buttons and a clear × decline control; reduced-motion preferences keep a static highlight.
+
+## Verification
+
+The automated regression suite and controlled Chromium tests cover production modules, all system stylesheets, real form/button callbacks, five-point Creed rewards, nomination exclusions, player-roster persistence, multiple temporary opponents without Actor creation, ordinary roll-dialog reuse, mandatory equipment, per-card actors, hidden flips, Custom disarm without inventory deletion, Wise costs/declines/reuse and other-profile isolation.
+
+This is controlled browser testing with Foundry document/settings fixtures, **not live multiplayer acceptance in Foundry**. Follow TEST_PROTOCOL_v1.14.0-qa.3.md with a GM and a player client before acceptance. Stable publication requires separate approval.

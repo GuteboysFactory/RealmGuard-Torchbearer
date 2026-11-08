@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.14.0-qa.2
+**Version:** 1.14.0-qa.3
 **Target:** Foundry VTT 13.351  
 **Status:** Conflict / session QA candidate
 **Current stable baseline:** v1.13.1
 
-This QA patch addresses the 18 collected table-play checks **only for Legacy Mixed**: inline roll decisions, Conflict flexibility/corrections and hidden cards, remembered End Session participants with search, session rewards and custom Skill editing. Strict Realm Guard, MG1E, MG2E and TB2E retain their previous behavior. See RELEASE_NOTES_v1.14.0-qa.2.md and TEST_PROTOCOL_v1.14.0-qa.2.md. The accepted 1.13.1 startup optimization is retained.
+This QA patch implements the collected campaign feedback **only for Legacy Mixed**: Creed rewards without a Persona cap, simpler searchable conflict teams, multiple temporary opponents, explicit equipment preparation, manual card assignment, ordinary roll-dialog reuse and paid unused-Wise rerolls. Strict Realm Guard, MG1E, MG2E and TB2E retain their prior behavior. See RELEASE_NOTES_v1.14.0-qa.3.md and TEST_PROTOCOL_v1.14.0-qa.3.md. The accepted startup optimization is preserved.
 
 ## 1.13.1 startup performance
 

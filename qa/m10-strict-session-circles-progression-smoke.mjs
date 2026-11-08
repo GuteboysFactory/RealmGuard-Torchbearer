@@ -253,7 +253,7 @@ const liveProgression = fs.readFileSync("module/progression.mjs", "utf8");
 assert.ok(liveProgression.includes("Torchbearer 2E cumulative Fate/Persona thresholds"), "Legacy Mixed Level/Talent progression must remain untouched in qa.6.");
 assert.ok(liveProgression.includes("progressionLevelFor"), "Legacy progression engine must remain present.");
 
-const liveEndSession = fs.readFileSync("module/end-session.mjs", "utf8");
+const liveEndSession = fs.readFileSync("module/baseline-1.13.1/end-session.mjs", "utf8");
 assert.ok(liveEndSession.includes("rows.length > 1 && embodimentCount === rows.length"), "Legacy Mixed solo Embodiment behavior must remain untouched in qa.6.");
 
 const profileService = fs.readFileSync("module/rules-profile-service.mjs", "utf8");

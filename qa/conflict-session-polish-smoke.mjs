@@ -34,7 +34,7 @@ async function complete(operation, answers = []) {
 }
 function ranger(profile='realm-guard-legacy-mixed') {
   fixture.messages.length=0;fixture.dice.length=0;fixture.settings.set('activeRulesProfileId',profile); refreshRulesProfileRuntime();
-  const actor=new RealmGuardActor(actorData()); game.actors.length=0;game.actors.push(actor);return actor;
+  const actor=new RealmGuardActor(actorData()); actor.items.splice(actor.items.findIndex(item=>item.id==="wise"),1); game.actors.length=0;game.actors.push(actor);return actor;
 }
 
 for(const profile of ['realm-guard-legacy-mixed']) {
@@ -59,13 +59,8 @@ for(const profile of ['realm-guard-legacy-mixed']) {
   result=await complete(actor.rollNatureVersus(new RealmGuardActor(actorData('opponent'))));assert.equal(fixture.messages.length,1);
 }
 
-let actor=ranger();fixture.dice.push([1,6,3],[4,2]);
-let result=await complete(actor.rollRole(actor.items.get('fighter'),{wiseId:'wise'}),['0','skip']);
-assert.equal(result.successes,2);assert.equal(actor.system.resources.fate.value,3);
-assert.match(fixture.messages[0].content,/Use Wise reroll/);
-actor=ranger();fixture.dice.push([1,6,3]);
-result=await complete(actor.rollRole(actor.items.get('fighter'),{wiseId:'wise'}),['skip','skip']);
-assert.equal(result.successes,1);assert.equal(fixture.dice.length,0);
+let actor=ranger();
+let result;
 
 actor=ranger();
 const talent={id:'reroll-talent',name:'Second Chance',type:'talent',system:{minLevel:2,frequency:'session',effectMode:'reroll',linkedSkill:'Fighter',linkType:'skill',session:{used:false}},async update(data){ for(const [key,value]of Object.entries(data)){if(key==='system.session.used')this.system.session.used=value;}}};

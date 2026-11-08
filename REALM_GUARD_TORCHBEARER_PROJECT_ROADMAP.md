@@ -2,7 +2,7 @@
 
 ## Active table-play patch — 2026-11-08
 
-Candidate **1.14.0-qa.2** starts from published stable **1.13.1**. All 18 collected playtest checks apply **only to Legacy Mixed**. QA.2 restores the affected other-profile behavior from stable, adds hidden opposing cards with explicit action flips, a remembered/searchable End Session roster and Realm Guard End Session styling. QA.1 is superseded for testing. The user accepted startup performance, including the large-world check. Scope and acceptance checks are in `RELEASE_NOTES_v1.14.0-qa.2.md` and `TEST_PROTOCOL_v1.14.0-qa.2.md`. Stable promotion needs separate acceptance; TB2E activation remains deferred. Tome functions are outside this patch.
+Candidate **1.14.0-qa.3** implements the QA.2 feedback **only for Legacy Mixed**. Scope: Creed/Mortal Crisis, the campaign nomination rules and uncapped Persona awards; searchable conflict rosters and multiple ephemeral opponents; a separate mandatory equipment step; manual participant assignment with solo/two-player/three-plus rules and knockout handling; ordinary roll dialogs and 1-Persona unused-Wise rerolls. QA.3 supersedes QA.2 for testing. See `RELEASE_NOTES_v1.14.0-qa.3.md` and `TEST_PROTOCOL_v1.14.0-qa.3.md`. Other profiles retain stable behavior, startup performance is accepted, TB2E remains deferred, Tome is outside scope and stable promotion requires separate acceptance.
 
 The milestone history below is retained as historical context.
 

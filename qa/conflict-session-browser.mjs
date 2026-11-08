@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
-const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard, gmHandleRangerPlan, cardPlannerHtml';
+const exportList = 'renderConflictWindow, handleWindowAction, startConflictDialog, currentState, setPublicState, setPrivateState, eligibleActionRoles, executeActorPool, gmApplyActionRoll, gmApplyDisposition, finishConflict, reopenConflict, revealCurrentAction, canSideRoll, conflictSideCard, gmHandleRangerPlan, cardPlannerHtml, applyEquipment, actorById, rollDisposition, advanceAfterAction, gmApplyManeuverChoice, gearActionModifiers, availableConflictWeapons';
 const server = http.createServer(async (request,response) => {
   try {
     const url=new URL(request.url,'http://localhost');
@@ -16,7 +16,7 @@ const server = http.createServer(async (request,response) => {
     if(!filename.startsWith(root))throw Error('Outside test root');
     let data=await fs.readFile(filename);
     if(url.pathname==='/module/conflicts.mjs'&&url.searchParams.has('sandbox'))data=Buffer.from(data.toString()+`\nexport { ${exportList} };\n`);
-    if(url.pathname==='/module/end-session.mjs'&&url.searchParams.has('sandbox'))data=Buffer.from(data.toString()+'\nexport { collectCriteria, reviewAndApprove };\n');
+    if(url.pathname==='/module/end-session.mjs'&&url.searchParams.has('sandbox'))data=Buffer.from(data.toString()+'\nexport { collectCriteria, reviewAndApprove, applyAwards };\n');
     response.setHeader('Content-Type',filename.endsWith('.mjs')?'text/javascript':filename.endsWith('.css')?'text/css':filename.endsWith('.svg')?'image/svg+xml':'application/octet-stream');response.end(data);
   } catch(error) {response.statusCode=404;response.end(String(error));}
 });
@@ -55,7 +55,7 @@ try {
  assert.deepEqual(await page.evaluate(()=>conflict.eligibleActionRoles(game.actors.get('ranger'),conflict.currentState(),'ranger','attack').map(row=>row.name)),['Fighter']);
  assert.ok(await page.evaluate(()=>{const s=conflict.currentState();s.currentIndex=1;return conflict.eligibleActionRoles(game.actors.get('ranger'),s,'ranger','attack').every(row=>row.name!=='Fighter');}));
  // Real DOM chat interaction: original dice are visible, skip has an accessible label, question pulses.
- await page.evaluate(()=>{game.user=fx.player;fx.dice.push([6,1,2]);window.chatPromise=conflict.executeActorPool({actor:game.actors.get('ranger'),source:{id:'fighter',name:'Fighter',rating:3,kind:'role'}}).catch(error=>{window.chatError=error.stack;});});
+ await page.evaluate(()=>{game.user=fx.player;game.actors.get('ranger').items.splice(game.actors.get('ranger').items.findIndex(item=>item.id==='wise'),1);fx.dice.push([6,1,2]);window.chatPromise=conflict.executeActorPool({actor:game.actors.get('ranger'),source:{id:'fighter',name:'Fighter',rating:3,kind:'role'}}).catch(error=>{window.chatError=error.stack;});});
  try { await page.locator('.rg-chat-question').waitFor({timeout:5000}); } catch(error) { console.log(await page.evaluate(()=>({error:window.chatError,notices:fx.notices,content:document.querySelector('#chat-sandbox').innerHTML})));throw error; }
  assert.match(await page.locator('.rg-first-roll').last().textContent(),/First roll/);
  assert.equal(await page.locator('.rg-chat-question').evaluate(el=>getComputedStyle(el).animationName),'rg-question-pulse');
@@ -187,6 +187,118 @@ try {
  await page.locator('[data-eos-search]').fill('ranger');await page.locator('[data-eos-add="ranger"]').click();
  assert.equal(await page.locator('.rg-eos-card').count(),1);
  await page.evaluate(()=>restoreWait());
+ console.log("// QA.3 actual form interactions");
+ // QA.3 actual form interactions use the production render callbacks and buttons.
+ await page.evaluate(()=>{
+   document.querySelector('#eos-test-app')?.remove();
+   window.savedDialogWait=foundry.applications.api.DialogV2.wait;
+   foundry.applications.api.DialogV2.wait=options=>new Promise(resolve=>{
+     document.querySelector('#qa3-dialog')?.remove();
+     const element=document.createElement('section');element.id='qa3-dialog';element.className='application dialog';element.style.cssText='position:fixed;inset:8px;overflow:auto;z-index:10000;background:#eddbb6;';
+     element.innerHTML=`<header class="window-header" style="padding:10px">${options.window.title}</header><form class="window-content" style="padding:12px"><div class="dialog-content">${options.content}</div><footer class="dialog-buttons" style="display:flex;gap:8px">${options.buttons.map(button=>`<button type="button" data-dialog-action="${button.action}">${button.label}</button>`).join('')}</footer></form>`;
+     document.body.append(element);options.render?.(null,{element});window.qa3DialogOptions=options;
+     for(const button of element.querySelectorAll('[data-dialog-action]'))button.addEventListener('click',async event=>{
+       try{const config=options.buttons.find(row=>row.action===button.dataset.dialogAction),result=await config.callback(event,{form:element.querySelector('form')});element.remove();resolve(result);}catch(error){window.qa3DialogError=error.stack;resolve(null);}
+     });
+   });
+   game.user=fx.gm;window.criteriaActors=[game.actors.get('ranger'),game.actors.get('ranger2')];criteriaActors[0].system.creed='Protect the lost at great personal risk.';
+   window.criteriaPromise=session.collectCriteria(criteriaActors,1);
+ });
+ assert.match(await page.locator('.rg-eos-creed').first().textContent(),/Protect the lost/);
+ assert.deepEqual(await page.locator('.rg-eos-card').first().locator('.rg-eos-awards fieldset').nth(1).locator('input').evaluateAll(inputs=>inputs.map(input=>input.name)),['personaAgainstBelief_ranger','personaGoal_ranger','personaMortalCrisis_ranger']);
+ await page.locator('[name="mvp"]').selectOption('ranger');await page.locator('[name="workhorse"]').selectOption('ranger');assert.equal(await page.locator('[name="mvp"]').inputValue(),'');
+ await page.locator('[name="personaEmbodiment_ranger"]').check();await page.locator('[name="personaEmbodiment_ranger2"]').check();assert.equal(await page.locator('[name="personaEmbodiment_ranger"]').isChecked(),false);
+ console.log("// Validation cannot be bypassed");
+ // Validation cannot be bypassed by a malformed form with two Embodiment choices.
+ await page.evaluate(()=>{document.querySelector('[name="personaEmbodiment_ranger"]').checked=true;});
+ await page.locator('[data-dialog-action="review"]').click();assert.match((await page.evaluate(()=>criteriaPromise)).error,/Only one/);
+ await page.evaluate(()=>{window.criteriaPromise=session.collectCriteria(criteriaActors,1);});
+ for(const criterion of ['personaAgainstBelief','personaGoal','personaMortalCrisis','personaEmbodiment'])await page.locator(`[name="${criterion}_ranger"]`).check();
+ await page.locator('[name="mvp"]').selectOption('ranger');await page.locator('[data-dialog-action="review"]').click();
+ assert.equal(await page.evaluate(async()=>{window.awardCriteria=await criteriaPromise;return awardCriteria.rows[0].proposal.persona;}),5);
+ assert.ok(await page.evaluate(async()=>{const a=game.actors.get('ranger');a.system.resources.persona.value=4;a.system.resources.persona.max=5;fx.settings.set('endSessionFinalized',false);await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true,fate:true},ranger2:{persona:true,fate:true}}},1);const first=a.system.resources.persona.value;await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true}}},1);return first===9&&a.system.resources.persona.value===9;}));
+ console.log("// Searchable team setup");
+ // Searchable team setup, multiple ephemeral opponents, and remembered players.
+ await page.evaluate(async()=>{game.user=fx.gm;await conflict.setPublicState(null);window.beforeActorCount=game.actors.size;window.startPromise=conflict.startConflictDialog();});
+ assert.equal(await page.locator('.rg-conflict-setup-ranger').count(),0);
+ const gmRoster=page.locator('[data-roster-side="gm"]');
+ await gmRoster.locator('summary').click();
+ for(const name of ['Rain','Wind']){await gmRoster.locator('[data-custom-name]').fill(name);await gmRoster.locator('[data-custom-add]').click();}
+ await gmRoster.locator('[data-roster-search]').fill('enemy');await gmRoster.locator('[data-add="enemy"]').click();
+ await page.locator('[name="type"]').selectOption('chase');await page.locator('[data-dialog-action="start"]').click();await page.evaluate(()=>startPromise);
+ assert.deepEqual(await page.evaluate(()=>({actors:game.actors.size===beforeActorCount,opponents:conflict.currentState().gm.participantIds.length,temporary:conflict.currentState().gm.temporaryOpponents.length})),{actors:true,opponents:3,temporary:2});
+ console.log("// Starting Disposition opens");
+ // Starting Disposition opens the ordinary roll dialog directly, including its normal choices.
+ await page.evaluate(async()=>{const s=conflict.currentState();s.stage='disposition';await conflict.setPublicState(s);window.dispositionPromise=conflict.rollDisposition('gm',s);});
+ console.log('QA3 waiting for normal roll');
+ await page.locator('.rg-conflict-standard-roll').waitFor();assert.equal(await page.locator('.rg-disposition-method').count(),0);
+ assert.equal(await page.locator('.rg-roll-dialog [name="traitId"]').count(),1);assert.equal(await page.locator('.rg-roll-dialog [name="wiseId"]').count(),1);
+ await page.locator('[data-dialog-action="cancel"]').click();await page.evaluate(()=>dispositionPromise);
+ // Optional GM methods remain available without intercepting the ordinary roll.
+ await page.evaluate(()=>{window.optionalPromise=conflict.handleWindowAction('disposition-options','gm',conflict.currentState());});
+ await page.locator('[name="method"]').selectOption('manual');await page.locator('[name="fixed"]').fill('8');
+ await page.locator('[data-dialog-action="continue"]').click();await page.evaluate(()=>optionalPromise);
+ await page.evaluate(async()=>{const s=conflict.currentState();await conflict.gmApplyDisposition({side:'gm',disposition:8},s);await conflict.gmApplyDisposition({side:'ranger',disposition:8},conflict.currentState());});
+ assert.equal(await page.evaluate(()=>conflict.currentState().stage),'equipment');
+ assert.equal(await page.locator('.rg-equipment-step select').first().inputValue(),'');
+ assert.equal(await page.locator('.rg-card-deck').count(),0);
+ await page.locator('[data-conflict-action="lock-equipment"][data-side="gm"]').click();assert.equal(await page.evaluate(()=>Boolean(conflict.currentState().equipmentLocks.gm)),false);
+ const opponentIds=await page.evaluate(()=>conflict.currentState().gm.participantIds);
+ for(const id of opponentIds){await page.locator(`[data-conflict-custom-tool-actor="${id}"]`).click();await page.locator('#qa3-dialog [name="name"]').fill(`Custom tool ${id}`);await page.locator('#qa3-dialog [name="value"]').fill('1');await page.locator('[data-dialog-action="save"]').click();}
+ await page.locator('[data-conflict-action="lock-equipment"][data-side="gm"]').click();
+ await page.evaluate(()=>{game.user=fx.player;const s=conflict.currentState();for(const id of s.ranger.participantIds){game.actors.get(id).items.push({id:'boots',type:'gear',name:'Travel boots',system:{inventory:{mode:'worn'}}});}game.socket.emit=(_channel,message)=>{window.lastIntent=message;};conflict.renderConflictWindow(s,{force:true});});
+ const rangerIds=await page.evaluate(()=>conflict.currentState().ranger.participantIds);
+ for(const id of rangerIds)await page.locator(`[data-conflict-weapon-actor="${id}"]`).selectOption('gear:boots');
+ await page.locator('[data-conflict-action="lock-equipment"][data-side="ranger"]').click();
+ await page.evaluate(async()=>{game.user=fx.gm;await conflict.applyEquipment(lastIntent.payload,conflict.currentState());});
+ assert.equal(await page.evaluate(()=>conflict.currentState().stage),'gmPlan');
+ for(const [index,action]of ['attack','defend','maneuver'].entries()){await page.locator(`.rg-card-deck [data-action-card="${action}"]`).click();await page.locator(`[data-plan-actor="${index}"][data-plan-side="gm"]`).selectOption(opponentIds[index]);}
+ await page.locator('[data-conflict-action="lock-plan"][data-side="gm"]').click();
+ await page.evaluate(()=>{game.user=fx.player;conflict.renderConflictWindow(conflict.currentState(),{force:true});});
+ for(const action of ['attack','defend','maneuver'])await page.locator(`.rg-card-deck [data-action-card="${action}"]`).click();
+ await page.locator('[data-conflict-action="lock-plan"][data-side="ranger"]').click();
+ await page.evaluate(async()=>{game.user=fx.gm;await conflict.gmHandleRangerPlan(lastIntent,conflict.currentState());});
+ assert.equal(await page.evaluate(()=>conflict.currentState().stage),'ready');
+ await page.locator('[data-conflict-action="reveal"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().revealed[0].gmActorId),opponentIds[0]);
+ await page.evaluate(async()=>{const s=conflict.currentState();s.currentIndex=1;s.stage='ready';await conflict.setPublicState(s);await conflict.revealCurrentAction(s);});
+ assert.equal(await page.evaluate(()=>conflict.currentState().revealed.find(pair=>pair.index===1).gmActorId),opponentIds[1]);
+ assert.ok(await page.evaluate(()=>conflict.actorById(conflict.currentState().gm.participantIds[1]).temporaryOpposition));
+ // Disarm targets the declared custom benefit and leaves the inventory item intact.
+ console.log('QA3 Custom inventory benefit / Maneuver');
+ await page.evaluate(async()=>{
+   const s=conflict.currentState(),pair=s.revealed.find(row=>row.index===s.currentIndex),actor=game.actors.get(pair.rangerActorId);
+   await actor.setFlag('realm-guard','conflictTools',[{id:'travel-benefit',name:'Excellent travel boots',inventoryId:'boots',conflictTypes:[s.type],action:'any',effect:'dice',value:1,temporaryConflictId:s.id}]);
+   pair.rangerWeaponId='tool:travel-benefit';s.stage='maneuver';s.pendingManeuver={side:'gm',margin:3};s.pendingManeuverQueue=[s.pendingManeuver];
+   window.disarmActorId=actor.id;window.inventoryBefore=actor.items.length;await conflict.setPublicState(s);
+   if(conflict.gearActionModifiers(actor,'attack',s,'ranger','tool:travel-benefit').dice!==1)throw Error('Custom benefit not applied');
+   window.disarmPromise=conflict.gmApplyManeuverChoice({choice:'disarm'},s);
+ });
+ await page.locator('.rg-disarm-dialog').waitFor();assert.equal(await page.locator('[name="gearId"]').inputValue(),'tool:travel-benefit');
+ await page.locator('#qa3-dialog [data-dialog-action]').first().click();await page.evaluate(()=>disarmPromise);
+ assert.ok(await page.evaluate(()=>{const actor=game.actors.get(disarmActorId),s=conflict.currentState();return actor.items.length===inventoryBefore&&actor.items.get('boots')&&conflict.gearActionModifiers(actor,'attack',s,'ranger','tool:travel-benefit').dice===0&&!conflict.availableConflictWeapons(actor,s,'ranger').some(tool=>tool.id==='tool:travel-benefit');}));
+ await page.evaluate(async()=>{const s=conflict.currentState();s.currentIndex=2;await conflict.advanceAfterAction(s);});
+ assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,tools:conflict.currentState().weaponIds,locks:conflict.currentState().equipmentLocks})),{stage:'equipment',tools:{},locks:{gm:false,ranger:false}});
+ if(process.env.PLAYTEST_SCREENSHOT)await page.screenshot({path:process.env.PLAYTEST_SCREENSHOT.replace(/\.png$/,'-equipment.png')});
+ await page.evaluate(()=>{foundry.applications.api.DialogV2.wait=savedDialogWait;});
+ // Unused Wise costs Persona; a prepared Wise is not offered twice in that roll.
+ console.log('QA3 visible paid Wise and prepared-Wise reuse guard');
+ await page.evaluate(()=>{game.user=fx.player;const actor=game.actors.get('ranger');actor.items.push({id:'wise-paid',name:'Orc-wise',type:'wise',system:{}});actor.system.resources.persona.value=1;actor.system.resources.fate.value=0;fx.dice.push([1,2,4],[4,4]);window.paidWisePromise=conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'}});});
+ await page.locator('.rg-chat-question').waitFor();assert.match(await page.locator('.rg-chat-question').textContent(),/1 Persona/);assert.match(await page.locator('.rg-decision-alert').textContent(),/Your choice is required/);
+ assert.equal(await page.locator('.rg-chat-question-buttons button').first().evaluate(button=>getComputedStyle(button).color),'rgb(37, 27, 13)');
+ await page.locator('.rg-chat-question-buttons button:not(.rg-chat-skip)').click();await page.evaluate(()=>paidWisePromise);
+ assert.equal(await page.evaluate(()=>game.actors.get('ranger').system.resources.persona.value),0);
+ await page.evaluate(async()=>{const actor=game.actors.get('ranger');fx.dice.push([1,2,4],[4,4]);window.preparedResult=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'},wiseId:'wise-paid'});});
+ assert.equal(await page.locator('.rg-chat-question').count(),0);assert.equal(await page.evaluate(()=>preparedResult.successes),3);
+ // Three-player assignment is manual and permits A-B-A without requiring C first.
+ await page.evaluate(async()=>{game.user=fx.gm;const s=baseState();s.stage='rangerPlan';s.locks={gm:true,ranger:false};s.ranger.participantIds=['ranger','ranger2','gm-only'];await conflict.setPublicState(s);game.user=fx.player;conflict.renderConflictWindow(s,{force:true});});
+ for(const [index,actorId]of ['ranger','ranger2','ranger'].entries()){
+   await page.locator('.rg-card-deck [data-action-card="attack"]').click();
+   assert.equal(await page.locator(`[data-plan-side="ranger"][data-plan-actor="${index}"]`).inputValue(),'');
+   await page.locator(`[data-plan-side="ranger"][data-plan-actor="${index}"]`).selectOption(actorId);
+ }
+ await page.locator('[data-conflict-action="lock-plan"][data-side="ranger"]').click();
+ assert.deepEqual(await page.evaluate(()=>lastIntent.payload.plan.map(row=>row.actorId)),['ranger','ranger2','ranger']);
+ console.log("// Other profile installers");
  // Other profile installers actually select the stable conflict / End Session flows.
  for(const profile of ['realm-guard-strict','mg1e','mg2e','torchbearer2e']) {
    const other=await browser.newPage({viewport:{width:800,height:600}});other.on('pageerror',error=>errors.push(error.message));

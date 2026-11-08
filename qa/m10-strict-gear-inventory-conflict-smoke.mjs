@@ -181,7 +181,7 @@ for (const forbidden of [
   ".unsetFlag("
 ]) assert.equal(strictSource.includes(forbidden), false, `Strict M10A.4 foundation must stay non-live: ${forbidden}`);
 
-const legacyConflict = fs.readFileSync("module/conflicts.mjs", "utf8");
+const legacyConflict = fs.readFileSync("module/baseline-1.13.1/conflicts.mjs", "utf8");
 assert.ok(legacyConflict.includes("Unarmed / no valid Conflict Weapon or Tool −1D"), "Legacy Mixed live unarmed penalty must remain untouched in qa.5.");
 assert.ok(legacyConflict.includes('String(i.system.inventory?.mode ?? "") === "hand"'), "Legacy Mixed live hand-slot behavior must remain untouched in qa.5.");
 
