@@ -103,10 +103,20 @@ function compactSkills(sheet, root) {
     card.querySelector('.rg-skill-roll-actions')?.remove();
     if (untrained) {
       const state = beginnerProgress(sheet.actor, role);
-      progressButton(sheet, card.querySelector('.rg-untrained-meta'), { roleId: role.id }, `Learning ${state.attempts}/${state.needed} · Base: ${state.label}`);
+      const learning = card.querySelector('.rg-untrained-meta');
+      progressButton(sheet, learning, { roleId: role.id }, `Learning ${state.attempts}/${state.needed}`);
+      if (learning) { learning.title = `Base: ${state.label}. Learning requires maximum Nature attempts.`; actions?.before(learning); }
     } else progressButton(sheet, card.querySelector('.rg-learning'), { roleId: role.id });
+    if (!untrained) {
+      const learning = card.querySelector('.rg-learning'), rating = card.querySelector('.role-rating');
+      if (learning && rating) rating.before(learning);
+    }
   }
-  for (const stat of root.querySelectorAll('[data-ability-learning]')) progressButton(sheet, stat.querySelector('.rg-ability-learning'), { abilityKey: stat.dataset.abilityLearning });
+  for (const stat of root.querySelectorAll('[data-ability-learning]')) {
+    const learning = stat.querySelector('.rg-ability-learning');
+    progressButton(sheet, learning, { abilityKey: stat.dataset.abilityLearning });
+    if (learning) { const tax=stat.querySelector('.rg-nature-manage-btn'); if (tax) tax.before(learning); else stat.append(learning); }
+  }
 }
 
 function compactHeader(sheet, root, section) {
@@ -118,14 +128,32 @@ function compactHeader(sheet, root, section) {
   const tools = upper.querySelector('.rg-global-tools'), turn = upper.querySelector('.rg-turn-strip');
   if (tools && turn) { turn.append(...tools.children); tools.remove(); }
   const toggle = button('', () => { sheet._rgHeaderCollapsed = !sheet._rgHeaderCollapsed; refresh(); }, 'rg-header-toggle');
-  const refresh = () => { upper.hidden = Boolean(sheet._rgHeaderCollapsed); toggle.textContent = sheet._rgHeaderCollapsed ? '⌄' : '⌃'; toggle.title = sheet._rgHeaderCollapsed ? 'Expand character header' : 'Collapse character header'; toggle.setAttribute('aria-expanded',String(!sheet._rgHeaderCollapsed)); };
+  const refresh = () => {
+    upper.hidden = Boolean(sheet._rgHeaderCollapsed); toggle.textContent = sheet._rgHeaderCollapsed ? '⌄' : '⌃';
+    toggle.title = sheet._rgHeaderCollapsed ? 'Expand character header' : 'Collapse character header'; toggle.setAttribute('aria-expanded',String(!sheet._rgHeaderCollapsed));
+    const stat=upper.querySelector('.rg-statbar');
+    toggle.style.top = sheet._rgHeaderCollapsed ? '0px' : `${Math.max(0,(stat?.offsetTop ?? upper.offsetHeight)+(stat?.offsetHeight ?? 0)-12)}px`;
+  };
   upper.after(toggle); refresh();
+  sheet._rgHeaderSizeObserver?.disconnect();
+  if (globalThis.ResizeObserver) { sheet._rgHeaderSizeObserver=new ResizeObserver(refresh); sheet._rgHeaderSizeObserver.observe(upper); }
   // Per-tab scroll keys also work with the existing scroll persistence wrapper.
   for (const page of section.querySelectorAll('[data-rg-page]')) { page.dataset.rgScrollKey = `workspace-${page.dataset.rgPage}`; }
 }
 
 // Positions are percentages of each figure's own drawing area, not screen pixels.
-const POINTS = { head:[50,11], neck:[50,22], cloak:[69,28], torso:[50,36], belt:[50,53], pocket:[64,57], 'left-hand':[20,58], 'right-hand':[80,58], feet:[50,91] };
+const BASE_POINTS = { head:[50,8], neck:[50,19], cloak:[65,24], torso:[50,29], belt:[50,44], pocket:[64,57], 'left-hand':[20,58], 'right-hand':[80,58], feet:[50,91] };
+const FIGURE_POINTS = {
+  'human-male': { head:[50,7.5],neck:[50,19],torso:[50,27],belt:[50,44],cloak:[65,22.5] },
+  'human-female': { head:[50,8.5],neck:[50,19],torso:[50,28.5],belt:[50,44.5],cloak:[64,22.5] },
+  'elf-male': { head:[50,7.5],neck:[50,18.8],torso:[50,26.5],belt:[50,40.5],cloak:[64,20.5] },
+  'elf-female': { head:[50,8],neck:[50,18],torso:[50,27.5],belt:[50,41],cloak:[62,21] },
+  'dwarf-male': { head:[50,8.5],neck:[50,26],torso:[50,34],belt:[50,49],cloak:[68.5,26] },
+  'dwarf-female': { head:[50,9],neck:[50,25],torso:[50,34],belt:[50,49],cloak:[68,26.5] },
+  'hobbit-male': { head:[50,8],neck:[50,21],torso:[50,30],belt:[50,44.5],cloak:[67,25] },
+  'hobbit-female': { head:[50,8],neck:[50,23],torso:[50,33],belt:[50,47],cloak:[68,27] }
+};
+export function equipmentPoints(figure) { return { ...BASE_POINTS, ...(FIGURE_POINTS[`${figure.key}-${figure.sex}`] ?? {}) }; }
 
 async function chooseZoneGear(sheet, zoneId) {
   if (!canEdit(sheet)) return;
@@ -155,14 +183,14 @@ async function chooseZoneGear(sheet, zoneId) {
 function equipment(sheet, root) {
   const stage = root.querySelector('.rg-equipment-stage'); if (!stage || stage.dataset.rgDotEquipment) return;
   stage.dataset.rgDotEquipment = 'true';
-  const figure = workspaceFigure(sheet.actor), view = buildInventoryView(sheet.actor);
+  const figure = workspaceFigure(sheet.actor), view = buildInventoryView(sheet.actor), points = equipmentPoints(figure);
   stage.className = 'rg-equipment-stage rg-equipment-dots'; stage.dataset.rgFigureAncestry = figure.key;
   stage.style.aspectRatio = figure.key === 'dwarf' ? '1199 / 1312' : '2 / 3';
   stage.replaceChildren();
   const image = document.createElement('img'); image.src = figure.src; image.alt = figure.label; image.className = 'rg-inventory-figure'; stage.append(image);
   for (const zone of view.zones) {
     const point = button('', () => chooseZoneGear(sheet,zone.id), 'rg-equipment-point');
-    point.dataset.rgInventoryZone = zone.id; point.style.left = `${POINTS[zone.id][0]}%`; point.style.top = `${POINTS[zone.id][1]}%`;
+    point.dataset.rgInventoryZone = zone.id; point.style.left = `${points[zone.id][0]}%`; point.style.top = `${points[zone.id][1]}%`;
     const label = `${zone.label}: ${zone.blocked ? zone.blockedByName + ' · both hands' : zone.items.map(item => item.name).join(', ') || 'Empty'}`;
     point.title = label; point.setAttribute('aria-label',label); point.setAttribute('aria-haspopup','dialog'); point.classList.toggle('is-equipped',zone.items.length > 0 || zone.blocked); point.disabled = !canEdit(sheet);
     point.innerHTML = `<span aria-hidden="true">${zone.blocked ? '⌁' : zone.items.length ? '●' : '+'}</span><span class="rg-equipment-tip">${esc(label)}</span>`;

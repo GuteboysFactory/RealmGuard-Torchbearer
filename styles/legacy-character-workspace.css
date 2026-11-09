@@ -107,3 +107,71 @@
  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,
  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage { width:104px!important; height:125px!important; }
 }
+
+/* Follow-up: progression belongs to the identity line, not a second card row. */
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace { position:relative; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header-toggle { position:absolute!important; left:50%; transform:translateX(-50%); z-index:9; width:46px!important; height:16px!important; min-height:16px!important; padding:0!important; margin:0!important; background:transparent!important; color:#161b10!important; -webkit-text-fill-color:#161b10!important; border:1px solid transparent!important; box-shadow:none!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header-toggle:hover,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header-toggle:focus-visible { background:#393e27!important; color:#f5e6bd!important; -webkit-text-fill-color:#f5e6bd!important; border-color:#9b7a42!important; border-radius:0 0 10px 10px; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar { padding:2px 0!important; gap:4px!important; grid-template-columns:1.4fr repeat(4,1fr)!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-stat { flex-wrap:nowrap!important; min-height:34px!important; height:auto!important; align-items:center; gap:3px!important; padding:3px 4px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-stat > .rg-stat-roll { flex:1 1 auto; min-width:0; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-stat input { width:27px!important; min-width:27px!important; height:24px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-nature-values { display:flex!important; gap:2px!important; flex:0 0 auto; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-ability-learning { flex:0 0 auto!important; width:auto!important; border:0!important; padding:0!important; margin:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-compact-progress { font-size:8px!important; line-height:10px!important; padding:0 1px!important; min-height:20px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar .rg-nature-manage-btn { font-size:8px!important; padding:1px 3px!important; flex:0 0 auto; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-skill { min-height:40px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-role-top,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-main { align-items:center!important; flex-wrap:nowrap!important; border-bottom:0!important; gap:5px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-trained-static-display { gap:6px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .role-name,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-static-display { flex:1 1 auto!important; min-width:0!important; overflow-wrap:anywhere; font-size:14px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-learning { flex:0 0 auto!important; min-height:24px!important; padding:0!important; border:0!important; width:auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-compact-progress { min-width:40px!important; padding:0 2px!important; font-size:8px!important; line-height:10px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-compact-progress { pointer-events:auto!important; cursor:pointer; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-main .rg-untrained-meta { padding:0!important; flex:0 0 auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-main .rg-compact-progress { padding:0 2px!important; font-size:9px!important; white-space:nowrap; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-skill .rg-untrained-actions .rg-compact-roll { color:#f7e7bd!important; -webkit-text-fill-color:#f7e7bd!important; background:#354b31!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-ability-head small { color:#654b2e!important; -webkit-text-fill-color:#654b2e!important; }
+
+/* Compact normal/Conflict roll forms. The class is applied only in Legacy Mixed. */
+.application.rg-compact-roll-window { max-width:calc(100vw - 24px)!important; }
+.application.rg-compact-roll-window .rg-roll-dialog.rg-compact-roll-dialog { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px!important; padding:8px!important; max-height:min(74vh,720px)!important; min-width:0; font-size:12px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-roll-dialog-head,
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-obstacle-panel,
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-roll-target-picker,
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-teamwork,
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-condition-roll-preview,
+.application.rg-compact-roll-window .rg-compact-roll-dialog > .rg-conflict-roll-context { grid-column:1/-1; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog fieldset { margin:0!important; padding:5px 7px!important; min-width:0!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog label { display:flex!important; flex-wrap:wrap; gap:4px!important; align-items:center; justify-content:space-between; margin:2px 0!important; padding:0!important; font-size:11px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog input:not([type="checkbox"]),
+.application.rg-compact-roll-window .rg-compact-roll-dialog select { min-height:27px!important; height:27px!important; padding:3px 5px!important; font-size:11px!important; width:auto; min-width:0; max-width:100%; flex:1 1 100px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog input[type="number"] { flex:0 0 48px; width:48px!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-dialog-head { margin:0!important; padding:5px 7px!important; display:flex; justify-content:space-between; align-items:center; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-core-fields { display:grid!important; grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:5px!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-field { padding:5px!important; min-height:0!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-field-head { gap:3px!important; flex-wrap:wrap; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-teamwork-requester { padding:3px!important; margin:0!important; display:flex; gap:6px; align-items:center; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-teamwork-ask { min-height:27px!important; padding:3px 7px!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-teamwork-accepted-list { margin:3px 0!important; padding:3px 5px!important; min-height:0!important; font-size:10px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-condition-roll-preview { margin:0!important; padding:4px 6px!important; font-size:10px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-no-roll-conditions { display:flex; gap:8px; align-items:center; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-learning-choice label { justify-content:flex-start; gap:5px!important; background:transparent!important; border:0!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-explanation { margin:2px 0; color:#57462e; font-size:10px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-explanation > summary { display:inline-block; cursor:pointer; width:16px; height:16px; line-height:14px; text-align:center; border:1px solid #8a7654; border-radius:50%; font-weight:bold; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-explanation[open] { grid-column:1/-1; padding:4px; background:#fff2d3; border:1px solid #ac9466; border-radius:4px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-explanation[open] small { display:block; font-size:11px; color:#49351f; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-help-tip { cursor:help; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-compact-traits { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-compact-traits label { display:block!important; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-compact-traits select { display:block; width:100%; margin-top:3px; }
+.application.rg-compact-roll-window .rg-compact-roll-dialog .rg-compact-traits .rg-roll-explanation { grid-column:1/-1; }
+@media (max-width:520px) {
+ .application.rg-compact-roll-window .rg-roll-dialog.rg-compact-roll-dialog { grid-template-columns:minmax(0,1fr); }
+ .application.rg-compact-roll-window .rg-compact-roll-dialog > * { grid-column:1!important; }
+ .application.rg-compact-roll-window .rg-compact-roll-dialog .rg-roll-core-fields { grid-template-columns:minmax(0,1fr)!important; }
+ .application.rg-compact-roll-window .rg-compact-roll-dialog .rg-compact-traits { grid-template-columns:minmax(0,1fr); }
+}

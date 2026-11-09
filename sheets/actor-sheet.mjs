@@ -7,6 +7,7 @@ import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, set
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
 import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget } from "../module/legacy-roll-targets.mjs";
+import { compactLegacyRollDialog } from "../module/legacy-roll-layout.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
 import { openQuickTokenBuilder, openRangerPortraitEditor, rangerPortraitState, setRangerOriginalPortrait } from "../module/token-builder.mjs";
@@ -1194,7 +1195,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const DialogV2 = foundry.applications.api.DialogV2;
     const result = await DialogV2.wait({
       window: { title: `Realm Guard · Roll ${role.name}`, resizable: true }, content, modal: false, rejectClose: false,
-      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); },
+      ...(legacyMixedPolishEnabled() ? { position: { width: Math.min(640, (globalThis.innerWidth ?? 680)-32) } } : {}),
+      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); compactLegacyRollDialog(dialog); },
       buttons: [{ action: "roll", label: review ? "Roll when Ob is approved" : "Roll", icon: "fa-solid fa-dice", default: true, callback: async (_event, button) => {
         const form = button.form; if (!form) return null;
         const elements = form.elements;

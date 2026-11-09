@@ -44,7 +44,7 @@ try {
   const {buildInventoryView}=await import('/module/inventory.mjs');window.inventory=await import('/module/inventory.mjs');
   const {abilityLearning,advancementRequirements}=await import('/module/advancement.mjs');
   const data=actorData();data.name='Arantor';data.system.belief='A Ranger stands between danger and those who cannot face it alone.';data.system.natureDescriptors='Tradition, Family, Grief';data.system.age=47;data.system.rank='veteran';
-  for(let i=0;i<16;i++)data.items.push({id:`skill${i}`,name:`Example Skill ${i}`,type:'role',system:{rating:i%2?0:3,beginnerAbility:i%2?'will':'health',beginnerAttempts:0,learning:{passed:0,failed:0}}});
+  for(let i=0;i<32;i++)data.items.push({id:`skill${i}`,name:`Example Skill ${i}`,type:'role',system:{rating:i%2?0:3,beginnerAbility:i%2?'will':'health',beginnerAttempts:0,learning:{passed:0,failed:0}}});
   for(const [id,name,location,slots,hands] of [['helm','Iron helm','head',1,0],['boots','Travel boots','feet',1,0],['sword','Longsword','',1,1],['greatsword','Great sword','',2,2]])data.items.push({id,name,type:'gear',system:{quantity:1,inventory:{mode:location?'worn':'unassigned',location,slots,wieldHands:hands,containerId:''}}});
   window.actor=new RealmGuardActor(data);for(const item of actor.items)item.getFlag=(ns,key)=>item.flags?.[ns]?.[key];
   const enemyData=actorData('enemy');enemyData.name='Bandit';enemyData.type='npc';game.actors.push(actor,new RealmGuardActor(enemyData));
@@ -61,7 +61,7 @@ try {
   // the dispatcher, while handlers/forms/render callbacks remain production code.
   app.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(!target)return;const action=Sheet.DEFAULT_OPTIONS.actions[target.dataset.action];if(action)void action.call(sheet,event,target);});
   foundry.applications.api.DialogV2.wait=options=>new Promise(resolve=>{
-   document.querySelector('#workspace-dialog')?.remove();const element=document.createElement('section');element.id='workspace-dialog';element.className='application dialog';element.style.cssText='position:fixed;left:890px;top:20px;width:370px;max-height:840px;overflow:auto;background:#eddbb6;padding:12px;z-index:5000;';
+   document.querySelector('#workspace-dialog')?.remove();const element=document.createElement('section');element.id='workspace-dialog';element.className='application dialog';const width=options.position?.width ?? 370;element.style.cssText=`position:fixed;left:${Math.min(890,innerWidth-width-16)}px;top:20px;width:${width}px;max-height:840px;overflow:auto;background:#eddbb6;padding:12px;z-index:5000;`;
    element.innerHTML=`<h2>${options.window.title}</h2><form>${options.content}<footer>${options.buttons.map(row=>`<button type="button" data-dialog-action="${row.action}">${row.label}</button>`).join('')}</footer></form>`;document.body.append(element);
    const dialog={element,close:async()=>{element.remove();resolve(null);}};options.render?.(null,dialog);
    for(const node of element.querySelectorAll('[data-dialog-action]'))node.addEventListener('click',async event=>{try{const result=await options.buttons.find(row=>row.action===node.dataset.dialogAction).callback(event,{form:element.querySelector('form')});element.remove();resolve(result);}catch(error){window.dialogError=error.stack;resolve(null);}});
@@ -76,10 +76,21 @@ try {
  assert.equal(await page.locator('.rg-turn-strip [data-action="customRoll"]').count(),1);
  assert.equal(await page.locator('.rg-equipment-point').count(),9);
  assert.match(await page.locator('.rg-inventory-figure').getAttribute('src'),/human-male/);
+ assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).position),'absolute');
+ assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).backgroundColor),'rgba(0, 0, 0, 0)');
+ await page.locator('.rg-header-toggle').hover();assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(57, 62, 39)');await page.mouse.move(0,0);
+ for(const key of ['nature','will','health','resources','circles']) {
+  assert.ok(await page.locator(`[data-ability-learning="${key}"]`).evaluate(node=>node.getBoundingClientRect().height<=46),'Ability card fits one compact row');
+ }
  await page.screenshot({path:screenshot+'-header.png'});
  await page.locator('.rg-header-toggle').click();assert.equal(await page.locator('.rg-workspace-upper').isVisible(),false);
+ assert.ok(await page.locator('.rg-header-toggle').evaluate(node=>node.getBoundingClientRect().top>=node.closest('.rg-sheet').getBoundingClientRect().top));
+ await page.locator('.rg-header-toggle').click();assert.equal(await page.locator('.rg-workspace-upper').isVisible(),true);await page.locator('.rg-header-toggle').click();
  await page.locator('[data-rg-tab="skills"]').click();
  assert.equal(await page.locator('.rg-trained-role').first().locator('.rg-role-actions .rg-compact-roll').textContent(),'Roll');
+ assert.ok(await page.locator('.rg-trained-role').first().evaluate(node=>{const progress=node.querySelector('.rg-compact-progress').getBoundingClientRect(),rating=node.querySelector('.role-rating').getBoundingClientRect();return Math.abs((progress.top+progress.bottom-rating.top-rating.bottom)/2)<8 && node.getBoundingClientRect().height<65;}),'Progress is beside the Skill name and rating');
+ assert.equal(await page.locator('.rg-untrained-skill .rg-compact-roll').first().evaluate(node=>getComputedStyle(node).webkitTextFillColor),'rgb(247, 231, 189)');
+ assert.ok(await page.locator('.rg-untrained-skill').first().evaluate(node=>node.querySelector('.rg-untrained-main').contains(node.querySelector('.rg-untrained-meta'))),'Learning is in the untrained name row');
  await page.locator('.rg-trained-role').first().locator('.rg-compact-progress').click();
  await page.locator('#workspace-dialog [name="passed"]').fill('1');await page.locator('#workspace-dialog [data-dialog-action="save"]').click();
  await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>actor.items.get('fighter').system.learning.passed),1);
@@ -91,6 +102,11 @@ try {
  // Full Skill roll form: mode and target without targeting a token or changing
  // saved Skill flags. Exercise the actual actor roll to completion.
  await page.locator('[data-item-id="fighter"] .rg-compact-roll').click();
+ await page.screenshot({path:screenshot+'-roll.png'});
+ assert.equal(await page.locator('#workspace-dialog').evaluate(node=>Math.round(node.getBoundingClientRect().width)),640);
+ assert.ok(await page.locator('.rg-compact-roll-dialog .rg-roll-explanation').count());
+ assert.equal(await page.locator('.rg-roll-explanation[open]').count(),0);
+ await page.locator('.rg-roll-explanation summary').first().click();assert.equal(await page.locator('.rg-roll-explanation[open]').count(),1);await page.locator('.rg-roll-explanation[open] summary').click();
  await page.locator('[name="rollMode"]').selectOption('versus');
  await page.locator('[data-rg-opponent-search]').fill('band');await page.locator('[name="opponentActorId"]').selectOption('enemy');
  assert.equal(await page.locator('.rg-obstacle-panel').isVisible(),false);
@@ -126,6 +142,7 @@ try {
  for(const ancestry of ['Human','Elf','Dwarf','Hobbit'])for(const sex of ['male','female']) {
   await page.evaluate(async({ancestry,sex})=>{actor.system.ancestry=ancestry;await actor.setFlag('realm-guard','inventorySilhouetteSex',sex);await renderSheet();},{ancestry,sex});
   assert.equal(await page.locator('.rg-inventory-figure').evaluate(img=>img.complete&&img.naturalWidth>0),true);
+  await page.locator('.rg-equipment-stage').screenshot({path:screenshot+`-${ancestry.toLowerCase()}-${sex}.png`});
  }
  // Menus stay visible while the single active page scrolls.
  await page.locator('[data-rg-tab="skills"]').click();
@@ -133,13 +150,15 @@ try {
  await page.locator('[data-rg-tab="character"]').click();await page.locator('[data-rg-tab="skills"]').click();
  assert.ok(await page.locator('[data-rg-page="skills"]').evaluate(node=>node.scrollTop)>50);
  assert.equal(await page.locator('.rg-sheet-tabs').isVisible(),true);
+ await page.locator('.rg-untrained-skills').evaluate(node=>{const page=node.closest('[data-rg-page]');page.scrollTop+=node.getBoundingClientRect().top-page.getBoundingClientRect().top;});await page.screenshot({path:screenshot+'-untrained.png'});
  // Profile gates use the same template and original decorators without new UI.
  await page.evaluate(async()=>{fx.settings.set('activeRulesProfileId','mouse-guard-2e');await renderSheet();});
  assert.equal(await page.locator('.rg-legacy-workspace').count(),0);
  assert.ok(await page.locator('[data-action="quickRollRole"]').count());
  await page.evaluate(async()=>{fx.settings.set('activeRulesProfileId','realm-guard-legacy-mixed');await renderSheet();game.user=fx.player;});
  assert.equal(await page.evaluate(()=>menu.showLegacySceneMenu({clientX:50,clientY:50},Sheet)),false);
- await page.evaluate(()=>{game.user=fx.gm;window.canvas={ready:true,scene:{id:'scene'},tokens:{hover:null},canvasCoordinatesFromClient:p=>p};canvas.activeLayer=canvas.tokens;menu.showLegacySceneMenu({clientX:1250,clientY:880},Sheet);});
+ await page.evaluate(()=>{game.user=fx.gm;window.hudCloses=0;window.canvas={ready:true,scene:{id:'scene'},tokens:{hover:null},canvasCoordinatesFromClient:p=>p,hud:{token:{close:()=>{hudCloses++;},clear:()=>{throw Error('Deprecated HUD.clear must not be called');}}}};canvas.activeLayer=canvas.tokens;menu.showLegacySceneMenu({clientX:1250,clientY:880},Sheet);});
+ assert.equal(await page.evaluate(()=>hudCloses),1);
  assert.equal(await page.locator('[role="menu"]').count(),1);await page.keyboard.press('ArrowDown');await page.keyboard.press('Escape');assert.equal(await page.locator('[role="menu"]').count(),0);
  // Compact width still has reachable navigation and no horizontal overflow.
  await page.evaluate(()=>{document.querySelector('#workspace-app').style.width='650px';document.querySelector('#workspace-app').style.height='650px';});

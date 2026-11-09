@@ -46,7 +46,7 @@ export function showLegacySceneMenu(event, SheetClass) {
   const position=canvas.canvasCoordinatesFromClient({x:event.clientX,y:event.clientY});
   const token=canvas.tokens.hover ?? null;
   closeLegacySceneMenu();
-  canvas.hud?.token?.clear?.();
+  canvas.hud?.token?.close?.();
   const menu=document.createElement('div'); menu.className='rg-scene-quick-menu'; menu.setAttribute('role','menu'); menu.setAttribute('aria-label','Realm Guard GM tools');
   const entries=sceneMenuEntries({token,position,SheetClass});
   entries.forEach(entry=>{const item=document.createElement('button'); item.type='button'; item.setAttribute('role','menuitem'); item.textContent=entry.label; item.addEventListener('click',async()=>{closeLegacySceneMenu(); if (!permitted()) return; try { await entry.run(); } catch(error){console.error('Realm Guard | GM scene menu',error);ui.notifications.error(error.message);} }); menu.append(item);});

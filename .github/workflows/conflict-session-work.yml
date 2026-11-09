@@ -1,7 +1,7 @@
 name: Conflict and session patch checks
 on:
   push:
-    branches: ["work/conflict-session-polish", "work/legacy-sheet-inventory"]
+    branches: ["work/conflict-session-polish", "work/legacy-sheet-inventory", "work/legacy-compact-followup"]
   workflow_dispatch:
 permissions:
   contents: read

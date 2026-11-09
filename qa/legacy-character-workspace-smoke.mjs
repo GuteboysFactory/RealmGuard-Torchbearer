@@ -4,15 +4,17 @@ import { installPlaytestFixture, actorData } from './lib/playtest-foundry-fixtur
 const fx=installPlaytestFixture();
 const {RealmGuardActor}=await import('../module/documents.mjs');
 const {RealmGuardActorSheet}=await import('../sheets/actor-sheet.mjs');
-const {workspaceFigure,beginnerProgress,saveProgress}=await import('../module/legacy-character-workspace.mjs');
+const {workspaceFigure,equipmentPoints,beginnerProgress,saveProgress}=await import('../module/legacy-character-workspace.mjs');
 const {visibleRollOpponents,resolveLegacyRollTarget}=await import('../module/legacy-roll-targets.mjs');
 const {sceneMenuEntries}=await import('../module/legacy-scene-menu.mjs');
 const actor=new RealmGuardActor(actorData());game.actors.push(actor);
 assert.equal(workspaceFigure(actor).key,'human','No ancestry defaults to human');
 for(const [ancestry,key] of [['Human','human'],['Elf','elf'],['Dwarf','dwarf'],['Hobbit','hobbit'],['Dúnadan','human']]) {
  actor.system.ancestry=ancestry;
- for(const sex of ['male','female']) {await actor.setFlag('realm-guard','inventorySilhouetteSex',sex);const figure=workspaceFigure(actor);assert.equal(figure.key,key);assert.equal(figure.sex,sex);const path=new URL('../'+figure.src.replace('systems/realm-guard/',''),import.meta.url);assert.ok(fs.statSync(path).size>10000);}
+ for(const sex of ['male','female']) {await actor.setFlag('realm-guard','inventorySilhouetteSex',sex);const figure=workspaceFigure(actor);assert.equal(figure.key,key);assert.equal(figure.sex,sex);const path=new URL('../'+figure.src.replace('systems/realm-guard/',''),import.meta.url);assert.ok(fs.statSync(path).size>10000);const points=equipmentPoints(figure);assert.ok(points.head[1]<11);assert.ok(points.head[1]<points.neck[1]&&points.neck[1]<points.torso[1]&&points.torso[1]<points.belt[1]);assert.ok(points.belt[1]<53);assert.ok(points.cloak[0]>50);}
 }
+assert.notDeepEqual(equipmentPoints({key:'human',sex:'male'}),equipmentPoints({key:'dwarf',sex:'male'}));
+assert.notDeepEqual(equipmentPoints({key:'human',sex:'male'}),equipmentPoints({key:'human',sex:'female'}));
 actor.system.ancestry='Orc';assert.equal(workspaceFigure(actor).key,'neutral');
 actor.system.attributes.nature={value:1,maximum:4};actor.items.get('fighter').system.rating=0;
 assert.equal(beginnerProgress(actor,actor.items.get('fighter')).needed,4,'Taxed Nature must not reduce learning threshold');
