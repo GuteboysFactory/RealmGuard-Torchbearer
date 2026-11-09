@@ -25,6 +25,8 @@ Chattvarningen om den äldre chatthooken ingår inte. Användaren bekräftade at
 - Det befintliga Conflict/End Session-webbläsartestet passerade, inklusive manuella Skills, gemensam Disposition, Back, kortsekretess, chattval och de andra profilernas gränssnitt.
 - Release preflight och diff-kontroll passerade. Versionsnummer, release/READY och kanaler är oförändrade. Bevarade profilsnapshots, regelprofiler och den accepterade startup-optimeringen är inte ändrade.
 
+GitHub-körning [42695306093](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/42695306093) passerade samtliga steg på kodcommit `8fca17c76603b0ec1a68cfbc451c167b1582dfb3`: releasekontrakt, syntax/regressioner, Conflict/End Session-testet, det utökade workspace-testet och uppladdning av granskningsbilder. Efterföljande rapportuppdatering ändrar endast dokumentation.
+
 Testerna använder produktionskod i riktig Chromium men kontrollerade Foundry-dokument, dialogvärdar och canvasobjekt. Inga användarvärldar eller installerade filer har ändrats. Livekontroll på full Foundry-server med separata spelarklienter återstår. Ny patch skapas/publiceras först efter användarens granskning.
 
 ## Nästa kontroll i testvärlden
