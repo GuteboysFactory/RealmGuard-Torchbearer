@@ -639,11 +639,12 @@ export class RealmGuardActor extends Actor {
     const fresh = conditionData.active.find(c => String(c.name).trim().toLowerCase() === "fresh");
     const freshDice = fresh ? Math.max(0, Number(fresh.system.rollModifier ?? 1)) : 0;
     const preHalfConditionDice = Number(conditionData.dice ?? 0) - freshDice;
-    // MG/Torchbearer-family ordering: ability + pre-halving bonuses are halved/rounded up; Persona and Fresh are added afterward.
-    const preHalf = Math.max(0, abilityBase + Number(modifier || 0) + Math.max(0, Number(extraDice || 0)) + (Array.isArray(help) ? help.reduce((n,h) => n + Math.max(0, Number(h.dice || 0)), 0) : 0) + assist.traitDice + Number(power?.diceBonus ?? 0) + preHalfConditionDice);
+    // Legacy Mixed: halve ability + pre-half bonuses, round up, then apply
+    // Trait dice, Persona, Fresh and tapped Nature at full value.
+    const preHalf = Math.max(0, abilityBase + Number(modifier || 0) + Math.max(0, Number(extraDice || 0)) + (Array.isArray(help) ? help.reduce((n,h) => n + Math.max(0, Number(h.dice || 0)), 0) : 0) + assist.wiseDice + Number(power?.diceBonus ?? 0) + preHalfConditionDice);
     const beginnerDice = Math.ceil(preHalf / 2);
     const natureTapDice = tapNature ? this._natureState().current : 0;
-    const dice = Math.max(0, beginnerDice + personaDice + freshDice + natureTapDice);
+    const dice = Math.max(0, beginnerDice + assist.traitPoolDice + personaDice + freshDice + natureTapDice);
     if (!dice) return ui.notifications.warn("Realm Guard: Beginner's Luck dice pool is 0.");
     let preparedOpponentDice = 0;
     if (opponent && opposition) {
@@ -693,7 +694,7 @@ export class RealmGuardActor extends Actor {
       Number(modifier||0)?["Modifier",signedDice(modifier)]:null,
       Number(extraDice||0)?["Extra Dice",`+${Number(extraDice)}D`]:null,
       beginnerHelpDice?["Teamwork",`+${beginnerHelpDice}D`]:null,
-      assist.traitPoolDice?["Trait",signedDice(assist.traitPoolDice)]:null,
+      assist.traitPoolDice?["Trait after half",signedDice(assist.traitPoolDice)]:null,
       assist.wiseDice?["I Am Wise",signedDice(assist.wiseDice)]:null,
       Number(power?.diceBonus??0)?["Token of Power",signedDice(power.diceBonus)]:null,
       preHalfConditionDice?["Conditions before half",signedDice(preHalfConditionDice)]:null,

@@ -1,7 +1,7 @@
 name: Conflict and session patch checks
 on:
   push:
-    branches: ["work/conflict-session-polish"]
+    branches: ["work/conflict-session-polish", "work/legacy-sheet-inventory"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,14 +24,20 @@ jobs:
           for smoke in qa/*-smoke.mjs; do node "$smoke"; done
       - name: Install isolated browser test runtime
         run: |
-          npm install --no-save --package-lock=false playwright@1.62.1
+          npm install --no-save --package-lock=false playwright@1.62.1 handlebars@4.7.8
           npx playwright install --with-deps chromium
       - name: Run actual DOM sandbox against production modules
         env:
           PLAYTEST_SCREENSHOT: qa/conflict-session-sandbox.png
         run: node qa/conflict-session-browser.mjs
+      - name: Run Legacy character workspace browser checks
+        env:
+          WORKSPACE_SCREENSHOT: qa/legacy-workspace
+        run: node qa/legacy-character-workspace-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: conflict-session-sandbox
-          path: qa/conflict-session-sandbox*.png
+          path: |
+            qa/conflict-session-sandbox*.png
+            qa/legacy-workspace*.png

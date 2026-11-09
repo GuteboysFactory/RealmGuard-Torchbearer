@@ -34,7 +34,8 @@
     "styles/qa23-recruitment-contrast.css",
     "styles/qa24-final-cleanup.css",
     "styles/qa27-m8-relationships.css",
-    "styles/qa28-quick-npc-library.css"
+    "styles/qa28-quick-npc-library.css",
+    "styles/legacy-character-workspace.css"
   ],
   "languages": [
     {

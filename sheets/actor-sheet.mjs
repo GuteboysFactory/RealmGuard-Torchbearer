@@ -1,4 +1,4 @@
-import { scopeLegacyMixedClass } from "../module/legacy-mixed-scope.mjs";
+import { legacyMixedPolishEnabled, scopeLegacyMixedClass } from "../module/legacy-mixed-scope.mjs";
 import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1/actor-sheet.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
@@ -6,6 +6,7 @@ import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
+import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget } from "../module/legacy-roll-targets.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
 import { openQuickTokenBuilder, openRangerPortraitEditor, rangerPortraitState, setRangerOriginalPortrait } from "../module/token-builder.mjs";
@@ -743,10 +744,11 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const ability = this.actor.system.attributes?.[abilityKey];
     const abilityValue = Number(ability?.value ?? 0);
     if (abilityValue <= 0) return ui.notifications.warn(`Realm Guard: ${abilityKey === "health" ? "Health" : "Will"} is 0. Beginner's Luck cannot be used; recover first or use Nature.`);
-    const versus = Boolean(role.system.versus);
+    let versus = legacyMixedPolishEnabled() ? false : Boolean(role.system.versus);
     const defaults = { obstacle: 1, modifier: 0 };
     const options = await RealmGuardActorSheet._openRollDialog.call(this, role, { versus, ...defaults, beginnerLuck: true, beginnerAbility: abilityKey });
     if (!options) return;
+    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
     const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, oppositionId, tapNature, natureScope } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, role.name, { isSkill: true });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Skill.");
@@ -754,8 +756,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost > Number(this.actor.system.resources.persona.value ?? 0)) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
     let opposition = null, opponent = null;
-    if (versus && game.user.targets.size === 1) {
-      opponent = [...game.user.targets][0]?.actor ?? null;
+    if (versus && (options.opponentActorId || game.user.targets.size === 1)) {
+      opponent = options.opponentActorId ? game.actors.get(options.opponentActorId) : [...game.user.targets][0]?.actor ?? null;
       opposition = opponent ? RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId) : null;
       if (!opposition || opposition.rating <= 0) return ui.notifications.warn("Realm Guard: Choose a valid Versus opposition.");
     }
@@ -833,10 +835,11 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (Number(role.system.rating ?? 0) <= 0) {
       return ui.notifications.warn(`Realm Guard: ${role.name} is UNTRAINED. Beginner's Luck / skill-learning is introduced in the later Learning layer.`);
     }
-    const versus = Boolean(role.system.versus);
+    let versus = legacyMixedPolishEnabled() ? false : Boolean(role.system.versus);
     const defaults = { obstacle: 1, modifier: 0 };
     const options = await RealmGuardActorSheet._openRollDialog.call(this, role, { versus, ...defaults });
     if (!options) return;
+    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
     const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, oppositionId, tapNature, natureScope } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, role.name, { isSkill: true });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Skill.");
@@ -844,9 +847,9 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost && Number(this.actor.system.resources.persona.value ?? 0) < personaCost) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
     let result;
-    if (versus && game.user.targets.size === 1) {
+    if (versus && (options.opponentActorId || game.user.targets.size === 1)) {
       const targetToken = [...game.user.targets][0];
-      const opponent = targetToken?.actor;
+      const opponent = options.opponentActorId ? game.actors.get(options.opponentActorId) : targetToken?.actor;
       if (!opponent) return ui.notifications.warn("Realm Guard: Target has no Actor.");
       const opposition = RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId);
       if (!opposition || opposition.rating <= 0) {
@@ -887,6 +890,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const profileModifier = Number(defaults.modifier ?? 0) + Number(contactPlan?.futureCirclesDice ?? 0);
     const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, modifier: profileModifier, isSkill: false, abilityKey: key, natureTarget, circlesContext });
     if (!options) return;
+    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
     const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope, natureUse, doubleTapNature, natureVersus } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, ability.name, { isSkill: false });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Ability.");
@@ -1067,7 +1071,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const targetText = versus
       ? (opponent ? `Target: ${foundry.utils.escapeHTML(opponent.name)}` : "No single target selected — manual Obstacle will be used.")
       : "Standard test";
-    const versusChoice = versus && opponent
+    const legacyTargets = legacyMixedPolishEnabled() && isSkill && !conflictContext && !fixedObstacle;
+    const versusChoice = legacyTargets ? legacyRollTargetControls(this.actor, versus, opponent) : versus && opponent
       ? (oppositionOptions.length
         ? `<fieldset class="rg-versus-opposition"><legend>Versus Opposition <span class="rg-help-tip" title="Versus tests use the opponent's roll instead of a normal Obstacle.">?</span></legend><label>Target rolls
             <select name="oppositionId">${oppositionOptions.map((o, index) => `<option value="${o.id}" ${index === 0 ? "selected" : ""}>${foundry.utils.escapeHTML(o.name)} ${o.rating}D · ${foundry.utils.escapeHTML(o.basis)}</option>`).join("")}</select>
@@ -1189,19 +1194,23 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const DialogV2 = foundry.applications.api.DialogV2;
     const result = await DialogV2.wait({
       window: { title: `Realm Guard · Roll ${role.name}`, resizable: true }, content, modal: false, rejectClose: false,
+      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); },
       buttons: [{ action: "roll", label: review ? "Roll when Ob is approved" : "Roll", icon: "fa-solid fa-dice", default: true, callback: async (_event, button) => {
         const form = button.form; if (!form) return null;
-        if (review) await review.promise;
         const elements = form.elements;
+        const targetSelection = legacyTargets ? resolveLegacyRollTarget(this.actor, role, elements, RealmGuardActorSheet) : {};
+        if (legacyTargets && !targetSelection) return null;
+        if (review && !targetSelection.versus) await review.promise;
         const acceptedHelp = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
         const help = Number.isFinite(conflictContext?.maxHelpers) ? acceptedHelp.slice(0, conflictContext.maxHelpers) : acceptedHelp;
         return {
+          ...targetSelection,
           obstacle: review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
-          modifier: Number(elements.modifier?.value ?? 0), extraDice: conflictContext && !game.user?.isGM ? 0 : Math.max(0, Number(elements.extraDice?.value ?? 0)), help,
+          modifier: Number(elements.modifier?.value ?? 0), extraDice: conflictContext && !game.user?.isGM ? 0 : Math.max(0, Number(elements.extraDice?.value ?? 0)), help: targetSelection.opponentActorId ? help.filter(entry => entry.actorId !== targetSelection.opponentActorId) : help,
           persona: Math.max(0, Math.min(3, Number(elements.persona?.value ?? 0))), countLearning: canCountLearning ? Boolean(elements.countLearning?.checked) : false,
           lockSword: Boolean(elements.lockSword?.checked), weaponRequirementMet: !elements.weaponRequirementMet || Boolean(elements.weaponRequirementMet.checked),
           traitId: elements.traitId?.value || null, traitMode: elements.traitMode?.value || "help", wiseId: elements.wiseId?.value || null,
-          tokenPowerId: elements.tokenPowerId?.value || null, talentId: elements.talentId?.value || null, oppositionId: elements.oppositionId?.value || null,
+          tokenPowerId: elements.tokenPowerId?.value || null, talentId: elements.talentId?.value || null, oppositionId: targetSelection.oppositionId ?? elements.oppositionId?.value ?? null,
           tapNature: Boolean(elements.tapNature?.checked), natureScope: elements.natureScope?.value || "within", natureUse: elements.natureUse?.value || "within",
           doubleTapNature: Boolean(elements.doubleTapNature?.checked), natureVersus: Boolean(elements.natureVersus?.checked)
         };

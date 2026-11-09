@@ -1,0 +1,109 @@
+/* All new layout rules are gated by the Legacy Mixed enhancement class. */
+.realm-guard.rg-legacy-workspace-window .window-content { overflow:hidden!important; display:flex; flex-direction:column; min-height:0; }
+.realm-guard .rg-sheet.character.rg-legacy-workspace { display:flex!important; flex-direction:column; min-height:0; height:100%; overflow:hidden!important; gap:5px!important; }
+.rg-legacy-workspace .rg-workspace-upper[hidden] { display:none!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header { grid-template-columns:136px minmax(0,1fr) 150px!important; gap:12px!important; padding:10px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage { width:132px!important; height:148px!important; }
+.rg-legacy-workspace .rg-art-button,.rg-legacy-workspace .rg-token-button { opacity:0; transition:opacity .15s; }
+.rg-legacy-workspace .rg-portrait-wrap:hover .rg-art-button,.rg-legacy-workspace .rg-portrait-wrap:focus-within .rg-art-button,.rg-legacy-workspace .rg-portrait-wrap:hover .rg-token-button,.rg-legacy-workspace .rg-portrait-wrap:focus-within .rg-token-button { opacity:1; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar { display:grid!important; grid-template-columns:1.25fr repeat(4,1fr)!important; gap:5px!important; padding:4px 0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-stat { min-height:60px!important; padding:5px!important; gap:3px!important; display:flex!important; flex-wrap:wrap; align-content:center; justify-content:space-between; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-stat input { height:25px!important; width:34px!important; font-size:12px!important; padding:2px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-stat-roll { font-size:10px!important; min-height:24px!important; padding:0!important; width:auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-nature-manage-btn { font-size:9px!important; min-height:20px!important; padding:1px 4px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-ability-learning { width:100%!important; display:block!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-turn-strip { min-height:34px!important; padding:4px 7px!important; display:flex!important; gap:8px!important; flex-wrap:wrap; position:relative; z-index:5; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-turn-strip-state small { display:none!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-turn-strip-phase { min-width:55px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-turn-strip .rg-condition-launch { margin-left:auto; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-custom-roll-launch,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-condition-launch-button { min-height:27px!important; font-size:11px!important; padding:3px 7px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header-toggle { flex:0 0 18px; align-self:center; width:70px; height:18px; min-height:18px; padding:0; border:1px solid #9b7a42; border-radius:0 0 10px 10px; color:#f5e6bd; background:#393e27; line-height:15px; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-sheet-tabs { flex-shrink:0; margin:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-pages { flex:1 1 auto; min-height:0; overflow:hidden!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page { height:100%; overflow:auto!important; overscroll-behavior:contain; padding:4px 2px 10px; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page:not(.active) { display:none!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-character-tabs { position:sticky; top:-4px; z-index:4; background:#ead8ac; margin:0 0 8px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-trained-list,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-ability-grid { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:6px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-trained-role,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-skill { padding:0!important; min-height:82px!important; height:auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-role-top,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-main { display:flex!important; gap:5px!important; padding:5px 7px!important; min-height:34px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-role-actions,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-actions { display:flex!important; gap:4px!important; align-items:center; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-role-actions button,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-actions button { height:25px!important; min-height:25px!important; padding:2px 5px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-compact-roll { width:auto!important; font-size:11px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-learning,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-untrained-meta { display:block!important; padding:3px 8px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-compact-progress { display:flex!important; flex-direction:column; align-items:flex-start; gap:1px; height:auto!important; min-height:24px!important; font-size:10px!important; line-height:13px!important; padding:2px 5px!important; background:transparent!important; color:#49351f!important; border:1px solid transparent!important; box-shadow:none!important; width:auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-compact-progress:hover,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-compact-progress:focus-visible { border-color:#8a713c!important; background:#fff2ce!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-layout { display:grid!important; grid-template-columns:minmax(200px,.9fr) minmax(260px,1.1fr)!important; gap:10px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-inventory-search { grid-column:1/-1; width:100%; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel { grid-column:1!important; grid-row:2/span 2!important; min-width:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-left-rail { grid-column:2!important; grid-row:2!important; min-width:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-unassigned-panel { grid-column:2!important; grid-row:3!important; min-width:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-stage.rg-equipment-dots { position:relative!important; width:100%!important; height:auto!important; min-height:0!important; max-width:400px; margin:auto!important; background:transparent!important; overflow:visible!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-inventory-figure { position:absolute!important; inset:0!important; width:100%!important; height:100%!important; object-fit:fill; border:0!important; opacity:.85; pointer-events:none; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-point { position:absolute!important; transform:translate(-50%,-50%); width:26px!important; height:26px!important; min-height:26px!important; padding:0!important; border:2px solid #ad8138!important; border-radius:50%!important; background:#fbf0d1!important; color:#594021!important; box-shadow:0 1px 5px #34271966!important; z-index:2; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-point.is-equipped { background:#344b31!important; color:#f4da98!important; }
+.rg-equipment-tip { display:none; position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:160px; padding:7px; color:#f8eccd; background:#292e20; border:1px solid #b5904b; border-radius:4px; font-size:11px; line-height:16px; pointer-events:none; z-index:10; }
+.rg-equipment-point:hover .rg-equipment-tip,.rg-equipment-point:focus-visible .rg-equipment-tip { display:block; }
+.rg-legacy-workspace .rg-silhouette-sex { display:flex; gap:8px; align-items:center; font-size:12px; }
+.rg-legacy-workspace .rg-silhouette-sex select { width:100px; }
+.rg-slot-candidates { display:grid; gap:4px; max-height:250px; overflow:auto; }
+.rg-slot-current > div { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.rg-slot-editor [hidden],.rg-legacy-workspace [data-rg-gear-id][hidden] { display:none!important; }
+.rg-slot-editor [data-rg-placement-status] { color:#8a231d; font-weight:bold; }
+.rg-progress-editor { display:grid; gap:8px; }
+.rg-progress-editor input { width:80px; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="gear"] .rg-workspace-gear-row { display:flex!important; align-items:center; gap:5px; padding:6px!important; }
+.rg-workspace-gear-row > span { flex:1; min-width:0; }
+.rg-workspace-gear-row small { display:block; font-size:10px; color:#654b2e; }
+.rg-workspace-gear-row button { width:auto; flex:0 0 auto; font-size:11px; padding:3px 6px; }
+.rg-workspace-relics { margin-top:10px; }
+.rg-workspace-relics > summary { cursor:pointer; padding:7px; color:#49351f; }
+.rg-roll-target-picker [hidden],.rg-roll-dialog .rg-obstacle-panel[hidden] { display:none!important; }
+.rg-scene-quick-menu { position:fixed; z-index:10000; width:220px; padding:7px; border:1px solid #b18c47; border-radius:6px; background:#292e20; box-shadow:0 4px 20px #0008; }
+.rg-scene-quick-menu button { display:block; width:100%; text-align:left; background:transparent; color:#f6e6c1; border:0; padding:7px; }
+.rg-scene-quick-menu button:hover,.rg-scene-quick-menu button:focus-visible { background:#52613b; }
+@media (max-width:750px) {
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header { grid-template-columns:110px minmax(0,1fr)!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage { width:104px!important; height:125px!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-meta { grid-column:1/-1; display:flex!important; flex-wrap:wrap; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-layout { grid-template-columns:minmax(0,1fr)!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-left-rail,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-unassigned-panel { grid-column:1!important; grid-row:auto!important; }
+}
+@media (hover:none) { .rg-legacy-workspace .rg-art-button,.rg-legacy-workspace .rg-token-button { opacity:1; } }
+/* Match the specificity of the older parchment and QA override sheets. */
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-actions .rg-compact-roll,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-actions .rg-compact-roll { flex:0 0 auto!important; width:42px!important; min-width:42px!important; color:#f7e7bd!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learning > .rg-compact-progress { width:auto!important; min-width:75px!important; background:transparent!important; border-color:transparent!important; color:#49351f!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="gear"] .rg-unassigned-panel { position:relative!important; top:auto!important; max-height:none!important; overflow:visible!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-dots { box-shadow:none!important; border:none!important; padding:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-dots:before { display:none!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel .rg-panel-title { flex-wrap:wrap; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel [data-action="createTestGear"] { display:none; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="gear"] .rg-empty,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-silhouette-sex { color:#594323!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-resource { grid-template-columns:minmax(60px,1fr) 26px 18px 26px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-resource button { width:26px!important; min-width:26px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-turn-strip .rg-custom-roll-launch { color:#f7e7bd!important; background:#354b31!important; border:1px solid #a88b52!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learning .rg-compact-progress span { color:#49351f!important; -webkit-text-fill-color:#49351f!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-compact-roll,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-actions .rg-compact-roll { -webkit-text-fill-color:#f7e7bd!important; background:#354b31!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-workspace-gear-row small { color:#654b2e!important; -webkit-text-fill-color:#654b2e!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-silhouette-sex select { color:#392a18!important; -webkit-text-fill-color:#392a18!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace { container-type:inline-size; container-name:rgworkspace; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-trained-role .rg-role-top .rg-trained-static-display { flex:1 1 auto!important; min-width:0!important; display:flex!important; justify-content:space-between!important; gap:8px!important; padding-right:4px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-trained-role .rg-role-top .role-rating { position:static!important; flex:0 0 auto!important; margin:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-skill .rg-untrained-main { min-height:34px!important; padding:4px 7px!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-learning { min-height:30px!important; padding:2px 8px!important; display:block!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top { display:flex!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-role-actions { position:static!important; flex:0 0 auto!important; margin:0!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .rg-trained-static-display { width:auto!important; }
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-top .role-rating { transform:none!important; right:auto!important; top:auto!important; }
+@container rgworkspace (max-width:680px) {
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-layout { grid-template-columns:minmax(0,1fr)!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel,
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-left-rail { grid-column:1!important; grid-row:auto!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header { grid-template-columns:110px minmax(0,1fr)!important; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-meta { grid-column:1/-1; display:flex!important; flex-wrap:wrap; }
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,
+ .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage { width:104px!important; height:125px!important; }
+}
