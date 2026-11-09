@@ -2,7 +2,7 @@
 
 ## Active character workspace patch — 2026-11-09
 
-The user authorized stable **1.13.3** after the character workspace review, following stable 1.13.2. Scope remains **Legacy Mixed only**: compact/collapsible character header, streamlined Skills/progression, searchable Versus opponents, eight ancestry/sex inventory figures and equipment points, searchable inventory and a GM scene menu. Beginner’s Luck Trait dice ordering is corrected. Both browser suites and the complete regression suite passed on the work branch. Other profiles retain their earlier behavior, accepted startup optimization is preserved, TB2E remains deferred and Tome is outside scope. See `RELEASE_NOTES_v1.13.3.md` and `TEST_PROTOCOL_v1.13.3.md`.
+The user authorized stable **1.13.4** following 1.13.3 and the compact follow-up review. Scope remains **Legacy Mixed only**: progression in name/value rows, readable untrained controls, transparent header toggle, compact roll dialogs, per-figure equipment anchors and the GM token HUD close compatibility fix. Full regression and both browser suites passed. Other profiles and accepted startup performance are preserved; TB2E remains deferred and Tome is outside scope. See `RELEASE_NOTES_v1.13.4.md` and `TEST_PROTOCOL_v1.13.4.md`.
 
 The milestone history below is retained as historical context.
 

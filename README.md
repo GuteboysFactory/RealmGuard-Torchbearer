@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.3
+**Version:** 1.13.4
 **Target:** Foundry VTT 13.351  
 **Status:** Stable
-**Current stable:** v1.13.3
+**Current stable:** v1.13.4
 
-Stable 1.13.3 improves the character sheet and inventory **only for Legacy Mixed**: collapsible compact header, streamlined Skills/progression, searchable Versus opponents, eight ancestry/sex inventory figures, equipment points and a GM scene menu. It also corrects Trait dice ordering in Beginner’s Luck. Other profiles and the accepted startup optimization retain their behavior. See RELEASE_NOTES_v1.13.3.md and TEST_PROTOCOL_v1.13.3.md. QA testers must switch to the stable manifest because the QA version number is higher.
+Stable 1.13.4 refines the character workspace **only for Legacy Mixed**: progression in Skill/ability name rows, readable untrained controls, a transparent header toggle, narrower roll forms with folded explanations, individual equipment anchors for eight figures, and removal of the GM menu HUD deprecation. Other profiles and accepted startup performance remain unchanged. See RELEASE_NOTES_v1.13.4.md and TEST_PROTOCOL_v1.13.4.md. QA testers must switch to the stable manifest because the QA version number is higher.
 
 ## 1.13.1 startup performance
 
