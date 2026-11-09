@@ -2,7 +2,7 @@
 
 Datum: 2026-11-09. Lokal utvecklingsgren: `work/legacy-sheet-inventory`.
 Bas: stable 1.13.2, inklusive huvudgrenens publiceringsmetadata (`e4a6d66`).
-Status: byggt och lokalt testat; inte publicerat eller installerat i en spelvärld.
+Status: byggt, lokalt testat och sparat på GitHubs arbetsgren; ingen release publicerad och inget installerat i en spelvärld.
 Versionsnummer, release/READY och releasekanaler har inte ändrats.
 
 ## Genomfört
@@ -42,7 +42,9 @@ Detta är en avgränsad granskning av Beginner’s Luck/inlärningsflödet, inte
 - Det befintliga Conflict/End Session-testet i Chromium passerade, inklusive gemensam Disposition, Back, manuella Skills, kortsekretess, resursfrågor och andra profilers gränssnitt.
 - Release preflight och git diff --check passerade. Bevarade profilsnapshots och startup-optimeringen är oförändrade.
 
-Testerna använder kontrollerade Foundry-dokument, inställningar, dialogvärdar och canvasobjekt. De kör produktionskod i en riktig webbläsare men är inte en körning på en full Foundry-server med flera riktiga spelarklienter. Inga användarvärldar har öppnats eller ändrats. CI-arbetsflödet är uppdaterat för arbetsgrenen men har inte körts på GitHub i denna omgång.
+Testerna använder kontrollerade Foundry-dokument, inställningar, dialogvärdar och canvasobjekt. De kör produktionskod i en riktig webbläsare men är inte en körning på en full Foundry-server med flera riktiga spelarklienter. Inga användarvärldar har öppnats eller ändrats.
+
+GitHub-körning [42683106381](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/42683106381) passerade samtliga steg på kodcommit `61f2b33b1d282eb908dd5f82733058013694db00`: releasekontrakt, syntax/regressioner, befintligt Conflict/End Session-webbläsartest, nytt Legacy workspace-webbläsartest och uppladdning av granskningsbilder. Rapportuppdateringen efter denna körning ändrar endast dokumentation.
 
 ## Kvar före distribution
 
