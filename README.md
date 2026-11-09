@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.2
+**Version:** 1.13.3
 **Target:** Foundry VTT 13.351  
 **Status:** Stable
-**Current stable:** v1.13.2
+**Current stable:** v1.13.3
 
-Stable 1.13.2 includes the approved table-play improvements **only for Legacy Mixed**. Final changes add Back beside Abort, one Disposition roll per side with GM/player distribution of the shared team total, solo bypass and manual player Skill choice. Strict Realm Guard, MG1E, MG2E and TB2E retain their prior behavior; accepted startup performance is preserved. See RELEASE_NOTES_v1.13.2.md and TEST_PROTOCOL_v1.13.2.md. QA testers must switch to the stable manifest because the QA version number is higher.
+Stable 1.13.3 improves the character sheet and inventory **only for Legacy Mixed**: collapsible compact header, streamlined Skills/progression, searchable Versus opponents, eight ancestry/sex inventory figures, equipment points and a GM scene menu. It also corrects Trait dice ordering in Beginner’s Luck. Other profiles and the accepted startup optimization retain their behavior. See RELEASE_NOTES_v1.13.3.md and TEST_PROTOCOL_v1.13.3.md. QA testers must switch to the stable manifest because the QA version number is higher.
 
 ## 1.13.1 startup performance
 

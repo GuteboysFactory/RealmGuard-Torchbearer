@@ -1,28 +1,18 @@
-# 1.13.2 — Legacy Mixed table-play update
+# 1.13.3 — Legacy Mixed character sheet and inventory
 
-User-authorized stable release after the 1.14.0-qa.1–qa.3 playtests. The requested stable version is **1.13.2**, following 1.13.1; the QA version numbers do not rename the stable line.
+Stable patch following 1.13.2, authorized after the character workspace review. These changes apply **only to Realm Guard Legacy Mixed**. Other profiles keep their existing interfaces and rules. The accepted startup optimization remains unchanged. No TB2E activation or campaign-data migration is included.
 
-All new table-play behavior applies **only to Realm Guard Legacy Mixed**. Strict Realm Guard, Mouse Guard 1E/2E and TB2E retain their existing workflows and rule behavior. The accepted 1.13.1 startup optimization remains unchanged. No TB2E activation, Tome work or campaign-data migration is included.
+- Larger character portrait with editing controls on hover/focus. Compact ability/progression displays, a shared Turn/Custom Roll/Conditions row, collapsible header, fixed navigation and retained per-tab scroll positions.
+- Consistent compact trained/untrained Skill cards. Roll Window becomes Roll beside Edit; Quick Roll buttons are removed from this profile. Click progression to correct Pass/Fail or learning attempts with Save/Cancel and stale-edit protection.
+- Standard/Versus choice inside ordinary Skill and Beginner’s Luck roll dialogs, searchable visible opponents and explicit legal opposition. Scene targets and saved Skill flags are not changed by this choice.
+- Eight new inventory figures: male/female Human, Elf, Dwarf and Hobbit. Ancestry chooses the figure automatically; no ancestry defaults to Human. Dúnadan uses Human. The only figure selector is Male/Female.
+- Equipment points show contents on hover/focus and open searchable equip/remove dialogs on click. A searchable inventory list includes equipped items and offers movement to body zones, containers or Unassigned. Existing placement validation, two-handed restrictions, item data and drag/drop remain in use. Tokens of Power details are collapsible.
+- GM scene menu on the token layer: place an existing NPC token, open/start Conflict, End Session and ping; token-specific options include Actor, Conditions, Custom Roll, opponent targeting and Foundry token controls. Right-drag remains available for panning; Shift-right-click preserves normal handling.
+- Learning explicitly shows attempts against maximum/untaxed Nature and the Will/Health roll base. Both passed and failed Beginner’s Luck attempts count toward opening the Skill at 2; they do not also advance Will/Health. Trait dice are now applied after Beginner’s Luck halving in Legacy Mixed.
 
-## Final conflict changes
+Verification: 173 runtime syntax checks and 127 smoke-test files passed. Both the existing Conflict/End Session Chromium suite and the new production-template character workspace suite passed locally and in [GitHub Actions](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/actions/runs/42683106381). Browser tests use controlled Foundry documents/canvas fixtures; a full Foundry server with separate player clients remains the next table acceptance check. See TEST_PROTOCOL_v1.13.3.md.
 
-- Back sits beside Abort in the GM footer. Preparation steps can be reviewed without repeating either side's Disposition roll. Returning to the latest resolved action uses the existing correction checkpoint and preserves resource costs, Learning and Nature tax; it does not grant a fresh roll or refund.
-- GM makes one opposition Disposition roll and the captain makes **one shared roll for the player team**, optionally with Help. Each side's roll is reserved and committed once; repeated clicks or competing submissions cannot add another team total. A changed or reloaded roll client releases its abandoned reservation.
-- With multiple players, that shared total must be distributed before equipment/cards. GM or a participating player can distribute the points; the sum must equal the existing team total. Invalid or stale submissions cannot mint or overwrite points. A solo player receives the total directly, without a distribution step.
-- The player manually chooses from the acting character's own Skills for both team Disposition and action tests, including Skills outside the conflict type's standard list. No Skill is silently chosen. Its real rating or Beginner's Luck is used in the ordinary roll dialog.
-
-## Included QA improvements
-
-- End Session: saved/searchable participant list, Realm Guard styling, Creed and Mortal Crisis, aligned Belief/Goal choices, distinct MVP and Teamworker/Workhorse recipients, one Embodiment recipient and uncapped earned Persona.
-- Conflict: searchable teams, multiple temporary opponents without Actor/Contact creation, explicit equipment preparation, inventory and Custom benefits, per-participant card assignment, hidden cards and one-action flips. Disarm disables the declared benefit without deleting inventory.
-- One active player has no actor selector. Two players alternate. Three or more choose freely without consecutive actions by the same active player. Knockouts invalidate exhausted assignments; a sole survivor can act repeatedly.
-- Normal and conflict rolls show original dice immediately, keep decisions and final results on one chat card, and highlight pending choices. A prepared Wise is used once; an unprepared relevant Wise may reroll failures for 1 available Persona, with a clear decline option.
-
-## Verification and installation
-
-Automated checks cover runtime syntax, the full regression suite, other-profile isolation and real Chromium forms with all system stylesheets. The final tests exercise the shared team roll, cross-client reservation/reply flow, manual off-list Skill choice, GM/player distribution, stale/invalid submissions, solo bypass and Back without rerolls. Controlled fixtures supplement the user's earlier Foundry QA tests; they are not a claim of a new live multiplayer Foundry session.
-
-Use the **stable manifest**:
+Update using the stable manifest:
 https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json
 
-Testers coming from 1.14.0-qa.3 are moving to a lower numbered stable release. The QA manifest continues to point at its QA build; use the stable manifest to switch channels and check that the installed version becomes 1.13.2. World/character data is preserved. See TEST_PROTOCOL_v1.13.2.md for verification.
+Users on 1.13.2 stable can use Foundry's normal system update. Users still on 1.14.0-qa.3 must switch to the stable manifest because that QA number is higher. This release does not update the QA channel.

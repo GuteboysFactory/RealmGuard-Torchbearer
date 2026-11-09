@@ -1,8 +1,8 @@
 # Realm Guard / Torchbearer - Local Project Roadmap
 
-## Active table-play patch — 2026-11-08
+## Active character workspace patch — 2026-11-09
 
-The user authorized stable **1.13.2**, continuing the 1.13.1 stable line after QA.3 playtesting. All table-play improvements remain **Legacy Mixed only**. Final scope adds Back next to Abort, one Disposition roll per side, GM/player distribution of the single player-team total, solo bypass and manual player Skill selection. Other profiles retain their earlier behavior, accepted startup optimization is preserved, TB2E remains deferred and Tome is outside scope. See `RELEASE_NOTES_v1.13.2.md` and `TEST_PROTOCOL_v1.13.2.md`.
+The user authorized stable **1.13.3** after the character workspace review, following stable 1.13.2. Scope remains **Legacy Mixed only**: compact/collapsible character header, streamlined Skills/progression, searchable Versus opponents, eight ancestry/sex inventory figures and equipment points, searchable inventory and a GM scene menu. Beginner’s Luck Trait dice ordering is corrected. Both browser suites and the complete regression suite passed on the work branch. Other profiles retain their earlier behavior, accepted startup optimization is preserved, TB2E remains deferred and Tome is outside scope. See `RELEASE_NOTES_v1.13.3.md` and `TEST_PROTOCOL_v1.13.3.md`.
 
 The milestone history below is retained as historical context.
 
