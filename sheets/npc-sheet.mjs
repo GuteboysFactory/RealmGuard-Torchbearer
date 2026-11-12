@@ -1,4 +1,5 @@
 import { RealmGuardActorSheet } from "./actor-sheet.mjs";
+import { installNpcObstacleTools } from '../module/legacy-npc-obstacle.mjs';
 import { isDefaultSkill } from "../module/default-skills.mjs";
 
 const rgNpcDropBoundRoots = new WeakSet();
@@ -39,6 +40,7 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
     super._onRender(context, options);
     const root = this.element;
     if (!root || !this.isEditable) return;
+    installNpcObstacleTools(this,RealmGuardActorSheet);
 
     // ApplicationV2 can reuse the same root element across force-renders. Binding the
     // drop listeners on every render caused one physical drop to fire N handlers,

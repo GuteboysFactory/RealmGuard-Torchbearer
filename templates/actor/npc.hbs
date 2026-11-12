@@ -36,7 +36,7 @@
         {{#each trainedRoles as |role|}}
         <article class="rg-npc-skill {{#if role.system.versus}}is-versus{{/if}}" data-item-id="{{role.id}}">
           <button type="button" class="rg-npc-skill-roll" data-action="rollRole"><span>{{role.name}}</span><strong>{{role.rating}}D</strong></button>
-          <label class="rg-role-versus" title="Use as Versus"><input type="checkbox" data-action="toggleRoleVersus" {{checked role.system.versus}}><span>VS</span></label>
+          {{#unless ../hideLegacyNpcVersus}}<label class="rg-role-versus" title="Use as Versus"><input type="checkbox" data-action="toggleRoleVersus" {{checked role.system.versus}}><span>VS</span></label>{{/unless}}
           <button type="button" class="icon" data-action="editItem" title="Edit">✎</button>
           <button type="button" class="icon" data-action="clearNpcSkill" title="Remove from Quick Skills">×</button>
         </article>

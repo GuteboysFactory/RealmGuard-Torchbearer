@@ -1,3 +1,5 @@
+import { createMapPoint } from './legacy-map-points.mjs';
+import { openBreak } from './legacy-break.mjs';
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
 import { openConflictWindow } from './conflicts.mjs';
 import { openEndSession } from './end-session.mjs';
@@ -29,12 +31,14 @@ export function sceneMenuEntries({ token=null, position, SheetClass }) {
   const actor=token?.actor;
   return [
     ...(actor ? [
-      {label:`Open ${actor.name}`,run:()=>actor.sheet.render(true)},
+      {label:'Open character sheet',run:()=>actor.sheet.render(true)},
       {label:'Conditions',run:()=>openConditionMenu(actor)},
       {label:'Custom Roll',run:()=>SheetClass._customRoll.call({actor})},
       {label:'Select as opponent',run:()=>token.setTarget(true,{releaseOthers:true})},
       {label:'Foundry token controls',run:()=>canvas.hud.token.bind(token)}
     ] : [{label:'Place existing NPC…',run:()=>placeExistingNpc(position)}]),
+    {label:'Create item / place on map…',run:()=>createMapPoint(position)},
+    {label:'Session break…',run:()=>openBreak()},
     {label:'Open / start Conflict…',run:()=>openConflictWindow()},
     {label:'End Session…',run:()=>openEndSession()},
     {label:'Ping this location',run:()=>canvas.ping(position)}
@@ -48,12 +52,15 @@ export function showLegacySceneMenu(event, SheetClass) {
   closeLegacySceneMenu();
   canvas.hud?.token?.close?.();
   const menu=document.createElement('div'); menu.className='rg-scene-quick-menu'; menu.setAttribute('role','menu'); menu.setAttribute('aria-label','Realm Guard GM tools');
+  const surface=document.createElement('div');surface.className='rg-scene-quick-surface';
+  if(token?.actor){const name=document.createElement('div');name.className='rg-scene-token-name';name.textContent=token.actor.name;surface.append(name);}
+  surface.append(menu);
   const entries=sceneMenuEntries({token,position,SheetClass});
   entries.forEach(entry=>{const item=document.createElement('button'); item.type='button'; item.setAttribute('role','menuitem'); item.textContent=entry.label; item.addEventListener('click',async()=>{closeLegacySceneMenu(); if (!permitted()) return; try { await entry.run(); } catch(error){console.error('Realm Guard | GM scene menu',error);ui.notifications.error(error.message);} }); menu.append(item);});
-  document.body.append(menu); activeMenu=menu;
-  menu.style.left=`${Math.max(4,Math.min(event.clientX,innerWidth-menu.offsetWidth-6))}px`;
-  menu.style.top=`${Math.max(4,Math.min(event.clientY,innerHeight-menu.offsetHeight-6))}px`;
-  const pointer=event=>{if(!menu.contains(event.target))closeLegacySceneMenu();};
+  document.body.append(surface); activeMenu=surface;
+  surface.style.left=`${Math.max(4,Math.min(event.clientX,innerWidth-surface.offsetWidth-6))}px`;
+  surface.style.top=`${Math.max(4,Math.min(event.clientY,innerHeight-surface.offsetHeight-6))}px`;
+  const pointer=event=>{if(!surface.contains(event.target))closeLegacySceneMenu();};
   const key=event=>{
     if(event.key==='Escape'){event.preventDefault();closeLegacySceneMenu();}
     if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)) { event.preventDefault(); const buttons=[...menu.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);buttons[event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus(); }

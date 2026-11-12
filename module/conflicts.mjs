@@ -1,3 +1,6 @@
+import { consumeWiseHelpers } from './legacy-session.mjs';
+import { snapshotActors, actorChanges, restoreChanges, validateUndoSeries } from './roll-undo.mjs';
+import { reconcileDisposition } from './conflict-playtest.mjs';
 import { chooseConflictRoster, CONFLICT_ROSTER_KEY } from "./conflict-roster.mjs";
 import { RealmGuardActorSheet } from "../sheets/actor-sheet.mjs";
 import { RealmGuardActor } from "./documents.mjs";
@@ -129,6 +132,15 @@ function esc(value) { return foundry.utils.escapeHTML(String(value ?? "")); }
 function clone(value) { return foundry.utils.deepClone(value); }
 function actionLabel(action) { return ACTION_LABELS[action] ?? action; }
 function gmParticipants(state) { return state.gm?.participantIds ?? [state.gm?.actorId].filter(Boolean); }
+function conflictSideNames(state,side){
+  const ids=side==='gm'?gmParticipants(state):state.ranger?.participantIds??[];
+  const temporary=[...(state.gm?.temporaryOpponents??[]),state.gm?.temporaryOpposition].filter(Boolean);
+  return [...new Set(ids)].map(id=>temporary.find(row=>row.id===id)?.name??resolveConflictActor(id)?.name).filter(Boolean).join(', ')||(side==='gm'?'Opposition':'Rangers');
+}
+function conflictWinnerName(state){
+  const winner=state.outcome?.winner;
+  return winner==='gm'||winner==='ranger'?conflictSideNames(state,winner):`Tie · ${conflictSideNames(state,'gm')} / ${conflictSideNames(state,'ranger')}`;
+}
 function gmActingId(state) { return currentPair(state)?.gmActorId ?? state.gm.actorId; }
 function actorById(id) {
   const state = currentState();
@@ -179,9 +191,13 @@ async function setPrivateState(value) {
 }
 async function setPublicState(value) {
   if (!game.user?.isGM) throw new Error("Realm Guard: only the GM may write Conflict state.");
+  if(value)value.stateRevision=Number(currentState()?.stateRevision??0)+1;
+  await recordConflictCheckpoint(value);
+  if(value)value.stepRevision=Number(privateState().stepHistory?.length??0);
   await game.settings.set(SYSTEM_ID, PUBLIC_SETTING, value ? JSON.stringify(value) : "");
 }
 function isActive(state) { return Boolean(state?.active && state?.id); }
+function canBackConflict(state,user=game.user){return Boolean(user?.isGM||[...(state?.ranger?.participantIds??[]),...gmParticipants(state??{})].some(id=>game.actors.get(id)?.testUserPermission(user,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)));}
 function isParticipantOwner(state) {
   if (!state || game.user?.isGM) return Boolean(game.user?.isGM);
   return (state.ranger?.participantIds ?? []).some(id => actorById(id)?.isOwner);
@@ -190,9 +206,11 @@ function canCaptainControl(state) {
   if (game.user?.isGM) return true;
   return Boolean(actorById(state?.ranger?.captainId)?.isOwner);
 }
+function canControlSide(state,side,user=game.user){if(side==="ranger")return Boolean(user?.isGM||actorById(state.ranger.captainId)?.testUserPermission(user,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER));if(!state.gm.captainId)return Boolean(user?.isGM);return Boolean(actorById(state.gm.captainId)?.testUserPermission(user,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER));}
+function canPlanSide(state,side){if(side==="gm"&&state.gm.captainId)return !game.user?.isGM&&canControlSide(state,side);return side==="gm"?Boolean(game.user?.isGM):!game.user?.isGM&&canCaptainControl(state);}
 function canSideRoll(state, side) {
   if (dispositionAllocationPending(state)) return false;
-  if (side === "gm") return Boolean(game.user?.isGM);
+  if (side === "gm") return Boolean(game.user?.isGM || state.gm.captainId && actorById(gmActingId(state))?.isOwner);
   const pair = state?.revealed?.find(r => Number(r.index) === Number(state.currentIndex));
   const actor = actorById(pair?.rangerActorId);
   if (!activeConflictParticipants(state).includes(pair?.rangerActorId)) return false;
@@ -431,11 +449,11 @@ function individualDispositionHtml(state) {
   if (state.ranger.participantIds.length < 2) return "";
   const allocation = state.ranger.individualDisposition;
   const rows = allocation ? state.ranger.participantIds.map(id=>`<span class="${Number(allocation[id]?.current)?"":"is-out"}">${esc(actorById(id)?.name??id)}: <b>${Number(allocation[id]?.current??0)}/${Number(allocation[id]?.start??0)}</b>${Number(allocation[id]?.current)?"":" · OUT"}</span>`).join("") : "<span>One shared team roll · distribute its points between the players.</span>";
-  const canEdit=canAllocateDisposition(state)&&state.ranger.disposition.rolled&&state.stage!=="complete"&&!state.rolls?.gm&&!state.rolls?.ranger;
+  const canEdit=canAllocateDisposition(state)&&!allocation&&state.ranger.disposition.rolled&&state.stage!=="complete"&&!state.rolls?.gm&&!state.rolls?.ranger;
   return `<section class="rg-individual-disposition"><b>Player team Disposition</b>${rows}${dispositionAllocationPending(state)?"<strong>Distribute the team points before continuing.</strong>":""}${canEdit?'<button type="button" data-conflict-action="allocate-disposition">Distribute / adjust team points</button>':""}</section>`;
 }
 async function editIndividualDisposition(state) {
-  if (!canAllocateDisposition(state)||state.ranger.participantIds.length<2||!state.ranger.disposition.rolled||state.rolls?.gm||state.rolls?.ranger) return;
+  if (state.ranger.individualDisposition || !canAllocateDisposition(state)||state.ranger.participantIds.length<2||!state.ranger.disposition.rolled||state.rolls?.gm||state.rolls?.ranger) return;
   const total=state.ranger.disposition,allocation=state.ranger.individualDisposition??{},initial=!state.ranger.individualDisposition;
   const result=await foundry.applications.api.DialogV2.wait({window:{title:"Distribute the player's team Disposition",resizable:true},position:{width:560},modal:false,rejectClose:false,
     content:`<div class="rg-disposition-allocation"><p>The player team rolls once. Divide its ${total.current} points between the participants. GM or players may submit the distribution; the totals must match.</p>${state.ranger.participantIds.map(id=>`<fieldset><legend>${esc(actorById(id)?.name??id)}</legend>${initial?"":`<label>Starting<input name="start_${id}" type="number" min="0" step="1" value="${Number(allocation[id]?.start??0)}"></label>`}<label>${initial?"Points":"Current"}<input name="current_${id}" type="number" min="0" step="1" value="${Number(allocation[id]?.current??0)}"></label></fieldset>`).join("")}<p data-allocation-total role="status"></p></div>`,
@@ -451,6 +469,7 @@ async function editIndividualDisposition(state) {
 async function applyDispositionAllocation(payload,state,sender) {
   return serializeConflictWrite(async()=>{
     const latest=currentState();if(!game.user?.isGM||latest?.id!==state.id||!canAllocateDisposition(latest,sender)||latest.stage==="complete"||latest.ranger.participantIds.length<2||latest.rolls?.gm||latest.rolls?.ranger)return;
+    if(latest.ranger.individualDisposition && latest.stage!=="allocation") return;
     const total=latest.ranger.disposition;
     if(!total.rolled||payload.start!==total.start||payload.current!==total.current||payload.exchange!==latest.exchange||payload.revision!==Number(latest.allocationRevision??0)||!validateDispositionAllocation(latest,payload.allocation))return ui.notifications.warn("Conflict points changed. Open the distribution again.");
     const next=clone(latest);next.ranger.individualDisposition=payload.allocation;next.allocationRevision=Number(next.allocationRevision??0)+1;
@@ -470,28 +489,13 @@ function skillOverrideHtml(state) {
 function conflictCorrectionHtml(state) {
   if (!game.user?.isGM) return "";
   if (state.stage === "action" && state.reopenedForCorrection) return '<div class="rg-conflict-controls"><button data-conflict-action="correct-roll" data-side="gm">Correct Opposition successes</button><button data-conflict-action="correct-roll" data-side="ranger">Correct Ranger successes</button><button data-conflict-action="resolve-correction">Resolve corrected action</button></div>';
-  if (["compromise", "complete"].includes(state.stage)) return '<div class="rg-conflict-controls"><button data-conflict-action="undo-resolution">Back to last action</button><small>Spent resources, Nature tax and recorded tests are retained. Correct their character values separately if the original ruling was wrong.</small></div>';
+  if (["compromise", "complete"].includes(state.stage)) return '<div class="rg-conflict-controls"><button data-conflict-action="undo-resolution">Undo previous step</button><small>Back restores the previous step, including its recorded character changes.</small></div>';
   return "";
 }
 
 async function undoConflictResolution(state) {
-  if (!game.user?.isGM || !["compromise", "complete", "ready", "action", "maneuver"].includes(state.stage)) return;
-  if (currentState()?.id !== state.id) return;
-  const checkpoint = privateState().lastResolutionCheckpoint;
-  if (checkpoint?.state?.id !== state.id) return ui.notifications.warn("Realm Guard: No action checkpoint is available for this conflict.");
-  if (state.stage === "complete") await reopenConflict(state);
-  const latest = currentState();
-  const restored = clone(checkpoint.state);
-  restored.learningKeys = [...new Set([...(restored.learningKeys ?? []), ...(latest.learningKeys ?? [])])];
-  restored.natureTaxKeys = [...new Set([...(restored.natureTaxKeys ?? []), ...(latest.natureTaxKeys ?? [])])];
-  restored.reopenedForCorrection = true;
-  restored.log.push("GM restored the last action for correction. Recorded tests, Nature tax and spent resources are retained.");
-  await setPrivateState({ ...privateState(), gmPlan: checkpoint.gmPlan, rangerPlan: checkpoint.rangerPlan });
-  lockedPlanCache.set(state.id, { gmPlan: checkpoint.gmPlan, rangerPlan: checkpoint.rangerPlan });
-  await setPublicState(restored);
-  await ChatMessage.create({ content: `<p><b>${esc(restored.name)} · last action restored by the GM.</b> The previous outcome is superseded pending correction.</p>` });
+  return undoConflictStep(state);
 }
-
 async function correctConflictRoll(side, state) {
   if (!game.user?.isGM || !state.reopenedForCorrection || state.stage !== "action" || !["gm", "ranger"].includes(side) || !state.rolls?.[side] || state.rolls[side].trumped) return;
   const successes = await foundry.applications.api.DialogV2.wait({ window: { title: "GM correction · rolled successes", resizable: true }, content: `<label>Corrected successes<input name="successes" type="number" step="1" min="0" value="${Number(state.rolls[side].successes)}"></label><p>Original dice and resource spending are retained. This is a manual ruling, not a new roll.</p>`, modal: false, rejectClose: false, buttons: [{ action: "save", label: "Apply Correction", callback: (_e,b) => Number(b.form.elements.successes.value) }, { action: "cancel", label: "Cancel", callback: () => null }] });
@@ -503,7 +507,7 @@ async function correctConflictRoll(side, state) {
 
 async function editConflictSkillOverride(side, state) {
   if (!game.user?.isGM || state.stage !== "action" || !["gm", "ranger"].includes(side) || state.rolls?.[side]) return;
-  const actor = actorById(side === "gm" ? state.gm.actorId : currentPair(state)?.rangerActorId);
+  const actor = actorById(side === "gm" ? gmActingId(state) : currentPair(state)?.rangerActorId);
   if (!actor) return;
   const options = actor.items.filter(item => item.type === "role").map(item => `<option value="${item.id}">${esc(item.name)} · ${Number(item.system.rating ?? 0)}D</option>`).join("");
   const selected = await foundry.applications.api.DialogV2.wait({ window: { title: "GM Skill Exception · current action", resizable: true }, content: `<p>Allow a Skill outside the normal conflict list for this action only. The normal rating and Beginner's Luck rules still apply.</p><label>Skill<select name="skillId"><option value="">Use profile defaults</option>${options}</select></label>`, modal: false, rejectClose: false,
@@ -530,7 +534,7 @@ async function reopenConflict(state) {
   }
   restored.log.push("GM reopened the completed conflict. Previously spent resources and recorded tests are retained.");
   await setPublicState(restored);
-  await ChatMessage.create({ content: `<p><b>${esc(restored.name)} reopened by the GM.</b> The previous completion is superseded; outcome review is open again.</p>` });
+  await conflictChat({ content: `<p><b>${esc(restored.name)} reopened by the GM.</b> The previous completion is superseded; outcome review is open again.</p>` });
 }
 
 async function reassignExhaustedRanger(state) {
@@ -548,7 +552,7 @@ async function reassignExhaustedRanger(state) {
 async function startConflictDialog() {
   if (!game.user?.isGM) return;
   const existing = currentState();
-  if (isActive(existing) || existing?.stage === "complete") {
+  if (isActive(existing)) {
     dismissedConflictId = null;
     renderConflictWindow(existing, { force: true });
     return;
@@ -569,7 +573,7 @@ async function startConflictDialog() {
     id, active: true, name: result.name, type: result.type, stage: "goals", exchange: 1, currentIndex: 0,
     createdBy: game.user.id, createdAt: Date.now(), otherBaseKey: result.otherBaseKey || "health",
     ranger: { participantIds: result.participantIds, captainId: result.captainId, goal: "", goalReady: false, ...makeSideState() },
-    gm: { actorId: opponentIds[0], participantIds: opponentIds, temporaryOpponents, temporaryOpposition, goal: "", goalReady: false, ...makeSideState() },
+    gm: { captainId: result.oppositionCaptainId ?? null, actorId: opponentIds[0], participantIds: opponentIds, temporaryOpponents, temporaryOpposition, goal: "", goalReady: false, ...makeSideState() },
     locks: { gm: false, ranger: false },
     revealed: [], rolls: { gm: null, ranger: null },
     effects: { ranger: { nextDice: 0, disabledGearIds: [], swordActions: {} }, gm: { nextDice: 0, disabledGearIds: [], swordActions: {} } },
@@ -594,7 +598,7 @@ function dispositionBar(side, data) {
   const start = Math.max(0, Number(data?.start ?? 0));
   const current = Math.max(0, Number(data?.current ?? 0));
   const pct = start ? Math.max(0, Math.min(100, Math.round((current / start) * 100))) : 0;
-  return `<div class="rg-disposition rg-disposition-${side}"><div class="rg-disposition-head"><b>${side === "gm" ? "GM / Opposition" : "Rangers"}</b><strong>${data?.rolled ? `${current} / ${start}` : "Not rolled"}</strong></div><div class="rg-disposition-track"><span style="width:${pct}%"></span></div></div>`;
+  return `<div class="rg-disposition rg-disposition-${side}" ${game.user?.isGM ? `role="button" tabindex="0" data-edit-disposition="${side}" title="GM: correct Disposition"` : ""}><div class="rg-disposition-head"><b>${side === "gm" ? "GM / Opposition" : "Rangers"}</b><strong>${data?.rolled ? `${current} / ${start}` : "Not rolled"}</strong></div><div class="rg-disposition-track"><span style="width:${pct}%"></span></div></div>`;
 }
 
 function planFor(side, state) {
@@ -633,7 +637,7 @@ function planWeaponSummary(actor, state, side) {
   return `<div class="rg-plan-weapon rg-plan-weapon-locked" data-rg-help="This Actor's Conflict Weapon / Tool is declared once for the entire three-Action Exchange. Change it in the Exchange Weapon / Tool section before locking the cards." data-rg-help-title="Exchange Weapon / Tool"><span>Exchange Weapon / Tool</span><b>${esc(name)}</b></div>`;
 }
 function planSlotHtml(side, state, index, planEntry, { editable = false } = {}) {
-  const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
+  const ownSideView = canPlanSide(state,side);
   editable = editable && ownSideView;
   const locked = Boolean(state.locks?.[side]);
   const revealed = state.revealed?.find(r => r.index === index);
@@ -694,7 +698,7 @@ function planActionChoice(action, side) {
 }
 
 function cardPlannerHtml(side, state, editable) {
-  const ownSideView = side === "gm" ? Boolean(game.user?.isGM) : Boolean(!game.user?.isGM && canCaptainControl(state));
+  const ownSideView = canPlanSide(state,side);
   const plan = ownSideView ? planFor(side, state) : [];
   const filled = [0,1,2].filter(i => plan[i]?.action).length;
   return `<div class="rg-card-planner ${editable ? "editable" : "readonly"}">
@@ -736,7 +740,7 @@ function maneuverHtml(state) {
   if (!pending || state.stage !== "maneuver") return "";
   const side = pending.side;
   const actor = side === "gm" ? actorById(gmActingId(state)) : actorById(currentPair(state)?.rangerActorId);
-  const canChoose = side === "gm" ? game.user?.isGM : (game.user?.isGM || actor?.isOwner);
+  const canChoose = side === "gm" ? (game.user?.isGM || state.gm.captainId && actor?.isOwner) : (game.user?.isGM || actor?.isOwner);
   if (!canChoose) return `<div class="rg-maneuver-panel"><b>${esc(actor?.name ?? side)} is choosing a Maneuver effect…</b></div>`;
   const points = Math.max(0, Number(pending.margin ?? 0));
   const choices = [];
@@ -752,14 +756,14 @@ function maneuverHtml(state) {
 function compromiseHtml(state) {
   if (state.stage !== "compromise" && state.stage !== "complete") return "";
   const outcome = state.outcome ?? {};
-  const winner = outcome.winner === "ranger" ? "Rangers" : outcome.winner === "gm" ? "GM / Opposition" : "Tie";
+  const winner = conflictWinnerName(state);
   const winnerSide = outcome.winner === "ranger" ? state.ranger : state.gm;
   const grade = outcome.winner === "tie" ? "dangerous tie" : compromiseGrade(winnerSide?.disposition?.start, winnerSide?.disposition?.current);
   const label = ({ none: "No Compromise", minor: "Minor Compromise", compromise: "Compromise", major: "Major Compromise", "dangerous tie": "Conflict Tie" })[grade] ?? grade;
   return `<section class="rg-compromise-panel"><h3>${esc(label)}</h3><p><b>${esc(winner)}</b> ${outcome.winner === "tie" ? "reached 0 disposition in the same action. Both goals are achieved; this is a dangerous outcome." : "won the conflict."}</p>
     ${outcome.winner !== "tie" ? `<p>Winner remaining disposition: <b>${winnerSide.disposition.current}/${winnerSide.disposition.start}</b>. The losing side proposes an appropriate “You win, but…” concession.</p>` : ""}
     ${state.compromise?.text ? `<div class="rg-compromise-text">${esc(state.compromise.text)}</div>` : ""}
-    ${game.user?.isGM && state.stage === "compromise" ? `<label>Compromise / outcome notes<textarea id="rg-conflict-compromise-text" rows="3" placeholder="Record the agreed compromise…">${esc(state.compromise?.text ?? "")}</textarea></label><button type="button" class="rg-conflict-primary" data-conflict-action="finish"><i class="fa-solid fa-flag-checkered"></i> Finish Conflict</button>` : ""}
+    ${game.user?.isGM && state.stage === "compromise" ? `<label>The Compromise<textarea id="rg-conflict-compromise-text" rows="6" placeholder="Record the agreed compromise…">${esc(state.compromise?.text ?? "")}</textarea></label><button type="button" class="rg-conflict-primary" data-conflict-action="finish"><i class="fa-solid fa-flag-checkered"></i> Save Compromise & Close Conflict for Everyone</button>` : state.stage === 'compromise' ? '<p class="rg-compromise-waiting">Agree The Compromise together. The GM is recording the outcome and will close this window for everyone.</p>' : ""}
   </section>`;
 }
 
@@ -790,7 +794,7 @@ function controlsHtml(state) {
   if(state.stage==="allocation"&&!dispositionAllocationPending(state)&&canAllocateDisposition(state))return '<div class="rg-conflict-controls"><button type="button" data-conflict-action="allocation-continue">Keep distribution and continue</button></div>';
   if (state.stage === "disposition" && state.gm.disposition.rolled && state.ranger.disposition.rolled) return game.user?.isGM ? '<div class="rg-conflict-controls"><button type="button" data-conflict-action="disposition-continue">Continue · keep both team rolls</button></div>' : "<p>Both team Disposition rolls are complete.</p>";
   if (state.stage === "goals") {
-    const gmCan = Boolean(game.user?.isGM);
+    const gmCan = canControlSide(state,"gm");
     const rangerCan = canCaptainControl(state);
     const gmEdit = gmCan ? `<button class="rg-conflict-primary gm" data-conflict-action="edit-goal" data-side="gm" data-rg-help="Write or edit the GM / Opposition Conflict Goal. Saving the Goal marks this side Ready automatically." data-rg-help-title="GM Conflict Goal"><i class="fa-solid fa-pen"></i> ${state.gm.goal ? "Edit" : "Write"} GM Goal</button>` : "";
     const rangerEdit = rangerCan ? `<button class="rg-conflict-primary ranger" data-conflict-action="edit-goal" data-side="ranger" data-rg-help="Write or edit the Ranger Conflict Goal. Saving the Goal marks the Rangers Ready automatically." data-rg-help-title="Ranger Conflict Goal"><i class="fa-solid fa-pen"></i> ${state.ranger.goal ? "Edit" : "Write"} Ranger Goal</button>` : "";
@@ -798,12 +802,12 @@ function controlsHtml(state) {
     return `<div class="rg-conflict-controls rg-goal-controls">${gmEdit}${rangerEdit}${status}<small>Save = Ready. There is no second confirmation click.</small></div>`;
   }
   if (state.stage === "disposition") {
-    const gmButton = !state.gm.disposition.rolled && game.user?.isGM ? `<button class="rg-conflict-primary gm" data-conflict-action="disposition" data-side="gm" data-rg-help="Generate the GM / Opposition Starting Disposition. The GM chooses the disposition Method before any roll is made." data-rg-help-title="GM Starting Disposition"><i class="fa-solid fa-dice"></i> Roll GM Disposition</button>` : "";
+    const gmButton = !state.gm.disposition.rolled && canControlSide(state,"gm") ? `<button class="rg-conflict-primary gm" data-conflict-action="disposition" data-side="gm" data-rg-help="Generate the GM / Opposition Starting Disposition. The GM chooses the disposition Method before any roll is made." data-rg-help-title="GM Starting Disposition"><i class="fa-solid fa-dice"></i> Roll GM Disposition</button>` : "";
     const rangerButton = !state.ranger.disposition.rolled && canCaptainControl(state) ? `<button class="rg-conflict-primary ranger" data-conflict-action="disposition" data-side="ranger" data-rg-help="Roll the Rangers’ Starting Disposition using the conflict’s legal Skill and Base Ability procedure." data-rg-help-title="Ranger Starting Disposition"><i class="fa-solid fa-dice"></i> Roll player team Disposition</button>` : "";
     return `<div class="rg-conflict-controls">${gmButton}${game.user?.isGM && !state.gm.disposition.rolled ? `<details class="rg-gm-disposition-options"><summary>Optional GM disposition methods</summary><button type="button" data-conflict-action="disposition-options">Nature, fixed or manual Disposition</button></details>` : ""}${rangerButton}<small>Each side rolls once. A multi-player team distributes its shared total before equipment and cards.</small></div>`;
   }
   if (state.stage === "gmPlan") {
-    if (!game.user?.isGM) return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-lock"></i> GM is choosing three hidden action cards…</div>`;
+    if (!canPlanSide(state,"gm")) return `<div class="rg-conflict-controls waiting"><i class="fa-solid fa-lock"></i> Opposition Captain is choosing three hidden action cards…</div>`;
     return `<div class="rg-conflict-controls"><button class="rg-conflict-primary gm" data-conflict-action="lock-plan" data-side="gm" data-rg-help="Lock the GM’s three hidden Actions. Once locked, the GM plan is ready and the Ranger side can finish planning." data-rg-help-title="Lock GM Plan"><i class="fa-solid fa-lock"></i> Lock GM Cards</button></div>`;
   }
   if (state.stage === "rangerPlan") {
@@ -817,6 +821,7 @@ function controlsHtml(state) {
 
 function renderConflictWindow(state = currentState(), { force = false } = {}) {
   const old = document.getElementById(WINDOW_ID);
+  if(state?.stage==='complete'&&state.closedForAll&&!force){old?.remove();return;}
   if (!state || (!isActive(state) && state.stage !== "complete")) { old?.remove(); return; }
   const savedView = old?.dataset.conflictId === state.id && old.dataset.stage === state.stage ? captureConflictView(old) : null;
   if (!force && dismissedConflictId === state.id && !old) return;
@@ -826,9 +831,15 @@ function renderConflictWindow(state = currentState(), { force = false } = {}) {
   }
   root.dataset.stage = state.stage;
   root.dataset.conflictId = state.id;
+  if(state.stage==='compromise'){
+    root.classList.add('rg-conflict-ending');root.classList.remove('minimized');
+    root.innerHTML=`<header class="rg-conflict-titlebar" data-conflict-drag><div><span>CONFLICT RESOLVED</span><h2>The Compromise</h2><small>${esc(state.name)} · ${esc(conflictTypeLabel(state.type))}</small></div></header><div class="rg-conflict-body"><div class="rg-conflict-goals"><article><b>Opposition Goal</b><p>${esc(state.gm.goal||'—')}</p></article><article><b>Ranger Goal</b><p>${esc(state.ranger.goal||'—')}</p></article></div>${compromiseHtml(state)}${canBackConflict(state)?'<div class="rg-conflict-admin"><button type="button" data-conflict-action="back">Back · undo previous step</button></div>':''}</div>`;
+    bindWindowEvents(root,state);restoreConflictView(root,savedView);return;
+  }
+  root.classList.remove('rg-conflict-ending');
   const gmActor = actorById(gmActingId(state));
   const captain = actorById(state.ranger.captainId);
-  const gmEditable = state.stage === "gmPlan" && game.user?.isGM && !state.locks.gm;
+  const gmEditable = state.stage === "gmPlan" && canPlanSide(state,"gm") && !state.locks.gm;
   const rangerEditable = !game.user?.isGM && state.stage === "rangerPlan" && canCaptainControl(state) && !state.locks.ranger;
   root.innerHTML = `<header class="rg-conflict-titlebar" data-conflict-drag><div><span>REALM GUARD</span><h2>${esc(state.name)}</h2><small>${esc(conflictTypeLabel(state.type))} · ${esc(stageLabel(state.stage))} · Exchange ${state.exchange}</small></div><div class="rg-conflict-window-actions"><button type="button" data-conflict-action="close" title="Minimize / Restore Conflict Window"><i class="fa-solid fa-window-minimize"></i></button></div></header>
     <div class="rg-conflict-body">
@@ -839,14 +850,16 @@ function renderConflictWindow(state = currentState(), { force = false } = {}) {
       ${(state.stage === "gmPlan" || state.stage === "rangerPlan") ? conflictActionGuideHtml() : ""}
       ${state.stage === "allocation" ? `<section class="rg-disposition-allocation"><h3>Distribute the team points</h3>${individualDispositionHtml(state)}</section>` : state.stage === "equipment" ? equipmentHtml(state) : planningHtml(state, gmEditable, rangerEditable)}
       ${controlsHtml(state)}${currentActionHtml(state)}${maneuverHtml(state)}${compromiseHtml(state)}${conflictHistoryHtml(state)}
-      ${game.user?.isGM && state.stage !== "complete" ? `<div class="rg-conflict-admin"><button type="button" data-conflict-action="back" ${state.stage === "goals" ? "disabled" : ""}>Back</button><button type="button" data-conflict-action="abort"><i class="fa-solid fa-ban"></i> Abort Conflict</button></div>` : ""}
-      ${game.user?.isGM && state.stage === "complete" ? '<div class="rg-conflict-controls"><button data-conflict-action="reopen">Reopen Conflict · correct an accidental finish</button><button data-conflict-action="new-conflict">Start New Conflict</button></div>' : ""}
+      ${canBackConflict(state) ? `<div class="rg-conflict-admin"><button type="button" data-conflict-action="back" ${!state.stepRevision ? "disabled" : ""}>Back · undo previous step</button>${game.user.isGM && state.stage!=='complete' ? '<button type="button" data-conflict-action="abort"><i class="fa-solid fa-ban"></i> Abort Conflict</button>' : ''}</div>` : ""}
+      ${state.stage === "complete" ? `<div class="rg-conflict-complete-close"><h3>Conflict Complete</h3><p>The conflict is finished. You can close this window.</p><button type="button" data-conflict-action="dismiss">Close conflict window</button></div>${game.user.isGM ? '<div class="rg-conflict-controls"><button data-conflict-action="reopen">Reopen Conflict · correct an accidental finish</button><button data-conflict-action="new-conflict">Start New Conflict</button></div>' : ''}` : ""}
     </div>`;
   bindWindowEvents(root, state);
   restoreConflictView(root, savedView);
 }
 
 function bindWindowEvents(root, state) {
+  for(const bar of root.querySelectorAll("[data-edit-disposition]")){const run=()=>void editTeamDisposition(bar.dataset.editDisposition,state);bar.addEventListener("click",run);bar.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();run();}});}
+  root.querySelector("[data-conflict-action=\"dismiss\"]")?.addEventListener("click",()=>{dismissedConflictId=state.id;root.remove();});
   root.querySelector('[data-conflict-action="close"]')?.addEventListener("click", () => {
     root.classList.toggle("minimized");
     const icon = root.querySelector('[data-conflict-action="close"] i');
@@ -854,7 +867,7 @@ function bindWindowEvents(root, state) {
   });
   root.querySelector('[data-conflict-action="abort"]')?.addEventListener("click", () => void abortConflict());
   root.querySelectorAll(".rg-card-deck [data-action-card]").forEach(button => button.addEventListener("click", () => {
-    const side = state.stage === "gmPlan" && game.user?.isGM ? "gm" : state.stage === "rangerPlan" && canCaptainControl(state) ? "ranger" : null;
+    const side = state.stage === "gmPlan" && canPlanSide(state,"gm") ? "gm" : state.stage === "rangerPlan" && canCaptainControl(state) ? "ranger" : null;
     if (!side) return;
     const plan = [...planFor(side, state)];
     const index = plan.findIndex(entry => !entry?.action);
@@ -867,7 +880,7 @@ function bindWindowEvents(root, state) {
     renderConflictWindow(state, { force: true });
   }));
   root.querySelectorAll("[data-clear-plan]").forEach(button => button.addEventListener("click", () => {
-    const side = state.stage === "gmPlan" && game.user?.isGM ? "gm" : "ranger";
+    const side = state.stage === "gmPlan" && canPlanSide(state,"gm") ? "gm" : "ranger";
     const plan = [...planFor(side, state)];
     const index = Number(button.dataset.clearPlan); plan[index] = null; setDraft(side, state, plan); renderConflictWindow(state, { force: true });
   }));
@@ -893,7 +906,7 @@ function bindWindowEvents(root, state) {
   }));
   root.querySelectorAll("[data-conflict-action]").forEach(button => {
     const action = button.dataset.conflictAction;
-    if (["close", "abort"].includes(action)) return;
+    if (["close", "abort", "dismiss"].includes(action)) return;
     button.addEventListener("click", () => void handleWindowAction(action, button.dataset.side, state));
   });
   root.querySelectorAll("[data-maneuver-choice]").forEach(button => button.addEventListener("click", () => void chooseManeuver(button.dataset.maneuverChoice, state)));
@@ -955,7 +968,7 @@ async function handleWindowAction(action, side, state) {
 
 async function editConflictGoal(side, state) {
   if (state.stage !== "goals" || !["gm", "ranger"].includes(side)) return;
-  if (side === "gm" && !game.user?.isGM) return;
+  if (side === "gm" && !canControlSide(state,"gm")) return;
   if (side === "ranger" && !canCaptainControl(state)) return;
   const current = String(state?.[side]?.goal ?? "");
   const result = await foundry.applications.api.DialogV2.wait({
@@ -976,13 +989,13 @@ async function editConflictGoal(side, state) {
     }
     await setPublicState(next);
   } else {
-    game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: "setRangerGoal", conflictId: state.id, senderId: game.user.id, payload: { goal: result } });
+    game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: side === "gm" ? "setOppositionGoal" : "setRangerGoal", conflictId: state.id, senderId: game.user.id, payload: { goal: result } });
   }
 }
 
 async function setConflictGoalReady(side, state) {
   if (state.stage !== "goals" || !state?.[side]?.goal) return;
-  if (side === "gm" && !game.user?.isGM) return;
+  if (side === "gm" && !canControlSide(state,"gm")) return;
   if (side === "ranger" && !canCaptainControl(state)) return;
   if (!game.user?.isGM && side === "ranger") {
     game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: "rangerGoalReady", conflictId: state.id, senderId: game.user.id, payload: {} });
@@ -1016,7 +1029,8 @@ async function lockPlan(side, state) {
   const plan = planFor(side, state).filter(Boolean).slice(0, 3);
   if (plan.length !== 3 || plan.some(p => !ACTIONS.includes(p.action))) return ui.notifications.warn("Realm Guard: Choose all three action cards before locking.");
   if (side === "gm") {
-    if (!game.user?.isGM || state.stage !== "gmPlan") return;
+    if (!canPlanSide(state,"gm") || state.stage !== "gmPlan") return;
+    if(!game.user.isGM){game.socket.emit(SOCKET_CHANNEL,{type:"conflict-intent",intent:"submitOppositionPlan",conflictId:state.id,senderId:game.user.id,payload:{plan,exchange:state.exchange,revision:state.planningRevision??0}});return;}
     const gmActor = actorById(gmActingId(state));
     const gmWeaponId = validateWeaponId(gmActor, state, "gm", weaponDraftFor(gmActor, state, "gm"));
     const gmWeaponIds = Object.fromEntries(gmParticipants(state).map(id => [id, validateWeaponId(actorById(id), state, "gm", weaponDraftFor(actorById(id), state, "gm"))]));
@@ -1183,7 +1197,7 @@ async function openPoolDialog({ actor, title, choices, temporaryDice = 0, gear =
   const automatic = Number(temporaryDice) + Number(gear?.dice ?? 0) + Number(story.dice);
   const options = await RealmGuardActorSheet._openRollDialog.call({ actor }, role, { obstacle: 0, fixedObstacle: true, modifier: automatic, isSkill, tokenSourceIsSkill: isSkill, beginnerLuck: isSkill && Number(source.rating) <= 0, beginnerAbility: beginnerAbilityKey(actor, source, baseAbilityHint), abilityKey: isSkill ? "" : source.key || "nature", allowHelp: participants.some(id => id !== actor.id), conflictContext: { title, id: state?.id ?? "", participants, maxHelpers, allowTapNature, requirement: gear?.requirement ?? "", swordChoice: allowSwordChoice && gear?.hasSword && !gear.swordAction, actionLabel: actionLabel(action), notes: [story.reason, ...(gear?.notes ?? [])].filter(Boolean).join(" · ") } });
   if (!options) return null;
-  return { ...options, sourceId: source.id, modifier: Number(story.dice), extra: game.user?.isGM ? Number(options.extraDice ?? 0) : 0, helperEntries: options.help ?? [], tapNature: allowTapNature && (source.id === "@nature" ? Boolean(options.doubleTapNature) : Boolean(options.tapNature)), natureScope: source.id === "@nature" ? options.natureUse || "within" : options.natureScope || "within", lockSword: Boolean(options.lockSword), weaponRequirementMet: options.weaponRequirementMet !== false };
+  return { ...options, sourceId: source.id, modifier: Number(story.dice), extra: Number(options.extraDice ?? 0), helperEntries: options.help ?? [], tapNature: allowTapNature && (source.id === "@nature" ? Boolean(options.doubleTapNature) : Boolean(options.tapNature)), natureScope: source.id === "@nature" ? options.natureUse || "within" : options.natureScope || "within", lockSword: Boolean(options.lockSword), weaponRequirementMet: options.weaponRequirementMet !== false };
 }
 
 async function executeActorPool({ actor, source, modifier = 0, extra = 0, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, talentId = null, helperIds = [], helperEntries = [], temporaryDice = 0, gear = { dice: 0, conditionalSuccess: 0, successPenalty: 0, notes: [] }, label = "Conflict", contextKey = "", tapNature = false, natureScope = "within", baseAbilityHint = "will" }) {
@@ -1226,13 +1240,14 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   let preHalf = null, beginnerDice = null;
   let pool;
   if (beginnerLuck) {
-    preHalf = Math.max(0, blAbilityBase + commonPre + preHalfConditionDice);
+    preHalf = Math.max(0, blAbilityBase + commonPre - Number(assist.traitPoolDice ?? 0) + preHalfConditionDice);
     beginnerDice = Math.ceil(preHalf / 2);
-    pool = Math.max(0, beginnerDice + personaDice + freshDice + natureTapDice);
+    pool = Math.max(0, beginnerDice + Number(assist.traitPoolDice ?? 0) + personaDice + freshDice + natureTapDice);
   } else {
     pool = Math.max(0, trainedBase + commonPre + Number(conditionData.dice ?? 0) + personaDice + natureTapDice);
   }
   if (pool < 1) return ui.notifications.warn("Realm Guard: Conflict dice pool is 0 after all modifiers.");
+  await consumeWiseHelpers(actor,committedHelpers);
   if (totalPersonaCost) {
     const spent = await spendRollResource(actor, "persona", totalPersonaCost, { reason: `${label} conflict roll${tapNature ? " · Tap Nature" : ""}` });
     if (spent && !spent.ok) return ui.notifications.warn(`Realm Guard: ${spent.reason}`);
@@ -1243,6 +1258,7 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   if (talentUse?.talent && !talentUse.reroll) await commitTalentUse(talentUse);
   let baseFaces = roll.dice.flatMap(d => d.results.map(r => r.result));
   rollChat = await beginRollChat(actor, `${label} · ${source.name}`, baseFaces);
+  await rollChat.message.update({"flags.realm-guard.conflictRoll":true,"flags.realm-guard.conflictId":contextKey,"flags.realm-guard.stepRevision":Number(currentState()?.stepRevision??0)});
   assist.chatDecision = rollChat; assist.talentUse = talentUse;
   const wise = assist.wise ?? (wiseId ? actor.items.get(wiseId) : null);
   const wiseResult = actor._applyWiseReroll ? await actor._applyWiseReroll(baseFaces, wise, assist) : { faces: baseFaces, rerollFaces: [], rerolledIndexes: [] };
@@ -1308,7 +1324,7 @@ async function postStartingDispositionChat(state, payload) {
   } else {
     math = `<div class="rg-disposition-breakdown"><div><b>${method === "manual" ? "Manual final" : "Fixed base"}</b><strong>${Number(payload.fixedBase ?? payload.disposition ?? 0)}</strong></div>${method === "fixed" ? `<div><b>Supporting NPCs</b><strong>+${Number(payload.helperBonus ?? 0)}</strong></div>` : ""}${payload.penalty ? `<div><b>Condition penalty</b><strong>−${Number(payload.penalty)}</strong></div>` : ""}</div>${payload.penaltyNames?.length ? `<p class="rg-disposition-note">Conditions: ${payload.penaltyNames.map(esc).join(", ")}</p>` : ""}`;
   }
-  await ChatMessage.create({ content: `<div class="realm-guard rg-conflict-chat rg-disposition-chat rg-conflict-readable-card"><div class="rg-custom-chat-tag">STARTING DISPOSITION · ${esc(sideLabel.toUpperCase())}</div><h3>${esc(state.name)} · ${esc(conflictTypeLabel(state.type))}</h3><div class="rg-conflict-method-label">Method: <b>${esc(String(method).replace(/^./, c => c.toUpperCase()))}</b></div>${math}<div class="rg-disposition-total"><small>STARTING DISPOSITION</small><strong>${Number(payload.disposition ?? 0)}</strong></div></div>` });
+  await conflictChat({ content: `<div class="realm-guard rg-conflict-chat rg-disposition-chat rg-conflict-readable-card"><div class="rg-custom-chat-tag">STARTING DISPOSITION · ${esc(sideLabel.toUpperCase())}</div><h3>${esc(state.name)} · ${esc(conflictTypeLabel(state.type))}</h3><div class="rg-conflict-method-label">Method: <b>${esc(String(method).replace(/^./, c => c.toUpperCase()))}</b></div>${math}<div class="rg-disposition-total"><small>STARTING DISPOSITION</small><strong>${Number(payload.disposition ?? 0)}</strong></div></div>` });
 }
 
 const dispositionDialogs = new Set();
@@ -1320,9 +1336,9 @@ async function rollDisposition(side,state,options=null) {
 }
 async function rollDispositionNow(side, state, options = null) {
   if (state.stage !== "disposition") return;
-  if (side === "gm" && !game.user?.isGM) return;
+  if (side === "gm" && !canControlSide(state,"gm")) return;
   if (side === "ranger" && !canCaptainControl(state)) return;
-  const actor = side === "gm" ? actorById(gmActingId(state)) : actorById(state.ranger.captainId);
+  const actor = side === "gm" ? actorById(state.gm.captainId || gmActingId(state)) : actorById(state.ranger.captainId);
   if (!actor) return;
   const dispositionPolicy = isFamilyConflictProfile() ? familyConflictDispositionPlan(state.type, activeConflictPolicy()) : null;
   let baseKey = state.type === "other"
@@ -1465,12 +1481,13 @@ async function rollCurrentAction(side, state) {
   const gear = gearActionModifiers(actor, action, state, side, actionWeaponId);
   const dialog = await openPoolDialog({ actor, title: `${actionLabel(action)} · ${mode === "versus" ? "Versus" : "Independent"}`, choices, temporaryDice: tactical, gear, participants: side === "ranger" ? state.ranger.participantIds : [], side, allowSwordChoice: ["fight", "fightCreature"].includes(state.type), state, action, maxHelpers: side === "ranger" ? 2 : null, allowTapNature: true });
   if (!dialog) return;
+  const latestAction=currentState();if(latestAction?.id!==state.id||latestAction.stage!=="action"||latestAction.exchange!==state.exchange||latestAction.currentIndex!==state.currentIndex||latestAction.rolls?.[side]||!canSideRoll(latestAction,side))return ui.notifications.warn("The Conflict step changed. Open the current action again.");
   if (dialog.lockSword && gear.hasSword && !gear.swordAction) gear.dice += 1;
   if (gear.requirement && !dialog.weaponRequirementMet) { gear.dice = 0; gear.conditionalSuccess = 0; gear.successPenalty = 0; gear.notes = [`${gear.toolName}: requirement not met — no bonus`]; }
   const swordUsefulAction = dialog.lockSword ? action : String(state.effects?.[side]?.swordActions?.[actor.id] ?? state.effects?.[side]?.swordAction ?? gear.swordAction ?? "");
   const liveGear = evaluateM5ConflictToolLiveHandoff({ actor, state, side, toolId: actionWeaponId, action, legacy: gear, requirementMet: dialog.weaponRequirementMet, swordUsefulAction });
   const source = choices.find(c => c.id === dialog.sourceId) ?? choices[0];
-  const roll = await executeActorPool({ actor, source, modifier: dialog.modifier, extra: dialog.extra, persona: dialog.persona, traitId: dialog.traitId, wiseId: dialog.wiseId, tokenPowerId: dialog.tokenPowerId, talentId: dialog.talentId, helperIds: dialog.helperIds, helperEntries: dialog.helperEntries, temporaryDice: tactical, gear: liveGear, label: actionLabel(action), contextKey: state.id, tapNature: dialog.tapNature, natureScope: dialog.natureScope });
+  const roll = await executeActorPool({ actor, source, modifier: dialog.modifier, extra: dialog.extra, persona: dialog.persona, traitId: dialog.traitId, traitMode: dialog.traitMode, wiseId: dialog.wiseId, tokenPowerId: dialog.tokenPowerId, talentId: dialog.talentId, helperIds: dialog.helperIds, helperEntries: dialog.helperEntries, temporaryDice: tactical, gear: liveGear, label: actionLabel(action), contextKey: state.id, tapNature: dialog.tapNature, natureScope: dialog.natureScope });
   if (!roll) return;
   roll.lockSwordAction = dialog.lockSword ? action : "";
   const message = { side, roll, exchange: state.exchange, actionIndex: state.currentIndex };
@@ -1491,7 +1508,7 @@ async function gmApplyActionRollNow(payload, state, sender = null) {
   if (!game.user?.isGM || !state || state.stage !== "action") return;
   const side = payload.side; if (!['gm','ranger'].includes(side) || state.rolls?.[side]) return;
   const pair = currentPair(state); if (!pair) return;
-  if (sender && side === "gm" && !sender.isGM) return;
+  if (sender && side === "gm" && !sender.isGM && (!state.gm.captainId || !actorById(gmActingId(state))?.testUserPermission(sender,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))) return;
   if (payload.roll?.actorId !== (side === "gm" ? gmActingId(state) : pair.rangerActorId)) return;
   if (dispositionAllocationPending(state)) return;
   if (side === "ranger" && (!activeConflictParticipants(state).includes(pair.rangerActorId) || (payload.roll?.helperIds ?? []).some(id => !activeConflictParticipants(state).includes(id)))) return;
@@ -1618,14 +1635,14 @@ function conflictRollDetails(roll) {
 function conflictSideCard({ actorName, action, roll, passed, margin, mode }) {
   const actionName = actionLabel(action);
   if (roll?.trumped || mode === "trumped") {
-    return `<section class="rg-conflict-side-card is-trumped"><header><strong>${esc(actorName)}</strong><span>${esc(actionName)}</span></header><div class="rg-conflict-side-primary"><span class="rg-conflict-status trumped">TRUMPED</span><small>No test is rolled.</small></div></section>`;
+    return `<section class="rg-conflict-side-card is-trumped"><header><span>${esc(actionName)}</span><strong>${esc(actorName)}</strong></header><div class="rg-conflict-side-primary"><span class="rg-conflict-status trumped">TRUMPED</span><small>No test is rolled.</small></div></section>`;
   }
   const rolled = Number(roll?.successes ?? 0);
   const effective = Number(roll?.effectiveSuccesses ?? rolled);
   const detailRows = conflictRollDetails(roll);
   const detailHtml = detailRows.length ? `<details class="rg-conflict-roll-details"><summary>Roll details</summary><div>${detailRows.map(([label, value]) => `<span><b>${esc(label)}</b><em>${esc(value)}</em></span>`).join("")}</div></details>` : "";
   return `<section class="rg-conflict-side-card ${passed ? "is-pass" : "is-fail"}">
-    <header><strong>${esc(actorName)}</strong><span>${esc(actionName)}</span></header>
+    <header><span>${esc(actionName)}</span><strong>${esc(actorName)}</strong></header>
     <p class="rg-conflict-source"><b>Skill / Ability:</b> ${esc(roll?.skillName || "—")}</p>
     <div class="rg-conflict-side-numbers"><span><b>Pool</b><strong>${Number(roll?.pool ?? 0)}D</strong></span><span><b>Successes</b><strong>${effective}</strong></span></div>
     <div class="rg-conflict-side-dice">${diceFacesHtml(roll?.faces ?? [])}</div>
@@ -1658,8 +1675,10 @@ async function postConflictStepChat(state, pair, { gmRoll, rangerRoll, gmPassed,
     <div class="rg-conflict-disposition-chat">${disposition("Rangers", rangerBeforeValue, rangerAfter, rangerDelta)}${disposition("Opposition", gmBeforeValue, gmAfter, gmDelta)}</div>
     ${pair.resultText ? `<details class="rg-conflict-rule-detail"><summary>Rules resolution</summary><div>${pair.resultText}</div></details>` : ""}
   </div>`;
-  await ChatMessage.create({ content });
+  await conflictChat({ content });
 }
+
+async function conflictChat(data){const state=currentState();return ChatMessage.create({...data,flags:{...data.flags,[SYSTEM_ID]:{conflictId:state?.id,stepRevision:Number(state?.stepRevision??0)}}});}
 
 async function gmResolveCurrentPair(state) {
   if (!game.user?.isGM || state.stage !== "action") return;
@@ -1685,7 +1704,10 @@ async function gmResolveCurrentPair(state) {
     gmPassed = gmMode !== "trumped" && gmRaw > rRaw;
     rPassed = rangerMode !== "trumped" && rRaw > gmRaw;
     let tieResolution = null;
-    if (gmRaw === rRaw && gmMode === "versus" && rangerMode === "versus") {
+    if (gmRaw === rRaw && [pair.gmAction,pair.rangerAction].includes("maneuver") && [pair.gmAction,pair.rangerAction].includes("defend")) {
+      pair.resultText="<b>No effect:</b> Maneuver and Defend cancel at equal successes. Disposition is unchanged.";
+      resolvedAutomaticTie={resolved:true,rangerPassed:false,gmPassed:false,margin:0,noEffect:true};
+    } else if (gmRaw === rRaw && gmMode === "versus" && rangerMode === "versus") {
       const rangerActor = actorById(pair.rangerActorId);
       const gmActor = actorById(gmActingId(next));
       const rangerRole = rr?.roleId ? rangerActor?.items.get(rr.roleId) : null;
@@ -1758,6 +1780,7 @@ async function gmResolveCurrentPair(state) {
       tiePending: false
     }
   });
+  if(resolvedAutomaticTie?.noEffect){Object.assign(liveResolution,{gmPassed:false,rangerPassed:false,gmMargin:0,rangerMargin:0,gmFailureMargin:0,rangerFailureMargin:0});}
   gmPassed = liveResolution.gmPassed;
   rPassed = liveResolution.rangerPassed;
   gmMargin = liveResolution.gmMargin;
@@ -1795,8 +1818,9 @@ async function gmResolveCurrentPair(state) {
   applyAction("gm", pair.gmAction, gmMode, gmPassed, gmMargin, gmRoll);
   applyAction("ranger", pair.rangerAction, rangerMode, rPassed, rMargin, rr);
 
-  await recordConflictLearning(next, gmRoll, gmPassed, gmMode === "versus");
-  await recordConflictLearning(next, rr, rPassed, rangerMode === "versus");
+  reconcileDisposition(next.ranger, pair.rangerActorId);
+  if(!resolvedAutomaticTie?.noEffect){await recordConflictLearning(next, gmRoll, gmPassed, gmMode === "versus");
+  await recordConflictLearning(next, rr, rPassed, rangerMode === "versus");}
   const taxKey = `${next.exchange}:${next.currentIndex}`;
   if (!(next.natureTaxKeys ?? []).includes(taxKey)) {
     await applyConflictNatureTax(gmRoll, { passed: gmPassed, failureMargin: gmFailureMargin, label: `${actionLabel(pair.gmAction)} Conflict` });
@@ -1858,7 +1882,7 @@ async function gmResolveCurrentPair(state) {
 async function chooseManeuver(choice, state) {
   const pending = state.pendingManeuver; if (!pending || state.stage !== "maneuver") return;
   const side = pending.side; const actor = side === "gm" ? actorById(gmActingId(state)) : actorById(currentPair(state)?.rangerActorId);
-  if (!(side === "gm" ? game.user?.isGM : (game.user?.isGM || actor?.isOwner))) return;
+  if (!(side === "gm" ? (game.user?.isGM || state.gm.captainId && actor?.isOwner) : (game.user?.isGM || actor?.isOwner))) return;
   if (!game.user?.isGM) {
     game.socket.emit(SOCKET_CHANNEL, { type: "conflict-intent", intent: "maneuverChoice", conflictId: state.id, senderId: game.user.id, payload: { choice } });
     return;
@@ -1879,13 +1903,13 @@ async function postConflictManeuverChat(state, pair, { side, choice, margin, dis
           ? `${targetLabel} suffers -1D and ${label} gains +2D on the next tests.`
           : `Maneuver effect applied.`;
   const content = `<div class="realm-guard rg-conflict-chat rg-conflict-step-chat rg-conflict-maneuver-chat rg-conflict-readable-card"><div class="rg-custom-chat-tag">CONFLICT · EXCHANGE ${Number(state.exchange ?? 1)} · ACTION ${Number(pair?.index ?? state.currentIndex ?? 0) + 1}</div><div class="rg-conflict-outcome"><small>MANEUVER · ${esc(label.toUpperCase())}</small><strong>${esc(String(choice ?? "Maneuver").replace(/^./, c => c.toUpperCase()))}</strong><span>Success: ${Number(margin ?? 0)}</span></div><p class="rg-conflict-effect-text">${esc(detail)}</p></div>`;
-  await ChatMessage.create({ content });
+  await conflictChat({ content });
 }
 
 async function gmApplyManeuverChoice(payload, state = currentState(), sender = null) {
   if (!game.user?.isGM || !state?.pendingManeuver || state.stage !== "maneuver") return;
   const pending = state.pendingManeuver; const side = pending.side; const pair = currentPair(state);
-  if (sender && side === "gm" && !sender.isGM) return;
+  if (sender && side === "gm" && !sender.isGM && (!state.gm.captainId || !actorById(gmActingId(state))?.testUserPermission(sender,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))) return;
   if (side === "ranger" && sender) {
     const actor = actorById(pair?.rangerActorId); if (!actor?.testUserPermission(sender, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)) return;
   }
@@ -1940,7 +1964,7 @@ async function advanceAfterAction(state, { coreExpected = null } = {}) {
   next.actionCounts = next.pendingActionCounts ?? next.actionCounts; next.lastRangerActorId = next.pendingLastRangerActorId ?? next.lastRangerActorId;
   next.pendingActionCounts = null; next.pendingLastRangerActorId = null;
   next.exchange += 1; next.currentIndex = 0; next.locks = { gm: false, ranger: false }; next.stage = next.equipmentRequired ? "equipment" : "gmPlan";
-  if (next.equipmentRequired) { next.equipmentLocks = { gm: false, ranger: false }; next.weaponIds = {}; } next.revealed = [];
+  if (next.equipmentRequired) { next.equipmentLocks = { gm: false, ranger: false }; } next.revealed = [];
   const p = privateState(); p.gmPlan = []; p.rangerPlan = []; await setPrivateState(p); lockedPlanCache.set(next.id, { gmPlan: [], rangerPlan: [] }); draftPlans.delete(next.id); weaponDrafts.delete(next.id);
   next.log.push(`Exchange ${next.exchange} begins.`);
   const handoff = evaluateM6ConflictStateLiveHandoff({ operation: "EXCHANGE_ADVANCEMENT", conflictId: next.id, legacyState: next, coreState: coreCandidate });
@@ -1962,8 +1986,9 @@ async function finishConflictNow(state) {
   const next = clone(state); next.compromise = { text, grade: next.outcome?.winner === "tie" ? "tie" : compromiseGrade((next.outcome?.winner === "ranger" ? next.ranger : next.gm).disposition.start, (next.outcome?.winner === "ranger" ? next.ranger : next.gm).disposition.current) }; next.stage = "complete"; next.active = false;
   const finishHandoff = evaluateM6ConflictStateLiveHandoff({ operation: "COMPROMISE_COMPLETE", conflictId: next.id, legacyState: next, coreState: coreFinished });
   const committed = finishHandoff.state;
-  const winner = committed.outcome?.winner === "ranger" ? "Rangers" : committed.outcome?.winner === "gm" ? "GM / Opposition" : "Tie";
-  await ChatMessage.create({ content: `<div class="realm-guard rg-conflict-chat rg-conflict-complete-card rg-conflict-readable-card"><div class="rg-custom-chat-tag">CONFLICT COMPLETE</div><h3>${esc(committed.name)} · ${esc(conflictTypeLabel(committed.type))}</h3><div class="rg-conflict-outcome final"><small>WINNER</small><strong>${esc(winner)}</strong></div><div class="rg-conflict-final-disposition"><span><b>Rangers</b><strong>${committed.ranger.disposition.current}/${committed.ranger.disposition.start}</strong></span><span><b>Opposition</b><strong>${committed.gm.disposition.current}/${committed.gm.disposition.start}</strong></span></div><div class="rg-conflict-goals-summary"><p><b>Ranger Goal</b><span>${esc(committed.ranger.goal || "—")}</span></p><p><b>Opposition Goal</b><span>${esc(committed.gm.goal || "—")}</span></p></div>${text ? `<div class="rg-conflict-compromise-summary"><b>Compromise</b><p>${esc(text)}</p></div>` : ""}</div>` });
+  committed.closedForAll=true;
+  const winner = conflictWinnerName(committed);
+  await conflictChat({ content: `<div class="realm-guard rg-conflict-chat rg-conflict-complete-card rg-conflict-readable-card"><div class="rg-custom-chat-tag">CONFLICT COMPLETE</div><h3>${esc(committed.name)} · ${esc(conflictTypeLabel(committed.type))}</h3><div class="rg-conflict-outcome final"><small>WINNER</small><strong>${esc(winner)}</strong></div><div class="rg-conflict-final-disposition"><span><b>Rangers</b><strong>${committed.ranger.disposition.current}/${committed.ranger.disposition.start}</strong></span><span><b>Opposition</b><strong>${committed.gm.disposition.current}/${committed.gm.disposition.start}</strong></span></div><div class="rg-conflict-goals-summary"><p><b>Ranger Goal</b><span>${esc(committed.ranger.goal || "—")}</span></p><p><b>Opposition Goal</b><span>${esc(committed.gm.goal || "—")}</span></p></div>${text ? `<div class="rg-conflict-compromise-summary"><b>Compromise</b><p>${esc(text)}</p></div>` : ""}</div>` });
   const reopenTools = {};
   for (const id of [state.gm.actorId, ...state.ranger.participantIds]) {
     const tools = actorById(id)?.getFlag?.(SYSTEM_ID, "conflictTools");
@@ -1972,7 +1997,7 @@ async function finishConflictNow(state) {
   await setPrivateState({ ...privateState(), conflictId: state.id, reopenState, reopenTools });
   await cleanupTemporaryConflictTools(committed);
   await setPublicState(committed);
-  renderConflictWindow(committed, { force: true });
+  renderConflictWindow(committed);
   ui.notifications.info("Realm Guard: Conflict complete.");
 }
 
@@ -1991,21 +2016,23 @@ async function onSocket(message) {
   if (primary && primary.id !== game.user.id) return;
   const state = currentState(); if (!state || state.id !== message.conflictId) return;
   const sender = game.users.get(message.senderId); if (!sender) return;
+  if(message.intent==="submitOppositionPlan")return gmHandleOppositionPlan(message,state,sender);
+  if(message.intent==="setOppositionGoal"){if(state.stage!=="goals"||!canControlSide(state,"gm",sender))return;const goal=String(message.payload?.goal??"").trim();if(!goal)return;const next=clone(state);next.gm.goal=goal;next.gm.goalReady=true;if(next.ranger.goalReady)next.stage=next.gm.disposition.rolled&&next.ranger.disposition.rolled?afterDispositionStage(next):"disposition";await setPublicState(next);return;}
   if(message.intent==="reserveDispositionRoll"){const granted=await reserveDispositionAuthoritative(message.payload,state,sender);game.socket.emit(SOCKET_CHANNEL,{type:"conflict-disposition-reply",userId:sender.id,token:message.payload?.token,granted});return;}
   if(message.intent==="releaseDispositionRoll")return releaseDispositionRoll(message.payload,state,sender);
-  if(message.intent==="backStep"){if(!sender.isGM||message.payload?.stage!==state.stage||message.payload?.exchange!==state.exchange||message.payload?.index!==state.currentIndex)return;return backConflictStep(state);}
+  if(message.intent==="backStep"){if(!canBackConflict(state,sender)||message.payload?.revision!==Number(state.stateRevision??0))return;return backConflictStep(state);}
+  if(message.intent==='undoRoll'){if(!canBackConflict(state,sender)||message.payload?.revision!==Number(state.stateRevision??0))return;return undoConflictRollMessage(game.messages.get(message.payload?.messageId),{requester:sender,confirmed:true});}
   if(message.intent==="submitAllocation")return applyDispositionAllocation(message.payload,state,sender);
   if (message.intent === "submitEquipment") {
-    const captain = actorById(state.ranger.captainId);
-    if (!captain?.testUserPermission(sender, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) || message.payload?.side !== "ranger") return;
+    if(!["gm","ranger"].includes(message.payload?.side)||!canControlSide(state,message.payload.side,sender))return;
     return applyEquipment(message.payload, state);
   }
   if (message.intent === "setRangerGoal") return gmApplyRangerGoal(message, state, false);
   if (message.intent === "rangerGoalReady") return gmApplyRangerGoal(message, state, true);
   if (message.intent === "submitRangerPlan") return gmHandleRangerPlan(message, state);
   if (message.intent === "submitDisposition") {
-    if(!sender.isGM&&(message.payload?.side!=="ranger"||!message.payload?.claimToken))return;
-    const captain=actorById(state.ranger.captainId);if(!sender.isGM&&!captain?.testUserPermission(sender,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))return;
+    if(!sender.isGM&&(!canControlSide(state,message.payload?.side,sender)||!message.payload?.claimToken))return;
+    if(!canControlSide(state,message.payload?.side,sender))return;
     return gmApplyDisposition(message.payload, state);
   }
   if (message.intent === "submitActionRoll") return gmApplyActionRoll(message.payload, state, sender);
@@ -2031,6 +2058,7 @@ export function installConflictEngine() {
   registerGmDockTool({ id: "conflict", icon: "fa-solid fa-khanda", tooltip: "Open Conflict Engine", order: 15, onClick: startConflictDialog });
   Hooks.once("ready", () => {
     game.socket.on(SOCKET_CHANNEL, onSocket);
+    checkpointState=clone(currentState());checkpointActors=snapshotActors([...(checkpointState?.ranger?.participantIds??[]),...gmParticipants(checkpointState??{})]);checkpointPrivate=privateState();
     const saved=currentState();
     for(const side of ["gm","ranger"]){const claim=saved?.[side]?.disposition?.pendingRoll;if(claim?.userId!==game.user.id||claim.clientId!==dispositionClientId())continue;
       if(isPrimaryConflictGm())void releaseDispositionRoll({side,claimToken:claim.token},saved,game.user);
@@ -2043,8 +2071,8 @@ export function installConflictEngine() {
       const row=map[source.value] ?? {dice:0,names:[]}; const base=Number(box.dataset.rgAutoBase ?? 0); const input=root.querySelector('[data-rg-auto-modifier]'); if(input) input.value=String(base+Number(row.dice ?? 0));
       const line=box.querySelector('[data-rg-condition-line]'); if(line) line.textContent=`Conditions: ${Number(row.dice ?? 0)>=0?'+':''}${Number(row.dice ?? 0)}D${row.names?.length ? ` · ${row.names.join(', ')}` : ''}`;
     });
-    game.realmGuard ??= {}; game.realmGuard.openConflictWindow = openConflictWindow;
-    const state = currentState(); if (isActive(state) || state?.stage === "complete") { dismissedConflictId = null; renderConflictWindow(state, { force: true }); }
+    game.realmGuard ??= {}; game.realmGuard.openConflictWindow = openConflictWindow;game.realmGuard.undoConflictMessage=undoConflictRollMessage;
+    const state = currentState(); if (isActive(state) || state?.stage === "complete") { dismissedConflictId = null; renderConflictWindow(state); }
   });
   Hooks.on("updateSetting", onConflictSettingUpdate);
 }
@@ -2053,6 +2081,7 @@ export function openConflictWindow() {
   if (!legacyMixedPolishEnabled()) return baselineOpen();
   const state = currentState();
   if (!isActive(state) && state?.stage !== "complete") return game.user?.isGM ? startConflictDialog() : ui.notifications.info("Realm Guard: No active conflict.");
+  if(state.stage==="complete")return game.user?.isGM?startConflictDialog():ui.notifications.info("Realm Guard: No active conflict.");
   dismissedConflictId = null; renderConflictWindow(state, { force: true });
 }
 
@@ -2060,7 +2089,7 @@ function planningHtml(state, gmEditable, rangerEditable) { return `<div class="r
 
 function equipmentHtml(state) {
   return `<section class="rg-equipment-step"><h3>Choose equipment · Exchange ${state.exchange}</h3><p>Declare one weapon, item or Custom tool for each participant before planning cards.</p><div class="rg-conflict-roster-columns">${["gm","ranger"].map(side => {
-    const editable = side === "gm" ? game.user?.isGM : !game.user?.isGM && canCaptainControl(state);
+    const editable = canPlanSide(state,side);
     const locked = state.equipmentLocks?.[side];
     const ids = side === "gm" ? gmParticipants(state) : activeConflictParticipants(state);
     return `<section><h4>${side === "gm" ? "Opponents / GM" : "Rangers / Players"}</h4>${ids.map(id => {
@@ -2070,7 +2099,7 @@ function equipmentHtml(state) {
   }).join("")}</div><details><summary>How equipment works</summary><p>Inventory items do not receive invented bonuses. Use Custom to enter a GM-agreed effect, for example travel boots +1D. Maneuver can disable that declared tool without deleting the inventory item.</p></details></section>`;
 }
 async function lockEquipment(side,state) {
-  if (state.stage !== "equipment" || (side === "gm" ? !game.user?.isGM : !canCaptainControl(state) || game.user?.isGM)) return;
+  if (state.stage !== "equipment" || !canPlanSide(state,side)) return;
   const ids = side === "gm" ? gmParticipants(state) : activeConflictParticipants(state);
   const weaponIds = Object.fromEntries(ids.map(id=>[id,weaponDraftFor(actorById(id),state,side)]));
   const payload = { side, weaponIds, exchange: state.exchange };
@@ -2089,31 +2118,13 @@ async function applyEquipment(payload,state) {
 }
 
 async function backConflictStep(state) {
-  if(!game.user?.isGM)return;
-  if(!isPrimaryConflictGm()){game.socket.emit(SOCKET_CHANNEL,{type:"conflict-intent",intent:"backStep",conflictId:state.id,senderId:game.user.id,payload:{stage:state.stage,exchange:state.exchange,index:state.currentIndex}});return;}
-  return serializeConflictWrite(()=>backConflictStepNow(state));
+  if(!canBackConflict(state))return;
+  if(!isPrimaryConflictGm()){game.socket.emit(SOCKET_CHANNEL,{type:"conflict-intent",intent:"backStep",conflictId:state.id,senderId:game.user.id,payload:{revision:Number(state.stateRevision??0)}});return;}
+  return serializeConflictWrite(()=>{if(currentState()?.stateRevision!==state.stateRevision)return;return backConflictStepNow(state);});
 }
 async function backConflictStepNow(state) {
-  const latest=currentState();if(!game.user?.isGM||latest?.id!==state.id||latest.stage!==state.stage||latest.stage==="goals")return;
-  for(const side of ["gm","ranger"]){const claim=latest[side].disposition.pendingRoll;if(!claim)continue;if(game.users.get(claim.userId)?.active)return ui.notifications.warn("A team roll is in progress. Finish its chat choices before going Back.");const cleaned=clone(latest);delete cleaned[side].disposition.pendingRoll;await setPublicState(cleaned);return backConflictStepNow(cleaned);}
-  if(["ready","action","maneuver","compromise"].includes(latest.stage)&&privateState().lastResolutionCheckpoint){
-    if(latest.stage!=="compromise"&&(latest.rolls?.gm||latest.rolls?.ranger)&&!latest.reopenedForCorrection)return ui.notifications.warn("Finish the current rolls before returning to an earlier resolved action. Their costs are retained.");
-    return undoConflictResolution(latest);
-  }
-  if(latest.rolls?.gm||latest.rolls?.ranger)return ui.notifications.warn("Finish the pending action first. Back never repeats or refunds a roll.");
-  const targets={disposition:"goals",allocation:"disposition",equipment:latest.ranger.participantIds.length>1&&latest.dispositionAllocationRequired?"allocation":"disposition",gmPlan:"equipment",rangerPlan:"gmPlan",ready:"rangerPlan",action:"ready"};
-  const target=targets[latest.stage];if(!target)return;
-  if(latest.stage==="ready"&&latest.revealed?.some(row=>Number(row.index)===Number(latest.currentIndex)))return ui.notifications.warn("This action is already revealed. Its cards remain public; use the action correction controls after resolving it.");
-  const next=clone(latest);next.stage=target;
-  if(["equipment","gmPlan","rangerPlan"].includes(target)){
-    const saved=privateState();saved.rangerPlan=[];next.locks.ranger=false;
-    if(target!=="rangerPlan"){saved.gmPlan=[];next.locks.gm=false;next.planningRevision=Number(next.planningRevision??0)+1;draftPlans.delete(next.id);}
-    if(target==="equipment")next.equipmentLocks={gm:false,ranger:false};
-    await setPrivateState(saved);lockedPlanCache.set(next.id,{gmPlan:saved.gmPlan??[],rangerPlan:[]});
-  }
-  next.log.push(`GM returned to ${stageLabel(target)}. Existing Disposition rolls and resource costs are retained.`);await setPublicState(next);
+  return undoConflictStep(state);
 }
-
 async function reserveDispositionRoll(side,state,token) {
   if(isPrimaryConflictGm())return reserveDispositionAuthoritative({side,token,clientId:dispositionClientId()},state,game.user);
   return new Promise(resolve=>{
@@ -2125,7 +2136,7 @@ async function reserveDispositionRoll(side,state,token) {
 async function reserveDispositionAuthoritative(payload,state,sender) {
   return serializeConflictWrite(async()=>{
     const latest=currentState(),side=payload?.side;if(!game.user?.isGM||latest?.id!==state.id||latest.stage!=="disposition"||!["gm","ranger"].includes(side)||!payload.token)return false;
-    if(side==="gm"?!sender?.isGM:!sender?.isGM&&!actorById(latest.ranger.captainId)?.testUserPermission(sender,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))return false;
+    if(!canControlSide(latest,side,sender))return false;
     if(latest[side].disposition.rolled||latest[side].disposition.pendingRoll)return false;
     const next=clone(latest);next[side].disposition.pendingRoll={token:payload.token,userId:sender.id,clientId:payload.clientId};await setPublicState(next);return true;
   });
@@ -2143,3 +2154,70 @@ function dispositionClientId() {
 }
 
 function isPrimaryConflictGm() { const first=game.users.filter(user=>user.active&&user.isGM).sort((a,b)=>String(a.id).localeCompare(String(b.id)))[0];return Boolean(game.user?.isGM&&(!first||first.id===game.user.id)); }
+
+async function gmHandleOppositionPlan(message,state,sender){
+  if(!state.gm.captainId||!canControlSide(state,'gm',sender)||state.stage!=='gmPlan'||state.locks.gm||message.payload?.exchange!==state.exchange||message.payload?.revision!==Number(state.planningRevision??0)||dispositionAllocationPending(state))return;
+  const plan=message.payload?.plan;
+  if(!Array.isArray(plan)||plan.length!==3||plan.some(p=>!ACTIONS.includes(p?.action)||!gmParticipants(state).includes(p.actorId)))return;
+  const weaponIds=Object.fromEntries(gmParticipants(state).map(id=>[id,validateWeaponId(actorById(id),state,'gm',state.weaponIds?.[id])]));
+  const saved=privateState();saved.gmPlan=applyExchangeToolScope(plan,weaponIds);await setPrivateState(saved);
+  lockedPlanCache.set(state.id,{...(lockedPlanCache.get(state.id)??{}),gmPlan:clone(saved.gmPlan)});
+  const next=clone(state);next.locks.gm=true;next.stage='rangerPlan';await setPublicState(next);
+}
+
+async function editTeamDisposition(side,state){
+  if(!game.user?.isGM||!state[side]?.disposition?.rolled||!['gm','ranger'].includes(side))return;
+  const d=state[side].disposition;
+  const result=await foundry.applications.api.DialogV2.wait({window:{title:'GM correction · Disposition'},modal:false,rejectClose:false,content:`<label>Current Disposition<input name="current" type="number" min="0" max="${d.start}" step="1" value="${d.current}"></label><p>The original starting Disposition and distribution stay fixed.</p>`,buttons:[{action:'save',label:'Correct',callback:(_e,b)=>Number(b.form.elements.current.value)},{action:'cancel',label:'Cancel',callback:()=>null}]});
+  if(!Number.isInteger(result)||result<0||result>d.start)return;
+  return serializeConflictWrite(async()=>{const latest=currentState();if(latest?.id!==state.id||JSON.stringify(latest[side].disposition)!==JSON.stringify(d))return ui.notifications.warn('Disposition changed. Open its correction again.');const next=clone(latest);next[side].disposition.current=result;if(side==='ranger')reconcileDisposition(next.ranger,currentPair(next)?.rangerActorId);next.log.push(`GM corrected ${side} Disposition to ${result}.`);await setPublicState(next);});
+}
+
+let checkpointState=null,checkpointActors=[],checkpointPrivate=null,suppressCheckpoint=false;
+async function recordConflictCheckpoint(next){
+  if(suppressCheckpoint)return;
+  const before=currentState(),saved=privateState();
+  const ids=[...new Set([...(next?.ranger?.participantIds??before?.ranger?.participantIds??[]),...gmParticipants(next??before??{})])];
+  const actors=snapshotActors(ids);
+  if(next?.id&&before?.id===next.id&&checkpointState?.id===next.id){
+    const entries=saved.stepHistory??[];
+    entries.push({state:clone(checkpointState),private:{gmPlan:clone(checkpointPrivate?.gmPlan??[]),rangerPlan:clone(checkpointPrivate?.rangerPlan??[])},changes:actorChanges(checkpointActors,actors)});
+    saved.stepHistory=entries;await setPrivateState(saved);
+  }
+  checkpointState=clone(next);if(checkpointState)checkpointState.stepRevision=Number(saved.stepHistory?.length??0);checkpointActors=actors;checkpointPrivate={gmPlan:clone(saved.gmPlan??[]),rangerPlan:clone(saved.rangerPlan??[])};
+}
+async function undoConflictStep(state){
+  const latest=currentState(),saved=privateState();
+  if(!game.user?.isGM||latest?.id!==state.id)return;
+  if(game.messages?.some?.(m=>m.flags?.[SYSTEM_ID]?.conflictId===state.id&&m.flags?.[SYSTEM_ID]?.rollDecisionPending))return ui.notifications.warn('Finish the pending chat choice before undoing this step.');
+  const history=[...(saved.stepHistory??[])],entry=history.pop();
+  if(!entry)return ui.notifications.warn('No earlier step is available in this GM client.');
+  try{await restoreChanges(entry.changes);}catch(error){return ui.notifications.warn(error.message);}
+  const restored=clone(entry.state);restored.planningRevision=Number(latest.planningRevision??0)+1;
+  for(const side of ['gm','ranger'])delete restored[side].disposition.pendingRoll;
+  if(restored.stage==='action'&&restored.rolls?.gm&&restored.rolls?.ranger)restored.reopenedForCorrection=true;
+  suppressCheckpoint=true;
+  try{
+    await setPrivateState({...saved,...entry.private,stepHistory:history});
+    lockedPlanCache.set(state.id,entry.private);draftPlans.delete(state.id);weaponDrafts.delete(state.id);
+    await setPublicState(restored);
+    checkpointState=clone(restored);checkpointActors=snapshotActors([...new Set([...restored.ranger.participantIds,...gmParticipants(restored)])]);checkpointPrivate=clone(entry.private);
+    for(const m of game.messages.filter(m=>m.flags?.[SYSTEM_ID]?.conflictId===state.id&&Number(m.flags[SYSTEM_ID].stepRevision??0)>=history.length&&!m.flags[SYSTEM_ID].superseded))await m.update({'flags.realm-guard.superseded':true,content:`<div class="realm-guard rg-roll-undone"><b>Conflict step undone · previous result no longer applies</b><details><summary>Previous result</summary>${m.content}</details></div>`});
+  }finally{suppressCheckpoint=false;}
+}
+
+async function undoConflictRollMessage(message,{requester=game.user,confirmed=false}={}){
+  const author=message?.author?.id??message?.user?.id??message?.user;
+  if(!requester.isGM&&(author!==requester.id||!canBackConflict(currentState(),requester)))return;
+  if(!game.user.isGM){if(!await foundry.applications.api.DialogV2.confirm({window:{title:'Undo your Conflict roll'},content:'<p>Undo your roll and subsequent Conflict steps, restoring their tracked changes?</p>',modal:false}))return;game.socket.emit(SOCKET_CHANNEL,{type:'conflict-intent',intent:'undoRoll',conflictId:currentState()?.id,senderId:game.user.id,payload:{messageId:message.id,revision:Number(currentState()?.stateRevision??0)}});return;}
+  const state=currentState(),flags=message?.flags?.[SYSTEM_ID],revision=Number(flags?.stepRevision);
+  if(!state||flags?.conflictId!==state.id||!Number.isInteger(revision)||flags.superseded)return;
+  const history=privateState().stepHistory??[];
+  if(revision>=history.length)return ui.notifications.warn('Finish the roll before undoing it.');
+  if(!confirmed&&!await foundry.applications.api.DialogV2.confirm({window:{title:'Undo Conflict roll'},content:'<p>Undo this roll and all subsequent Conflict steps? Their tracked character changes will be restored, and later results marked as superseded.</p>',modal:false}))return;
+  return serializeConflictWrite(async()=>{
+    const steps=(privateState().stepHistory??[]).slice(revision).reverse();
+    try{validateUndoSeries(steps.map(s=>s.changes));}catch(e){return ui.notifications.warn(e.message);}
+    for(let i=0;i<steps.length;i++){const before=(privateState().stepHistory??[]).length;await undoConflictStep(currentState());if((privateState().stepHistory??[]).length===before)break;}
+  });
+}

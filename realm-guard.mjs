@@ -1,3 +1,13 @@
+import { installLegacySession } from './module/legacy-session.mjs';
+import {installLegacyTraitsLibrary} from './module/legacy-traits-library.mjs';
+import {installLegacyTokenHud} from './module/legacy-token-hud.mjs';
+import { installLegacyTalentLibrary } from './module/legacy-talent-library.mjs';
+import { installLegacyConflictSetupView } from './module/legacy-conflict-setup-view.mjs';
+import { installLegacyChatFollow } from './module/legacy-chat-follow.mjs';
+import { installLegacyBreak } from './module/legacy-break.mjs';
+import { installLegacySessionView } from './module/legacy-session-view.mjs';
+import { installLegacyChatActions } from './module/legacy-chat-actions.mjs';
+import { installRollUndo } from './module/roll-undo.mjs';
 import { installRollChat } from "./module/roll-chat.mjs";
 import { installDefaultSkillProvisioning } from "./module/default-skills.mjs";
 import { RealmGuardCharacterData, RealmGuardNpcData, RealmGuardRoleData, RealmGuardTraitData, RealmGuardGearData, RealmGuardConditionData, RealmGuardWiseData, RealmGuardTokenOfPowerData, RealmGuardTalentData } from "./module/data-models.mjs";
@@ -100,6 +110,7 @@ Hooks.once("init", () => {
   installM9CreationShadow();
 
   installTokenConditionHud();
+  installLegacyTokenHud();
   installConditionTokenHover();
   installGmMassConditionHud();
   installDefaultSkillProvisioning();
@@ -118,6 +129,15 @@ Hooks.once("init", () => {
   installTokenNameHover();
   installConflictEngine();
   installRollChat();
+  installLegacySession();
+  installLegacyTraitsLibrary();
+  installLegacyTalentLibrary();
+  installLegacyConflictSetupView();
+  installLegacyChatFollow();
+  installLegacyBreak();
+  installLegacySessionView();
+  installLegacyChatActions(RealmGuardActorSheet);
+  installRollUndo(RealmGuardActorSheet);
   installGmTools();
   installProgression();
   installStarterCompendiums();

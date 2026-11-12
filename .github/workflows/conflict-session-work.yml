@@ -1,7 +1,7 @@
 name: Conflict and session patch checks
 on:
   push:
-    branches: ["work/conflict-session-polish", "work/legacy-sheet-inventory", "work/legacy-compact-followup"]
+    branches: ["work/conflict-session-polish", "work/legacy-sheet-inventory", "work/legacy-compact-followup", "work/legacy-playtest-followup"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,6 +34,12 @@ jobs:
         env:
           WORKSPACE_SCREENSHOT: qa/legacy-workspace
         run: node qa/legacy-character-workspace-browser.mjs
+      - name: Run Legacy playtest follow-up with separate clients
+        run: node qa/legacy-playtest-followup-browser.mjs
+      - name: Run Legacy QA6 setup, Custom Talents and chat checks
+        run: node qa/legacy-qa6-browser.mjs
+      - name: Run Legacy cleanup UI checks
+        run: node qa/legacy-cleanup-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -41,3 +47,5 @@ jobs:
           path: |
             qa/conflict-session-sandbox*.png
             qa/legacy-workspace*.png
+            output/playtest-followup/*.png
+            output/cleanup-review/*.png

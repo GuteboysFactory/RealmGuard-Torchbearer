@@ -1,3 +1,4 @@
+import { registerRollMessage } from './roll-undo.mjs';
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
 
@@ -34,6 +35,7 @@ export async function beginRollChat(actor, label, faces) {
   const initialHtml = () => `<section class="rg-first-roll"><b>First roll · ${esc(label)}</b>${diceFacesHtml(initial)}<span>${initial.filter(face => face >= 4).length} initial successes</span></section>`;
   const historyHtml = () => history.length ? `<ol class="rg-roll-decisions">${history.map(row => `<li>${esc(row)}</li>`).join("")}</ol>` : "";
   const message = await ChatMessage.create({ speaker: actor.temporaryOpposition ? { alias: actor.name } : ChatMessage.getSpeaker({ actor }), content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}<p>Resolving roll…</p></div>`, flags: { "realm-guard": { rollDecisionPending: true } } });
+  registerRollMessage(actor,message);
   const context = {
     message,
     async show(faces) { current = [...faces]; },
@@ -95,5 +97,6 @@ export function installRollChat() {
       const question = root.querySelector(".rg-chat-question");
       if (question) { question.classList.remove("rg-chat-question"); question.textContent = "This roll was interrupted by a reload. Check spent resources before retrying."; }
     }
+    root.classList.toggle('rg-choice-needs-attention',authorId===game.user.id&&Boolean(message.flags?.['realm-guard']?.rollDecisionPending)&&Boolean(root.querySelector('.rg-chat-question')));
   });
 }

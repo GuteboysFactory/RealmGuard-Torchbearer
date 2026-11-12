@@ -1,3 +1,4 @@
+import { wiseAvailable } from './legacy-session.mjs';
 import { hasActiveCondition } from "./conditions.mjs";
 import { getActiveM10BFamilyRulePolicy, allowedHelperKindsForTest, helperSourceAllowedForTest } from "./m10b-family-rules.mjs";
 
@@ -52,7 +53,7 @@ function helperSources(actor, testKind = "") {
       }))
       .filter(source => source.rating > 0),
     ...actor.items
-      .filter(item => item.type === "wise")
+      .filter(item => item.type === "wise" && wiseAvailable(item))
       .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: policy.ratedWises ? Number(item.system?.rating ?? 0) : 0 }))
       .filter(source => !policy.ratedWises || source.rating > 0)
   ].filter(source => allowedKinds.has(source.kind));
@@ -113,7 +114,7 @@ function sourceStillValid(entry) {
     const rating = Number(key === "nature" ? attributes.nature?.value : attributes[key]?.value ?? 0);
     return ABILITIES.includes(key) && rating > 0;
   }
-  if (entry.sourceKind === "Wise") { const wise=actor.items.get(entry.sourceId); return Boolean(wise?.type === "wise" && (!policy.ratedWises || Number(wise.system?.rating ?? 0) > 0)); }
+  if (entry.sourceKind === "Wise") { const wise=actor.items.get(entry.sourceId); return Boolean(wise?.type === "wise" && wiseAvailable(wise) && (!policy.ratedWises || Number(wise.system?.rating ?? 0) > 0)); }
   return false;
 }
 

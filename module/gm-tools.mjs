@@ -1,4 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
+import {legacyMixedPolishEnabled,resourceStorageMaximum} from './legacy-mixed-scope.mjs';
 import { ensureDefaultConditions, openConditionMenu, openGmMassConditionMenu } from "./conditions.mjs";
 import { RG_DEFAULT_SKILLS, ensureDefaultSkills } from "./default-skills.mjs";
 import { openTurnManager } from "./turns.mjs";
@@ -355,7 +356,7 @@ export async function quickNpcRoll(actors = controlledActors()) {
 export async function adjustSelectedResources(actors = controlledActors()) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Resource Admin is GM only.");
   if (!actors.length) return ui.notifications.warn("Realm Guard: Select one or more Realm Guard tokens first.");
-  const content = `<div class="rg-gm-resource-tool"><h2>Group Resource Admin</h2><p>${actors.map(actor => esc(actor.name)).join(" · ")}</p><div class="rg-gm-resource-grid"><label>Resource<select name="resource"><option value="fate">Fate</option><option value="persona">Persona</option><option value="checks">Checks</option></select></label><label>Change<input type="number" name="delta" value="1" min="-20" max="20"></label></div><p class="rg-muted"><small>Values are clamped between 0 and each Actor's configured maximum. This is an explicit GM correction/admin tool.</small></p></div>`;
+  const content = `<div class="rg-gm-resource-tool"><h2>Group Resource Admin</h2><p>${actors.map(actor => esc(actor.name)).join(" · ")}</p><div class="rg-gm-resource-grid"><label>Resource<select name="resource"><option value="fate">Fate</option><option value="persona">Persona</option><option value="checks">Checks</option></select></label><label>Change<input type="number" name="delta" value="1" min="-20" max="20"></label></div><p class="rg-muted"><small>${legacyMixedPolishEnabled()?"Fate and Persona have no storage cap; Checks use the configured maximum.":"Values use each Actor’s configured maximum."} Values cannot fall below 0.</small></p></div>`;
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Realm Guard · Group Resource Admin", resizable: true }, content, modal: false, rejectClose: false,
     buttons: [
@@ -369,7 +370,7 @@ export async function adjustSelectedResources(actors = controlledActors()) {
     const track = actor.system.resources?.[result.resource];
     if (!track) continue;
     const before = Math.max(0, Number(track.value ?? 0));
-    const maximum = Math.max(0, Number(track.max ?? (result.resource === "checks" ? 9 : 5)));
+    const maximum = resourceStorageMaximum(actor,result.resource);
     const after = clamp(before + result.delta, 0, maximum);
     await actor.update({ [`system.resources.${result.resource}.value`]: after });
     rows.push(`<li><b>${esc(actor.name)}</b> · ${before} -> ${after}</li>`);

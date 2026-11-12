@@ -1,3 +1,4 @@
+import { installLegacyItemDrops, resolveDropKind } from './legacy-item-drop.mjs';
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
 import { equipmentAncestryForActor, normalizeEquipmentAncestry } from './equipment-silhouette.mjs';
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, inventoryData } from './inventory.mjs';
@@ -213,9 +214,12 @@ function equipment(sheet, root) {
     loose.querySelector('h2').textContent = 'Inventory';
     loose.querySelector('.rg-unassigned-help')?.remove();
     const list = loose.querySelector('.rg-inventory-loose-grid'); list.replaceChildren();
-    for (const item of sheet.actor.items.filter(item => item.type === 'gear')) {
+    let lastCategory=null;const categoryOrder={weapon:0,armor:1,container:2,gear:3};
+    const categoryFor=item=>resolveDropKind(item,{type:'gear'}).category;
+    for (const item of sheet.actor.items.filter(item => item.type === 'gear').sort((a,b)=>(categoryOrder[categoryFor(a)]??3)-(categoryOrder[categoryFor(b)]??3)||a.name.localeCompare(b.name))) {
+      const category=categoryFor(item);if(category!==lastCategory){const h=document.createElement('h3');h.className='rg-gear-category-heading';h.dataset.rgDropType='gear';h.dataset.rgDropCategory=category;h.textContent=({weapon:'Weapons',armor:'Armor',container:'Containers'})[category]??'Gear';list.append(h);lastCategory=category;}
       const data = inventoryData(item), row = document.createElement('div');
-      row.className='rg-inventory-item rg-workspace-gear-row'; row.dataset.itemId=item.id; row.dataset.rgGearId=item.id;
+      row.className='rg-inventory-item rg-workspace-gear-row'; row.dataset.itemId=item.id; row.dataset.rgGearId=item.id;row.dataset.rgDropType='gear';row.dataset.rgDropCategory=category;
       const location = data.containerId ? sheet.actor.items.get(data.containerId)?.name ?? 'Missing container' : view.zones.find(zone => zone.id === data.location)?.label ?? 'Unassigned';
       row.innerHTML=`<span><b>${esc(item.name)}</b><small>${esc(location)} · ×${Number(item.system.quantity ?? 1)}</small></span>`;
       const move=button('Move…',()=>moveGear(sheet,item.id),'rg-gear-move');move.disabled=!canEdit(sheet);row.append(move);
@@ -250,7 +254,37 @@ export function enhanceLegacyWorkspace(sheet) {
   if (!legacyMixedPolishEnabled() || sheet.actor?.type !== 'character') { sheet.element?.classList?.remove('rg-legacy-workspace-window'); return false; }
   const root = sheet.element, section = root?.matches?.('.rg-sheet') ? root : root?.querySelector('.rg-sheet.character'); if (!section) return false;
   section.classList.add('rg-legacy-workspace'); root.classList?.add('rg-legacy-workspace-window');
-  compactHeader(sheet,root,section); compactSkills(sheet,root); equipment(sheet,root); return true;
+  compactHeader(sheet,root,section); compactDrives(sheet,root); compactSkills(sheet,root); equipment(sheet,root); installLegacyItemDrops(sheet); return true;
+}
+
+function compactDrives(sheet,root){
+  const panel=root.querySelector('.rg-drives');if(!panel||panel.dataset.compactDrives)return;
+  panel.dataset.compactDrives='true';
+  const fields=[['natureDescriptors','Nature'],['belief','Belief'],['goal','Goal'],['instinct','Instinct'],['creed','Creed']];
+  const title=panel.querySelector('h2');title.replaceChildren();
+  sheet._rgDriveKey??='natureDescriptors';
+  const resize=()=>{
+    const input=panel.querySelector(`[name="system.${sheet._rgDriveKey}"]`);if(!input||!input.getClientRects().length)return;
+    input.style.height='0px';
+    const style=getComputedStyle(input),border=parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
+    input.style.height=`${Math.ceil(input.scrollHeight+border)}px`;
+  };
+  const show=()=>{for(const [key] of fields){const input=panel.querySelector(`[name="system.${key}"]`);input.closest('label').hidden=key!==sheet._rgDriveKey;title.querySelector(`[data-rg-drive="${key}"]`).setAttribute('aria-pressed',String(key===sheet._rgDriveKey));}resize();};
+  for(const [key,label] of fields){
+    if(title.childNodes.length)title.append(' · ');
+    const tab=button(label,async()=>{
+      const previous=sheet._rgDriveKey,input=panel.querySelector(`[name="system.${previous}"]`);
+      sheet._rgDriveKey=key;show();
+      if(canEdit(sheet)&&input.value!==String(sheet.actor.system[previous]??'')){
+        try{await sheet.actor.update({[`system.${previous}`]:input.value});}
+        catch(error){sheet._rgDriveKey=previous;show();throw error;}
+      }
+    },'rg-drive-tab');tab.dataset.rgDrive=key;title.append(tab);
+    const input=panel.querySelector(`[name="system.${key}"]`);input.rows=1;input.readOnly=!canEdit(sheet);input.setAttribute('aria-label',label);input.addEventListener('input',resize);
+  }
+  const hint=document.createElement('small');hint.className='rg-drive-hint';hint.textContent=' – Click on the text to the left to display text';title.append(hint);show();
+  sheet._rgDrivesObserver?.disconnect();let width=-1;
+  sheet._rgDrivesObserver=new ResizeObserver(entries=>{const next=entries[0].contentRect.width;if(next!==width){width=next;resize();}});sheet._rgDrivesObserver.observe(panel);
 }
 
 export function installLegacyCharacterWorkspace(SheetClass) {

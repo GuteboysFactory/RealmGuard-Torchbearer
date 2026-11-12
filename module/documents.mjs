@@ -1,3 +1,4 @@
+import { consumeWiseHelpers, wiseAvailable } from './legacy-session.mjs';
 import { applyLegacyWiseReroll } from "./legacy-wise-roll.mjs";
 import { scopeLegacyMixedClass } from "./legacy-mixed-scope.mjs";
 import { RealmGuardActor as BaselineClass } from "./baseline-1.13.1/documents.mjs";
@@ -87,6 +88,7 @@ export class RealmGuardActor extends Actor {
     const angry = !policy.mg1eTraits && !policy.mg2eWises && hasActiveCondition(this, "Angry");
     const trait = traitId ? this.items.get(traitId) : null;
     const requestedWise = wiseId ? this.items.get(wiseId) : null;
+    if(requestedWise?.type==='wise'&&!wiseAvailable(requestedWise))throw new Error('This Wise was already used this session. Choose another Wise.');
     const requestedMode = trait?.type === "trait" ? String(traitMode || "help") : "none";
     const traitStatus = trait?.type === "trait" ? traitPositiveStatus(this, trait) : null;
     const exhaustedTraitHelp = requestedMode === "help" && trait?.type === "trait" && !traitStatus?.available;
@@ -489,6 +491,7 @@ export class RealmGuardActor extends Actor {
     if (dice === 0) return ui.notifications.warn("Realm Guard: Dice pool is 0.");
     const turnSpend = await claimPlayerTurnTest(this, { label: role.name });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
+    await consumeWiseHelpers(this,help);
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const roll = await new Roll(`${dice}d6`).evaluate();
     await this._commitTraitBenefit(assist);
@@ -508,10 +511,10 @@ export class RealmGuardActor extends Actor {
     if (spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
     const faces = baseFaces.concat(bonusFaces);
     const rolledSuccesses = faces.filter(v => v >= 4).length;
-    const traitSuccesses = this._traitSuccessBonus(assist, rolledSuccesses, obstacle);
+    const traitSuccesses = this._traitSuccessBonus(assist, rolledSuccesses, obstacle, {versus});
     const successes = rolledSuccesses + traitSuccesses;
     const sixes = faces.filter(v => v === 6).length;
-    const result = this._resultData(successes, obstacle);
+    const result = this._resultData(successes, obstacle, {versus});
     const passed = result.passed;
     const natureTax = this._natureTax(result,{tapped:tapNature,scope:natureScope});
     const natureTaxResult = natureTax ? await this._applyNatureTax(natureTax, `Tap Nature · ${role.name}`) : null;
@@ -536,9 +539,10 @@ export class RealmGuardActor extends Actor {
       spendFate ? "Fate: Open 6s" : "",
       versus ? "Versus test" : ""
     ].filter(Boolean);
-    const content = `<div class="realm-guard chat-roll rg-readable-roll"><h3>${foundry.utils.escapeHTML(role.name)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length ? `<div class="rg-roll-support-notes">${specialNotes.map(note => `<span>${note}</span>`).join("")}</div>` : ""}${(personaDice || tapNature || spendFate) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(persona || tapNature) ? `Persona −${personaDice+(tapNature?1:0)}` : "", spendFate ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Base roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${sixes}</strong></span></div>${natureTaxText}${this._resultSummaryHTML(successes, obstacle, { targetLabel: versus ? "Target / Obstacle" : "Obstacle" })}</div>`;
+    const content = `<div class="realm-guard chat-roll rg-readable-roll"><h3>${foundry.utils.escapeHTML(role.name)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length ? `<div class="rg-roll-support-notes">${specialNotes.map(note => `<span>${note}</span>`).join("")}</div>` : ""}${(personaDice || tapNature || spendFate) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(persona || tapNature) ? `Persona −${personaDice+(tapNature?1:0)}` : "", spendFate ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Base roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${sixes}</strong></span></div>${natureTaxText}${this._resultSummaryHTML(successes, obstacle, { versus, targetLabel: versus ? "Target / Obstacle" : "Obstacle" })}</div>`;
     await rollChat.finish(content);
-    return { roll, successes, sixes, passed, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
+    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id}});
+    return { roll, successes, sixes, passed, tied:result.tied, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
 
@@ -557,7 +561,7 @@ export class RealmGuardActor extends Actor {
     const helpDice=Array.isArray(help)?help.reduce((n,h)=>n+Math.max(0,Number(h.dice||0)),0):0;
     const dice=Math.max(0,base+Number(modifier||0)+Math.max(0,Number(extraDice||0))+helpDice+personaDice+tapDice+doubleDice+assist.traitDice+Number(power?.diceBonus??0)+conditionData.dice);
     if(!dice) return ui.notifications.warn("Realm Guard: Dice pool is 0.");
-    const turnSpend=await claimPlayerTurnTest(this,{label}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
+    const turnSpend=await claimPlayerTurnTest(this,{label}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`); await consumeWiseHelpers(this,help);
     const earnedTraitChecks=await this._awardTraitChecks(assist);
     const roll=await new Roll(`${dice}d6`).evaluate(); await this._commitTraitBenefit(assist); await this._commitTokenPowerUse(power); let faces=roll.dice.flatMap(d=>d.results.map(r=>r.result));
     await spendRollResource(this, "persona", personaDice + (tapNature ? 1 : 0) + (doubleTapNature ? 1 : 0), { reason: "Pre-roll Persona dice / Nature" });
@@ -608,7 +612,7 @@ export class RealmGuardActor extends Actor {
     const helpDice=Array.isArray(help)?help.reduce((n,h)=>n+Number(h.dice||0),0):0;
     const ownDice=Math.max(0,ns.current+Number(modifier||0)+Math.max(0,Number(extraDice||0))+helpDice+personaDice+(doubleTapNature?ns.current:0)+assist.traitDice+Number(power?.diceBonus??0)+cond.dice);
     const oppDice=Math.max(0,oppCurrent+Number(oppCond.dice||0)+Number(assist.opponentDice||0)); if(!ownDice||!oppDice)return ui.notifications.warn("Realm Guard: Nature Versus requires both pools to be at least 1D.");
-    const turnSpend=await claimPlayerTurnTest(this,{label:"Nature Versus"}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
+    const turnSpend=await claimPlayerTurnTest(this,{label:"Nature Versus"}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`); await consumeWiseHelpers(this,help);
     const earnedTraitChecks=await this._awardTraitChecks(assist);
     const r1=await new Roll(`${ownDice}d6`).evaluate(), r2=await new Roll(`${oppDice}d6`).evaluate(); await this._commitTraitBenefit(assist); await this._commitTokenPowerUse(power); let f1=r1.dice.flatMap(d=>d.results.map(r=>r.result)); await spendRollResource(this, "persona", personaDice + (doubleTapNature ? 1 : 0), { reason: "Pre-roll Persona dice / Nature" });
     rollChat = await beginRollChat(this, "Nature Versus", f1); assist.chatDecision = rollChat; assist.talentUse = talentUse;
@@ -622,7 +626,7 @@ export class RealmGuardActor extends Actor {
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
 
-  async rollBeginnerLuck(role, { talentUse = null,  abilityKey = "will", modifier = 0, extraDice = 0, help = [], obstacle = 1, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, opponent = null, opposition = null, countLearning = true, tapNature = false, natureScope = "within" } = {}) {
+  async rollBeginnerLuck(role, { talentUse = null,  abilityKey = "will", modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, opponent = null, opposition = null, countLearning = true, tapNature = false, natureScope = "within" } = {}) {
     let rollChat = null;
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
@@ -654,6 +658,7 @@ export class RealmGuardActor extends Actor {
     }
     const turnSpend = await claimPlayerTurnTest(this, { label: `${role.name} · Beginner's Luck` });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
+    await consumeWiseHelpers(this,help);
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const roll = await new Roll(`${dice}d6`).evaluate();
     await this._commitTraitBenefit(assist);
@@ -681,7 +686,7 @@ export class RealmGuardActor extends Actor {
         const tie = await this._resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces: faces, opponentFaces, fateAlreadySpent: spendFate, chatDecision: rollChat });
         if (tie?.resolved) result = { outcome: tie.outcome, tied: false, passed: tie.passed, margin: Number(tie.margin ?? 0), needsTiebreaker: false };
       }
-    } else { successes += this._traitSuccessBonus(assist, successes, target); result = this._resultData(successes, target); }
+    } else { successes += this._traitSuccessBonus(assist, successes, target, {versus}); result = this._resultData(successes, target, {versus}); }
     const natureTax = result.tied ? 0 : this._natureTax(result, { tapped: tapNature, scope: natureScope });
     const natureTaxResult = natureTax ? await this._applyNatureTax(natureTax, `Tap Nature · ${role.name} · Beginner's Luck`) : null;
     const natureTaxText = natureTaxResult ? `<p class="rg-nature-tax"><b>Nature Tax:</b> −${natureTaxResult.tax} → ${natureTaxResult.current}/${natureTaxResult.maximum}</p>` : "";
@@ -704,8 +709,9 @@ export class RealmGuardActor extends Actor {
       freshDice?["Fresh after half",`+${freshDice}D`]:null,
       tapNature?["Tap Nature after half",`+${natureTapDice}D · ${natureScope}`]:null
     ]);
-    const content = `<div class="realm-guard chat-roll rg-beginner-chat rg-readable-roll"><h3>${esc(role.name)} <span class="rg-chat-versus">BEGINNER'S LUCK</span></h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${assist.blockedWise?`<div class="rg-roll-support-notes"><span>Wise blocked by Angry</span></div>`:""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}${opponent?`<div class="rg-roll-opponent"><header><b>Opponent</b><strong>${esc(opponent.name)} · ${esc(opposition.name)}</strong></header><div><span>${opponentDice}D</span>${diceFacesHtml(opponentFaces)}<b>${target} successes</b></div></div>`:""}${natureTaxText}${this._resultSummaryHTML(successes,target,{versus:Boolean(opponent),targetLabel})}<p class="rg-beginner-learning"><b>Learning:</b> ${Math.min(needed,currentAttempts+(countLearning && !result.tied ? 1 : 0))} / ${needed} Beginner's Luck attempts <small>(${countLearning ? (result.tied ? "unresolved tie — not recorded yet" : "pass/fail does not matter") : "not counted for learning"})</small></p></div>`;
+    const content = `<div class="realm-guard chat-roll rg-beginner-chat rg-readable-roll"><h3>${esc(role.name)} <span class="rg-chat-versus">BEGINNER'S LUCK</span></h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${assist.blockedWise?`<div class="rg-roll-support-notes"><span>Wise blocked by Angry</span></div>`:""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}${opponent?`<div class="rg-roll-opponent"><header><b>Opponent</b><strong>${esc(opponent.name)} · ${esc(opposition.name)}</strong></header><div><span>${opponentDice}D</span>${diceFacesHtml(opponentFaces)}<b>${target} successes</b></div></div>`:""}${natureTaxText}${this._resultSummaryHTML(successes,target,{versus:Boolean(opponent)||versus,targetLabel})}<p class="rg-beginner-learning"><b>Learning:</b> ${Math.min(needed,currentAttempts+(countLearning && !result.tied ? 1 : 0))} / ${needed} Beginner's Luck attempts <small>(${countLearning ? (result.tied ? "unresolved tie — not recorded yet" : "pass/fail does not matter") : "not counted for learning"})</small></p></div>`;
     await rollChat.finish(content);
+    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id}});
     return { roll, successes, passed: result.passed, tied: result.tied, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
@@ -729,6 +735,7 @@ export class RealmGuardActor extends Actor {
     if (!ownDice || !opponentDice) return ui.notifications.warn("Realm Guard: Automatic Versus requires both dice pools to be at least 1D.");
     const turnSpend = await claimPlayerTurnTest(this, { label: `${role.name} Versus` });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
+    await consumeWiseHelpers(this,help);
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const ownRoll = await new Roll(`${ownDice}d6`).evaluate();
     await this._commitTraitBenefit(assist);
@@ -780,6 +787,7 @@ export class RealmGuardActor extends Actor {
       : `<div class="rg-result-summary"><span><b>Successes</b><strong>${finalOwnSuccesses}</strong></span><span><b>${esc(opponentName)}</b><strong>${opponentSuccesses}</strong></span><span class="rg-result-final"><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "PASS" : "FAIL"}</strong><small class="rg-result-margin">${result.passed ? "Success" : "Failed"}: ${Number(result.margin ?? 0)}</small></span></div>`;
     const content = `<div class="realm-guard chat-roll rg-auto-versus"><h3>${esc(role.name)} <span class="rg-chat-versus">AUTO VERSUS</span></h3>${playerTurnSpendHtml(turnSpend)}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}<p><b>${esc(this.name)} · ${esc(role.name)}:</b> ${ownDice}d6 · Base ${Number(role.system.rating ?? 0)}D ${Number(modifier || 0) ? `· Modifier ${Number(modifier || 0) > 0 ? "+" : ""}${Number(modifier || 0)}D` : ""} ${Number(extraDice || 0) ? `· Extra Dice +${Math.max(0, Number(extraDice || 0))}D` : ""} ${Array.isArray(help) && help.length ? `· Teamwork ${help.reduce((n,h)=>n+Number(h.dice||0),0)}D` : ""} ${personaDice ? `· Persona +${personaDice}D` : ""} ${tapNature ? `· Tap Nature +${natureTapDice}D (${natureScope})` : ""} ${conditionData.active.length ? `· Conditions ${conditionData.active.map(c => `${esc(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(", ")}` : ""} ${this._traitChatText(assist, earnedTraitChecks)} ${this._tokenPowerChatText(power, tokenResult)} ${assist.wise ? `· ${usesRatedWises() ? "I Am Wise" : "Wise"}: ${esc(assist.wise.name)}` : ""} → ${diceFacesHtml(baseFaces)} ${wiseResult.rerollFaces.length ? `· <b>Wise reroll:</b> ${diceFacesHtml(wiseResult.rerollFaces)}` : ""} ${tokenResult.rerollFaces.length ? `· <b>Token reroll:</b> ${diceFacesHtml(tokenResult.rerollFaces)}` : ""} ${bonusFaces.length ? `· <b>Fate dice:</b> ${diceFacesHtml(bonusFaces)}` : ""} · <b>${successes} successes</b> · ${sixes} sixes</p>${(personaDice || tapNature || spendFate || tieResolution?.fateSpent) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(personaDice||tapNature)?`Persona −${personaDice+(tapNature?1:0)}`:"", (spendFate || tieResolution?.fateSpent) ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}<p><b>vs ${esc(opponent.name)} · ${esc(opponentName)}:</b> ${opponentDice}d6 · Base ${opponentBase}D ${assist.opponentDice ? `· Trait Against +${assist.opponentDice}D` : ""} ${opponentConditionData.active.length ? `· Conditions ${opponentConditionData.active.map(c => `${esc(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(", ")}` : ""} → ${diceFacesHtml(opponentFaces)} · <b>${opponentSuccesses} successes</b> · ${opponentSixes} sixes</p>${tieDetail}${natureTaxText}${summary}</div>`;
     await rollChat.finish(content);
+    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:finalOwnSuccesses,versus:true,actorId:this.id}});
     return { roll: ownRoll, opponentRoll, successes: finalOwnSuccesses, opponentSuccesses, sixes, opponentSixes, passed: result.passed, tied: unresolvedTie, margin: result.margin, outcome: unresolvedTie ? "TIE" : result.outcome, needsTiebreaker: unresolvedTie, automaticVersus: true, opponentName, opponentKind: opposition.kind, fateSpent: Boolean(spendFate || tieResolution?.fateSpent), tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0, learningResult: tieResolution ? tieResolution.learningResult : result.passed, tieResolution };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }

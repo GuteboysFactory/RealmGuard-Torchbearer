@@ -1,4 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
+import {resourceStorageMaximum} from './legacy-mixed-scope.mjs';
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { progressionLevelFor } from "./progression.mjs";
 import { getCoreBaselineStatus, CORE_SCHEMA_VERSION, CORE_ARCHITECTURE_VERSION, LEGACY_PROFILE_ID } from "./core-baseline.mjs";
@@ -49,7 +50,7 @@ function auditActor(actor) {
     const track = actor.system?.resources?.[resource];
     if (!track) continue;
     const value = Number(track.value ?? 0);
-    const max = Number(track.max ?? 0);
+    const max = resourceStorageMaximum(actor,resource,0);
     if (!Number.isInteger(value) || value < 0 || value > max) issues.push(issue("error", "Resources", `${resource} is outside 0-${max}: ${value}.`, actor));
   }
 

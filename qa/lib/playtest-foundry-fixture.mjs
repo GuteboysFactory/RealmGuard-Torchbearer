@@ -1,6 +1,9 @@
 // Isolated document / settings / socket fixture. Never opens a user's world.
 export const copy = value => structuredClone(value);
 export function collection(rows = []) {
+  const push=Array.prototype.push;
+  rows.push=function(...values){for(const value of values){if(value.type&&value.system){value.flags??={};const methods={getFlag:function(ns,key){return this.flags?.[ns]?.[key];},setFlag:async function(ns,key,v){this.flags[ns]??={};this.flags[ns][key]=copy(v);},unsetFlag:async function(ns,key){delete this.flags[ns]?.[key];}};for(const [key,method]of Object.entries(methods))if(!value[key])Object.defineProperty(value,key,{value:method,writable:true,configurable:true});value.update??=async function(data){assignPaths(this,data);return this;};}}return push.apply(this,values);};
+  const initial=rows.splice(0);rows.push(...initial);
   rows.get = id => rows.find(row => row.id === id);
   Object.defineProperty(rows, "contents", { get: () => [...rows], configurable: true });
   Object.defineProperty(rows, "size", { get: () => rows.length, configurable: true });
@@ -10,7 +13,7 @@ export function assignPaths(target, update) {
   for (const [key, value] of Object.entries(update)) {
     const path = key.split('.'); let parent = target;
     for (const part of path.slice(0,-1)) parent = parent[part] ??= {};
-    parent[path.at(-1)] = copy(value);
+    const leaf=path.at(-1);if(leaf.startsWith('-='))delete parent[leaf.slice(2)];else parent[leaf] = copy(value);
   }
 }
 export function installPlaytestFixture() {

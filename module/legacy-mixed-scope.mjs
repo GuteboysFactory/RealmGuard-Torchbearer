@@ -5,6 +5,12 @@ export function legacyMixedPolishEnabled() {
   catch { return false; }
 }
 
+// Calculation-only bound; Infinity is never persisted to documents.
+export function resourceStorageMaximum(actor,name,fallback=name==='checks'?9:5){
+  if(legacyMixedPolishEnabled()&&['fate','persona'].includes(name))return Number.POSITIVE_INFINITY;
+  return Math.max(0,Number(actor?.system?.resources?.[name]?.max??fallback));
+}
+
 // Keep the 1.13.1 implementations for other profiles, including callbacks captured
 // by ApplicationV2's action map. Frozen source copies are documented alongside them.
 export function scopeLegacyMixedClass(Current, Baseline) {

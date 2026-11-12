@@ -1,3 +1,4 @@
+import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
 const TOOL_REGISTRY = new Map();
 const PROVIDER_REGISTRY = new Map();
 const DOCK_ID = "rg-gm-dock";
@@ -13,6 +14,54 @@ let retryTimer = null;
 let openProviderId = "";
 let outsideListenerInstalled = false;
 let hostApi = null;
+const ADMIN_TOOLS=new Set(['obstacle-control','starter-library','system-audit','rules-registry','effect-engine','test-engine','m4-core','m5-core']);
+const PRIMARY_TOOLS=['conflict','turn-manager','post-obstacle','break'];
+const MAIN_LABELS={'conflict':'Conflict','turn-manager':'Turns','post-obstacle':'Obstacle','break':'Session Break'};
+
+function availableTools(){return [...TOOL_REGISTRY.values()].filter(t=>safeCall(t.visible,true)!==false).sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));}
+function toolMenuItem(tool){return {id:tool.id,label:tool.tooltip,icon:tool.icon,onClick:()=>tool.onClick()};}
+function quickAccessIds(){
+  const saved=game.user?.getFlag?.(NS,'gmDockQuickAccess');
+  return new Set(Array.isArray(saved)?saved:PRIMARY_TOOLS);
+}
+export async function customizeDockQuickAccess(){
+  if(!legacyMixedPolishEnabled()||!game.user?.isGM)return;
+  const choices=[...availableTools().filter(t=>!ADMIN_TOOLS.has(t.id)&&!['start-session','end-session','system-manual'].includes(t.id)).map(t=>({id:t.id,label:t.tooltip})),...visibleProviders().map(p=>({id:`provider:${p.id}`,label:p.label}))];
+  const selected=quickAccessIds();
+  const result=await foundry.applications.api.DialogV2.wait({window:{title:'GM Dock · Quick access',resizable:true},modal:false,rejectClose:false,
+    content:`<div class="rg-dock-customize"><p>Checked tools appear as quick buttons. Unchecked tools remain in Other tools. Session is always available.</p>${choices.map(c=>`<label><input type="checkbox" name="quickAccess" value="${esc(c.id)}" ${selected.has(c.id)?'checked':''}> ${esc(c.label)}</label>`).join('')}</div>`,
+    buttons:[{action:'save',label:'Save quick access',default:true,callback:(_e,b)=>[...b.form.querySelectorAll('[name="quickAccess"]:checked')].map(e=>e.value)},{action:'reset',label:'Restore defaults',callback:()=>[...PRIMARY_TOOLS]},{action:'cancel',label:'Cancel',callback:()=>false}]});
+  if(result===false||result===undefined)return;
+  // Closing the dialog is cancellation, not a reset.
+  if(result===null)return;
+  await game.user.setFlag(NS,'gmDockQuickAccess',result.filter(id=>choices.some(c=>c.id===id)));
+  renderGmDock();
+}
+function compactProviders(tools,external){
+  const selected=quickAccessIds();
+  return [
+    {id:'rg-session-menu',label:'Session',tooltip:'Session',icon:'fa-solid fa-calendar-day',menu:()=>({title:'Session',items:tools.filter(t=>['start-session','end-session'].includes(t.id)).map(toolMenuItem)})},
+    {id:'rg-tools-menu',label:'Other tools',tooltip:'Other tools',icon:'fa-solid fa-toolbox',badge:()=>external.filter(p=>!selected.has(`provider:${p.id}`)).reduce((n,p)=>n+providerBadge(p),0),menu:()=>({title:'Other tools',items:[...tools.filter(t=>!ADMIN_TOOLS.has(t.id)&&!selected.has(t.id)&&!['start-session','end-session','system-manual'].includes(t.id)).map(toolMenuItem),...external.filter(p=>!selected.has(`provider:${p.id}`)).map(p=>({id:`provider:${p.id}`,label:p.label,icon:p.icon,badge:providerBadge(p),keepOpen:true,onClick:()=>{openProviderId=p.id;}})),{id:'customize-quick-access',label:'Customize quick access…',icon:'fa-solid fa-sliders',onClick:customizeDockQuickAccess}]})},
+    ...external
+  ];
+}
+export function dockPlayStatus(){
+  let conflict;try{conflict=JSON.parse(game.settings.get(NS,'conflictState')||'null');}catch{}
+  return [game.settings.get(NS,'useTurnManager')===false?'Free Play':game.settings.get(NS,'turnPhase')==='player'?"Players’ Turn":'GM Turn',conflict?.active?'Conflict ongoing':conflict?.stage==='complete'?'Conflict complete':''].filter(Boolean).join(' · ');
+}
+export async function openDockAdministration(){
+  if(!legacyMixedPolishEnabled()||!game.user.isGM)return;
+  const tools=availableTools().filter(t=>ADMIN_TOOLS.has(t.id));
+  return foundry.applications.api.DialogV2.wait({window:{title:'Realm Guard · Settings & Diagnostics',resizable:true},position:{width:620},modal:false,rejectClose:false,
+    content:`<div class="rg-dock-administration"><p>Rules Profile Management and gameplay settings are available in Configure Settings → Realm Guard / Torchbearer.</p><h3>Settings & library administration</h3>${tools.filter(t=>['obstacle-control','starter-library'].includes(t.id)).map(t=>`<button type="button" data-rg-admin-tool="${esc(t.id)}"><i class="${esc(t.icon)}"></i> ${esc(t.tooltip)}</button>`).join('')}<h3>Diagnostics & status</h3>${tools.filter(t=>!['obstacle-control','starter-library'].includes(t.id)).map(t=>`<button type="button" data-rg-admin-tool="${esc(t.id)}">${esc(t.tooltip)}</button>`).join('')}<h3>GM Dock</h3><label><input type="checkbox" data-rg-dock-status ${game.settings.get(NS,'gmDockShowStatus')!==false?'checked':''}> Show current turn and conflict status</label><button type="button" data-rg-dock-reset>Reset dock position</button></div>`,
+    render:(_event,dialog)=>{
+      const root=dialog.element;
+      for(const b of root.querySelectorAll('[data-rg-admin-tool]'))b.addEventListener('click',async()=>{if(!game.user.isGM)return;try{await TOOL_REGISTRY.get(b.dataset.rgAdminTool)?.onClick();}catch(error){ui.notifications.error(error.message);}});
+      root.querySelector('[data-rg-dock-status]').addEventListener('change',async e=>{await game.settings.set(NS,'gmDockShowStatus',e.target.checked);renderGmDock();});
+      root.querySelector('[data-rg-dock-reset]').addEventListener('click',async()=>{await game.user.unsetFlag(NS,'gmDockPosition');renderGmDock();});
+    },buttons:[{action:'close',label:'Close',callback:()=>null}]});
+}
+function dockAdministrationClass(){return class extends foundry.applications.api.ApplicationV2 {async render(){await openDockAdministration();return this;}};}
 
 function esc(value) {
   return foundry.utils.escapeHTML(String(value ?? ""));
@@ -206,6 +255,7 @@ function providerButtonHtml(provider) {
   const count = providerBadge(provider);
   return `<button type="button" class="rg-gm-dock-tool rg-gm-dock-provider${openProviderId === provider.id ? " is-open" : ""}" data-rg-gm-provider="${esc(provider.id)}" title="${esc(provider.tooltip)}" data-tooltip="${esc(provider.tooltip)}" data-tooltip-direction="UP" aria-label="${esc(provider.tooltip)}" aria-expanded="${openProviderId === provider.id ? "true" : "false"}">
     <i class="${esc(provider.icon)}"></i>
+    ${legacyMixedPolishEnabled()&&['rg-session-menu','rg-tools-menu'].includes(provider.id)?`<small class="rg-dock-button-label">${provider.id==='rg-session-menu'?'Session':'Tools'}</small>`:''}
     <span class="rg-gm-dock-provider-badge"${count ? "" : " hidden"}>${count || ""}</span>
   </button>`;
 }
@@ -367,21 +417,28 @@ function buildDock() {
     document.body.append(dock);
   }
 
-  const tools = [...TOOL_REGISTRY.values()]
+  dock.classList.toggle("rg-dock-minimized", legacyMixedPolishEnabled() && Boolean(game.user.getFlag?.(NS,"gmDockMinimized")));
+  let tools = [...TOOL_REGISTRY.values()]
     .filter(tool => {
       try { return tool.visible?.() !== false; }
       catch (_error) { return true; }
     })
     .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 
-  const providers = visibleProviders();
+  const compact=legacyMixedPolishEnabled(),allTools=tools;
+  const providers = compact?compactProviders(allTools,visibleProviders()):visibleProviders();
+  if(compact)tools=[...quickAccessIds()].map(id=>allTools.find(t=>t.id===id)).filter(t=>t&&!ADMIN_TOOLS.has(t.id)&&!['start-session','end-session','system-manual'].includes(t.id)).map(t=>({...t,tooltip:MAIN_LABELS[t.id]??t.tooltip}));
+  const menuProvider=providers.find(p=>p.id===openProviderId);
   if (openProviderId && !providers.some(provider => provider.id === openProviderId)) openProviderId = "";
 
-  dock.innerHTML = `<span class="rg-gm-dock-brand rg-gm-dock-drag" title="Drag GM Dock" data-tooltip="Drag GM Dock" data-tooltip-direction="UP"><i class="fa-solid fa-grip-lines"></i><b>RG/TB</b></span>${tools.map(tool => `
+  dock.classList.toggle('rg-compact-dock',compact);
+  dock.innerHTML = `<span class="rg-gm-dock-brand rg-gm-dock-drag" title="Drag GM Dock" data-tooltip="Drag GM Dock" data-tooltip-direction="UP"><i class="fa-solid fa-grip-lines"></i><b>RG/TB</b></span>${compact?providerButtonHtml(providers[0]):''}${tools.map(tool => `
     <button type="button" class="rg-gm-dock-tool" data-rg-gm-tool="${esc(tool.id)}" title="${esc(tool.tooltip)}" data-tooltip="${esc(tool.tooltip)}" data-tooltip-direction="UP" aria-label="${esc(tool.tooltip)}">
       <i class="${esc(tool.icon)}"></i>
-    </button>`).join("")}${providers.length ? '<span class="rg-gm-dock-provider-divider" aria-hidden="true"></span>' : ""}${providers.map(providerButtonHtml).join("")}<button type="button" class="rg-gm-dock-reset" title="Reset GM Dock position" data-tooltip="Reset GM Dock position" data-tooltip-direction="UP" aria-label="Reset GM Dock position"><i class="fa-solid fa-location-crosshairs"></i></button>${openProviderId && PROVIDER_REGISTRY.has(openProviderId) ? providerMenuHtml(PROVIDER_REGISTRY.get(openProviderId)) : ""}`;
+      ${compact?`<small class="rg-dock-button-label">${tool.id==='break'?'Break':esc(tool.tooltip)}</small>`:''}
+    </button>`).join("")}${compact?`${providers.slice(2).filter(p=>quickAccessIds().has(`provider:${p.id}`)).map(providerButtonHtml).join('')}${providerButtonHtml(providers[1])}`:`${providers.length?'<span class="rg-gm-dock-provider-divider" aria-hidden="true"></span>':''}${providers.map(providerButtonHtml).join('')}<button type="button" class="rg-gm-dock-reset" title="Reset GM Dock position" aria-label="Reset GM Dock position"><i class="fa-solid fa-location-crosshairs"></i></button>`}${menuProvider?providerMenuHtml(menuProvider):''}${compact&&game.settings.get(NS,'gmDockShowStatus')!==false?`<small class="rg-dock-play-status">${esc(dockPlayStatus())}</small>`:''}`;
 
+  if(legacyMixedPolishEnabled()){const toggle=document.createElement("button");toggle.type="button";toggle.className="rg-dock-toggle";toggle.title="Minimize / restore GM Dock";toggle.setAttribute("aria-label",toggle.title);toggle.textContent=dock.classList.contains("rg-dock-minimized")?"+":"−";toggle.addEventListener("click",async()=>{await game.user.setFlag(NS,"gmDockMinimized",!dock.classList.contains("rg-dock-minimized"));renderGmDock();});dock.prepend(toggle);}
   for (const button of dock.querySelectorAll("[data-rg-gm-tool]")) {
     button.addEventListener("click", event => {
       event.preventDefault();
@@ -397,14 +454,14 @@ function buildDock() {
       event.preventDefault();
       event.stopPropagation();
       const id = String(button.dataset.rgGmProvider || "");
-      if (!game.user?.isGM || !PROVIDER_REGISTRY.has(id)) return;
+      if (!game.user?.isGM || !providers.some(p=>p.id===id)) return;
       openProviderId = openProviderId === id ? "" : id;
       renderGmDock();
     });
   }
 
   if (openProviderId) {
-    const provider = PROVIDER_REGISTRY.get(openProviderId);
+    const provider = providers.find(p=>p.id===openProviderId);
     if (provider) wireProviderMenu(dock, provider);
   }
 
@@ -472,6 +529,11 @@ export function renderGmDock(attempt = 0) {
 }
 
 export function installGmDock() {
+  if(legacyMixedPolishEnabled()){
+    game.settings.register(NS,'gmDockShowStatus',{name:'GM Dock · show live play status',scope:'client',config:false,type:Boolean,default:true});
+    game.settings.registerMenu(NS,'dockAdministration',{name:'Settings, Libraries & Diagnostics',label:'Open Realm Guard tools',hint:'Library administration, system diagnostics and GM Dock preferences.',icon:'fa-solid fa-sliders',type:dockAdministrationClass(),restricted:true});
+    Hooks.on('updateSetting',setting=>{if([`${NS}.turnPhase`,`${NS}.conflictState`].includes(setting.key))renderGmDock();});
+  }
   Hooks.once("ready", () => {
     publishHost();
     renderGmDock();

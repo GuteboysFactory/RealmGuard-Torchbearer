@@ -106,6 +106,22 @@ try {
  assert.equal(await page.evaluate(()=>conflict.currentState().stage),'compromise');
  assert.equal(await page.evaluate(()=>conflict.currentState().compromise.text),'Keep these outcome notes');
  assert.equal(await page.evaluate(()=>game.actors.get('ranger').getFlag('realm-guard','conflictTools').length),1);
+ // Outcome naming uses every actual participant, including ephemeral weather,
+ // PCs on either side, and NPCs; the same names must reach the final chat card.
+ for(const scenario of [
+   {winner:'gm',ids:['enemy'],names:'enemy'},
+   {winner:'gm',ids:['enemy','storm'],temporary:[{id:'storm',name:'The Winter Storm',rating:5}],names:'enemy, The Winter Storm'},
+   {winner:'gm',ids:['storm'],temporary:[{id:'storm',name:'Rain & Wind <danger>',rating:5}],names:'Rain & Wind <danger>'},
+   {winner:'gm',ids:['ranger2'],names:'ranger2'},
+   {winner:'ranger',ids:['enemy'],names:'ranger, ranger2'}
+ ]){
+   await page.evaluate(async scenario=>{const s=baseState();s.stage='compromise';s.outcome={winner:scenario.winner};s.gm.participantIds=scenario.ids;s.gm.actorId=scenario.ids[0];s.gm.temporaryOpponents=scenario.temporary??[];await conflict.setPublicState(s);conflict.renderConflictWindow(s,{force:true});},scenario);
+   assert.match(await page.locator('.rg-compromise-panel p').first().textContent(),new RegExp(scenario.names.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+   assert.equal(await page.locator('.rg-compromise-panel danger').count(),0,'Names are escaped');
+   await page.locator('.rg-conflict-ending').screenshot({path:'output/playtest-followup/qa11-conflict-winner.png'});
+   await page.evaluate(async()=>{document.querySelector('#rg-conflict-compromise-text').value='Agreed outcome';await conflict.finishConflict(conflict.currentState());});
+   assert.equal(await page.locator('.rg-conflict-complete-card .rg-conflict-outcome strong').last().textContent(),scenario.names);
+ }
  // Skill creation and the actual Item-sheet submit route retain explicit ability / corrected ticks.
  assert.ok(await page.evaluate(async()=>{
    const actor=game.actors.get('ranger'),sheet={actor,isEditable:true};
@@ -217,7 +233,7 @@ try {
  for(const criterion of ['personaAgainstBelief','personaGoal','personaMortalCrisis','personaEmbodiment'])await page.locator(`[name="${criterion}_ranger"]`).check();
  await page.locator('[name="mvp"]').selectOption('ranger');await page.locator('[data-dialog-action="review"]').click();
  assert.equal(await page.evaluate(async()=>{window.awardCriteria=await criteriaPromise;return awardCriteria.rows[0].proposal.persona;}),5);
- assert.ok(await page.evaluate(async()=>{const a=game.actors.get('ranger');a.system.resources.persona.value=4;a.system.resources.persona.max=5;fx.settings.set('endSessionFinalized',false);await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true,fate:true},ranger2:{persona:true,fate:true}}},1);const first=a.system.resources.persona.value;await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true}}},1);return first===9&&a.system.resources.persona.value===9;}));
+ assert.ok(await page.evaluate(async()=>{const a=game.actors.get('ranger');a.system.resources.persona.value=4;a.system.resources.persona.max=5;a.system.resources.fate.value=8;a.system.resources.fate.max=5;awardCriteria.rows.find(r=>r.actor.id==='ranger').proposal.fate=2;fx.settings.set('endSessionFinalized',false);await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true,fate:true},ranger2:{persona:true,fate:true}}},1);const first=a.system.resources.persona.value;await session.applyAwards(awardCriteria,{approvals:{ranger:{persona:true}}},1);return first===9&&a.system.resources.persona.value===9&&a.system.resources.fate.value===10;}));
  console.log("// Searchable team setup");
  // Searchable team setup, multiple ephemeral opponents, and remembered players.
  await page.evaluate(async()=>{game.user=fx.gm;await conflict.setPublicState(null);window.beforeActorCount=game.actors.size;window.startPromise=conflict.startConflictDialog();});
@@ -278,7 +294,7 @@ try {
  await page.locator('#qa3-dialog [data-dialog-action]').first().click();await page.evaluate(()=>disarmPromise);
  assert.ok(await page.evaluate(()=>{const actor=game.actors.get(disarmActorId),s=conflict.currentState();return actor.items.length===inventoryBefore&&actor.items.get('boots')&&conflict.gearActionModifiers(actor,'attack',s,'ranger','tool:travel-benefit').dice===0&&!conflict.availableConflictWeapons(actor,s,'ranger').some(tool=>tool.id==='tool:travel-benefit');}));
  await page.evaluate(async()=>{const s=conflict.currentState();s.currentIndex=2;await conflict.advanceAfterAction(s);});
- assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,tools:conflict.currentState().weaponIds,locks:conflict.currentState().equipmentLocks})),{stage:'equipment',tools:{},locks:{gm:false,ranger:false}});
+ assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,tools:Object.keys(conflict.currentState().weaponIds??{}).length>0,locks:conflict.currentState().equipmentLocks})),{stage:'equipment',tools:true,locks:{gm:false,ranger:false}});
  if(process.env.PLAYTEST_SCREENSHOT)await page.screenshot({path:process.env.PLAYTEST_SCREENSHOT.replace(/\.png$/,'-equipment.png')});
  await page.evaluate(()=>{foundry.applications.api.DialogV2.wait=savedDialogWait;});
  // Unused Wise costs Persona; a prepared Wise is not offered twice in that roll.
@@ -288,7 +304,7 @@ try {
  assert.equal(await page.locator('.rg-chat-question-buttons button').first().evaluate(button=>getComputedStyle(button).color),'rgb(37, 27, 13)');
  await page.locator('.rg-chat-question-buttons button:not(.rg-chat-skip)').click();await page.evaluate(()=>paidWisePromise);
  assert.equal(await page.evaluate(()=>game.actors.get('ranger').system.resources.persona.value),0);
- await page.evaluate(async()=>{const actor=game.actors.get('ranger');fx.dice.push([1,2,4],[4,4]);window.preparedResult=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'},wiseId:'wise-paid'});});
+ await page.evaluate(async()=>{const actor=game.actors.get('ranger');await actor.items.get('wise-paid').update({"flags.realm-guard.wiseUsed":false});fx.dice.push([1,2,4],[4,4]);window.preparedResult=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'},wiseId:'wise-paid'});});
  assert.equal(await page.locator('.rg-chat-question').count(),0);assert.equal(await page.evaluate(()=>preparedResult.successes),3);
  // Three-player assignment is manual and permits A-B-A without requiring C first.
  await page.evaluate(async()=>{game.user=fx.gm;const s=baseState();s.stage='rangerPlan';s.locks={gm:true,ranger:false};s.ranger.participantIds=['ranger','ranger2','gm-only'];await conflict.setPublicState(s);game.user=fx.player;conflict.renderConflictWindow(s,{force:true});});
@@ -342,15 +358,8 @@ try {
  await page.evaluate(async()=>{game.user=fx.gm;window.playerAllocationMessage=transportMessages.find(message=>message.intent==='submitAllocation');await conflict.onSocket(playerAllocationMessage);});
  assert.deepEqual(await page.evaluate(()=>({stage:conflict.currentState().stage,allocation:conflict.currentState().ranger.individualDisposition})),{stage:'equipment',allocation:{ranger:{start:3,current:3},ranger2:{start:4,current:4}}});
  assert.ok(await page.evaluate(async()=>{const s=conflict.currentState(),before=JSON.stringify(s);await conflict.applyDispositionAllocation({...playerAllocationMessage.payload,revision:s.allocationRevision},s,{id:'outsider',isGM:false});await conflict.applyDispositionAllocation(playerAllocationMessage.payload,s,fx.player);return JSON.stringify(conflict.currentState())===before;}));
- await page.evaluate(()=>{window.gmAllocationPromise=conflict.handleWindowAction('allocate-disposition',null,conflict.currentState());});
- for(const [id,points] of [['ranger',4],['ranger2',3]])for(const prefix of ['start','current'])await page.locator(`[name="${prefix}_${id}"]`).fill(String(points));
- await page.locator('[data-dialog-action="save"]').click();await page.evaluate(()=>gmAllocationPromise);
+ assert.equal(await page.locator('[data-conflict-action="allocate-disposition"]').count(),0,'Allocation is fixed after initial distribution; GM corrects the bar instead');
  assert.deepEqual(await page.locator('.rg-conflict-admin button').evaluateAll(buttons=>buttons.map(button=>button.dataset.conflictAction)),['back','abort']);
- await page.locator('[data-conflict-action="back"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'allocation');
- await page.locator('[data-conflict-action="back"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'disposition');
- assert.equal(await page.locator('[data-conflict-action="disposition"]').count(),0);
- await page.locator('[data-conflict-action="disposition-continue"]').click();assert.equal(await page.evaluate(()=>conflict.currentState().stage),'equipment');
- assert.equal(await page.evaluate(()=>fx.messages.filter(message=>message.content.includes('First roll · Starting Disposition')).length-teamInitialCards),2,'Back cannot repeat either team roll');
  // Skill choice stays manual during action rolls too, including an off-list Skill.
  await page.evaluate(async()=>{const s=conflict.currentState();s.stage='action';s.revealed=[{index:0,gmAction:'attack',rangerAction:'attack',rangerActorId:'ranger',gmActorId:'enemy',gmMode:'independent',rangerMode:'independent'}];await conflict.setPublicState(s);game.user=fx.player;window.manualActionPromise=conflict.rollCurrentAction('ranger',s);});
  await page.locator('[name="source"]').waitFor();assert.equal(await page.locator('[name="source"]').inputValue(),'');await page.locator('[name="source"]').selectOption('fighter');

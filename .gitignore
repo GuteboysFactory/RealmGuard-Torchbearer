@@ -1,0 +1,4 @@
+node_modules/
+output/
+qa/legacy-workspace*.png
+qa/conflict-session-sandbox*.png

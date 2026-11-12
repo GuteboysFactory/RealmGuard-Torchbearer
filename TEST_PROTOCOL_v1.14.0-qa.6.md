@@ -1,0 +1,24 @@
+# Testprotokoll 1.14.0-qa.6
+
+Använd en separat kopia av världen med Foundry 13.351 och Realm Guard Legacy Mixed. Stäng Foundry, ersätt testmiljöns `Data/systems/realm-guard` med ZIP-innehållet och starta om. `system.json` ska ligga direkt i systemkatalogen. Kontrollera version 1.14.0-qa.6. Anslut GM och minst två spelare.
+
+## Prioriterad QA
+
+1. **Talent-namn och mappar:** öppna Starter Talents och världens Items. Kontrollera Talents → Level 1–10 och rätt nivåplacering. Level 1 är tom om inget eget innehåll lagts där. Kontrollera exempelvis Blood of the Fae, Militant, Battle Fever, Fever Dreams, Armor of Fury och Friends in Low Places. `[working title]` ska saknas. Starta om och synka igen: inga dubbletter och inga överskrivna GM-effekter.
+2. **Custom Talents:** skapa från ett spelarkontrollerat karaktärsblad och från GM:s NPC-blad, även ett olänkat NPC-tokenblad. Ange namn, nivå och text. Kontrollera både bladets kopia och ett world Item i rätt nivåmapp. Spelaren ska kunna göra detta medan GM är ansluten även utan global Item Create-behörighet. Prova Cancel och saknad regeltext.
+3. **Bibliotekssynlighet:** kontrollera regel-Items och Item-compendier från spelarklienten. Nytt innehåll utan egna behörigheter ska vara läsbart. Dölj ett Item respektive compendium som GM, starta om och synka: dolt innehåll ska fortsätta vara dolt. Befintliga uttryckliga NONE/INHERIT-val ska bevaras. Ändra inte NPC-/karaktärsägarskap för detta test.
+4. **Första Conflict-rutan:** öppna Start Conflict som GM innan konflikten startats. Spelarna ska se uppdateringar av namn, typ, deltagare och Captain-val, men inte kunna ändra dem. Prova både Start och Cancel. Dolda framtida kort ska fortsatt inte visas.
+5. **Spelarnas Back:** låt en deltagare som inte är Captain backa ett felaktigt steg. Kontrollera återställda val, resurser och disposition. Två klienters samtidiga klick ska inte backa två steg från samma gamla vy. Kortval ska fortfarande bara kunna göras av Captain.
+6. **Konfliktslut:** efter Conflict Complete ska alla få en tydlig stängningsknapp. Varje klient ska kunna stänga sin egen ruta. Kontrollera GM:s Reopen och ny konflikt.
+7. **Konfliktens chattkort:** använd ett långt karaktärsnamn. Attack/Defend/Feint/Maneuver ska stå över namnet, som har hela bredden. Kontrollera raka hörn och läsbarhet i vanlig chattbredd.
+8. **NPC-resurser:** Fate, Persona och Checks ska synas tydligt även när värdet är 0. Prova plus/minus och ett långt NPC-namn.
+9. **Versus:** sök en PC eller NPC som har token på den aktiva kartan. Klick på träffen ska räcka. Karaktärer från andra scener eller utan karttoken ska inte listas. Dold token ska bara synas för GM. Prova manuellt OB, automatiskt motståndarslag och ett tokenbundet NPC-värde. Byt karta innan slaget för att kontrollera att gamla träffar avvisas.
+10. **Spelar-Undo:** använd Persona, Fate, Trait och Wise och räkna Learning på ett slag. Ångra via knappen och via högerklicksmenyn. Jämför alla värden före/efter; Pass respektive Fail ska återställas. Prova en Beginner’s Luck som precis lär in Skill och ångra den: Skill ska återgå till tidigare rating och framsteg. Prova dubbelklick och ett senare beroende som ska blockera för tidig återställning. En annan spelare ska inte kunna ångra ditt slag.
+11. **Undo i Conflict:** ångra ditt eget färdiga konfliktslag. Bekräftelsen ska tydligt förklara att efterföljande konfliktsteg också återtas. Kontrollera resurser, Learning och att senare kort markeras som återtagna. Avsluta först eventuella väntande resursval i chatten.
+12. **Chattföljning:** skapa flera kort och låt det senaste växa med resursfrågor, Help och resultat. Hela kortet ska synas om det ryms. Prova även bilder som laddar sent och ändrad chattbredd. Ett mycket långt kort ska börja vid rubriken och kunna skrollas igenom.
+13. **Tokenmenyn:** högerklicka på en token med långt namn. Namnet ska ligga i en egen ruta ovanför menyn, och första valet ska vara Open character sheet. Prova nära skärmens kant och Escape.
+14. **Session Break:** starta en rast med manuellt vald tid. Alla ska se samma nedräkning. Under klockan ska karaktärsnamn och eventuell porträttbild visas, med spelarnamnet mindre. Klicka på den egna karaktärsraden: den ska bli tydligt grön för alla och återkomsttonen ska höras. Andra karaktärers knappar ska inte kunna klickas. Anslut en spelare under pågående rast och prova samma sak. Kontrollera 0:00 samt start-/slutton. En deltagare utan tilldelad karaktär visas med sitt användarnamn tills en karaktär finns.
+
+Kör även de tidigare protokollens huvudflöden för disposition, Defend, sparade vapen, paus/ljud/närvaro, sessioner/Wises, kartmarkörer och NPC:s OB-slag. Inga produktionsvärldar har använts i de automatiska testerna.
+
+Rapportera moment, förväntat och faktiskt resultat, klient, profil, version samt läsbar feltext. Publiceringen väntar på användarens test och godkännande.

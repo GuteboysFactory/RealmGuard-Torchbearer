@@ -1,4 +1,5 @@
-import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { legacyMixedPolishEnabled,resourceStorageMaximum } from "./legacy-mixed-scope.mjs";
+import { resetWiseSessionUses } from './legacy-session.mjs';
 import { END_SESSION_ROSTER_KEY, endSessionRosterActors, saveEndSessionRoster, endSessionRosterHtml, bindEndSessionRoster } from "./end-session-roster.mjs";
 import { installEndSession as baselineInstall, openEndSession as baselineOpen } from "./baseline-1.13.1/end-session.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
@@ -239,7 +240,7 @@ async function applyAwards(result, approval, cycle) {
     const actorApproval = approval.approvals?.[actor.id] ?? {};
     const currentFate = Number(actor.system.resources?.fate?.value ?? 0);
     const currentPersona = Number(actor.system.resources?.persona?.value ?? 0);
-    const fateMax = Number(actor.system.resources?.fate?.max ?? 999);
+    const fateMax = resourceStorageMaximum(actor,'fate',999);
     const personaMax = currentPersona + Math.max(0, Number(row.proposal.persona ?? 0));
     const approvedFate = actorApproval.fate ? row.proposal.fate : 0;
     const approvedPersona = actorApproval.persona ? row.proposal.persona : 0;
@@ -357,6 +358,7 @@ async function confirmNextCycle(cycle) {
   let talentsReset = 0;
   for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
     recharged += await resetTokenPowerSessionState(actor);
+    await resetWiseSessionUses(actor);
     const profilePolicy = getActiveM10BSessionCirclesProgressionPolicy();
     if (actor.type === "character" && profilePolicy.progression.talentsEnabled) talentsReset += await resetTalentSessionState(actor);
   }

@@ -1,4 +1,8 @@
-import { legacyMixedPolishEnabled, scopeLegacyMixedClass } from "../module/legacy-mixed-scope.mjs";
+import { installLegacyItemDrops } from '../module/legacy-item-drop.mjs';
+import { createCustomTalent } from '../module/legacy-talent-library.mjs';
+import { wiseAvailable } from '../module/legacy-session.mjs';
+import { enlistRollActors } from '../module/roll-undo.mjs';
+import { legacyMixedPolishEnabled, scopeLegacyMixedClass, resourceStorageMaximum } from "../module/legacy-mixed-scope.mjs";
 import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1/actor-sheet.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
@@ -6,7 +10,7 @@ import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
-import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget } from "../module/legacy-roll-targets.mjs";
+import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget, legacyOpponentActor } from "../module/legacy-roll-targets.mjs";
 import { compactLegacyRollDialog } from "../module/legacy-roll-layout.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
@@ -191,6 +195,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     super._onRender(context, options);
     const root = this.element;
     if (!root) return;
+    root.classList.toggle('rg-legacy-npc',legacyMixedPolishEnabled()&&this.actor?.type==='npc');
+    installLegacyItemDrops(this);
 
     const portraitWrap = root.querySelector(".rg-portrait-wrap");
     if (portraitWrap && this.isEditable && this.actor?.isOwner) {
@@ -514,6 +520,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       editable: this.isEditable,
       isGM: Boolean(game.user?.isGM),
       canChooseTalent: Boolean(game.user?.isGM || actor.testUserPermission?.(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)),
+      canCreateCustomTalent: Boolean(game.user?.isGM || legacyMixedPolishEnabled()&&actor.isOwner),
+      hideLegacyNpcVersus: legacyMixedPolishEnabled(),
       turn: actor.type === "character" ? playerTurnStatus(actor) : null,
       isStrictProfile: sessionPolicy.familySemantics,
       showLevels: sessionPolicy.progression.levelsEnabled,
@@ -547,6 +555,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     return RealmGuardActorSheet._createItem.call(this,e,t,"tokenOfPower","New Token of Power");
   }
   static _createTalent(e,t){
+    if (legacyMixedPolishEnabled()) return createCustomTalent(this);
     if (!getActiveM10BSessionCirclesProgressionPolicy().progression.talentsEnabled) return ui.notifications.warn("Realm Guard: Talents are disabled by the active Rules Profile. Existing Talent data is preserved.");
     if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: Custom Talent definitions are GM-managed.");
     return RealmGuardActorSheet._createItem.call(this,e,t,"talent","New Talent");
@@ -592,7 +601,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static async _editItem(event, target) {
     const id = target.closest("[data-item-id]")?.dataset.itemId;
     const item = this.actor.items.get(id);
-    if (["tokenOfPower", "talent"].includes(item?.type) && !game.user?.isGM) return ui.notifications.warn("Realm Guard: Token of Power and Talent definitions are GM-managed.");
+    if (["tokenOfPower", "talent"].includes(item?.type) && !game.user?.isGM && !(legacyMixedPolishEnabled()&&item?.type==='talent'&&item.getFlag('realm-guard','customTalent')&&this.actor.isOwner)) return ui.notifications.warn("Realm Guard: Token of Power and Talent definitions are GM-managed.");
     if (item) item.sheet.render(true);
   }
 
@@ -757,12 +766,12 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost > Number(this.actor.system.resources.persona.value ?? 0)) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
     let opposition = null, opponent = null;
-    if (versus && (options.opponentActorId || game.user.targets.size === 1)) {
-      opponent = options.opponentActorId ? game.actors.get(options.opponentActorId) : [...game.user.targets][0]?.actor ?? null;
+    if (versus && !options.manualVersus && (options.opponentActorId || game.user.targets.size === 1)) {
+      opponent = options.opponentActorId ? legacyOpponentActor(options) : [...game.user.targets][0]?.actor ?? null;
       opposition = opponent ? RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId) : null;
       if (!opposition || opposition.rating <= 0) return ui.notifications.warn("Realm Guard: Choose a valid Versus opposition.");
     }
-    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope });
+    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, `${role.name} · Beginner's Luck`);
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} · Beginner's Luck`);
@@ -834,7 +843,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const role = this.actor.items.get(id);
     if (!role) return;
     if (Number(role.system.rating ?? 0) <= 0) {
-      return ui.notifications.warn(`Realm Guard: ${role.name} is UNTRAINED. Beginner's Luck / skill-learning is introduced in the later Learning layer.`);
+      return RealmGuardActorSheet._rollUntrained.call(this, event, target);
     }
     let versus = legacyMixedPolishEnabled() ? false : Boolean(role.system.versus);
     const defaults = { obstacle: 1, modifier: 0 };
@@ -848,9 +857,9 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost && Number(this.actor.system.resources.persona.value ?? 0) < personaCost) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
     let result;
-    if (versus && (options.opponentActorId || game.user.targets.size === 1)) {
+    if (versus && !options.manualVersus && (options.opponentActorId || game.user.targets.size === 1)) {
       const targetToken = [...game.user.targets][0];
-      const opponent = options.opponentActorId ? game.actors.get(options.opponentActorId) : targetToken?.actor;
+      const opponent = options.opponentActorId ? legacyOpponentActor(options) : targetToken?.actor;
       if (!opponent) return ui.notifications.warn("Realm Guard: Target has no Actor.");
       const opposition = RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId);
       if (!opposition || opposition.rating <= 0) {
@@ -1064,7 +1073,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
   }
 
-  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null, allowHelp = true, conflictContext = null } = {}) {
+  static async _openRollDialog(role, { versus = false, obstacle = 1, modifier = 0, isSkill = true, tokenSourceIsSkill = null, beginnerLuck = false, beginnerAbility = "", abilityKey = "", natureTarget = null, fixedObstacle = false, circlesContext = null, allowHelp = true, conflictContext = null, replyContext = null } = {}) {
     const personaValue = Number(this.actor.system.resources.persona.value ?? 0);
     const target = game.user.targets.size === 1 ? [...game.user.targets][0] : null;
     const opponent = target?.actor ?? null;
@@ -1173,8 +1182,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         : (level === 3 ? "+1s · always when relevant" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
       return `<option value="${trait.id}">${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
     }).join("");
+    const replySelectors=replyContext&&legacyMixedPolishEnabled()?`<fieldset class="rg-reply-selectors"><legend>Reply · ${foundry.utils.escapeHTML(replyContext.label)} · Ob ${initialObstacle}</legend><label>Character<select name="replyActorId">${replyContext.actorIds.map(id=>game.actors.get(id)).filter(a=>a?.isOwner).map(a=>`<option value="${a.id}" ${a.id===this.actor.id?'selected':''}>${foundry.utils.escapeHTML(a.name)}</option>`).join('')}</select></label><label>Skill<select name="replySkillId">${this.actor.items.filter(i=>i.type==='role').sort((a,b)=>a.name.localeCompare(b.name)).map(i=>`<option value="${i.id}" ${i.id===role.id?'selected':''}>${foundry.utils.escapeHTML(i.name)} · ${Number(i.system.rating)>0?`${Number(i.system.rating)}D`:"Beginner's Luck"}</option>`).join('')}</select></label></fieldset>`:'';
     const content = `<div class="rg-roll-dialog${conflictContext ? " rg-conflict-standard-roll" : ""}"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
         <div class="rg-roll-dialog-head"><strong>${foundry.utils.escapeHTML(role.name)}</strong><span>${beginnerLuck ? `BEGINNER'S LUCK · ${String(beginnerAbility).toUpperCase()}` : (versus ? "VERSUS" : "TEST")} · ${targetText}</span></div>
+        ${replySelectors}
         ${conflictContext ? `<details class="rg-conflict-roll-context"><summary>${foundry.utils.escapeHTML(conflictContext.title)} · context</summary><p>${foundry.utils.escapeHTML(conflictContext.notes || "Conflict modifiers are already included. Learning is recorded when the action resolves.")}</p></details>` : ""}
         ${conflictContext?.requirement ? `<label class="rg-conflict-requirement"><input type="checkbox" name="weaponRequirementMet" checked> Requirement met: ${foundry.utils.escapeHTML(conflictContext.requirement)}</label>` : ""}
         ${conflictContext?.swordChoice ? `<label><input type="checkbox" name="lockSword"> Declare Sword +1D for ${foundry.utils.escapeHTML(conflictContext.actionLabel)} this conflict</label>` : ""}
@@ -1182,21 +1193,24 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         <div class="rg-obstacle-panel"><div class="rg-roll-dialog-grid rg-roll-core-fields">
           <div class="rg-roll-field rg-roll-field-obstacle"><div class="rg-roll-field-head"><span>Obstacle <span class="rg-help-tip" title="Obstacle (Ob) is the number of successes required. Skill factors can set the exact value; the GM may always adjust it.">?</span></span><input type="number" name="obstacle" min="0" max="10" value="${initialObstacle}" ${obReadonly}></div>${obStatus}<small class="rg-obstacle-guide" data-rg-obstacle-guide>${foundry.utils.escapeHTML(obstacleDifficultyText(initialObstacle))}</small></div>
           <div class="rg-roll-field rg-roll-field-modifier"><div class="rg-roll-field-head"><span>Modifier (automatic) <span class="rg-help-tip" title="Read-only. Automatic dice changes from active Conditions and other system effects. Custom Conditions are included when configured for this roll.">?</span></span><input type="number" name="automaticModifier" value="${automaticModifier}" readonly></div><small class="rg-auto-modifier-breakdown">${modifierBreakdown}</small><input type="hidden" name="modifier" value="${Number(modifier) || 0}"></div>
-          <div class="rg-roll-field rg-roll-field-extra"><div class="rg-roll-field-head"><span>Extra Dice <span class="rg-help-tip" title="Manual or situational bonus dice. Use this only when a GM ruling, gear effect or special circumstance grants extra dice. Conditions belong under Modifier; accepted Help is tracked in Teamwork.">?</span></span><input type="number" name="extraDice" min="0" value="0" ${conflictContext && !game.user?.isGM ? "readonly" : ""}></div><small>Manual / situational bonus dice only.</small></div>
+          <div class="rg-roll-field rg-roll-field-extra"><div class="rg-roll-field-head"><span>Extra Dice <span class="rg-help-tip" title="Manual or situational bonus dice. Use this only when a GM ruling, gear effect or special circumstance grants extra dice. Conditions belong under Modifier; accepted Help is tracked in Teamwork.">?</span></span><input type="number" name="extraDice" min="0" value="0" ></div><small>Manual / situational bonus dice only.</small></div>
         </div></div>
         ${circlesBlock}${teamworkBlock}${natureBlock}
         <div class="rg-condition-roll-preview"><span>ACTIVE CONDITIONS${conditionData.dice ? ` · ${conditionData.dice > 0 ? "+" : ""}${conditionData.dice}D` : ""}</span><div>${conditionPreview}</div>${hardConditionNotes.length ? `<small>${hardConditionNotes.map(foundry.utils.escapeHTML).join(" · ")}</small>` : ""}</div>
         ${canCountLearning ? `<fieldset class="rg-learning-choice"><legend>Learning & Advancement <span class="rg-help-tip" title="Pass and Fail results are tracked automatically. When both requirements are met, the Skill or Ability advances immediately.">?</span></legend><label><input type="checkbox" name="countLearning" ${this.actor.type === "npc" ? "" : "checked"}> Count this test for Learning</label><small>${beginnerLuck ? "This marks one Beginner's Luck attempt only. It does not advance the Will/Health base Ability." : "Turn this off only when this test should not earn an advancement mark."}</small></fieldset>` : ""}
         <fieldset><legend>Spend before roll</legend><label>Persona dice <select name="persona" ${personaValue < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= Math.max(0, personaValue)).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select> <small>(${personaValue} available; max +3D)${personaValue < 1 ? ` <b class="rg-disabled-reason">No Persona available.</b>` : ""}</small></label></fieldset>
         ${tokenPowerBlock}${talentBlock}
-        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${family.mg2eWises ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => !family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id)).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : family.mg2eWises ? " (Fate / Persona effect)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
+        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${family.mg2eWises ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => wiseAvailable(w) && (!family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id))).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : family.mg2eWises ? " (Fate / Persona effect)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
       </div>`;
 
     const DialogV2 = foundry.applications.api.DialogV2;
+    let replySelection=null;
     const result = await DialogV2.wait({
       window: { title: `Realm Guard · Roll ${role.name}`, resizable: true }, content, modal: false, rejectClose: false,
       ...(legacyMixedPolishEnabled() ? { position: { width: Math.min(640, (globalThis.innerWidth ?? 680)-32) } } : {}),
-      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); compactLegacyRollDialog(dialog); },
+      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); compactLegacyRollDialog(dialog);
+        const picker=dialog.element?.querySelector('.rg-reply-selectors');if(picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('change',()=>{const actorId=picker.querySelector('[name="replyActorId"]').value;const actor=game.actors.get(actorId);const skillId=actorId===this.actor.id?picker.querySelector('[name="replySkillId"]').value:actor?.items.filter(i=>i.type==='role').sort((a,b)=>a.name.localeCompare(b.name))[0]?.id;if(actorId===this.actor.id&&skillId===role.id)return;replySelection={actorId,skillId};void dialog.close();});}
+      },
       buttons: [{ action: "roll", label: review ? "Roll when Ob is approved" : "Roll", icon: "fa-solid fa-dice", default: true, callback: async (_event, button) => {
         const form = button.form; if (!form) return null;
         const elements = form.elements;
@@ -1205,10 +1219,11 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         if (review && !targetSelection.versus) await review.promise;
         const acceptedHelp = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
         const help = Number.isFinite(conflictContext?.maxHelpers) ? acceptedHelp.slice(0, conflictContext.maxHelpers) : acceptedHelp;
+        enlistRollActors(this.actor, help.map(entry=>entry.actorId));
         return {
           ...targetSelection,
           obstacle: review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
-          modifier: Number(elements.modifier?.value ?? 0), extraDice: conflictContext && !game.user?.isGM ? 0 : Math.max(0, Number(elements.extraDice?.value ?? 0)), help: targetSelection.opponentActorId ? help.filter(entry => entry.actorId !== targetSelection.opponentActorId) : help,
+          modifier: Number(elements.modifier?.value ?? 0), extraDice: Math.max(0, Number(elements.extraDice?.value ?? 0)), help: targetSelection.opponentActorId ? help.filter(entry => entry.actorId !== targetSelection.opponentActorId) : help,
           persona: Math.max(0, Math.min(3, Number(elements.persona?.value ?? 0))), countLearning: canCountLearning ? Boolean(elements.countLearning?.checked) : false,
           lockSword: Boolean(elements.lockSword?.checked), weaponRequirementMet: !elements.weaponRequirementMet || Boolean(elements.weaponRequirementMet.checked),
           traitId: elements.traitId?.value || null, traitMode: elements.traitMode?.value || "help", wiseId: elements.wiseId?.value || null,
@@ -1220,6 +1235,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     });
     if (teamworkSessionId) finishTeamworkSession(teamworkSessionId);
     if (review) finishObstacleReview(review.requestId);
+    if(replySelection)return {replySelection};
     if (!result || result.cancelled === true || result === "cancel") return null;
     return result;
   }
@@ -1256,6 +1272,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
     const all = faces.concat(bonusFaces); const successes = all.filter(v=>v>=4).length; const passed = successes >= result.obstacle;
     await rollChat.finish( `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>`);
+    if(legacyMixedPolishEnabled()&&game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:result.label,obstacle:successes,versus:true,actorId:this.actor.id}});
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this.actor); }
 
   }
@@ -1771,7 +1788,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static _checksUp(){ return RealmGuardActorSheet._adjustResource.call(this,"checks",1); }
   static async _adjustResource(name, delta) {
     const resource = this.actor.system.resources[name];
-    const next = Math.max(0, Math.min(name === "persona" ? Number.POSITIVE_INFINITY : resource.max, resource.value + delta));
+    const next = Math.max(0, Math.min(resourceStorageMaximum(this.actor,name), resource.value + delta));
     await this.actor.update({ [`system.resources.${name}.value`]: next });
   }
 }

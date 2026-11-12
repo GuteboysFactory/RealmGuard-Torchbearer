@@ -34,6 +34,7 @@ assert.equal(await saveProgress(sheet,{roleId:role.id},{passed:2,failed:1},train
 assert.equal(await saveProgress(sheet,{roleId:role.id},{passed:0,failed:0},trained),false,'Stale edit rejected');
 game.user=fx.observer;assert.equal(await saveProgress(sheet,{roleId:role.id},{passed:1,failed:0},{}),false);game.user=fx.gm;
 const opponent=new RealmGuardActor(actorData('opponent'));game.actors.push(opponent);
+globalThis.canvas={tokens:{placeables:[{id:'opponent-token',actor:opponent,visible:true}]}};
 assert.equal(visibleRollOpponents(actor).length,1);
 const choice=RealmGuardActorSheet._availableVersusOpposition('Fighter',opponent)[0];assert.ok(choice);
 assert.equal(resolveLegacyRollTarget(actor,role,{rollMode:{value:'versus'},opponentActorId:{value:opponent.id},oppositionId:{value:choice.id}},RealmGuardActorSheet).opponentActorId,opponent.id);

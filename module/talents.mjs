@@ -1,5 +1,6 @@
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { progressionView } from "./progression.mjs";
+import { LEGACY_TALENTS, LEGACY_TALENT_LEVEL_NOTES } from "./legacy-talent-catalog.mjs";
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 
@@ -34,6 +35,30 @@ export function talentEffectSummary(talent) {
   if (mode === "manual") return `${frequency === "session" ? "Once/session · " : frequency === "conflict" ? "Once/conflict · " : ""}Manual effect`;
   const freq = frequency === "passive" ? "Passive" : frequency === "conflict" ? "Once/conflict" : "Once/session";
   return `${freq} · +${bonus}D`;
+}
+
+export function talentCatalogForProfile() {
+  return legacyMixedPolishEnabled() ? LEGACY_TALENTS : STARTER_TALENTS;
+}
+
+export function talentChoicesForActor(actor) {
+  const progression = progressionView(actor), owned = actor.items.filter(i => i.type === 'talent');
+  const keys = new Set(owned.map(i => i.system?.sourceKey)), names = new Set(owned.map(i => i.name.toLowerCase()));
+  const occupied = new Set();
+  // Existing custom/starter choices keep their slot; repeated minimum levels use
+  // the next open slot rather than making an existing character lose choices.
+  for (const item of [...owned].sort((a,b) => Number(a.system?.minLevel ?? 2)-Number(b.system?.minLevel ?? 2))) {
+    let slot = Math.max(2, Number(item.system?.minLevel ?? 2));
+    while (occupied.has(slot)) slot++;
+    occupied.add(slot);
+  }
+  return talentCatalogForProfile().filter(t => t.minLevel <= progression.level && !keys.has(t.key) && !names.has(t.name.toLowerCase()) && (!legacyMixedPolishEnabled() || !occupied.has(t.minLevel)));
+}
+
+export function talentCatalogDescription(talent) {
+  if (!talent.source) return talent.description;
+  const source = talent.source;
+  return `${talent.description}\n\n${source.nameVerified && !talent.previousNames?.length ? `Title: Dungeoneer’s Handbook, p. ${source.page} (${source.class}). Effects: supplied Realm Guard adaptation.` : 'Name and effects: user-approved Realm Guard / Fire Talent.'}\nTable effect: apply the described rules with the GM.`;
 }
 
 export function talentLinkSummary(talent) {
@@ -161,14 +186,22 @@ export async function chooseTalentForActor(actor) {
   if (!game.user?.isGM && !actor.testUserPermission?.(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)) return ui.notifications.warn("Realm Guard: Only the Ranger owner or GM can choose this Ranger's Talent.");
   const progression = progressionView(actor);
   if (progression.pendingTalents < 1) return ui.notifications.info("Realm Guard: This Ranger has no unclaimed Talent choices.");
-  const ownedKeys = new Set((actor.items.filter(i => i.type === "talent")).map(i => String(i.system?.sourceKey ?? "")).filter(Boolean));
-  const ownedNames = new Set((actor.items.filter(i => i.type === "talent")).map(i => String(i.name ?? "").toLowerCase()));
-  const available = STARTER_TALENTS.filter(t => Number(t.minLevel ?? 2) <= progression.level && !ownedKeys.has(t.key) && !ownedNames.has(t.name.toLowerCase()));
+  const available = talentChoicesForActor(actor);
   if (!available.length) return ui.notifications.warn("Realm Guard: No built-in Talent choices remain. The GM can create a custom Talent.");
-  const cards = available.map((talent, index) => `<label class="rg-talent-choice-card"><input type="radio" name="talentKey" value="${esc(talent.key)}" ${index === 0 ? "checked" : ""}><span><b>${esc(talent.name)}</b><small>${esc(talent.linkedSkill)} · +${talent.diceBonus}D once/session</small><em>${esc(talent.description)}</em></span></label>`).join("");
+  const legacy = legacyMixedPolishEnabled();
+  const cards = available.map((talent, index) => `<label class="rg-talent-choice-card" data-talent-level="${talent.minLevel}"><input type="radio" name="talentKey" value="${esc(talent.key)}" ${index === 0 ? "checked" : ""}><span><b>${esc(talent.name)}</b><small>${legacy ? `Level ${talent.minLevel} · ${esc(talentEffectSummary({system:talent}))}${talent.source?.page ? ` · Handbook p. ${talent.source.page}` : ' · Realm Guard / Fire'}` : `${esc(talent.linkedSkill)} · +${talent.diceBonus}D once/session`}</small><em>${esc(talent.description)}</em></span></label>`).join("");
+  const levels = [...new Set(available.map(t => t.minLevel))].sort((a,b)=>a-b);
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Choose Talent · Level ${progression.level}`, resizable: true },
-    content: `<div class="rg-talent-browser"><header><h2>Choose a Talent</h2><p>Level ${progression.level} grants one permanent Talent choice. Choices cannot be changed by the player after selection.</p><p><small>This is the Realm Guard Foundry progression expansion inspired by Torchbearer's spent Fate/Persona advancement.</small></p></header><div class="rg-talent-browser-list">${cards}</div></div>`,
+    content: `<div class="rg-talent-browser"><header><h2>Choose a Talent</h2><p>Level ${progression.level} grants one permanent Talent choice. Choices cannot be changed by the player after selection.</p>${legacy ? '<p><small>Realm Guard Talents. Apply table effects with the GM.</small></p>' : '<p><small>This is the Realm Guard Foundry progression expansion inspired by Torchbearer\'s spent Fate/Persona advancement.</small></p>'}</header>${legacy ? `<div class="rg-talent-filters"><label>Search<input type="search" data-talent-search placeholder="Name or effect…"></label><label>Level<select data-talent-level-filter>${levels.map(level=>`<option value="${level}">Level ${level}</option>`).join('')}<option value="">All available levels</option></select></label></div><p data-talent-count></p>` : ''}<div class="rg-talent-browser-list">${cards}</div></div>`,
+    position: legacy ? {width:640} : undefined,
+    render: legacy ? (_event,dialog) => {
+      const root=dialog.element, search=root.querySelector('[data-talent-search]'), select=root.querySelector('[data-talent-level-filter]');
+      const levelNote=document.createElement('p');levelNote.dataset.talentLevelNote='';select.closest('.rg-talent-filters').after(levelNote);
+      const note=()=>{levelNote.textContent=LEGACY_TALENT_LEVEL_NOTES[select.value]??'';};select.addEventListener('change',note);note();
+      const filter=()=>{let count=0;for(const card of root.querySelectorAll('.rg-talent-choice-card')){card.hidden=Boolean(select.value && card.dataset.talentLevel!==select.value)||!card.textContent.toLowerCase().includes(search.value.trim().toLowerCase());if(!card.hidden)count++;}const selected=root.querySelector('[name="talentKey"]:checked');if(!selected||selected.closest('label').hidden){if(selected)selected.checked=false;const first=[...root.querySelectorAll('.rg-talent-choice-card')].find(c=>!c.hidden);if(first)first.querySelector('input').checked=true;}root.querySelector('[data-talent-count]').textContent=`${count} choices`;};
+      search.addEventListener('input',filter);select.addEventListener('change',filter);filter();
+    } : undefined,
     modal: false,
     rejectClose: false,
     buttons: [
@@ -179,7 +212,8 @@ export async function chooseTalentForActor(actor) {
   if (!result) return null;
   const talent = available.find(t => t.key === result);
   if (!talent) return null;
-  const [created] = await actor.createEmbeddedDocuments("Item", [{ name: talent.name, type: "talent", system: {
+  if (legacy && !talentChoicesForActor(actor).some(t=>t.key===talent.key)) return ui.notifications.warn('This Talent choice is no longer available. Reopen the Talent browser.');
+  const [created] = await actor.createEmbeddedDocuments("Item", [{ name: talent.name, type: "talent", ...(talent.source ? {flags:{'realm-guard':{talentSource:talent.source}}} : {}), system: {
     sourceKey: talent.key,
     minLevel: talent.minLevel,
     frequency: talent.frequency,
@@ -188,7 +222,7 @@ export async function chooseTalentForActor(actor) {
     linkedAbility: talent.linkedAbility,
     effectMode: talent.effectMode,
     diceBonus: talent.diceBonus,
-    description: talent.description,
+    description: talentCatalogDescription(talent),
     session: { used: false },
     conflict: { usedId: "" }
   }}]);

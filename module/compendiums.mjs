@@ -1,7 +1,12 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
-import { STARTER_TALENTS } from "./talents.mjs";
+import { STARTER_TALENTS, talentCatalogForProfile, talentCatalogDescription } from "./talents.mjs";
+import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
+import { LEGACY_TALENT_CATALOG_VERSION } from './legacy-talent-catalog.mjs';
+import { organizeTalentLibrary, defaultLibraryVisibility } from './legacy-talent-library.mjs';
+import {syncLegacyTraits,suppliedTraitDocument} from './legacy-traits-library.mjs';
+import {LEGACY_TRAITS,LEGACY_TRAIT_CATALOG_VERSION} from './legacy-trait-catalog.mjs';
 import { QUICK_NPC_TEMPLATE_SPECS, QUICK_NPC_LIBRARY_VERSION } from "./quick-npc-library.mjs";
 
 const STARTER_VERSION = "0.27.0";
@@ -179,7 +184,7 @@ function talentDoc(talent) {
   return {
     name: talent.name,
     type: "talent",
-    flags: starterFlags(`talent:${talent.key}`, "talents"),
+    flags: { ...starterFlags(`talent:${talent.key}`, "talents"), ...(talent.source ? {[FLAG_SCOPE]:{...starterFlags(`talent:${talent.key}`, "talents")[FLAG_SCOPE],talentSource:talent.source}} : {}) },
     system: {
       sourceKey: talent.key,
       minLevel: Number(talent.minLevel ?? 2),
@@ -189,7 +194,7 @@ function talentDoc(talent) {
       linkedAbility: String(talent.linkedAbility ?? ""),
       effectMode: String(talent.effectMode ?? "dice"),
       diceBonus: Number(talent.diceBonus ?? 1),
-      description: String(talent.description ?? ""),
+      description: talentCatalogDescription(talent),
       session: { used: false },
       conflict: { usedId: "" }
     }
@@ -437,12 +442,12 @@ export async function ensureStarterCompendiums({ syncMissing = false, notify = f
   if (!game.user?.isGM) return { packs: 0, createdPacks: 0, added: 0 };
   const mapping = [
     [PACKS.skills, RG_STARTER_LIBRARY.skills],
-    [PACKS.traits, RG_STARTER_LIBRARY.traits],
+    [PACKS.traits, legacyMixedPolishEnabled()?LEGACY_TRAITS.map(suppliedTraitDocument):RG_STARTER_LIBRARY.traits],
     [PACKS.wises, RG_STARTER_LIBRARY.wises],
     [PACKS.conditions, RG_STARTER_LIBRARY.conditions],
     [PACKS.gear, RG_STARTER_LIBRARY.gear],
     [PACKS.powers, RG_STARTER_LIBRARY.powers],
-    [PACKS.talents, RG_STARTER_LIBRARY.talents],
+    [PACKS.talents, legacyMixedPolishEnabled() ? talentCatalogForProfile().map(talentDoc) : RG_STARTER_LIBRARY.talents],
     [PACKS.npcs, RG_STARTER_LIBRARY.npcs]
   ];
   let packs = 0;
@@ -457,6 +462,9 @@ export async function ensureStarterCompendiums({ syncMissing = false, notify = f
       if (created) createdPacks += 1;
       if (definition === PACKS.npcs && syncMissing) await refreshGeneratedNpcTemplatePresentation(pack, documents);
       if (created || syncMissing) added += await seedPack(pack, documents);
+      if (definition.type === 'Item') await defaultLibraryVisibility(pack);
+      if (definition === PACKS.talents && legacyMixedPolishEnabled()) await organizeTalentLibrary(pack);
+      if (definition === PACKS.traits && legacyMixedPolishEnabled()) await syncLegacyTraits(pack);
     } catch (error) {
       failed += 1;
       console.error(`Realm Guard | Starter Compendium failed: ${definition.label}`, error);
@@ -480,6 +488,8 @@ export async function openStarterCompendiums({ syncMissing = false } = {}) {
 async function openStarterLibraryDialog() {
   if (!game.user?.isGM) return;
   const counts = Object.fromEntries(Object.entries(RG_STARTER_LIBRARY).map(([key, docs]) => [key, docs.length]));
+  if (legacyMixedPolishEnabled()) counts.talents = talentCatalogForProfile().length;
+  if (legacyMixedPolishEnabled()) counts.traits = LEGACY_TRAITS.length;
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Realm Guard · Starter Library", resizable: true },
     content: `<div class="rg-starter-library-dialog"><h2><i class="fa-solid fa-book-atlas"></i> Starter Compendiums</h2><p>The Starter Library contains reusable Realm Guard content for a clean world.</p><div class="rg-starter-library-grid"><span>Skills <b>${counts.skills}</b></span><span>Traits <b>${counts.traits}</b></span><span>Wises <b>${counts.wises}</b></span><span>Conditions <b>${counts.conditions}</b></span><span>Gear <b>${counts.gear}</b></span><span>Tokens of Power <b>${counts.powers}</b></span><span>Talents <b>${counts.talents}</b></span><span>NPC Templates <b>${counts.npcs}</b></span><span>Quick NPC Library <b>v${QUICK_NPC_LIBRARY_VERSION}</b></span></div><p><small><b>Non-destructive:</b> sync only adds missing starter entries. It never overwrites an existing or edited entry.</small></p></div>`,
@@ -498,9 +508,10 @@ async function openStarterLibraryDialog() {
 async function initialSeed() {
   if (!isPrimaryActiveGm()) return;
   const seededVersion = String(game.settings.get("realm-guard", SETTING_KEY) ?? "");
-  const syncMissing = seededVersion !== STARTER_VERSION;
+  const targetVersion = legacyMixedPolishEnabled() ? `${STARTER_VERSION}-legacy-talents-${LEGACY_TALENT_CATALOG_VERSION}-traits-${LEGACY_TRAIT_CATALOG_VERSION}` : STARTER_VERSION;
+  const syncMissing = seededVersion !== targetVersion;
   const result = await ensureStarterCompendiums({ syncMissing, notify: syncMissing });
-  if (syncMissing && result.packs === Object.keys(PACKS).length && !result.failed) await game.settings.set("realm-guard", SETTING_KEY, STARTER_VERSION);
+  if (syncMissing && result.packs === Object.keys(PACKS).length && !result.failed) await game.settings.set("realm-guard", SETTING_KEY, targetVersion);
 }
 
 export function installStarterCompendiums() {
