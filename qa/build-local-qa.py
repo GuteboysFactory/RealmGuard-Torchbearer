@@ -1,7 +1,6 @@
 """Build and independently verify an offline QA artifact; never publish."""
 import hashlib
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -27,14 +26,19 @@ manifest_bytes = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").enc
 
 excluded_dirs = {".git", ".github", ".agents", ".codex", "node_modules", "output", "dist", "release", "channels", "__pycache__"}
 expected = {}
-for directory, dirs, filenames in os.walk(root):
-    dirs[:] = sorted(d for d in dirs if d not in excluded_dirs)
-    for name in sorted(filenames):
-        path = Path(directory) / name
-        rel = path.relative_to(root).as_posix()
-        if name.endswith((".zip", ".pyc")) or name == ".gitignore":
-            continue
-        expected[rel] = manifest_bytes if rel == "system.json" else path.read_bytes()
+tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root).decode("utf-8").split("\0")
+qa_documents = [f"RELEASE_NOTES_v{version}.md", f"TEST_PROTOCOL_v{version}.md"]
+map_icon_dir = root / "assets" / "ui" / "map-icons"
+map_assets = {path.relative_to(root).as_posix() for path in map_icon_dir.glob("*.svg")}
+map_assets.update({"assets/ui/map-icons/catalog.mjs", "assets/ui/map-icons/LUCIDE-LICENSE.txt"})
+new_runtime_files = {"module/legacy-sheet-layouts.mjs"}
+for rel in sorted(set(filter(None, tracked)) | set(qa_documents) | map_assets | new_runtime_files):
+    path = root / rel
+    if not path.is_file() or any(part in excluded_dirs for part in Path(rel).parts):
+        continue
+    if path.suffix in {".zip", ".pyc"} or path.name == ".gitignore":
+        continue
+    expected[rel] = manifest_bytes if rel == "system.json" else path.read_bytes()
 
 required = ["system.json", "realm-guard.mjs", "LEGACY_PLAYTEST_FOLLOWUP_REVIEW.md", f"RELEASE_NOTES_v{version}.md", f"TEST_PROTOCOL_v{version}.md"]
 required += manifest.get("esmodules", []) + manifest.get("styles", [])
@@ -42,6 +46,8 @@ required += ["module/legacy-item-drop.mjs", "module/legacy-npc-obstacle.mjs", "m
 required += ["module/legacy-talent-library.mjs", "module/legacy-conflict-setup-view.mjs", "module/legacy-chat-follow.mjs", "qa/legacy-talent-approved-names.json"]
 required += ["module/legacy-trait-catalog.mjs", "module/legacy-traits-library.mjs", "module/legacy-free-roll.mjs", "module/legacy-token-hud.mjs", "LEGACY_CLEANUP_IMPLEMENTATION_REVIEW.md"]
 required += [entry["path"] for entry in manifest.get("languages", [])]
+required += sorted(map_assets)
+required += sorted(new_runtime_files)
 required += [f"assets/ui/map-icons/{name}.svg" for name in ("village", "city", "ruin", "cave", "grave", "cairn", "castle", "tower", "camp", "bridge", "mine", "temple", "forest", "mountain", "harbour", "item")]
 for name in required:
     if name not in expected:

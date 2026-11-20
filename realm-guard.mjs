@@ -61,6 +61,7 @@ import { installActorSheetScrollPersistence } from "./module/actor-sheet-scroll-
 import { installWindowPositionPersistence } from "./module/window-position-service.mjs";
 import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 import { installLegacyCharacterWorkspace } from "./module/legacy-character-workspace.mjs";
+import { installLegacySheetLayoutSettings } from "./module/legacy-sheet-layouts.mjs";
 import { installLegacySceneMenu } from "./module/legacy-scene-menu.mjs";
 
 Hooks.once("init", () => {
@@ -92,6 +93,7 @@ Hooks.once("init", () => {
   installCoreBaseline();
   installProfileManagementMenu();
   installRulesProfileInfrastructure();
+  installLegacySheetLayoutSettings();
   installM10ProfileConversionPreview();
   installM10DFoundation();
   installEffectEngineInfrastructure();

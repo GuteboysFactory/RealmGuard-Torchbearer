@@ -22,10 +22,9 @@
       </div>
     </div>
     <div class="rg-meta">
-      {{#unless isStrictProfile}}<div class="rg-resource rg-level-resource"><span>LEVEL</span><strong>{{progression.level}}</strong></div>{{/unless}}
       <div class="rg-resource"><span>FATE</span><button type="button" data-action="fateDown">−</button><strong>{{system.resources.fate.value}}</strong><button type="button" data-action="fateUp">+</button></div>
       <div class="rg-resource"><span>PERSONA</span><button type="button" data-action="personaDown">−</button><strong>{{system.resources.persona.value}}</strong><button type="button" data-action="personaUp">+</button></div>
-      <div class="rg-resource"><span>CHECKS</span><button type="button" data-action="checksDown">−</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button></div>
+      <div class="rg-resource{{#if showPassChecks}} rg-checks-resource{{/if}}"><span>CHECKS</span><button type="button" data-action="checksDown">−</button><strong>{{system.resources.checks.value}}</strong><button type="button" data-action="checksUp">+</button>{{#if showPassChecks}}<button type="button" class="rg-pass-check" data-action="turnDonate" title="Pass Checks" aria-label="Pass Checks" {{#unless canPassChecks}}disabled{{/unless}}><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>{{/if}}</div>
     </div>
   </header>
 
@@ -44,7 +43,6 @@
     {{#if turn.blockedByAlternation}}<div class="rg-turn-strip-warning"><i class="fa-solid fa-people-arrows-left-right"></i> Another Ranger must test before you can test again.</div>{{/if}}
     {{#if turn.done}}<div class="rg-turn-strip-done"><i class="fa-solid fa-flag-checkered"></i> DONE</div>{{/if}}
     <div class="rg-turn-strip-actions">
-      {{#if turn.canDonate}}<button type="button" data-action="turnDonate" title="Pass Checks to a patrol-mate"><i class="fa-solid fa-share"></i> Pass Check</button>{{/if}}
       {{#if turn.canFinish}}<button type="button" data-action="turnDone" title="Finish your Players' Turn and discard unused Checks"><i class="fa-solid fa-flag-checkered"></i> Done</button>{{/if}}
     </div>
   </section>
@@ -262,7 +260,6 @@
                   </label>
                   {{#if role.maxRating}}<span class="rg-max-rating" title="Maximum rating">MAX 6</span>{{/if}}
                   <button type="button" class="icon rg-skill-edit" data-action="editItem" title="Edit {{role.name}}">✎</button>
-                  <button type="button" class="icon rg-skill-delete" data-action="deleteItem" title="Delete {{role.name}}">×</button>
                 </div>
               </div>
               <div class="rg-learning">

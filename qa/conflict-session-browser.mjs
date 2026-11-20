@@ -304,8 +304,9 @@ try {
  assert.equal(await page.locator('.rg-chat-question-buttons button').first().evaluate(button=>getComputedStyle(button).color),'rgb(37, 27, 13)');
  await page.locator('.rg-chat-question-buttons button:not(.rg-chat-skip)').click();await page.evaluate(()=>paidWisePromise);
  assert.equal(await page.evaluate(()=>game.actors.get('ranger').system.resources.persona.value),0);
- await page.evaluate(async()=>{const actor=game.actors.get('ranger');await actor.items.get('wise-paid').update({"flags.realm-guard.wiseUsed":false});fx.dice.push([1,2,4],[4,4]);window.preparedResult=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'},wiseId:'wise-paid'});});
- assert.equal(await page.locator('.rg-chat-question').count(),0);assert.equal(await page.evaluate(()=>preparedResult.successes),3);
+ await page.evaluate(async()=>{const actor=game.actors.get('ranger');await actor.items.get('wise-paid').update({"flags.realm-guard.wiseUsed":true});fx.dice.push([1,2,4,5]);window.preparedResult=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',rating:3,kind:'role'},wiseId:'wise-paid'});});
+ assert.equal(await page.locator('.rg-chat-question').count(),0);
+ assert.deepEqual(await page.evaluate(()=>({pool:preparedResult.pool,successes:preparedResult.successes})),{pool:4,successes:2});
  // Three-player assignment is manual and permits A-B-A without requiring C first.
  await page.evaluate(async()=>{game.user=fx.gm;const s=baseState();s.stage='rangerPlan';s.locks={gm:true,ranger:false};s.ranger.participantIds=['ranger','ranger2','gm-only'];await conflict.setPublicState(s);game.user=fx.player;conflict.renderConflictWindow(s,{force:true});});
  for(const [index,actorId]of ['ranger','ranger2','ranger'].entries()){

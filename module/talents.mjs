@@ -194,7 +194,7 @@ export async function chooseTalentForActor(actor) {
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Choose Talent · Level ${progression.level}`, resizable: true },
     content: `<div class="rg-talent-browser"><header><h2>Choose a Talent</h2><p>Level ${progression.level} grants one permanent Talent choice. Choices cannot be changed by the player after selection.</p>${legacy ? '<p><small>Realm Guard Talents. Apply table effects with the GM.</small></p>' : '<p><small>This is the Realm Guard Foundry progression expansion inspired by Torchbearer\'s spent Fate/Persona advancement.</small></p>'}</header>${legacy ? `<div class="rg-talent-filters"><label>Search<input type="search" data-talent-search placeholder="Name or effect…"></label><label>Level<select data-talent-level-filter>${levels.map(level=>`<option value="${level}">Level ${level}</option>`).join('')}<option value="">All available levels</option></select></label></div><p data-talent-count></p>` : ''}<div class="rg-talent-browser-list">${cards}</div></div>`,
-    position: legacy ? {width:640} : undefined,
+    position: legacy ? {width:Math.min(780, (globalThis.innerWidth ?? 820) - 32), height:Math.min(740, (globalThis.innerHeight ?? 780) - 40)} : undefined,
     render: legacy ? (_event,dialog) => {
       const root=dialog.element, search=root.querySelector('[data-talent-search]'), select=root.querySelector('[data-talent-level-filter]');
       const levelNote=document.createElement('p');levelNote.dataset.talentLevelNote='';select.closest('.rg-talent-filters').after(levelNote);

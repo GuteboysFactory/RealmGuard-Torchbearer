@@ -453,13 +453,20 @@ export async function openObstacleControl() {
   return dialog;
 }
 
+let legacyGmControl = null;
 export async function openGmTools() {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: GM Control is GM only.");
+  const legacy = legacyMixedPolishEnabled();
+  if (legacy && legacyGmControl?.rendered) {
+    await legacyGmControl.maximize();
+    legacyGmControl.bringToFront();
+    return legacyGmControl;
+  }
   const selected = controlledActors();
   const npcsOnScene = sceneNpcActors();
   const hasOneNpc = selected.filter(actor => actor.type === "npc").length === 1;
   const content = `<div class="rg-gm-tools">
-    <header class="rg-gm-tools-head"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>GM Control</h2><p>Fast table administration plus a live Quick Inspector for selected Rangers and NPCs.</p></div><i class="fa-solid fa-shield-halved"></i></header>
+    <header class="rg-gm-tools-head"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>GM Control</h2><p>Fast table administration plus a live Quick Inspector for selected Rangers and NPCs.</p></div>${legacy ? '<button type="button" data-rg-minimize-control><i class="fa-solid fa-window-minimize"></i> Minimize</button>' : '<i class="fa-solid fa-shield-halved"></i>'}</header>
     <section><div class="rg-gm-section-title"><h3>Selected Tokens · Quick Inspector</h3><span data-rg-selected-count>${selected.length} selected · ${npcsOnScene.length} NPCs on scene</span></div><div class="rg-gm-selected" data-rg-selected-summary>${selectedSummary(selected)}</div></section>
     <section class="rg-gm-dashboard-actions">
       <button type="button" data-rg-gm="studio"><i class="fa-solid fa-wand-magic-sparkles"></i><b>Content Studio</b><small>Create / duplicate Realm Guard content</small></button>
@@ -474,15 +481,17 @@ export async function openGmTools() {
   </div>`;
 
   const dialog = new foundry.applications.api.DialogV2({
-    window: { title: "Realm Guard · GM Control", resizable: true },
+    window: { title: "Realm Guard · GM Control", resizable: true, minimizable: legacy },
     position: { width: 780 },
     content,
     buttons: [{ action: "close", label: "Close", default: true }],
     submit: () => null
   });
 
+  if (legacy) legacyGmControl = dialog;
   await dialog.render(true);
   const root = dialog.element;
+  root?.querySelector("[data-rg-minimize-control]")?.addEventListener("click", () => void dialog.minimize());
   const refreshSelected = () => {
     if (!root?.isConnected) return false;
     const current = controlledActors();
@@ -503,6 +512,10 @@ export async function openGmTools() {
   const hookIds = [];
   const liveHook = (name, callback) => hookIds.push([name, Hooks.on(name, callback)]);
   const removeHooks = () => { for (const [name, id] of hookIds.splice(0)) Hooks.off(name, id); };
+  dialog.addEventListener?.("close", () => {
+    removeHooks();
+    if (legacyGmControl === dialog) legacyGmControl = null;
+  }, {once: true});
   const refreshOrCleanup = () => { if (!refreshSelected()) removeHooks(); };
   liveHook("controlToken", refreshOrCleanup);
   liveHook("updateActor", actor => { if (controlledActors().some(a => a.id === actor?.id)) refreshOrCleanup(); });
@@ -534,8 +547,11 @@ export async function openGmTools() {
     if (button.disabled) return;
     const action = button.dataset.rgGm;
     const liveSelected = controlledActors();
-    await dialog.close();
-    removeHooks();
+    if (legacy) await dialog.minimize();
+    else {
+      await dialog.close();
+      removeHooks();
+    }
     if (action === "studio") return openContentStudio();
     if (action === "createNpc") return createQuickNpc();
     if (action === "templates") return openNpcTemplateLibrary();

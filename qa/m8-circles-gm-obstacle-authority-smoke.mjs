@@ -3,9 +3,9 @@ import fs from "node:fs";
 
 const sheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
 for (const needle of [
-  'const isCirclesObstacle = String(abilityKey) === "circles";',
+  'const isCirclesObstacle = String(abilityKey) === "circles" && !replyContext;',
   'Circles Obstacle is always GM authority',
-  '(review || isCirclesObstacle) ? "readonly"',
+  '(review || isCirclesObstacle || replyContext) ? "readonly"',
   'isCirclesObstacle || (workflow === "baseline" && !ruleSpecific)',
   'Ob ${initialObstacle} · GM controlled'
 ]) assert.ok(sheet.includes(needle), `Missing qa.40 Circles obstacle marker: ${needle}`);

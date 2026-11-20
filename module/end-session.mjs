@@ -1,5 +1,5 @@
 import { legacyMixedPolishEnabled,resourceStorageMaximum } from "./legacy-mixed-scope.mjs";
-import { resetWiseSessionUses } from './legacy-session.mjs';
+import { resetLegacySessionUses, resetWiseSessionUses } from './legacy-session.mjs';
 import { END_SESSION_ROSTER_KEY, endSessionRosterActors, saveEndSessionRoster, endSessionRosterHtml, bindEndSessionRoster } from "./end-session-roster.mjs";
 import { installEndSession as baselineInstall, openEndSession as baselineOpen } from "./baseline-1.13.1/end-session.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
@@ -299,8 +299,10 @@ async function applyAwards(result, approval, cycle) {
   await game.settings.set(NS, FINALIZED_KEY, true);
 
   let traitUsesReset = 0;
-  for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
-    traitUsesReset += await resetTraitSessionUses(actor);
+  if (!legacyMixedPolishEnabled()) {
+    for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
+      traitUsesReset += await resetTraitSessionUses(actor);
+    }
   }
 
   const cards = summaries.map(summary => {
@@ -352,16 +354,22 @@ async function confirmNextCycle(cycle) {
     previousSessionCycle: cycle,
     sessionCycle: cycle + 1
   });
-  await game.settings.set(NS, CYCLE_KEY, cycle + 1);
-  await game.settings.set(NS, FINALIZED_KEY, false);
   let recharged = 0;
   let talentsReset = 0;
   for (const actor of game.actors.filter(actor => actor.type === "character" || actor.type === "npc")) {
+    if (legacyMixedPolishEnabled()) {
+      const reset = await resetLegacySessionUses(actor);
+      recharged += reset.tokenUsesReset;
+      talentsReset += reset.talentUsesReset;
+      continue;
+    }
     recharged += await resetTokenPowerSessionState(actor);
     await resetWiseSessionUses(actor);
     const profilePolicy = getActiveM10BSessionCirclesProgressionPolicy();
     if (actor.type === "character" && profilePolicy.progression.talentsEnabled) talentsReset += await resetTalentSessionState(actor);
   }
+  await game.settings.set(NS, CYCLE_KEY, cycle + 1);
+  await game.settings.set(NS, FINALIZED_KEY, false);
   observeM7Lifecycle("SESSION_STARTED", {
     source: "LEGACY_END_SESSION",
     sessionCycle: cycle + 1,

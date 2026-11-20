@@ -1,6 +1,6 @@
-import { wiseAvailable } from './legacy-session.mjs';
 import { hasActiveCondition } from "./conditions.mjs";
 import { getActiveM10BFamilyRulePolicy, allowedHelperKindsForTest, helperSourceAllowedForTest } from "./m10b-family-rules.mjs";
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 
 const NS = "realm-guard";
 const CHANNEL = `system.${NS}`;
@@ -53,7 +53,7 @@ function helperSources(actor, testKind = "") {
       }))
       .filter(source => source.rating > 0),
     ...actor.items
-      .filter(item => item.type === "wise" && wiseAvailable(item))
+      .filter(item => item.type === "wise")
       .map(item => ({ id: item.id, kind: "Wise", name: item.name, rating: policy.ratedWises ? Number(item.system?.rating ?? 0) : 0 }))
       .filter(source => !policy.ratedWises || source.rating > 0)
   ].filter(source => allowedKinds.has(source.kind));
@@ -114,7 +114,7 @@ function sourceStillValid(entry) {
     const rating = Number(key === "nature" ? attributes.nature?.value : attributes[key]?.value ?? 0);
     return ABILITIES.includes(key) && rating > 0;
   }
-  if (entry.sourceKind === "Wise") { const wise=actor.items.get(entry.sourceId); return Boolean(wise?.type === "wise" && wiseAvailable(wise) && (!policy.ratedWises || Number(wise.system?.rating ?? 0) > 0)); }
+  if (entry.sourceKind === "Wise") { const wise=actor.items.get(entry.sourceId); return Boolean(wise?.type === "wise" && (!policy.ratedWises || Number(wise.system?.rating ?? 0) > 0)); }
   return false;
 }
 
@@ -141,6 +141,12 @@ function renderRequesterSession(sessionId) {
   }
   const button = root.querySelector("[data-rg-teamwork-ask]");
   if (button) button.innerHTML = accepted.length ? `<i class="fa-solid fa-handshake-angle"></i> Ask for more Help` : `<i class="fa-solid fa-handshake-angle"></i> Ask for Help`;
+  const wise = root.querySelector('[name="wiseId"]');
+  if (wise && legacyMixedPolishEnabled()) {
+    wise.disabled = accepted.some(entry => entry.sourceKind === "Wise");
+    wise.title = wise.disabled ? "A helper is already contributing the Wise for this test." : "";
+    if (wise.disabled) wise.value = "";
+  }
 }
 
 export function createTeamworkSession({ requesterActorId, testName = "Test", testKind = "", excludedActorIds = [], allowedActorIds = [] } = {}) {
@@ -160,6 +166,21 @@ export function createTeamworkSession({ requesterActorId, testName = "Test", tes
     requestedUsers: new Set()
   });
   return sessionId;
+}
+
+export function setTeamworkOpponent(sessionId, opponentId) {
+  const session = sessions.get(sessionId);
+  if (!session || session.opponentId === opponentId) return;
+  session.excludedActorIds = session.excludedActorIds.filter(id => id !== session.opponentId);
+  session.opponentId = opponentId;
+  if (opponentId) session.excludedActorIds.push(opponentId);
+  const excluded = session.accepted.get(opponentId);
+  if (excluded) {
+    session.accepted.delete(opponentId);
+    session.acceptedByUser.delete(excluded.helperUserId);
+  }
+  session.pending.delete(opponentId);
+  renderRequesterSession(sessionId);
 }
 
 export function teamworkEntries(sessionId) {
@@ -252,10 +273,9 @@ function sendDecline(message) {
   });
 }
 
-function openHelperRequest(message) {
+async function openHelperRequest(message) {
   if (message.targetUserId !== game.user.id) return;
-  if (document.querySelector(`[data-rg-teamwork-helper="${CSS.escape(message.requestId)}"]`)) return;
-  helperDialogs.delete(message.requestId);
+  if (helperDialogs.has(message.requestId)) return;
   const allowed = new Set(message.helperActorIds ?? []);
   const actors = validHelperActorsForUser(game.user, message.excludedActorIds ?? [], message.allowedActorIds ?? [], message.testKind ?? "").filter(actor => allowed.has(actor.id));
   if (!actors.length) return;
@@ -291,82 +311,92 @@ function openHelperRequest(message) {
     buttons: []
   });
   helperDialogs.set(message.requestId, dialog);
-  dialog.render(true);
+  dialog.addEventListener?.("close", () => helperDialogs.delete(message.requestId), {once:true});
+  try {
+    await dialog.render(true);
+  } catch (error) {
+    helperDialogs.delete(message.requestId);
+    throw error;
+  }
+  if (helperDialogs.get(message.requestId) !== dialog) return;
+  const root = dialog.element?.querySelector(`[data-rg-teamwork-helper="${CSS.escape(message.requestId)}"]`);
+  if (!root) return;
+  const actorSelect = root.querySelector("[data-helper-actor]");
+  const sourceSelect = root.querySelector("[data-helper-source]");
+  const synergy = root.querySelector("[data-helper-synergy]");
+  const synergyNote = root.querySelector("[data-helper-synergy-note]");
 
-  setTimeout(() => {
-    const root = document.querySelector(`[data-rg-teamwork-helper="${CSS.escape(message.requestId)}"]`);
-    if (!root) return;
-    const actorSelect = root.querySelector("[data-helper-actor]");
-    const sourceSelect = root.querySelector("[data-helper-source]");
-    const synergy = root.querySelector("[data-helper-synergy]");
-    const synergyNote = root.querySelector("[data-helper-synergy-note]");
-
-    const currentActor = () => game.actors.get(actorSelect?.value || initialActor.id) ?? initialActor;
-    const currentSource = () => {
-      const [kind, id] = String(sourceSelect?.value ?? "").split("|");
-      return (sourceMap.get(currentActor().id) ?? []).find(source => source.kind === kind && source.id === id) ?? null;
-    };
-    const refreshSynergy = () => {
-      const actor = currentActor();
-      const source = currentSource();
-      const fate = Number(actor.system?.resources?.fate?.value ?? 0);
-      const eligible = Boolean(source && ["Skill", "Ability"].includes(source.kind) && fate > 0);
-      if (!synergy || !synergyNote) return;
-      synergy.disabled = !eligible;
-      if (!eligible) synergy.checked = false;
-      synergyNote.textContent = source?.kind === "Wise"
-        ? "I Am Wise is separate from Synergy."
-        : fate < 1
-          ? ` ${actor.name} has 0 Fate available.`
-          : ` ${actor.name} has ${fate} Fate available. Pass/Fail is marked on the helping source.`;
-    };
-    const refreshSources = () => {
-      const actor = currentActor();
-      sourceSelect.innerHTML = sourceOptions(actor);
-      refreshSynergy();
-    };
-
-    actorSelect?.addEventListener("change", refreshSources);
-    sourceSelect?.addEventListener("change", refreshSynergy);
+  const currentActor = () => game.actors.get(actorSelect?.value || initialActor.id) ?? initialActor;
+  const currentSource = () => {
+    const [kind, id] = String(sourceSelect?.value ?? "").split("|");
+    return (sourceMap.get(currentActor().id) ?? []).find(source => source.kind === kind && source.id === id) ?? null;
+  };
+  const refreshSynergy = () => {
+    const actor = currentActor();
+    const source = currentSource();
+    const fate = Number(actor.system?.resources?.fate?.value ?? 0);
+    const eligible = Boolean(source && ["Skill", "Ability"].includes(source.kind) && fate > 0);
+    if (!synergy || !synergyNote) return;
+    synergy.disabled = !eligible;
+    if (!eligible) synergy.checked = false;
+    synergyNote.textContent = source?.kind === "Wise"
+      ? "I Am Wise is separate from Synergy."
+      : fate < 1
+        ? ` ${actor.name} has 0 Fate available.`
+        : ` ${actor.name} has ${fate} Fate available. Pass/Fail is marked on the helping source.`;
+  };
+  const refreshSources = () => {
+    const actor = currentActor();
+    sourceSelect.innerHTML = sourceOptions(actor);
     refreshSynergy();
+  };
 
-    root.querySelector("[data-helper-accept]")?.addEventListener("click", async () => {
-      const actor = currentActor();
-      const source = currentSource();
-      if (!source) return ui.notifications.warn("Realm Guard: Choose how this Ranger is helping first.");
-      const legality = helperEligibility(actor,{excludedActorIds:message.excludedActorIds ?? [],allowedActorIds:message.allowedActorIds ?? [],testKind:message.testKind ?? ""});
-      if(!legality.ok) return ui.notifications.warn(`Realm Guard: ${actor.name} cannot Help: ${legality.reason}`);
-      const useSynergy = Boolean(getActiveM10BFamilyRulePolicy().synergyEnabled && synergy?.checked && !synergy?.disabled && ["Skill", "Ability"].includes(source.kind));
-      const note=String(root.querySelector("[data-helper-note]")?.value ?? "").trim();
-      sendHelperResponse(message, {
-        actorId: actor.id,
-        actorName: actor.name,
-        sourceId: source.id,
-        sourceKind: source.kind,
-        sourceName: source.name,
-        testKind: String(message.testKind ?? ""),
-        dice: 1,
-        synergy: useSynergy,
-        note,
-        needsReview: source.kind !== "Skill" || useSynergy
-      });
-      ui.notifications.info(`Realm Guard: ${actor.name} is helping ${message.requesterActorName} with ${source.name}.`);
-      helperDialogs.delete(message.requestId);
-      await dialog.close();
-    });
+  actorSelect?.addEventListener("change", refreshSources);
+  sourceSelect?.addEventListener("change", refreshSynergy);
+  refreshSynergy();
 
-    root.querySelector("[data-helper-decline]")?.addEventListener("click", async () => {
-      sendDecline(message);
-      helperDialogs.delete(message.requestId);
-      await dialog.close();
+  root.querySelector("[data-helper-accept]")?.addEventListener("click", async () => {
+    const actor = currentActor();
+    const source = currentSource();
+    if (!source) return ui.notifications.warn("Realm Guard: Choose how this Ranger is helping first.");
+    const legality = helperEligibility(actor,{excludedActorIds:message.excludedActorIds ?? [],allowedActorIds:message.allowedActorIds ?? [],testKind:message.testKind ?? ""});
+    if(!legality.ok) return ui.notifications.warn(`Realm Guard: ${actor.name} cannot Help: ${legality.reason}`);
+    const useSynergy = Boolean(getActiveM10BFamilyRulePolicy().synergyEnabled && synergy?.checked && !synergy?.disabled && ["Skill", "Ability"].includes(source.kind));
+    const note=String(root.querySelector("[data-helper-note]")?.value ?? "").trim();
+    sendHelperResponse(message, {
+      actorId: actor.id,
+      actorName: actor.name,
+      sourceId: source.id,
+      sourceKind: source.kind,
+      sourceName: source.name,
+      testKind: String(message.testKind ?? ""),
+      dice: 1,
+      synergy: useSynergy,
+      note,
+      needsReview: source.kind !== "Skill" || useSynergy
     });
-  }, 50);
+    ui.notifications.info(`Realm Guard: ${actor.name} is helping ${message.requesterActorName} with ${source.name}.`);
+    helperDialogs.delete(message.requestId);
+    await dialog.close();
+  });
+
+  root.querySelector("[data-helper-decline]")?.addEventListener("click", async () => {
+    sendDecline(message);
+    helperDialogs.delete(message.requestId);
+    await dialog.close();
+  });
 }
 
 function activeReviewGmId(){ return game.users.contents.filter(u=>u.active&&u.isGM).sort((a,b)=>String(a.id).localeCompare(String(b.id)))[0]?.id ?? null; }
 
 function acceptEntry(session, entry){
   session.pending.delete(entry.actorId);
+  if (legacyMixedPolishEnabled() && entry.sourceKind === "Wise"
+    && [...session.accepted.values()].some(current => current.actorId !== entry.actorId && current.sourceKind === "Wise" && sourceStillValid(current))) {
+    renderRequesterSession(session.sessionId);
+    ui.notifications.info("This test already has Wise Help. Ask for Help with a Skill or Ability instead.");
+    return;
+  }
   session.accepted.set(entry.actorId,entry);
   session.acceptedByUser.add(entry.helperUserId);
   session.declinedUsers.delete(entry.helperUserId);
@@ -395,7 +425,7 @@ function receiveResponse(message) {
   const session = sessions.get(message.requestId);
   if (!session) return;
   const actor = game.actors.get(message.actorId);
-  if (!actor || (getActiveM10BFamilyRulePolicy().afraidBlocksHelp && hasActiveCondition(actor, "Afraid"))) return;
+  if (!actor || session.excludedActorIds.includes(actor.id) || (getActiveM10BFamilyRulePolicy().afraidBlocksHelp && hasActiveCondition(actor, "Afraid"))) return;
   const entry = {
     actorId: message.actorId,
     actorName: message.actorName ?? actor.name,

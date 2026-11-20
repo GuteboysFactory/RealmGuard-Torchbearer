@@ -1,6 +1,7 @@
 import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
 import { normalizeContainerPreset, detachContainedGear } from "../module/inventory.mjs";
 import { getActiveProfileCapabilities } from "../module/rules-profile-service.mjs";
+import { isDefaultSkill } from "../module/default-skills.mjs";
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -15,9 +16,36 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
     classes: ["realm-guard", "item-sheet"],
     position: { width: 520, height: 500 },
     window: { resizable: true },
+    actions: { deleteSkill: RealmGuardItemSheet._deleteSkill },
     form: { closeOnSubmit: false, submitOnChange: true, handler: RealmGuardItemSheet._onSubmit }
   };
   static PARTS = { main: { template: "systems/realm-guard/templates/item/item.hbs" } };
+
+  get canDeleteSkill() {
+    const item = this.item;
+    return this.isEditable && item.type === "role" && item.parent?.type === "character"
+      && item.parent.items.get(item.id) === item && !isDefaultSkill(item);
+  }
+
+  static async _deleteSkill() {
+    if (!this.canDeleteSkill) return;
+    const name = foundry.utils.escapeHTML(this.item.name);
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Delete Skill" },
+      content: `<p>Delete <strong>${name}</strong> from this character?</p>`,
+      rejectClose: false
+    });
+    if (confirmed && this.canDeleteSkill) await this.item.delete();
+  }
+
+  async _onFirstRender(context, options) {
+    await super._onFirstRender(context, options);
+    if (this.item.type !== "talent" || !legacyMixedPolishEnabled()) return;
+    this.setPosition({
+      width: Math.min(690, (globalThis.innerWidth ?? 730) - 32),
+      height: Math.min(670, (globalThis.innerHeight ?? 710) - 40)
+    });
+  }
 
   static async _onSubmit(event, form, formData) {
     if (!this.isEditable) return;
@@ -62,6 +90,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
       item: this.item,
       system: this.item.system,
       isRole: this.item.type === "role",
+      canDeleteSkill: this.canDeleteSkill,
       legacyMixedPolish: legacyMixedPolishEnabled(),
       beginnerAbilityAutomatic: !["will", "health"].includes(this.item.system.beginnerAbility),
       beginnerAbilityWill: this.item.system.beginnerAbility === "will",

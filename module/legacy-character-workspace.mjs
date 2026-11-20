@@ -1,5 +1,6 @@
 import { installLegacyItemDrops, resolveDropKind } from './legacy-item-drop.mjs';
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
+import { characterSheetLayout, makeSheetLayoutControl } from './legacy-sheet-layouts.mjs';
 import { equipmentAncestryForActor, normalizeEquipmentAncestry } from './equipment-silhouette.mjs';
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, inventoryData } from './inventory.mjs';
 import { abilityLearning, advancementRequirements, autoAdvanceAbility } from './advancement.mjs';
@@ -100,7 +101,12 @@ function compactSkills(sheet, root) {
     card.querySelectorAll('.rg-role-versus, [data-rg-untrained-versus], [data-action="quickRollRole"], [data-action="quickRollUntrained"]').forEach(node => node.remove());
     const actions = card.querySelector(untrained ? '.rg-untrained-actions' : '.rg-role-actions');
     const roll = card.querySelector(`[data-action="${untrained ? 'rollUntrained' : 'rollRole'}"]`);
-    if (roll && actions) { roll.textContent = 'Roll'; roll.title = `Roll ${role.name}`; roll.classList.add('rg-compact-roll'); const remove = actions.querySelector('[data-action="deleteItem"]'); actions.insertBefore(roll,remove); }
+    if (roll && actions) {
+      roll.textContent = 'Roll';
+      roll.title = `Roll ${role.name}`;
+      roll.classList.add('rg-compact-roll');
+      actions.append(roll);
+    }
     card.querySelector('.rg-skill-roll-actions')?.remove();
     if (untrained) {
       const state = beginnerProgress(sheet.actor, role);
@@ -120,19 +126,19 @@ function compactSkills(sheet, root) {
   }
 }
 
-function compactHeader(sheet, root, section) {
+function compactHeader(sheet, section, layout) {
   if (section.querySelector('.rg-header-toggle')) return;
   const upper = document.createElement('div'); upper.className = 'rg-workspace-upper';
   const header = section.querySelector(':scope > .rg-header'); if (!header) return;
   header.before(upper);
   for (const selector of ['.rg-header','.rg-turn-strip','.rg-statbar','.rg-global-tools']) { const node = section.querySelector(`:scope > ${selector}`); if (node) upper.append(node); }
   const tools = upper.querySelector('.rg-global-tools'), turn = upper.querySelector('.rg-turn-strip');
-  if (tools && turn) { turn.append(...tools.children); tools.remove(); }
+  if (layout === "detailed" && tools && turn) { turn.append(...tools.children); tools.remove(); }
   const toggle = button('', () => { sheet._rgHeaderCollapsed = !sheet._rgHeaderCollapsed; refresh(); }, 'rg-header-toggle');
   const refresh = () => {
     upper.hidden = Boolean(sheet._rgHeaderCollapsed); toggle.textContent = sheet._rgHeaderCollapsed ? '⌄' : '⌃';
     toggle.title = sheet._rgHeaderCollapsed ? 'Expand character header' : 'Collapse character header'; toggle.setAttribute('aria-expanded',String(!sheet._rgHeaderCollapsed));
-    const stat=upper.querySelector('.rg-statbar');
+    const stat=upper.querySelector(':scope > .rg-statbar');
     toggle.style.top = sheet._rgHeaderCollapsed ? '0px' : `${Math.max(0,(stat?.offsetTop ?? upper.offsetHeight)+(stat?.offsetHeight ?? 0)-12)}px`;
   };
   upper.after(toggle); refresh();
@@ -140,6 +146,93 @@ function compactHeader(sheet, root, section) {
   if (globalThis.ResizeObserver) { sheet._rgHeaderSizeObserver=new ResizeObserver(refresh); sheet._rgHeaderSizeObserver.observe(upper); }
   // Per-tab scroll keys also work with the existing scroll persistence wrapper.
   for (const page of section.querySelectorAll('[data-rg-page]')) { page.dataset.rgScrollKey = `workspace-${page.dataset.rgPage}`; }
+}
+
+function arrangeCharacterHeader(sheet, section, layout) {
+  const header = section.querySelector(".rg-header");
+  const identity = header?.querySelector(".rg-identity");
+  if (!identity || identity.querySelector(".rg-sheet-layout-control")) return;
+  const top = document.createElement("div");
+  top.className = "rg-character-identity-top";
+  const brand = identity.querySelector(".rg-brand-lockup");
+  if (brand) {
+    brand.before(top);
+    top.append(brand);
+  } else identity.prepend(top);
+  top.append(makeSheetLayoutControl(sheet));
+
+  const concept = identity.querySelector('[name="system.concept"]')?.closest("label");
+  if (concept) {
+    if (layout === "compact") {
+      const background = section.querySelector('[data-rg-character-page="background"] .rg-detail-fields');
+      if (background) {
+        concept.classList.add("rg-relation-wide");
+        background.prepend(concept);
+      }
+    } else {
+      concept.classList.add("rg-character-concept");
+      identity.querySelector(".rg-name").after(concept);
+    }
+  }
+  const profile = identity.querySelector(".rg-grid-4");
+  profile?.classList.add("rg-character-facts");
+  const drives = section.querySelector(".rg-drives");
+  const nature = section.querySelector(".rg-statbar .rg-nature-stat");
+  if (drives && nature) {
+    const story = document.createElement("div");
+    story.className = "rg-character-story";
+    profile ? profile.before(story) : identity.append(story);
+    const natureBar = document.createElement("div");
+    natureBar.className = "rg-statbar rg-header-nature";
+    natureBar.append(nature);
+    if (layout === "detailed") {
+      const descriptors = drives.querySelector('[name="system.natureDescriptors"]')?.closest("label");
+      if (descriptors) {
+        descriptors.className = "rg-character-descriptors";
+        descriptors.firstChild.textContent = "Nature descriptors";
+        natureBar.append(descriptors);
+      }
+    }
+    if (layout === "compact") header.querySelector(".rg-meta").append(natureBar);
+    else story.append(natureBar);
+    story.append(drives);
+  }
+
+  if (layout === "compact") {
+    const tools = section.querySelector(".rg-global-tools");
+    const roll = tools?.querySelector(".rg-custom-roll-launch");
+    const conditions = tools?.querySelector(".rg-condition-launch");
+    if (roll) header.append(roll);
+    if (profile) {
+      const age = profile.querySelector('[name="system.age"]');
+      const range = profile.querySelector(".rg-age-range");
+      if (age && range) age.title = `Age range: ${range.textContent.trim()}`;
+      header.append(profile);
+    }
+    if (conditions) header.append(conditions);
+    tools?.remove();
+    section.querySelector(".rg-turn-strip")?.remove();
+    return;
+  }
+  const relationships = [
+    ["Parents", "parents"], ["Senior Artisan", "seniorArtisan"], ["Mentor", "mentor"], ["Friend", "friend"], ["Enemy", "enemy"]
+  ].filter(([, field]) => String(sheet.actor.system[field] ?? "").trim());
+  if (!relationships.length) return;
+  const strip = document.createElement("div");
+  strip.className = "rg-character-relationship-strip";
+  for (const [label, field] of relationships) {
+    const link = button(`${label}: ${sheet.actor.system[field]}`, () => {
+      section.querySelector('[data-rg-tab="character"]')?.click();
+      section.querySelector('[data-rg-character-tab="relationships"]')?.click();
+      const input = section.querySelector(`[name="system.${field}"]`);
+      const details = input?.closest("details");
+      if (details) details.open = true;
+      input?.focus();
+    });
+    link.title = link.textContent;
+    strip.append(link);
+  }
+  identity.append(strip);
 }
 
 // Positions are percentages of each figure's own drawing area, not screen pixels.
@@ -254,7 +347,13 @@ export function enhanceLegacyWorkspace(sheet) {
   if (!legacyMixedPolishEnabled() || sheet.actor?.type !== 'character') { sheet.element?.classList?.remove('rg-legacy-workspace-window'); return false; }
   const root = sheet.element, section = root?.matches?.('.rg-sheet') ? root : root?.querySelector('.rg-sheet.character'); if (!section) return false;
   section.classList.add('rg-legacy-workspace'); root.classList?.add('rg-legacy-workspace-window');
-  compactHeader(sheet,root,section); compactDrives(sheet,root); compactSkills(sheet,root); equipment(sheet,root); installLegacyItemDrops(sheet); return true;
+  const layout = characterSheetLayout(sheet.actor).effective;
+  section.dataset.rgSheetDensity = layout;
+  compactHeader(sheet,section,layout);
+  arrangeCharacterHeader(sheet,section,layout);
+  if (layout === "compact") compactDrives(sheet,root);
+  else sheet._rgDrivesObserver?.disconnect();
+  compactSkills(sheet,root); equipment(sheet,root); installLegacyItemDrops(sheet); return true;
 }
 
 function compactDrives(sheet,root){
@@ -282,9 +381,12 @@ function compactDrives(sheet,root){
     },'rg-drive-tab');tab.dataset.rgDrive=key;title.append(tab);
     const input=panel.querySelector(`[name="system.${key}"]`);input.rows=1;input.readOnly=!canEdit(sheet);input.setAttribute('aria-label',label);input.addEventListener('input',resize);
   }
-  const hint=document.createElement('small');hint.className='rg-drive-hint';hint.textContent=' – Click on the text to the left to display text';title.append(hint);show();
+  show();
   sheet._rgDrivesObserver?.disconnect();let width=-1;
-  sheet._rgDrivesObserver=new ResizeObserver(entries=>{const next=entries[0].contentRect.width;if(next!==width){width=next;resize();}});sheet._rgDrivesObserver.observe(panel);
+  if (globalThis.ResizeObserver) {
+    sheet._rgDrivesObserver=new ResizeObserver(entries=>{const next=entries[0].contentRect.width;if(next!==width){width=next;resize();}});
+    sheet._rgDrivesObserver.observe(panel);
+  }
 }
 
 export function installLegacyCharacterWorkspace(SheetClass) {

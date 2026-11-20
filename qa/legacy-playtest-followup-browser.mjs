@@ -32,6 +32,7 @@ try{
    window.breaks=await import('/module/legacy-break.mjs');breaks.installLegacyBreak();
    window.view=await import('/module/legacy-session-view.mjs');view.installLegacySessionView();
    window.chat=await import('/module/legacy-chat-actions.mjs');chat.installLegacyChatActions(Sheet);
+   (await import('/module/teamwork.mjs')).installTeamworkWorkflow();
    window.undo=await import('/module/roll-undo.mjs');undo.installRollUndo(Sheet);
    (await import('/module/legacy-session.mjs')).installLegacySession();
    const create=ChatMessage.create;ChatMessage.create=async data=>{const m=await create(data),el=document.createElement('article');el.dataset.messageId=m.id;el.innerHTML=m.content;document.querySelector('#messages').append(el);const update=m.update;m.update=async patch=>{await update.call(m,patch);el.innerHTML=m.content;Hooks.callAll('renderChatMessageHTML',m,el);return m;};Hooks.callAll('renderChatMessageHTML',m,el);return m;};
@@ -106,7 +107,7 @@ try{
  await gm.evaluate(()=>view.publishSessionView(null,false));
  // A GM roll's actual successes produce a clickable reply with the target.
  await gm.evaluate(async()=>{const actor=game.actors.get('ranger');fx.dice.push([4,4,1]);await actor.rollRole(actor.items.get('fighter'),{obstacle:1});});
- assert.match(await gm.locator('[data-rg-respond]').last().textContent(),/Ob 2/);
+ assert.match(await gm.locator('[data-rg-respond]').last().textContent(),/Vs\. 2/);
  // Real DialogV2 form callbacks for chat replies and map creation.
  await a.evaluate(async()=>{
    foundry.applications.api.DialogV2.wait=options=>new Promise(resolve=>{const form=document.createElement('form');form.id='followup-dialog';form.style='position:fixed;top:10px;left:10px;z-index:999;width:620px;max-height:90vh;overflow:auto;background:#e5d5b1;padding:20px';form.innerHTML=options.content;document.body.append(form);for(const button of options.buttons??[]){const el=document.createElement('button');el.type='button';el.dataset.action=button.action;el.textContent=button.label;el.onclick=async()=>{const value=await button.callback?.(null,{form});(window.formResults??=[]).push({title:options.window?.title,value});form.remove();resolve(value);};form.append(el);}options.render?.(null,{element:form,close:async()=>{form.remove();resolve(null);}});Hooks.callAll('renderApplicationV2',{element:form},form);});
@@ -141,6 +142,37 @@ try{
  assert.equal(await a.evaluate(()=>game.actors.get('ranger').system.resources.persona.value),1);assert.equal(await a.evaluate(()=>game.actors.get('ranger').items.get('fighter').system.learning.passed),0);
  await a.evaluate(()=>Hooks.callAll('updateChatMessage',game.messages.at(-1)));
  assert.equal(await a.locator('[data-rg-respond]').last().evaluate(e=>e.classList.contains('rg-responded')),false,'Undo restores the pending response button');
+ // Wait for a deliberately slow helper dialog render. Binding before the
+ // render resolves used to leave the rendered Accept button without a handler.
+ await b.evaluate(()=>{
+   foundry.applications.api.DialogV2=class {
+     constructor(options){this.options=options;}
+     async render(){
+       await new Promise(resolve=>setTimeout(resolve,150));
+       this.element=document.createElement('section');
+       this.element.innerHTML=this.options.content;
+       document.body.append(this.element);
+     }
+     async close(){this.element?.remove();}
+   };
+ });
+ await a.locator('[data-rg-respond]').last().click();
+ const abilities=await a.locator('[name="replySkillId"] option[value^="ability:"]').evaluateAll(rows=>rows.map(row=>row.value));
+ assert.deepEqual(abilities,['ability:nature','ability:health','ability:will','ability:circles','ability:resources']);
+ await a.locator('[name="replySkillId"]').selectOption('ability:circles');
+ await a.waitForFunction(()=>document.querySelector('.rg-roll-dialog-head strong')?.textContent==='Circles');
+ assert.equal(await a.locator('[name="obstacle"]').inputValue(),'2','Circles keeps the card’s target');
+ assert.equal(await a.locator('[name="obstacle"]').isEditable(),false);
+ await a.locator('[data-rg-teamwork-ask]').click();
+ await b.locator('[data-helper-source]').selectOption('Skill|fighter');
+ await b.locator('[data-helper-accept]').click();
+ await a.locator('[data-rg-help-summary] .rg-teamwork-accepted').waitFor();
+ await a.evaluate(()=>fx.dice.push([4,4,1]));
+ await a.locator('[data-action="roll"]').click();
+ await a.waitForFunction(()=>document.querySelector('[data-rg-respond].rg-responded'));
+ assert.match(await a.evaluate(()=>game.messages.at(-1).content),/Circles/);
+ assert.match(await a.evaluate(()=>game.messages.at(-1).content),/Tie/i);
+ await a.locator('[data-rg-undo-roll]').last().click();
  await a.evaluate(()=>{window.extraTest=conflict.openPoolDialog({actor:game.actors.get('ranger'),title:'Conflict action',choices:[{id:'fighter',name:'Fighter',rating:3,kind:'role'}],state:conflict.currentState(),side:'ranger'});});await a.locator('[name="source"]').selectOption('fighter');await a.locator('[data-action="continue"]').click();assert.equal(await a.locator('[name="extraDice"]').isEditable(),true);await a.locator('[name="extraDice"]').fill('2');await a.locator('[data-action="roll"]').click();assert.equal(await a.evaluate(async()=>(await extraTest).extra),2);
  assert.equal(await a.evaluate(async()=>{fx.dice.push([4,4,4,4,4]);const result=await conflict.executeActorPool({actor:game.actors.get('ranger'),source:{id:'fighter',name:'Fighter',kind:'role',rating:3},extra:2});return result.pool;}),5);
  assert.deepEqual(await a.evaluate(async()=>{const actor=game.actors.get('ranger');actor.items.get('fighter').system.rating=0;actor.system.attributes.health.value=3;actor.items.push({id:'brave',type:'trait',name:'Brave',system:{rating:1}});fx.dice.push([4,4,4]);const result=await conflict.executeActorPool({actor,source:{id:'fighter',name:'Fighter',kind:'role',rating:0,beginnerAbility:'health'},traitId:'brave'});actor.items.get('fighter').system.rating=3;actor.system.attributes.health.value=4;return {beginner:result.beginnerLuck,preHalf:result.preHalf,pool:result.pool};}),{beginner:true,preHalf:3,pool:3},'Conflict Beginner’s Luck applies the Trait die after halving');
@@ -156,10 +188,72 @@ try{
  });
  assert.deepEqual(await gm.evaluate(()=>createdJournals.map(j=>j.ownership.default)),[0,2,0]);assert.deepEqual(await gm.evaluate(()=>createdNotes.map(n=>[n.x,n.y])),[[120,340],[420,540],[620,740]]);assert.equal(await gm.evaluate(()=>createdItems[0].type),'wise');
  assert.ok(await gm.evaluate(()=>createdJournals[0].pages[0].text.content.includes('&lt;script&gt;')));
- await gm.evaluate(()=>{const el=document.createElement('section');el.id='map-preview';el.style='position:fixed;inset:20px;background:#dfd0aa;padding:25px;z-index:200;display:grid;grid-template-columns:repeat(4,1fr);gap:20px';el.innerHTML=map.MAP_ICONS.map(([id,label])=>`<div style="text-align:center;color:#29251e"><img style="width:64px;height:64px" src="/assets/ui/map-icons/${id}.svg"><p>${label}</p></div>`).join('');document.body.append(el);});
+ assert.deepEqual(await gm.evaluate(async()=>{
+   const data=createdNotes[0], journal=createdJournals[0], gm=game.user;
+   CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED=1;
+   const note={...data,entry:journal,parent:canvas.scene,getFlag:(ns,key)=>data.flags[ns][key],update:async changes=>{data.flags['realm-guard'].mapMarkerVisible=changes['flags.realm-guard.mapMarkerVisible'];}};
+   globalThis.CONFIG??={};
+   CONFIG.Note={objectClass:class {get isVisible(){return game.user.isGM||journal.ownership.default>=1;}}};
+   map.installLegacyMapPoints();
+   const marker=new CONFIG.Note.objectClass();marker.document=note;
+   const player=game.users.get('player');
+   game.user=player;const before=marker.isVisible;
+   game.user=gm;await map.toggleMapPointVisibility(note);
+   game.user=player;const shown=marker.isVisible;
+   game.user=gm;await map.toggleMapPointVisibility(note);
+   game.user=player;const hidden=marker.isVisible;
+   game.user=gm;
+   return {before,shown,hidden,gmVisible:marker.isVisible,journalPermission:journal.ownership.default};
+ }),{before:false,shown:true,hidden:false,gmVisible:true,journalPermission:0});
+ const iconCheck=await gm.evaluate(async()=>{
+   const ids=map.MAP_ICONS.map(([id])=>id);
+   await Promise.all(ids.map(async id=>{
+     const image=new Image();
+     image.src=`/assets/ui/map-icons/${id}.svg`;
+     await image.decode();
+   }));
+   return {total:ids.length,unique:new Set(ids).size};
+ });
+ assert.equal(iconCheck.unique,iconCheck.total);
+ assert.ok(iconCheck.total>=150);
+ await gm.evaluate(()=>{const el=document.createElement('section');el.id='map-preview';el.style='position:fixed;inset:20px;background:#47553a;padding:25px;z-index:200;display:grid;grid-template-columns:repeat(6,1fr);gap:12px;align-content:start';const sample=['village','city','shop','market-stall','tavern','smithy','fountain','well','lamp','barrel','open-barrel','broken-barrel','crate','cart','cheese-cart','sign','open-door','broken-door','shipwreck','lighthouse','crane','windmill','tunnel','chest'];el.innerHTML=sample.map(id=>{const [,label]=map.MAP_ICONS.find(row=>row[0]===id);return `<div style="text-align:center;color:#f9ebca"><img style="width:48px;height:48px" src="/assets/ui/map-icons/${id}.svg"><p>${label}</p></div>`;}).join('');document.body.append(el);});
  await gm.screenshot({path:path.join(root,'output/playtest-followup/map-icons.png')});
  await gm.evaluate(async()=>{
-   document.querySelector('#map-preview').remove();const flags={};game.user.getFlag=(_ns,key)=>flags[key];game.user.setFlag=async(_ns,key,value)=>{flags[key]=value;};const hotbar=document.createElement('div');hotbar.id='hotbar';hotbar.style='position:fixed;left:20px;bottom:20px;width:300px;height:50px';document.body.append(hotbar);
+   document.querySelector('#map-preview').remove();
+   const data=createdNotes[0], journal=createdJournals[0];
+   window.editedMapNote={...data,parent:canvas.scene,entry:journal,getFlag:(ns,key)=>data.flags[ns][key],
+      update:async changes=>Object.assign(data,changes),delete:async()=>{window.mapNoteDeleted=true;}};
+   window.originalMapWait=foundry.applications.api.DialogV2.wait;
+   foundry.applications.api.DialogV2.wait=options=>new Promise(resolve=>{
+     const form=document.createElement('form');form.id='map-edit-fixture';form.innerHTML=options.content;
+     const button=document.createElement('button');button.type='button';button.textContent='Save marker';
+     button.onclick=()=>{const result=options.buttons[0].callback(null,{form});form.remove();resolve(result);};
+     form.append(button);document.body.append(form);options.render(null,{element:form});
+   });
+   window.editMapPromise=map.editMapPoint(editedMapNote);
+ });
+ await gm.locator('#map-edit-fixture [data-map-search]').fill('oppen tunna');
+ assert.equal(await gm.locator('#map-edit-fixture [data-map-count]').textContent(),'1 icon');
+ await gm.locator('#map-edit-fixture [data-map-category-filter]').selectOption('trade');
+ assert.equal(await gm.locator('#map-edit-fixture [data-map-count]').textContent(),'No matching icons');
+ await gm.locator('#map-edit-fixture [data-map-category-filter]').selectOption('street');
+ await gm.locator('#map-edit-fixture [name="icon"][value="open-barrel"]').check();
+ await gm.locator('#map-edit-fixture [name="name"]').fill('Renamed marker');
+ await gm.locator('#map-edit-fixture [name="iconSize"]').fill('72');
+ await gm.locator('#map-edit-fixture [name="visible"]').selectOption('show');
+ await gm.locator('#map-edit-fixture button').click();
+ assert.deepEqual(await gm.evaluate(async()=>{
+   await editMapPromise;
+   foundry.applications.api.DialogV2.wait=originalMapWait;
+   fx.dialogs.push(false);await map.deleteMapPoint(editedMapNote);
+   const cancelled=!window.mapNoteDeleted;
+   fx.dialogs.push(true);await map.deleteMapPoint(editedMapNote);
+   return {cancelled,deleted:window.mapNoteDeleted,text:createdNotes[0].text,icon:createdNotes[0]['texture.src'],
+     size:createdNotes[0].iconSize,visible:createdNotes[0]['flags.realm-guard.mapMarkerVisible'],
+     position:[createdNotes[0].x,createdNotes[0].y],journal:createdJournals[0].name};
+ }),{cancelled:true,deleted:true,text:'Renamed marker',icon:'systems/realm-guard/assets/ui/map-icons/open-barrel.svg',size:72,visible:true,position:[120,340],journal:'Hidden ruin'});
+ await gm.evaluate(async()=>{
+   const flags={};game.user.getFlag=(_ns,key)=>flags[key];game.user.setFlag=async(_ns,key,value)=>{flags[key]=value;};const hotbar=document.createElement('div');hotbar.id='hotbar';hotbar.style='position:fixed;left:20px;bottom:20px;width:300px;height:50px';document.body.append(hotbar);
    window.dock=await import('/module/gm-dock.mjs');dock.renderGmDock();
  });
  await gm.locator('.rg-dock-toggle').click();assert.equal(await gm.locator('#rg-gm-dock').evaluate(el=>el.classList.contains('rg-dock-minimized')),true);assert.equal(await gm.locator('[data-rg-gm-tool="break"]').isVisible(),false);await gm.locator('.rg-dock-toggle').click();assert.equal(await gm.locator('[data-rg-gm-tool="break"]').isVisible(),true);
@@ -167,5 +261,5 @@ try{
  await a.evaluate(()=>{const app=document.createElement('section');app.className='application rg-legacy-workspace-window minimized';app.innerHTML='<header><h4 class="window-title"></h4></header>';document.body.append(app);Hooks.callAll('renderApplicationV2',{element:app,actor:game.actors.get('ranger')},app);});assert.equal(await a.locator('.window-title').last().textContent(),'ranger');
  for(const job of bridges)await job;
  assert.deepEqual(errors,[]);
- console.log('PASS 3 browser contexts: auto-open; PvP Captain-only secret plans; player opposition roll permission; allocation persistence and auto-loss; Back; Maneuver/Defend equal successes; Defend recovery; GM correction; completion close; synchronized break and presence; shared read-only End Session; GM roll reply; real reply form and Undo of Persona + Learning; map coordinates/ownership/escaping; 16 map icons.');
+ console.log('PASS 3 browser contexts: Conflict, break, End Session, chat replies, Undo, and map marker search, artwork, edit, visibility, and delete.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

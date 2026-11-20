@@ -1,5 +1,7 @@
 import { RealmGuardActorSheet } from "./actor-sheet.mjs";
 import { installNpcObstacleTools } from '../module/legacy-npc-obstacle.mjs';
+import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
+import { makeSheetLayoutControl, npcSheetLayout } from "../module/legacy-sheet-layouts.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
 
 const rgNpcDropBoundRoots = new WeakSet();
@@ -39,6 +41,10 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
   _onRender(context, options) {
     super._onRender(context, options);
     const root = this.element;
+    const identity = root?.querySelector(".rg-npc-workspace .rg-npc-identity");
+    if (identity && !identity.querySelector(".rg-sheet-layout-control")) {
+      identity.prepend(makeSheetLayoutControl(this, {npc: true}));
+    }
     if (!root || !this.isEditable) return;
     installNpcObstacleTools(this,RealmGuardActorSheet);
 
@@ -170,7 +176,13 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
       if (inv.containerId) return "Packed";
       return "Unassigned";
     };
+    const legacyNpcWorkspace = legacyMixedPolishEnabled();
+    const npcLayout = legacyNpcWorkspace ? npcSheetLayout(this.actor) : "npc";
     return foundry.utils.mergeObject(context, {
+      legacyNpcWorkspace,
+      npcLayout,
+      npcLayoutName: {npc: "NPC", monster: "Monster", animal: "Animal"}[npcLayout],
+      creatureLayout: npcLayout !== "npc",
       npcGear: (this.actor.gear ?? []).map(item => ({
         id: item.id,
         name: item.name,

@@ -1,6 +1,6 @@
 import { installLegacyItemDrops } from '../module/legacy-item-drop.mjs';
 import { createCustomTalent } from '../module/legacy-talent-library.mjs';
-import { wiseAvailable } from '../module/legacy-session.mjs';
+import { challengeTestChoices } from '../module/legacy-chat-actions.mjs';
 import { enlistRollActors } from '../module/roll-undo.mjs';
 import { legacyMixedPolishEnabled, scopeLegacyMixedClass, resourceStorageMaximum } from "../module/legacy-mixed-scope.mjs";
 import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1/actor-sheet.mjs";
@@ -21,7 +21,7 @@ import { progressionView, setProgressionTotals, spendTrackedResource } from "../
 import { abilityLearning, adjustAbilityLearning, recordAbilityTest, recordHelperSkillTest, abilityLabel } from "../module/advancement.mjs";
 import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleReview, obstacleReviewValue, finishObstacleReview } from "../module/obstacles.mjs";
 import { diceFacesHtml } from "../module/dice-ui.mjs";
-import { createTeamworkSession, teamworkEntries, finishTeamworkSession } from "../module/teamwork.mjs";
+import { createTeamworkSession, teamworkEntries, finishTeamworkSession, setTeamworkOpponent } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
 import { getActiveM10BFamilyRulePolicy, natureDescriptorText, natureProfileLabel } from "../module/m10b-family-rules.mjs";
 import { getActiveM10BConditionRecoveryPolicy, familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
@@ -185,6 +185,14 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     main: { template: "systems/realm-guard/templates/actor/character.hbs" }
   };
 
+  async _preparePartContext(partId, context, options) {
+    const part = await super._preparePartContext(partId, context, options);
+    // Both profile implementations render the same Checks control.
+    part.showPassChecks = this.actor?.type === "character";
+    part.canPassChecks = part.showPassChecks && this.isEditable && this.actor.isOwner
+      && (part.turn ? part.turn.canDonate : Number(this.actor.system.resources?.checks?.value) > 0);
+    return part;
+  }
 
 
   _rgActiveTab = "character";
@@ -249,6 +257,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const activate = (tab) => {
       this._rgActiveTab = tab;
+      root.querySelector(".rg-sheet.character")?.setAttribute("data-rg-workspace-tab", tab ?? "character");
       for (const b of root.querySelectorAll("[data-rg-tab]")) b.classList.toggle("active", b.dataset.rgTab === tab);
       for (const p of root.querySelectorAll("[data-rg-page]")) p.classList.toggle("active", p.dataset.rgPage === tab);
     };
@@ -1104,7 +1113,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const teamworkTestKind = role?.type === "wise" ? "Wise" : (isSkill ? "Skill" : "Ability");
     const teamworkSessionId = allowHelp
-      ? createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [opponent?.id].filter(Boolean), ...(conflictContext ? { allowedActorIds: conflictContext.participants } : {}) })
+      ? createTeamworkSession({ requesterActorId: this.actor.id, testName: role.name, testKind: teamworkTestKind, excludedActorIds: [replyContext?.opponentId ?? (legacyTargets || fixedObstacle ? null : opponent?.id)].filter(Boolean), ...(conflictContext ? { allowedActorIds: conflictContext.participants } : {}) })
       : null;
     const teamworkHelp = family.helperSourcePolicy === "MG1E_TYPED"
       ? (teamworkTestKind === "Ability"
@@ -1112,7 +1121,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         : "<b>Teamwork:</b> a Skill or Wise test is helped by another Ranger with an appropriate Skill or rated Wise for +1D. <b>I Am Wise</b> is the acting Ranger's own relevant rated Wise. Synergy is disabled.")
       : "<b>Normal Help:</b> a Ranger answers with an appropriate trained Skill or Ability for +1D. <b>I Am Wise:</b> a relevant Wise can instead give +1D. <b>Synergy:</b> the helper chooses it in their own Help request and spends their own Fate if the roll resolves.";
     const teamworkBlock = allowHelp
-      ? `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small>${teamworkHelp} You can keep preparing the roll while Help replies arrive.</small></fieldset>`
+      ? `<fieldset class="rg-teamwork"><legend>Help / Teamwork <span class="rg-help-tip" title="Ask active Ranger players for Help. Accepted Help is added to this roll automatically. Helper Traits are not allowed.">?</span></legend><div class="rg-teamwork-requester"><button type="button" class="rg-teamwork-ask" data-rg-teamwork-ask="${teamworkSessionId}"><i class="fa-solid fa-handshake-angle"></i> Ask for Help</button><span data-rg-help-request-status>Help is optional. Ask active Rangers only when you want it.</span></div><div data-rg-help-availability class="rg-help-availability-list"></div><div class="rg-teamwork-accepted-list" data-rg-help-summary><span class="rg-muted">No Help accepted yet.</span></div><small>${teamworkHelp} You can keep preparing the roll while Help replies arrive.</small></fieldset>`
       : `<fieldset class="rg-teamwork"><legend>Help / Teamwork</legend><div class="rg-teamwork-accepted-list"><span class="rg-muted">Help is unavailable for this test under the active rules profile.</span></div><small>Mouse Guard family recovery: another character cannot Help a Will or Health recovery test.</small></fieldset>`;
 
     const n = this.actor.system.attributes?.nature ?? {}, natureCurrent = Math.max(0, Number(n.value ?? 0)), natureMaximum = Math.max(natureCurrent, Number(n.maximum ?? natureCurrent));
@@ -1136,7 +1145,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       ? `<fieldset class="rg-m8-circles-roll-context"><legend><i class="fa-solid fa-address-book"></i> Circles · Social Network</legend><p><b>${foundry.utils.escapeHTML(circlesContext.label || "Circles Test")}</b></p><small>${circlesContext.mode === "new" ? "A successful result records this person as a Neutral Contact. Failure creates no Contact in qa.39." : circlesContext.mode === "known" ? "This roll references an existing Social Network person. Status/history are not changed automatically." : "Standard Circles roll. No Social Network data will be changed."}</small></fieldset>`
       : "";
 
-    const isCirclesObstacle = String(abilityKey) === "circles";
+    const isCirclesObstacle = String(abilityKey) === "circles" && !replyContext;
     const ruleSpecific = fixedObstacle || Boolean(versus && opponent) || String(abilityKey) === "resources";
     const workflow = ruleSpecific ? "manual" : obstacleMode();
 
@@ -1158,7 +1167,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       ? ` data-rg-obstacle-live-linked="true" data-rg-obstacle-source="${isCirclesObstacle ? "gm-control" : "baseline"}"`
       : "";
 
-    const obReadonly = versus && opponent ? "disabled" : (review || isCirclesObstacle) ? "readonly" : "";
+    const obReadonly = versus && opponent ? "disabled" : (review || isCirclesObstacle || replyContext) ? "readonly" : "";
     const obStatus = review
       ? `<div class="rg-obstacle-live-status" data-rg-obstacle-status><i class="fa-solid fa-hourglass-half"></i> Awaiting GM approval · current Ob ${review.initial}</div>`
       : isCirclesObstacle
@@ -1179,10 +1188,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
           : level === 2
             ? "+1D · every applicable test"
             : status.available ? "+1D · 1/session" : "+1D · USED")
-        : (level === 3 ? "+1s · always when relevant" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
+        : (level === 3 ? "+1s · always when relevant" : level === 2 && status.limit === null ? "+1D · every applicable test" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
       return `<option value="${trait.id}">${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
     }).join("");
-    const replySelectors=replyContext&&legacyMixedPolishEnabled()?`<fieldset class="rg-reply-selectors"><legend>Reply · ${foundry.utils.escapeHTML(replyContext.label)} · Ob ${initialObstacle}</legend><label>Character<select name="replyActorId">${replyContext.actorIds.map(id=>game.actors.get(id)).filter(a=>a?.isOwner).map(a=>`<option value="${a.id}" ${a.id===this.actor.id?'selected':''}>${foundry.utils.escapeHTML(a.name)}</option>`).join('')}</select></label><label>Skill<select name="replySkillId">${this.actor.items.filter(i=>i.type==='role').sort((a,b)=>a.name.localeCompare(b.name)).map(i=>`<option value="${i.id}" ${i.id===role.id?'selected':''}>${foundry.utils.escapeHTML(i.name)} · ${Number(i.system.rating)>0?`${Number(i.system.rating)}D`:"Beginner's Luck"}</option>`).join('')}</select></label></fieldset>`:'';
+    const replySelectors=replyContext&&legacyMixedPolishEnabled()?`<fieldset class="rg-reply-selectors"><legend>Reply · ${foundry.utils.escapeHTML(replyContext.label)} · Ob ${initialObstacle}</legend><label>Character<select name="replyActorId">${replyContext.actorIds.map(id=>game.actors.get(id)).filter(a=>a?.isOwner).map(a=>`<option value="${a.id}" ${a.id===this.actor.id?'selected':''}>${foundry.utils.escapeHTML(a.name)}</option>`).join('')}</select></label><label>Skill or Ability<select name="replySkillId">${challengeTestChoices(this.actor).map(i=>`<option value="${i.id}" ${i.id===role.id?'selected':''}>${foundry.utils.escapeHTML(i.name)} · ${Number(i.system.rating)>0||i.type==='ability'?`${Number(i.system.rating)}D`:"Beginner's Luck"}</option>`).join('')}</select></label></fieldset>`:'';
     const content = `<div class="rg-roll-dialog${conflictContext ? " rg-conflict-standard-roll" : ""}"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
         <div class="rg-roll-dialog-head"><strong>${foundry.utils.escapeHTML(role.name)}</strong><span>${beginnerLuck ? `BEGINNER'S LUCK · ${String(beginnerAbility).toUpperCase()}` : (versus ? "VERSUS" : "TEST")} · ${targetText}</span></div>
         ${replySelectors}
@@ -1200,7 +1209,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         ${canCountLearning ? `<fieldset class="rg-learning-choice"><legend>Learning & Advancement <span class="rg-help-tip" title="Pass and Fail results are tracked automatically. When both requirements are met, the Skill or Ability advances immediately.">?</span></legend><label><input type="checkbox" name="countLearning" ${this.actor.type === "npc" ? "" : "checked"}> Count this test for Learning</label><small>${beginnerLuck ? "This marks one Beginner's Luck attempt only. It does not advance the Will/Health base Ability." : "Turn this off only when this test should not earn an advancement mark."}</small></fieldset>` : ""}
         <fieldset><legend>Spend before roll</legend><label>Persona dice <select name="persona" ${personaValue < 1 ? "disabled" : ""}>${[0,1,2,3].filter(n => n <= Math.max(0, personaValue)).map(n => `<option value="${n}">${n} Persona · +${n}D</option>`).join("") || `<option value="0">0 Persona · +0D</option>`}</select> <small>(${personaValue} available; max +3D)${personaValue < 1 ? ` <b class="rg-disabled-reason">No Persona available.</b>` : ""}</small></label></fieldset>
         ${tokenPowerBlock}${talentBlock}
-        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${family.mg2eWises ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => wiseAvailable(w) && (!family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id))).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : family.mg2eWises ? " (Fate / Persona effect)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
+        <fieldset><legend>Traits & Wises</legend><label>Trait <select name="traitId"><option value="">None</option>${traitOptionsHtml}</select></label><label>Trait use <select name="traitMode"><option value="help">Help yourself (rule-based Trait benefit)</option><option value="against">Against yourself (-1D; earns 1 Check in GM Turn)</option>${((versus && opponent) || (isNatureRoll && natureTarget)) ? `<option value="hurt">Against yourself in Versus (opponent +2D; earns 2 Checks in GM Turn)</option>` : ""}</select></label><small>${legacyMixedPolishEnabled() ? "<b>Beneficial Traits:</b> Level 1 = +1D once per session; Level 2 = +1D on each relevant test; Level 3 = +1s on relevant passed/tied tests. Trait Against is separate." : family.mg1eTraits ? "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D on every applicable test; Level 3 = reroll all failed dice once/session. Fate/Open 6s is resolved after the Level 3 reroll. Trait Against is separate." : "<b>Beneficial Traits:</b> Level 1 = +1D once/session; Level 2 = +1D twice/session; Level 3 = +1s on relevant passed/tied tests. Used Level 1/2 benefits are enforced automatically and reset when End Session is finalized. Trait Against is separate. Helper Traits are not Teamwork."}</small><label>${legacyMixedPolishEnabled() ? "Wise (+1D before rolling)" : family.mg2eWises ? "Wise (choose effect after roll)" : family.ratedWises ? "I Am Wise" : "Wise"} <select name="wiseId"><option value="">None</option>${this.actor.wises.filter(w => !family.ratedWises || (Number(w.system?.rating ?? 0) > 0 && w.id !== role.id)).map(w => `<option value="${w.id}">${foundry.utils.escapeHTML(w.name)}${family.ratedWises ? ` (${Number(w.system?.rating ?? 0)} · +1D)` : family.mg2eWises ? " (Fate / Persona effect)" : legacyMixedPolishEnabled() ? " (+1D)" : " (reroll failed dice)"}</option>`).join("")}</select></label>${legacyMixedPolishEnabled() ? "<small>Use one relevant Wise per test. With no Wise dice, you may pay 1 Persona after rolling to reroll failures.</small>" : ""}${family.ratedWises && this.actor.wises.some(w => Number(w.system?.rating ?? 0) <= 0) ? `<small class="rg-wise-unrated-note"><b>Preserved unrated Wises are not listed here.</b> Assign an explicit rating only when your table has established one; Realm Guard will never guess or auto-convert it.</small>` : ""}</fieldset>
       </div>`;
 
     const DialogV2 = foundry.applications.api.DialogV2;
@@ -1208,8 +1217,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result = await DialogV2.wait({
       window: { title: `Realm Guard · Roll ${role.name}`, resizable: true }, content, modal: false, rejectClose: false,
       ...(legacyMixedPolishEnabled() ? { position: { width: Math.min(640, (globalThis.innerWidth ?? 680)-32) } } : {}),
-      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet); compactLegacyRollDialog(dialog);
-        const picker=dialog.element?.querySelector('.rg-reply-selectors');if(picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('change',()=>{const actorId=picker.querySelector('[name="replyActorId"]').value;const actor=game.actors.get(actorId);const skillId=actorId===this.actor.id?picker.querySelector('[name="replySkillId"]').value:actor?.items.filter(i=>i.type==='role').sort((a,b)=>a.name.localeCompare(b.name))[0]?.id;if(actorId===this.actor.id&&skillId===role.id)return;replySelection={actorId,skillId};void dialog.close();});}
+      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet, id => setTeamworkOpponent(teamworkSessionId, id)); compactLegacyRollDialog(dialog);
+        const picker=dialog.element?.querySelector('.rg-reply-selectors');if(picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('change',()=>{const actorId=picker.querySelector('[name="replyActorId"]').value;const actor=game.actors.get(actorId);const skillId=actorId===this.actor.id?picker.querySelector('[name="replySkillId"]').value:actor && challengeTestChoices(actor)[0]?.id;if(actorId===this.actor.id&&skillId===role.id)return;replySelection={actorId,skillId};void dialog.close();});}
       },
       buttons: [{ action: "roll", label: review ? "Roll when Ob is approved" : "Roll", icon: "fa-solid fa-dice", default: true, callback: async (_event, button) => {
         const form = button.form; if (!form) return null;

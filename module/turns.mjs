@@ -12,6 +12,7 @@ const TURN_ID_KEY = "turnCycleId";
 const LAST_ACTOR_KEY = "playerTurnLastActor";
 const STATE_FLAG = "playerTurnState";
 const RECOVERY_FLAG = "recoveryAttempts";
+let checkTransferQueue = Promise.resolve();
 
 function requesterCanControlActor(requester, actor) {
   if (requester?.isGM) return true;
@@ -35,13 +36,18 @@ function esc(value) {
 }
 
 function refreshTurnSheets() {
+  const rendered = new Set();
   for (const actor of game.actors?.filter(a => a.type === "character") ?? []) {
     const rawApps = actor.apps ?? {};
     const apps = rawApps instanceof Map ? [...rawApps.values()] : Object.values(rawApps);
-    for (const app of apps) {
-      if (!app?.rendered || typeof app.render !== "function") continue;
-      try { app.render({ force: true }); } catch (_error) { try { app.render(false); } catch (_ignored) {} }
-    }
+    for (const app of apps) if (app?.rendered && typeof app.render === "function") rendered.add(app);
+  }
+  for (const app of globalThis.foundry?.applications?.instances?.values() ?? []) {
+    if (app.rendered && app.actor?.type === "character") rendered.add(app);
+  }
+  for (const app of rendered) {
+    void Promise.resolve().then(() => app.render({ force: true })).catch(error =>
+      console.error("realm-guard | Could not refresh turn controls", error));
   }
 }
 
@@ -66,7 +72,7 @@ async function handleTurnManagerToggle(enabled) {
 export function registerTurnSettings() {
   game.settings.register(SYSTEM_ID, ENABLED_KEY, {
     name: "Use GM Turn / Players' Turn Manager",
-    hint: "World setting. When enabled, Realm Guard uses GM Turn / Players' Turn, Free Tests, Checks, alternation, Pass Check and Done/Discard. Disable it for Free Play: normal tests and Recovery ignore Turn/Check costs and the Turn Manager UI is hidden.",
+    hint: "Use GM Turn / Players' Turn, automatic Check costs, alternation and Done/Discard. In Free Play, tests and Recovery ignore Turn/Check costs and players can still pass Checks from their sheets.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -572,8 +578,13 @@ export function playerTurnSpendHtml(spend) {
     : `<p class="rg-chat-turn-spend"><b>Players' Turn:</b> Check ${spend.before} → ${spend.after} (-1).</p>`;
 }
 
-function legacyCheckTransferPlan(donor, recipient, amount = 1) {
-  const qty = Math.max(1, Math.floor(Number(amount || 1)));
+function isCheckTransferRecipient(actor) {
+  return actor?.type === "character" && (actor.hasPlayerOwner
+    || game.users.some(user => !user.isGM && user.character?.id === actor.id));
+}
+
+function legacyCheckTransferPlan(donor, recipient, amount, tracked) {
+  const qty = Number(amount);
   const donorChecks = Math.max(0, Number(donor?.system?.resources?.checks?.value ?? 0));
   const recipientChecks = Math.max(0, Number(recipient?.system?.resources?.checks?.value ?? 0));
   const base = {
@@ -586,29 +597,30 @@ function legacyCheckTransferPlan(donor, recipient, amount = 1) {
     recipientStatePatch: null
   };
 
-  if (!turnManagerEnabled()) return { ...base, ok: false, reasonCode: "turn-disabled" };
-  if (currentTurnPhase() !== "player") return { ...base, ok: false, reasonCode: "wrong-phase" };
-  if (!donor || !recipient || donor.id === recipient.id) return { ...base, ok: false, reasonCode: "invalid-participants" };
+  if (tracked && currentTurnPhase() !== "player") return { ...base, ok: false, reasonCode: "wrong-phase" };
+  if (donor?.type !== "character" || !isCheckTransferRecipient(recipient) || donor.id === recipient.id) return { ...base, ok: false, reasonCode: "invalid-participants" };
+  if (!Number.isSafeInteger(qty) || qty <= 0) return { ...base, ok: false, reasonCode: "invalid-amount" };
   if (donorChecks < qty) return { ...base, ok: false, reasonCode: "donor-insufficient" };
   if (recipientChecks > 0) return { ...base, ok: false, reasonCode: "recipient-has-checks" };
 
-  const donorState = playerTurnState(donor);
-  const recipientState = playerTurnState(recipient);
+  const donorState = tracked ? playerTurnState(donor) : null;
+  const recipientState = tracked ? playerTurnState(recipient) : null;
   return {
     ...base,
     ok: true,
     reasonCode: "",
     donorAfter: donorChecks - qty,
     recipientAfter: recipientChecks + qty,
-    donorStatePatch: { donatedGiven: donorState.donatedGiven + qty },
-    recipientStatePatch: { donatedReceived: recipientState.donatedReceived + qty, done: false }
+    donorStatePatch: donorState && { donatedGiven: donorState.donatedGiven + qty },
+    recipientStatePatch: recipientState && { donatedReceived: recipientState.donatedReceived + qty, done: false }
   };
 }
 
 function checkTransferReason(plan, donor, recipient) {
   if (plan?.reasonCode === "turn-disabled") return "Turn Manager is disabled in this world.";
   if (plan?.reasonCode === "wrong-phase") return "Checks can be passed during the Players' Turn.";
-  if (plan?.reasonCode === "invalid-participants") return "Choose two different patrol members.";
+  if (plan?.reasonCode === "invalid-participants") return "Choose a different player character to receive the Checks.";
+  if (plan?.reasonCode === "invalid-amount") return "Enter a whole number of Checks greater than zero.";
   if (plan?.reasonCode === "donor-insufficient") {
     const checks = Math.max(0, Number(plan?.donorBefore ?? 0));
     return `${donor?.name ?? "The Ranger"} only has ${checks} Check${checks === 1 ? "" : "s"}.`;
@@ -619,22 +631,49 @@ function checkTransferReason(plan, donor, recipient) {
 
 async function applyCheckTransferPlan(donor, recipient, plan) {
   if (!plan?.ok) return plan;
-  await donor.update({ "system.resources.checks.value": plan.donorAfter });
-  await recipient.update({ "system.resources.checks.value": plan.recipientAfter });
-  await savePlayerTurnState(donor, plan.donorStatePatch ?? {});
-  await savePlayerTurnState(recipient, plan.recipientStatePatch ?? {});
+  const stateKey = `flags.${SYSTEM_ID}.${STATE_FLAG}`;
+  const donorUpdate = { "system.resources.checks.value": plan.donorAfter };
+  const recipientUpdate = { "system.resources.checks.value": plan.recipientAfter };
+  if (plan.donorStatePatch) donorUpdate[stateKey] = { ...playerTurnState(donor), ...plan.donorStatePatch };
+  if (plan.recipientStatePatch) recipientUpdate[stateKey] = { ...playerTurnState(recipient), ...plan.recipientStatePatch };
+  if (!donor.isToken && !recipient.isToken) {
+    await Actor.updateDocuments([{ _id: donor.id, ...donorUpdate }, { _id: recipient.id, ...recipientUpdate }]);
+  } else {
+    const previousState = donor.getFlag(SYSTEM_ID, STATE_FLAG);
+    await donor.update(donorUpdate);
+    try {
+      await recipient.update(recipientUpdate);
+    } catch (error) {
+      const rollback = { "system.resources.checks.value": plan.donorBefore };
+      if (plan.donorStatePatch) {
+        if (previousState) rollback[stateKey] = previousState;
+        else rollback[`flags.${SYSTEM_ID}.-=${STATE_FLAG}`] = null;
+      }
+      await donor.update(rollback);
+      throw error;
+    }
+  }
+  if (plan.donorStatePatch) refreshTurnSheets();
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: donor }),
     content: `<div class="realm-guard rg-turn-chat"><div class="rg-turn-chat-tag">PASSING THE CHECKS</div><h3>${esc(donor.name)} → ${esc(recipient.name)}</h3><p><b>${plan.amount} Check${plan.amount === 1 ? "" : "s"}</b> passed.</p></div>`
-  });
+  }).catch(error => console.error("realm-guard | Check transfer posted without a chat message", error));
   return plan;
 }
 
 async function donateCheckLocal(donor, recipient, amount = 1, { requester = game.user } = {}) {
   if (donor && !requesterCanControlActor(requester, donor)) return { ok: false, reason: `You do not control ${donor.name}.` };
 
-  const legacyPlan = legacyCheckTransferPlan(donor, recipient, amount);
+  const tracked = turnManagerEnabled();
+  const legacyPlan = legacyCheckTransferPlan(donor, recipient, amount, tracked);
+  if (!legacyPlan.ok && ["invalid-amount", "invalid-participants"].includes(legacyPlan.reasonCode)) {
+    return { ...legacyPlan, reason: checkTransferReason(legacyPlan, donor, recipient) };
+  }
+  if (!tracked) {
+    if (!legacyPlan.ok) return { ...legacyPlan, reason: checkTransferReason(legacyPlan, donor, recipient) };
+    return applyCheckTransferPlan(donor, recipient, legacyPlan);
+  }
   const services = createM7Services();
   const sessionState = legacySessionSnapshot();
   const donorRef = participantActorReference(donor);
@@ -662,39 +701,108 @@ async function donateCheckLocal(donor, recipient, amount = 1, { requester = game
 }
 
 
-export async function donateCheck(donor, recipient, amount = 1) {
-  if (game.user?.isGM) return donateCheckLocal(donor, recipient, amount, { requester: game.user });
+export async function donateCheck(donor, recipient, amount = 1, { tracked = turnManagerEnabled(), turnId = currentTurnId() } = {}) {
   return requestTurnAuthority("DONATE_CHECK", {
     donorRef: participantActorReference(donor),
     recipientRef: participantActorReference(recipient),
     amount,
-    turnId: currentTurnId(),
+    tracked,
+    turnId,
     phase: currentTurnPhase()
   });
 }
 export async function openDonateDialog(donor) {
-  if (!turnManagerEnabled()) return ui.notifications.warn("Realm Guard: Turn Manager is disabled (Free Play mode).");
-  if (!donor) return;
-  if (currentTurnPhase() !== "player") return ui.notifications.warn("Realm Guard: Checks are passed during the Players' Turn.");
+  const tracked = turnManagerEnabled();
+  const turnId = currentTurnId();
+  if (donor?.type !== "character") return;
+  if (tracked && currentTurnPhase() !== "player") return ui.notifications.warn("Realm Guard: Checks are passed during the Players' Turn.");
   if (!game.user.isGM && !donor.isOwner) return ui.notifications.warn(`Realm Guard: You do not control ${donor.name}.`);
 
-  const candidates = participantActors().filter(actor => actor.id !== donor.id && Number(actor.system.resources?.checks?.value ?? 0) <= 0);
-  if (!candidates.length) return ui.notifications.warn("Realm Guard: No patrol-mate currently has zero Checks.");
+  const sceneActors = participantActors();
+  const actors = tracked ? sceneActors : Array.from(new Map(
+    [...participantActors({ canvasRef: null }), ...sceneActors].map(actor => [actor.id, actor])
+  ).values()).sort((a, b) => a.name.localeCompare(b.name));
+  const candidates = actors.filter(actor => actor.id !== donor.id && isCheckTransferRecipient(actor)).map(actor => ({
+    actor, ref: participantActorReference(actor), checks: Number(actor.system.resources?.checks?.value ?? 0)
+  }));
+  const eligible = candidates.find(({ checks }) => checks === 0);
+  if (!candidates.length) return ui.notifications.warn("Realm Guard: No other player character is available.");
   const donorChecks = Math.max(0, Number(donor.system.resources?.checks?.value ?? 0));
   if (!donorChecks) return ui.notifications.warn(`Realm Guard: ${donor.name} has no Checks to pass.`);
 
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `Realm Guard · Pass Checks · ${donor.name}`, resizable: true },
-    content: `<div class="rg-pass-checks-dialog"><p><b>${esc(donor.name)}</b> has ${donorChecks} Check${donorChecks === 1 ? "" : "s"}.</p><label>Patrol-mate <select name="recipientId">${candidates.map(a => `<option value="${esc(participantActorReference(a))}">${esc(a.name)}</option>`).join("")}</select></label><label>Checks <input type="number" name="amount" min="1" max="${donorChecks}" value="1"></label><p><small>Checks may be passed to a patrol-mate who has none.</small></p></div>`,
+    content: `<div class="rg-pass-checks-dialog">
+      <div class="rg-pass-checks-fields">
+        <label class="rg-pass-checks-search">Search patrol-mates
+          <input type="search" name="recipientSearch" autocomplete="off" placeholder="Search by character name">
+        </label>
+        <label>Patrol-mate <select name="recipientId" data-rg-native-select="true" required></select></label>
+        <label>Checks <input type="number" name="amount" min="1" max="${donorChecks}" step="1" value="1" required></label>
+      </div>
+      <p class="rg-pass-checks-status" data-recipient-status role="status" hidden></p>
+      <output class="rg-pass-checks-balances" aria-live="polite" data-check-balances></output>
+    </div>`,
     modal: false,
     rejectClose: false,
     buttons: [
-      { action: "pass", label: "Pass Check", icon: "fa-solid fa-share", default: true, callback: (_e, button) => ({ recipientId: button.form?.elements?.recipientId?.value, amount: Number(button.form?.elements?.amount?.value ?? 1) }) },
+      { action: "pass", label: "Pass Check", icon: "fa-solid fa-arrow-right", default: true, callback: (_e, button) => ({ recipientId: button.form.elements.recipientId.value, amount: button.form.elements.amount.valueAsNumber }) },
       { action: "cancel", label: "Cancel", icon: "fa-solid fa-xmark", callback: () => null }
-    ]
+    ],
+    render: (_event, dialog) => {
+      const form = dialog.element.querySelector("form");
+      const { amount, recipientId, recipientSearch } = form.elements;
+      const balances = form.querySelector("[data-check-balances]");
+      const status = form.querySelector("[data-recipient-status]");
+      const pass = form.querySelector('[data-action="pass"]');
+      const update = () => {
+        const recipient = candidates.find(({ ref }) => ref === recipientId.value);
+        const valid = amount.validity.valid && recipient?.checks === 0;
+        const count = valid ? amount.valueAsNumber : 0;
+        balances.textContent = valid ? `${donor.name} ${donorChecks} → ${donorChecks - count} · ${recipient.actor.name} 0 → ${count}` : "";
+        balances.hidden = !valid;
+        pass.disabled = !valid;
+      };
+      const normalize = text => text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+      const filter = selected => {
+        const words = normalize(recipientSearch.value).trim().split(/\s+/u).filter(Boolean);
+        const matches = candidates.filter(({ actor }) => {
+          const name = normalize(actor.name);
+          return words.every(word => name.includes(word));
+        });
+        const available = matches.filter(({ checks }) => checks === 0);
+        const selection = available.find(({ ref }) => ref === selected)
+          ?? (available.length === 1 ? available[0] : null);
+        const placeholder = new Option(matches.length ? "Select a patrol-mate" : "No matching characters", "");
+        placeholder.disabled = true;
+        const options = matches.map(({ actor, ref, checks }) => {
+          const option = new Option(`${actor.name} · ${checks > 0 ? "already has " : ""}${checks} Check${checks === 1 ? "" : "s"}`, ref);
+          option.disabled = checks > 0;
+          return option;
+        });
+        recipientId.replaceChildren(placeholder, ...options);
+        recipientId.value = selection?.ref ?? "";
+        recipientId.disabled = !available.length;
+        status.textContent = !matches.length ? "No character matches that search."
+          : !available.length ? "None of these characters has zero Checks." : "";
+        status.hidden = !status.textContent;
+        update();
+      };
+      recipientSearch.addEventListener("input", () => filter(recipientId.value));
+      recipientSearch.addEventListener("keydown", event => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        if (!recipientId.disabled) recipientId.focus();
+      });
+      recipientId.addEventListener("change", update);
+      amount.addEventListener("input", update);
+      filter(eligible?.ref);
+      recipientSearch.focus();
+    }
   });
   if (!result) return;
-  const donation = await donateCheck(donor, resolveParticipantActor(result.recipientId), result.amount);
+  const recipient = candidates.find(({ ref }) => ref === result.recipientId)?.actor;
+  const donation = await donateCheck(donor, recipient, result.amount, { tracked, turnId });
   if (!donation.ok) ui.notifications.warn(`Realm Guard: ${donation.reason}`);
   else ui.notifications.info("Realm Guard: Check passed.");
 }
@@ -931,20 +1039,25 @@ export async function openTurnManager() {
     return `<div class="rg-turn-actor"><div class="rg-turn-actor-main"><b>${esc(actor.name)}</b>${last}<small>Free Test: ${free} · Tests ${state.testsTaken} · Checks spent ${state.checksSpent} · Passed ${state.donatedGiven}/${state.donatedReceived}${recovered.length ? ` · Recovery attempted: ${recovered.map(esc).join(", ")}` : ""}</small></div><div class="rg-turn-actor-right"><strong>${checks} Checks</strong><span class="rg-turn-status rg-turn-status-${status.toLowerCase()}">${status}</span></div></div>`;
   }).join("") || '<p class="rg-empty">No character Actors found.</p>';
 
-  const donors = game.user.isGM ? actors : actors.filter(actor => actor.isOwner);
+  const controlled = game.user.isGM ? actors : actors.filter(actor => actor.isOwner);
+  const recipients = actors.filter(isCheckTransferRecipient);
+  const donors = controlled.filter(donor => recipients.some(recipient => recipient.id !== donor.id));
+  const canDonate = phase === "player" && donors.length > 0;
   const controls = phase === "player" && actors.length ? `<section class="rg-turn-tools">
-    <h3>Pass the Checks</h3>
-    <div class="rg-turn-tool-grid"><label>From<select name="donorId">${optionRows(donors)}</select></label><label>To<select name="recipientId">${optionRows(actors)}</select></label><label>Amount<input name="donateAmount" type="number" min="1" max="20" value="1"></label></div>
+    ${canDonate ? `<h3>Pass the Checks</h3>
+    <div class="rg-turn-tool-grid"><label>From<select name="donorId">${optionRows(donors)}</select></label><label>To<select name="recipientId">${optionRows(recipients)}</select></label><label>Amount<input name="donateAmount" type="number" min="1" max="20" value="1"></label></div>` : ""}
     <h3>Finish a Patrol Member</h3>
-    <div class="rg-turn-finish-row"><select name="finishActorId">${optionRows(donors)}</select><small>Marks the Ranger Done and discards remaining Checks.</small></div>
+    <div class="rg-turn-finish-row"><select name="finishActorId">${optionRows(controlled)}</select><small>Marks the Ranger Done and discards remaining Checks.</small></div>
   </section>` : "";
 
   const allReady = phase === "player" && actors.length > 0 && actors.every(playerTurnReady);
   const content = `<div class="rg-turn-manager"><header><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>Turn Manager</h2></header><div class="rg-turn-phase-card"><span>CURRENT PHASE</span><strong>${turnLabel(phase)}</strong><small>${phase === "player" ? "1 Free Test each · then 1 Check per extra test · recovery uses the same economy · one attempt per Condition/Turn." : "Trait Against can earn Checks · recovery costs 2 Checks · one attempt per Condition/GM Turn."}</small></div><div class="rg-turn-actors">${rows}</div>${controls}${allReady ? '<div class="rg-turn-ready-banner"><i class="fa-solid fa-circle-check"></i><b>Players’ Turn is ready to end.</b></div>' : ""}</div>`;
 
   const buttons = [];
-  if (phase === "player" && donors.length) {
+  if (canDonate) {
     buttons.push({ action: "donate", label: "Pass Check", icon: "fa-solid fa-share", callback: (_e, button) => ({ action: "donate", donorId: button.form?.elements?.donorId?.value, recipientId: button.form?.elements?.recipientId?.value, amount: Number(button.form?.elements?.donateAmount?.value ?? 1) }) });
+  }
+  if (phase === "player" && controlled.length) {
     buttons.push({ action: "finish", label: "Done / Discard", icon: "fa-solid fa-flag-checkered", callback: (_e, button) => ({ action: "finish", actorId: button.form?.elements?.finishActorId?.value }) });
   }
   if (game.user.isGM) {
@@ -1018,13 +1131,22 @@ export function installTurnManager() {
       if (!actor) return { ok: false, reason: "The Ranger for this Turn action is no longer available." };
       return claimPlayerTurnTestLocal(actor, { label: payload.label, allowUntracked: Boolean(payload.allowUntracked) }, { requester });
     },
-    DONATE_CHECK: async (payload, { requester } = {}) => {
-      const stale = staleTurnAuthorityRequest(payload);
-      if (stale) return stale;
-      const donor = resolveParticipantActor(payload.donorRef);
-      const recipient = resolveParticipantActor(payload.recipientRef);
-      if (!donor || !recipient) return { ok: false, reason: "A Ranger for this Check transfer is no longer available." };
-      return donateCheckLocal(donor, recipient, payload.amount, { requester });
+    DONATE_CHECK: (payload, { requester } = {}) => {
+      const transfer = checkTransferQueue.then(async () => {
+        if (payload.tracked !== undefined && payload.tracked !== turnManagerEnabled()) {
+          return { ok: false, reason: "Turn Manager settings changed. Start the Check transfer again." };
+        }
+        if (turnManagerEnabled()) {
+          const stale = staleTurnAuthorityRequest(payload);
+          if (stale) return stale;
+        }
+        const donor = resolveParticipantActor(payload.donorRef);
+        const recipient = resolveParticipantActor(payload.recipientRef);
+        if (!donor || !recipient) return { ok: false, reason: "A character for this Check transfer is no longer available." };
+        return donateCheckLocal(donor, recipient, payload.amount, { requester });
+      });
+      checkTransferQueue = transfer.catch(() => {});
+      return transfer;
     },
     FINISH_PLAYER: async (payload, { requester } = {}) => {
       const stale = staleTurnAuthorityRequest(payload);

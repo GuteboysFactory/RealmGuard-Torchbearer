@@ -1,6 +1,5 @@
-import { consumeWiseHelpers, wiseAvailable } from './legacy-session.mjs';
-import { applyLegacyWiseReroll } from "./legacy-wise-roll.mjs";
-import { scopeLegacyMixedClass } from "./legacy-mixed-scope.mjs";
+import { applyLegacyWiseReroll, legacyWiseHelp } from "./legacy-wise-roll.mjs";
+import { legacyMixedPolishEnabled, scopeLegacyMixedClass } from "./legacy-mixed-scope.mjs";
 import { RealmGuardActor as BaselineClass } from "./baseline-1.13.1/documents.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
 import { applyTalentReroll } from "./talents.mjs";
@@ -82,13 +81,12 @@ export class RealmGuardActor extends Actor {
     return bonusFaces;
   }
 
-  _rollAssist({ traitId = null, wiseId = null, traitMode = "help", versus = false } = {}) {
+  _rollAssist({ traitId = null, wiseId = null, traitMode = "help", versus = false, help = [] } = {}) {
     const policy = familyPolicy();
     const ratedWises = policy.ratedWises;
     const angry = !policy.mg1eTraits && !policy.mg2eWises && hasActiveCondition(this, "Angry");
     const trait = traitId ? this.items.get(traitId) : null;
     const requestedWise = wiseId ? this.items.get(wiseId) : null;
-    if(requestedWise?.type==='wise'&&!wiseAvailable(requestedWise))throw new Error('This Wise was already used this session. Choose another Wise.');
     const requestedMode = trait?.type === "trait" ? String(traitMode || "help") : "none";
     const traitStatus = trait?.type === "trait" ? traitPositiveStatus(this, trait) : null;
     const exhaustedTraitHelp = requestedMode === "help" && trait?.type === "trait" && !traitStatus?.available;
@@ -99,12 +97,14 @@ export class RealmGuardActor extends Actor {
     const wise = blockedWise || (ratedWises && !ratedWise) ? null : requestedWise;
     const mode = blockedTraitHelp ? "blocked-help" : requestedMode;
     const helpDice = mode === "help" && trait?.type === "trait" ? traitPositiveDice(this, trait) : 0;
-    const wiseDice = ratedWises && wise?.type === "wise" ? 1 : 0;
+    const usesLegacyWise = legacyMixedPolishEnabled() && wise?.type === "wise";
+    const wiseHelp = legacyWiseHelp(help, wise);
+    const wiseDice = (ratedWises || usesLegacyWise) && wise?.type === "wise" ? 1 : 0;
     const impedeDice = mode === "against" && trait?.type === "trait" ? -1 : 0;
     const opponentDice = mode === "hurt" && versus && trait?.type === "trait" ? 2 : 0;
     const checks = mode === "against" ? 1 : (mode === "hurt" && versus ? 2 : 0);
     const traitPoolDice = helpDice + impedeDice;
-    return { trait, traitStatus, wise, requestedWise, traitMode: mode, requestedTraitMode: requestedMode, traitPoolDice, traitDice: traitPoolDice + wiseDice, wiseDice, opponentDice, checks, blockedTraitHelp, blockedTraitReason, blockedWise, ratedWises, mg1eTraits: policy.mg1eTraits };
+    return { trait, traitStatus, wise, wiseHelp, usesLegacyWise, requestedWise, traitMode: mode, requestedTraitMode: requestedMode, traitPoolDice, traitDice: traitPoolDice + wiseDice, wiseDice, opponentDice, checks, blockedTraitHelp, blockedTraitReason, blockedWise, ratedWises, mg1eTraits: policy.mg1eTraits };
   }
 
   async _commitTraitBenefit(assist) {
@@ -150,7 +150,7 @@ export class RealmGuardActor extends Actor {
   }
 
   async _applySelectedWiseReroll(baseFaces, wise, assist = null) {
-    return applyLegacyWiseReroll(this, baseFaces, wise, assist?.chatDecision);
+    return applyLegacyWiseReroll(this, baseFaces, wise, assist?.chatDecision, assist?.wiseHelp);
   }
 
   async _profileWiseRerollBeforeLegacyPatch(baseFaces, wise, assist = null) {
@@ -481,7 +481,7 @@ export class RealmGuardActor extends Actor {
     try {
     const personaDice = personaDiceCount(persona);
     const esc = foundry.utils.escapeHTML;
-    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: false });
+    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: false, help });
     const power = this._tokenPowerUse(tokenPowerId, role.name, { isSkill: true });
     if (tokenPowerId && !power) return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for this Skill.");
     const conditionData = ignoreConditions ? { active: [], dice: 0 } : this._activeConditionRollData(role.name, { isSkill: true });
@@ -491,7 +491,7 @@ export class RealmGuardActor extends Actor {
     if (dice === 0) return ui.notifications.warn("Realm Guard: Dice pool is 0.");
     const turnSpend = await claimPlayerTurnTest(this, { label: role.name });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
-    await consumeWiseHelpers(this,help);
+
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const roll = await new Roll(`${dice}d6`).evaluate();
     await this._commitTraitBenefit(assist);
@@ -546,14 +546,14 @@ export class RealmGuardActor extends Actor {
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
 
-  async rollAbility(abilityKey, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", natureUse = "within", doubleTapNature = false } = {}) {
+  async rollAbility(abilityKey, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", natureUse = "within", doubleTapNature = false } = {}) {
     let rollChat = null;
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
     const personaDice=personaDiceCount(persona);
     const key=String(abilityKey??"").toLowerCase(); const stat=this.system.attributes?.[key];
     if(!stat) return ui.notifications.warn(`Realm Guard: Unknown ability ${abilityKey}.`);
-    const label=this._abilityLabel(key), assist=this._rollAssist({traitId,wiseId,traitMode,versus:false});
+    const label=this._abilityLabel(key), assist=this._rollAssist({traitId,wiseId,traitMode,versus:false, help});
     const power=this._tokenPowerUse(tokenPowerId,label,{isSkill:false}); if(tokenPowerId&&!power)return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for this roll.");
     const conditionData=ignoreConditions?{active:[],dice:0}:this._activeConditionRollData(label,{isSkill:false});
     const base=Number(stat.value??0), ns=this._natureState();
@@ -561,7 +561,7 @@ export class RealmGuardActor extends Actor {
     const helpDice=Array.isArray(help)?help.reduce((n,h)=>n+Math.max(0,Number(h.dice||0)),0):0;
     const dice=Math.max(0,base+Number(modifier||0)+Math.max(0,Number(extraDice||0))+helpDice+personaDice+tapDice+doubleDice+assist.traitDice+Number(power?.diceBonus??0)+conditionData.dice);
     if(!dice) return ui.notifications.warn("Realm Guard: Dice pool is 0.");
-    const turnSpend=await claimPlayerTurnTest(this,{label}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`); await consumeWiseHelpers(this,help);
+    const turnSpend=await claimPlayerTurnTest(this,{label}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
     const earnedTraitChecks=await this._awardTraitChecks(assist);
     const roll=await new Roll(`${dice}d6`).evaluate(); await this._commitTraitBenefit(assist); await this._commitTokenPowerUse(power); let faces=roll.dice.flatMap(d=>d.results.map(r=>r.result));
     await spendRollResource(this, "persona", personaDice + (tapNature ? 1 : 0) + (doubleTapNature ? 1 : 0), { reason: "Pre-roll Persona dice / Nature" });
@@ -569,7 +569,7 @@ export class RealmGuardActor extends Actor {
     const wiseResult=await this._applyWiseReroll(faces,assist.wise,assist); faces=wiseResult.faces; const tokenResult=await this._applyTokenPowerReroll(faces,power,wiseResult.rerolledIndexes, rollChat); faces=tokenResult.faces;
     const sixCount=faces.filter(v=>v===6).length; const spendFate=sixCount&&Number(this.system.resources.fate.value??0)>0?await this._askFateAfterSixes({ chatDecision: rollChat, roleName:label,sixCount}):false;
     const bonusFaces=spendFate?await this._explodeSixes(faces):[]; if(spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s" });
-    const finalFaces=faces.concat(bonusFaces), rolledSuccesses=finalFaces.filter(v=>v>=4).length, traitSuccesses=this._traitSuccessBonus(assist,rolledSuccesses,obstacle), successes=rolledSuccesses+traitSuccesses, result=this._resultData(successes,obstacle);
+    const finalFaces=faces.concat(bonusFaces), rolledSuccesses=finalFaces.filter(v=>v>=4).length, traitSuccesses=this._traitSuccessBonus(assist,rolledSuccesses,obstacle,{versus}), successes=rolledSuccesses+traitSuccesses, result=this._resultData(successes,obstacle,{versus});
     const direct=key==="nature"; let tax=direct?this._natureTax(result,{direct:true,scope:natureUse}):this._natureTax(result,{tapped:tapNature,scope:natureScope});
     if(direct&&doubleTapNature&&!result.passed&&!result.tied) tax=Math.max(tax,Math.max(1,Number(result.margin||1)));
     const taxResult=tax?await this._applyNatureTax(tax,direct?`Nature · ${natureUse}`:`Tap Nature · ${label}`):null;
@@ -596,7 +596,7 @@ export class RealmGuardActor extends Actor {
       this._tokenPowerChatText(power,tokenResult).replace(/^\s*·\s*/,""),
       spendFate?"Fate: Open 6s":""
     ].filter(Boolean);
-    const content=`<div class="realm-guard chat-roll rg-nature-aware rg-readable-roll"><h3>${esc(label)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length?`<div class="rg-roll-support-notes">${specialNotes.map(note=>`<span>${note}</span>`).join("")}</div>`:""}${(personaDice||tapNature||doubleTapNature||spendFate)?`<p class="rg-resource-spend"><b>Resources spent:</b> ${[(personaDice||tapNature||doubleTapNature)?`Persona −${personaDice+(tapNature?1:0)+(doubleTapNature?1:0)}`:"",spendFate?"Fate −1":""].filter(Boolean).join(" · ")}</p>`:""}${Array.isArray(help)&&help.length?`<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h=>`${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>`:""}${rollFacesRowsHtml([{label:"Roll",faces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${finalFaces.filter(v=>v===6).length}</strong></span></div>${taxText}${this._resultSummaryHTML(successes,obstacle)}</div>`;
+    const content=`<div class="realm-guard chat-roll rg-nature-aware rg-readable-roll"><h3>${esc(label)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length?`<div class="rg-roll-support-notes">${specialNotes.map(note=>`<span>${note}</span>`).join("")}</div>`:""}${(personaDice||tapNature||doubleTapNature||spendFate)?`<p class="rg-resource-spend"><b>Resources spent:</b> ${[(personaDice||tapNature||doubleTapNature)?`Persona −${personaDice+(tapNature?1:0)+(doubleTapNature?1:0)}`:"",spendFate?"Fate −1":""].filter(Boolean).join(" · ")}</p>`:""}${Array.isArray(help)&&help.length?`<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h=>`${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>`:""}${rollFacesRowsHtml([{label:"Roll",faces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${finalFaces.filter(v=>v===6).length}</strong></span></div>${taxText}${this._resultSummaryHTML(successes,obstacle,{versus})}</div>`;
     await rollChat.finish(content);
     return {roll,successes,passed:result.passed,tied:result.tied,margin:result.margin,outcome:result.outcome,fateSpent:spendFate,natureTax:taxResult,tokenPowerId:power?.token?.id??null,tokenPowerName:power?.token?.name??"",tokenPowerLevel:power?.level??0};
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
@@ -608,11 +608,11 @@ export class RealmGuardActor extends Actor {
     try {
     const personaDice=personaDiceCount(persona);
     const ns=this._natureState(), oppN=opponent?.system?.attributes?.nature??{}, oppCurrent=Math.max(0,Number(oppN.value??0));
-    const assist=this._rollAssist({traitId,wiseId,traitMode,versus:true}), power=this._tokenPowerUse(tokenPowerId,"Nature",{isSkill:false}); if(tokenPowerId&&!power)return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for Nature."); const cond=this._activeConditionRollData("Nature",{isSkill:false}), oppCond=conditionRollData(opponent,"Nature",{isSkill:false});
+    const assist=this._rollAssist({traitId,wiseId,traitMode,versus:true, help}), power=this._tokenPowerUse(tokenPowerId,"Nature",{isSkill:false}); if(tokenPowerId&&!power)return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for Nature."); const cond=this._activeConditionRollData("Nature",{isSkill:false}), oppCond=conditionRollData(opponent,"Nature",{isSkill:false});
     const helpDice=Array.isArray(help)?help.reduce((n,h)=>n+Number(h.dice||0),0):0;
     const ownDice=Math.max(0,ns.current+Number(modifier||0)+Math.max(0,Number(extraDice||0))+helpDice+personaDice+(doubleTapNature?ns.current:0)+assist.traitDice+Number(power?.diceBonus??0)+cond.dice);
     const oppDice=Math.max(0,oppCurrent+Number(oppCond.dice||0)+Number(assist.opponentDice||0)); if(!ownDice||!oppDice)return ui.notifications.warn("Realm Guard: Nature Versus requires both pools to be at least 1D.");
-    const turnSpend=await claimPlayerTurnTest(this,{label:"Nature Versus"}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`); await consumeWiseHelpers(this,help);
+    const turnSpend=await claimPlayerTurnTest(this,{label:"Nature Versus"}); if(!turnSpend.ok)return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
     const earnedTraitChecks=await this._awardTraitChecks(assist);
     const r1=await new Roll(`${ownDice}d6`).evaluate(), r2=await new Roll(`${oppDice}d6`).evaluate(); await this._commitTraitBenefit(assist); await this._commitTokenPowerUse(power); let f1=r1.dice.flatMap(d=>d.results.map(r=>r.result)); await spendRollResource(this, "persona", personaDice + (doubleTapNature ? 1 : 0), { reason: "Pre-roll Persona dice / Nature" });
     rollChat = await beginRollChat(this, "Nature Versus", f1); assist.chatDecision = rollChat; assist.talentUse = talentUse;
@@ -636,7 +636,7 @@ export class RealmGuardActor extends Actor {
     const ability = this.system.attributes?.[abilityKey];
     const abilityBase = Number(ability?.value ?? 0);
     if (abilityBase <= 0) return ui.notifications.warn(`Realm Guard: ${abilityLabel} is 0; Beginner's Luck cannot be used.`);
-    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: Boolean(opponent && opposition) });
+    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: Boolean(opponent && opposition), help });
     const power = this._tokenPowerUse(tokenPowerId, role.name, { isSkill: true });
     if (tokenPowerId && !power) return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for this Skill.");
     const conditionData = this._activeConditionRollData(role.name, { isSkill: true });
@@ -645,10 +645,10 @@ export class RealmGuardActor extends Actor {
     const preHalfConditionDice = Number(conditionData.dice ?? 0) - freshDice;
     // Legacy Mixed: halve ability + pre-half bonuses, round up, then apply
     // Trait dice, Persona, Fresh and tapped Nature at full value.
-    const preHalf = Math.max(0, abilityBase + Number(modifier || 0) + Math.max(0, Number(extraDice || 0)) + (Array.isArray(help) ? help.reduce((n,h) => n + Math.max(0, Number(h.dice || 0)), 0) : 0) + assist.wiseDice + Number(power?.diceBonus ?? 0) + preHalfConditionDice);
+    const preHalf = Math.max(0, abilityBase + Number(modifier || 0) + Math.max(0, Number(extraDice || 0)) + (Array.isArray(help) ? help.reduce((n,h) => n + Math.max(0, Number(h.dice || 0)), 0) : 0) + (assist.usesLegacyWise ? 0 : assist.wiseDice) - Number(assist.wiseHelp?.dice ?? 0) + Number(power?.diceBonus ?? 0) + preHalfConditionDice);
     const beginnerDice = Math.ceil(preHalf / 2);
     const natureTapDice = tapNature ? this._natureState().current : 0;
-    const dice = Math.max(0, beginnerDice + assist.traitPoolDice + personaDice + freshDice + natureTapDice);
+    const dice = Math.max(0, beginnerDice + assist.traitPoolDice + personaDice + freshDice + natureTapDice + (assist.usesLegacyWise ? assist.wiseDice : 0) + Number(assist.wiseHelp?.dice ?? 0));
     if (!dice) return ui.notifications.warn("Realm Guard: Beginner's Luck dice pool is 0.");
     let preparedOpponentDice = 0;
     if (opponent && opposition) {
@@ -658,7 +658,7 @@ export class RealmGuardActor extends Actor {
     }
     const turnSpend = await claimPlayerTurnTest(this, { label: `${role.name} · Beginner's Luck` });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
-    await consumeWiseHelpers(this,help);
+
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const roll = await new Roll(`${dice}d6`).evaluate();
     await this._commitTraitBenefit(assist);
@@ -721,7 +721,7 @@ export class RealmGuardActor extends Actor {
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
     const personaDice = personaDiceCount(persona);
-    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: true });
+    const assist = this._rollAssist({ traitId, wiseId, traitMode, versus: true, help });
     const power = this._tokenPowerUse(tokenPowerId, role.name, { isSkill: true });
     if (tokenPowerId && !power) return ui.notifications.warn("Realm Guard: That Token of Power is no longer available or appropriate for this Skill.");
     const conditionData = this._activeConditionRollData(role.name, { isSkill: true });
@@ -735,7 +735,7 @@ export class RealmGuardActor extends Actor {
     if (!ownDice || !opponentDice) return ui.notifications.warn("Realm Guard: Automatic Versus requires both dice pools to be at least 1D.");
     const turnSpend = await claimPlayerTurnTest(this, { label: `${role.name} Versus` });
     if (!turnSpend.ok) return ui.notifications.warn(`Realm Guard: ${turnSpend.reason}`);
-    await consumeWiseHelpers(this,help);
+
     const earnedTraitChecks = await this._awardTraitChecks(assist);
     const ownRoll = await new Roll(`${ownDice}d6`).evaluate();
     await this._commitTraitBenefit(assist);

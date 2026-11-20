@@ -3,31 +3,63 @@ import { withRollUndo, enlistRollActors } from './roll-undo.mjs';
 import {openStandaloneCustomRoll} from './legacy-free-roll.mjs';
 import { registerGmDockTool } from './gm-dock.mjs';
 import { baselineObstacle } from './obstacles.mjs';
+import { abilityLabel, recordAbilityTest } from './advancement.mjs';
 const NS='realm-guard',esc=v=>foundry.utils.escapeHTML(String(v??''));
+
+export function challengeTestChoices(actor) {
+  const skills = actor.items.filter(item => item.type === "role").sort((a,b) => a.name.localeCompare(b.name));
+  const abilities = ["nature", "health", "will", "circles", "resources"]
+    .filter(key => actor.system.attributes?.[key])
+    .map(key => ({id: `ability:${key}`, key, type: "ability", name: abilityLabel(key), system: {rating: Number(actor.system.attributes[key].value ?? 0)}}));
+  return [...skills, ...abilities];
+}
+
 export async function respondToRoll(SheetClass,message){
   const challenge=message.flags?.[NS]?.challenge;if(!challenge||message.flags?.[NS]?.rollUndo?.undone)return;
   const actors=game.actors.filter(a=>a.type==='character'&&a.isOwner);
-  let actor=game.user.character?.isOwner?game.user.character:actors[0];
+  let actor=actors.includes(game.user.character)?game.user.character:actors[0];
   if(!actor)return ui.notifications.warn("Choose a character you own.");
-  let role=actor.items.filter(i=>i.type==="role").sort((a,b)=>a.name.localeCompare(b.name))[0];
-  if(!role)return ui.notifications.warn("This character has no Skills.");
+  let role=challengeTestChoices(actor)[0];
+  if(!role)return ui.notifications.warn("This character has no available tests.");
   let options,beginner,abilityKey,sheet;
   while(true){
-    sheet=actor.sheet??{actor,render:()=>{}};beginner=Number(role.system.rating??0)<=0;
+    sheet=actor.sheet??{actor,render:()=>{}};
+    const isSkill=role.type==="role";
+    beginner=isSkill&&Number(role.system.rating??0)<=0;
     abilityKey=role.system.beginnerAbility||(["fighter","hunter","scout","survivalist"].includes(role.name.toLowerCase())?"health":"will");
-    options=await SheetClass._openRollDialog.call(sheet,role,{obstacle:challenge.obstacle,fixedObstacle:true,isSkill:true,beginnerLuck:beginner,beginnerAbility:abilityKey,replyContext:{label:challenge.label,actorIds:actors.map(a=>a.id)}});
+    options=await SheetClass._openRollDialog.call(sheet,role,{obstacle:challenge.obstacle,fixedObstacle:true,isSkill,abilityKey:role.key??"",beginnerLuck:beginner,beginnerAbility:abilityKey,replyContext:{label:challenge.label,opponentId:challenge.actorId,actorIds:actors.map(a=>a.id)}});
     if(!options)return;
     if(!options.replySelection)break;
-    actor=game.actors.get(options.replySelection.actorId);role=actor?.items.get(options.replySelection.skillId);
-    if(!actor?.isOwner||role?.type!=="role")return;
+    actor=game.actors.get(options.replySelection.actorId);
+    if(!actor?.isOwner||actor.type!=="character")return;
+    role=challengeTestChoices(actor).find(choice=>choice.id===options.replySelection.skillId);
+    if(!role)return;
   }
-  const result=await rollSkillWithOptions(SheetClass,sheet,role,options,{obstacle:challenge.obstacle,versus:challenge.versus,abilityKey});
+  const result=role.type==="ability"
+    ? await rollChallengeAbility(SheetClass,sheet,role,options,challenge)
+    : await rollSkillWithOptions(SheetClass,sheet,role,options,{obstacle:challenge.obstacle,versus:challenge.versus,abilityKey});
   if(result){
     const reply=game.messages.get(actor.getFlag(NS,'lastUndoRoll'));
     if(reply)await reply.update({'flags.realm-guard.challengeResponse':{messageId:message.id,actorId:actor.id}});
     refreshResponseButtons();
   }
   return result;
+}
+
+async function rollChallengeAbility(SheetClass,sheet,ability,options,challenge) {
+  const actor=sheet.actor;
+  return withRollUndo(actor,async()=>{
+    enlistRollActors(actor,(options.help??[]).map(entry=>entry.actorId));
+    const talentUse=SheetClass._talentUse.call(sheet,options.talentId,ability.name,{isSkill:false});
+    if(options.talentId&&!talentUse)return;
+    const extraDice=Number(options.extraDice??0)+Number(talentUse?.diceBonus??0);
+    const result=await actor.rollAbility(ability.key,{...options,extraDice,talentUse,obstacle:challenge.obstacle,versus:challenge.versus});
+    if(!result)return;
+    await SheetClass._commitTalentAfterRoll.call(sheet,talentUse,ability.name);
+    await SheetClass._commitSynergy.call(sheet,options.help,result,`${ability.name} Help`);
+    if(options.countLearning&&!result.tied)await recordAbilityTest(actor,ability.key,Boolean(result.passed));
+    return result;
+  });
 }
 export async function rollSkillWithOptions(SheetClass,sheet,role,options,{obstacle=options.obstacle,versus=false,abilityKey=role.system.beginnerAbility||"will"}={}){
   const actor=sheet.actor,beginner=Number(role.system.rating??0)<=0;
@@ -58,7 +90,7 @@ function paintResponseButtons(message,root){
   const names=responseNames(message),challenge=message.flags?.[NS]?.challenge;
   for(const b of root.querySelectorAll('[data-rg-respond]')){
     b.classList.toggle('rg-responded',names.length>0);
-    b.textContent=names.length?`${names.join(', ')} Responded`:`Respond · choose Skill · Ob ${challenge.obstacle}`;
+    b.textContent=names.length?`${names.join(', ')} Responded`:`Respond · choose Skill or Ability · ${challenge.versus?'Vs.':'Ob'} ${challenge.obstacle}`;
   }
 }
 function refreshResponseButtons(){

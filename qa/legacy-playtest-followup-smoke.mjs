@@ -3,14 +3,21 @@ import { installPlaytestFixture, actorData } from './lib/playtest-foundry-fixtur
 const fx=installPlaytestFixture();
 const {refreshRulesProfileRuntime}=await import('../module/rules-profile-service.mjs');refreshRulesProfileRuntime();
 const {RealmGuardActor}=await import('../module/documents.mjs');
-const {wiseAvailable,consumeWise,startLegacySession,consumeWiseHelpers}=await import('../module/legacy-session.mjs');
+const {startLegacySession}=await import('../module/legacy-session.mjs');
+const {legacyWiseHelp}=await import('../module/legacy-wise-roll.mjs');
+const {consumeTraitPositiveUse,traitPositiveAvailable}=await import('../module/traits.mjs');
 const {reconcileDisposition}=await import('../module/conflict-playtest.mjs');
 const {snapshotActors,actorChanges,restoreChanges,undoSkillMessage,withRollUndo,registerRollMessage}=await import('../module/roll-undo.mjs');
 const {parseBreakTime,formatBreakTime,breakParticipants,handleBreakIntent}=await import('../module/legacy-break.mjs');
 const actor=new RealmGuardActor(actorData());game.actors.push(actor);
-const wise=actor.items.get('wise');assert.equal(wiseAvailable(wise),true);await consumeWise(wise);assert.equal(wiseAvailable(wise),false);await assert.rejects(consumeWise(wise),/already used/);
-const fate=actor.system.resources.fate.value;fx.dialogs.push(true);await startLegacySession();assert.equal(wiseAvailable(wise),true);assert.equal(actor.system.resources.fate.value,fate);
-const helper=new RealmGuardActor(actorData('helper'));game.actors.push(helper);await consumeWiseHelpers(actor,[{actorId:helper.id,sourceKind:'Wise',sourceId:'wise'}]);assert.equal(wiseAvailable(helper.items.get('wise')),false);await assert.rejects(consumeWiseHelpers(actor,[{actorId:helper.id,sourceKind:'Wise',sourceId:'wise'}]),/already used/);
+const wise=actor.items.get('wise');await wise.update({'flags.realm-guard.wiseUsed':true});
+assert.equal(actor._rollAssist({wiseId:wise.id}).wiseDice,1);
+const levelOne={id:'trait1',system:{rating:1}},levelTwo={id:'trait2',system:{rating:2}};
+await consumeTraitPositiveUse(actor,levelOne);assert.equal(traitPositiveAvailable(actor,levelOne),false);
+for(let i=0;i<4;i++){assert.equal(traitPositiveAvailable(actor,levelTwo),true);assert.equal((await consumeTraitPositiveUse(actor,levelTwo)).unlimited,true);}
+const fate=actor.system.resources.fate.value;fx.dialogs.push(true);await startLegacySession();assert.equal(wise.getFlag('realm-guard','wiseUsed'),undefined);assert.equal(traitPositiveAvailable(actor,levelOne),true);assert.equal(actor.system.resources.fate.value,fate);
+const helper=new RealmGuardActor(actorData('helper'));game.actors.push(helper);const help={actorId:helper.id,sourceKind:'Wise',sourceId:'wise',dice:1};assert.equal(legacyWiseHelp([help],null),help);
+assert.throws(()=>legacyWiseHelp([help],wise),/only one Wise/);assert.throws(()=>legacyWiseHelp([help,help],null),/only one Wise/);
 assert.equal(parseBreakTime('10:00'),600);assert.equal(parseBreakTime('1:30'),90);assert.equal(parseBreakTime('10'),600);for(const bad of ['-1:00','00:00','10:99','abc','99999'])assert.equal(parseBreakTime(bad),null);assert.equal(formatBreakTime(-3),'0:00');assert.equal(formatBreakTime(600),'10:00');
 const team={participantIds:['a','b'],disposition:{start:8,current:5},individualDisposition:{a:{start:4,current:4},b:{start:4,current:4}}};
 reconcileDisposition(team,'a');assert.deepEqual(team.individualDisposition,{a:{start:4,current:1},b:{start:4,current:4}});team.disposition.current=8;reconcileDisposition(team,'a');assert.equal(team.individualDisposition.a.current,4);assert.equal(team.individualDisposition.b.start,4);
@@ -18,5 +25,5 @@ const before=snapshotActors([actor.id]);await actor.update({'system.resources.fa
 await actor.update({'system.resources.fate.value':2});await assert.rejects(restoreChanges(changes),/Later changes/);assert.equal(actor.items.get('fighter').system.learning.passed,1,'Conflict blocks all writes, not a partial rollback');await actor.update({'system.resources.fate.value':1});await restoreChanges(changes);assert.equal(actor.system.resources.fate.value,3);assert.equal(actor.items.get('fighter').system.learning.passed,0);
 let card;await withRollUndo(actor,async()=>{card=await ChatMessage.create({content:'Result'});registerRollMessage(actor,card);await actor.update({'system.resources.persona.value':2});await actor.items.get('fighter').update({'system.learning.failed':1});});assert.equal(await undoSkillMessage(card),true);assert.equal(actor.system.resources.persona.value,3);assert.equal(actor.items.get('fighter').system.learning.failed,0);assert.equal(await undoSkillMessage(card),undefined,'Second click must not refund twice');
 const late={id:'late',name:'Late Player',isGM:false,active:true,character:actor};game.users.push(late);fx.settings.set('legacyBreak',{id:'break-test',active:true,userIds:['gm'],returned:{}});assert.equal(breakParticipants().find(p=>p.userId==='late').name,actor.name);await handleBreakIntent({type:'legacy-break-return',id:'break-test',userId:'late'});assert.ok(game.settings.get('realm-guard','legacyBreak').returned.late,'A late-arriving participant can mark their character returned');
-fx.settings.set('activeRulesProfileId','mg1e');refreshRulesProfileRuntime();await wise.update({'flags.realm-guard.wiseUsed':true});assert.equal(wiseAvailable(wise),true,'Other profiles retain their Wise policy');
-console.log('PASS Legacy playtest: Wise session lock/reset; timer validation; allocation damage/recovery; atomic guarded undo; duplicate undo; profile isolation');
+fx.settings.set('activeRulesProfileId','mg1e');refreshRulesProfileRuntime();await wise.update({'flags.realm-guard.wiseUsed':true});assert.equal(legacyWiseHelp([help,help],wise),null,'Other profiles retain their Wise policy');
+console.log('PASS Legacy playtest: Wise dice and Help, Trait limits and session reset; timer validation; allocation damage/recovery; atomic guarded undo; duplicate undo; profile isolation');

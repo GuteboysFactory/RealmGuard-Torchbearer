@@ -61,3 +61,206 @@
 .rg-compact-dock{width:max-content!important}.rg-compact-dock>button{flex-shrink:0}.rg-compact-dock>.rg-gm-dock-tool{min-width:36px}.rg-drives[data-compact-drives] h2{display:block;line-height:1.8}.rg-drives .rg-drive-tab{display:inline;border:0;background:none;box-shadow:none;padding:0;margin:0;width:auto;min-height:0;font:inherit;color:inherit;cursor:pointer}.rg-drives .rg-drive-tab:hover,.rg-drives .rg-drive-tab[aria-pressed="true"]{color:#39723b}.rg-drive-hint{font-size:10px;font-weight:normal;text-transform:none;letter-spacing:0;color:#897c64}.rg-drives[data-compact-drives] label[hidden]{display:none!important}.rg-drives[data-compact-drives] textarea{height:auto;min-height:0!important;box-sizing:border-box;overflow-y:hidden;resize:none;font-size:14px;line-height:1.4}.rg-drives[data-compact-drives]>label{font-size:0}
 
 .realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-drives .rg-panel-title button.rg-drive-tab{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:#68451f!important;font:inherit!important;width:auto!important;min-height:0!important}.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-drives .rg-panel-title button.rg-drive-tab:hover,.realm-guard .rg-sheet.character .rg-tab-page[data-rg-page="character"] .rg-drives .rg-panel-title button.rg-drive-tab[aria-pressed="true"]{color:#39723b!important}
+.rg-map-create .rg-map-marker-name {display:grid;gap:4px;margin-block:12px}
+.rg-map-marker-settings {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px;margin-bottom:12px}
+.rg-map-marker-settings label {display:grid;gap:4px;min-width:0}
+.rg-scene-quick-menu .rg-map-menu-current {display:inline-block;width:1.35em;color:#cbdcaf;font-weight:bold}
+.rg-map-icon-filters {display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;padding-top:10px;border-top:1px solid #93815c}
+.rg-map-icon-filters label {display:grid;gap:4px;min-width:0}
+.rg-map-icon-count {font-size:.85em;margin:5px 0 0}
+.rg-map-icon-grid label {justify-content:center;text-align:center}
+.rg-map-icon-grid label span {overflow-wrap:anywhere}
+.application.rg-legacy-workspace-window.minimized {min-width:min(275px,calc(100vw - 24px))!important}
+.application.rg-legacy-workspace-window.minimized .window-title {flex:1 1 auto;min-width:0;max-width:none}
+.rg-talent-browser:has(.rg-talent-filters) {min-width:0}
+.rg-talent-filters~.rg-talent-browser-list {max-height:min(51vh,490px)}
+#rg-break .rg-break-character:not(:disabled) .rg-break-return-label {padding:6px 12px;border:1px solid #d1bb79;border-radius:5px;background:#456541;color:#fff4cf}
+#rg-break .rg-break-character:focus-visible {outline:2px solid #eed794;outline-offset:-3px}
+
+/* Sheet layouts reuse the existing forms and actions. */
+.rg-sheet-layout-control {display:flex;align-items:center;gap:6px;font-size:10px;white-space:nowrap}
+.rg-sheet-layout-control select {width:auto;max-width:100%;height:25px;min-height:25px;padding:2px 20px 2px 6px;font-size:11px}
+.rg-character-identity-top {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rg-character-identity-top .rg-brand-lockup {margin:0!important;min-width:0}
+.rg-character-identity-top .rg-brand {font-size:9px!important;letter-spacing:.105em!important;color:#ccb990!important}
+.rg-character-identity-top .rg-brand-crest,.rg-character-identity-top .rg-brand-subtitle {display:none!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header {
+  grid-template-columns:88px minmax(0,1fr) 148px!important;gap:10px!important;align-items:start!important
+}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage {width:88px!important;height:102px!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-header {grid-template-columns:110px minmax(0,1fr) 148px!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"] :is(.rg-portrait-wrap,.rg-portrait-stage) {width:108px!important;height:128px!important}
+.rg-legacy-workspace .rg-identity {min-width:0}
+.rg-legacy-workspace .rg-character-concept {display:block;font-size:0;margin-block:0 4px}
+.rg-legacy-workspace .rg-character-concept input {width:100%;height:24px!important;min-height:24px!important;font-size:13px!important;font-style:italic}
+.realm-guard .rg-legacy-workspace .rg-character-facts {grid-template-columns:1.15fr 1fr minmax(57px,.55fr)!important;gap:6px!important;margin-top:6px}
+.rg-character-facts label {min-width:0;font-size:10px!important}
+.rg-character-facts :is(input,select) {height:24px!important;min-height:24px!important;font-size:11px!important}
+.rg-character-facts .rg-age-range {font-size:8px!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-workspace-upper > .rg-statbar {grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header-nature {grid-template-columns:minmax(0,1fr)!important;padding:0!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-header-nature {
+  grid-template-columns:minmax(128px,.8fr) minmax(0,1.2fr)!important;align-items:center
+}
+.rg-character-story {min-width:0}
+.realm-guard .rg-character-story .rg-drives {margin:4px 0 0!important;padding:5px 7px!important;border:1px solid #b18c55;background:#ecdbb5!important;color:#4a3521!important;min-width:0}
+.rg-character-story .rg-drives .rg-panel-title {margin:0!important;padding:0!important;border:0!important}
+.rg-character-story .rg-drives .rg-panel-title h2 {margin:0!important;font-size:11px!important;color:#68451f!important}
+.realm-guard .rg-character-story .rg-drives .rg-panel-title button.rg-drive-tab {background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:#68451f!important;font:inherit!important;width:auto!important;min-height:0!important}
+.realm-guard .rg-character-story .rg-drives .rg-panel-title button.rg-drive-tab:is(:hover,[aria-pressed="true"]) {color:#39723b!important}
+.rg-character-story textarea {width:100%;color:#372718!important;background:#fff5db!important;border:1px solid #a8895d!important}
+.rg-character-story [data-compact-drives] textarea {max-height:128px;overflow-y:auto!important}
+.realm-guard .rg-character-story .rg-header-nature > .rg-character-descriptors {display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:4px 6px;font-size:9px;line-height:1.1;color:#68451f;min-width:0}
+.rg-character-descriptors textarea {height:30px!important;min-height:30px!important;line-height:1.2;font-size:12px!important;resize:vertical}
+.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-character-story .rg-drives {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
+.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-drives .rg-panel-title {display:none}
+.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-drives label {display:grid;gap:1px;font-size:10px!important;color:#5d4227!important}
+.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-drives textarea {height:40px!important;min-height:36px!important;line-height:1.2;resize:vertical}
+.rg-character-relationship-strip {display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.rg-character-relationship-strip button {max-width:155px;min-height:19px;padding:1px 5px;font-size:9px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) :is(.rg-character-facts,.rg-character-relationship-strip,.rg-character-story .rg-drives,.rg-character-descriptors) {display:none!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-header-nature {grid-template-columns:minmax(0,1fr)!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) :is(.rg-portrait-wrap,.rg-portrait-stage) {width:66px!important;height:73px!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-header {grid-template-columns:68px minmax(0,1fr) 266px!important;padding:6px 9px!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta .rg-resource {grid-template-columns:minmax(45px,1fr) 22px 16px 22px!important;padding:3px 4px}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta .rg-resource span {font-size:9px;letter-spacing:.05em}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta .rg-resource button {width:22px!important;min-width:22px!important;min-height:24px;padding:0}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta .rg-checks-resource {grid-column:1/-1;width:min(100%,148px)}
+.realm-guard .rg-legacy-workspace .rg-gear-category-heading {color:#593c22!important;font-size:13px}
+
+.realm-guard .rg-npc-workspace {container-type:inline-size;container-name:rg-npc}
+.realm-guard .rg-npc-workspace .rg-npc-header {grid-template-columns:88px minmax(0,1fr) 152px!important;align-items:center!important;padding:9px 11px!important;gap:10px!important}
+.rg-npc-workspace .rg-npc-identity {position:relative;min-width:0}
+.rg-npc-workspace .rg-npc-identity > .rg-sheet-layout-control {float:right;margin:0 0 4px 5px;color:#eeddbd}
+.rg-npc-workspace .rg-npc-identity > .rg-sheet-layout-control select {width:95px;flex:none}
+.rg-npc-workspace .rg-npc-identity .rg-brand-lockup {margin-bottom:4px!important}
+.rg-npc-workspace .rg-npc-identity .rg-brand-crest {display:none!important}
+.rg-npc-workspace .rg-npc-identity .rg-brand {font-size:9px!important;color:#ccb990!important}
+.realm-guard .rg-npc-workspace .rg-npc-statbar {grid-template-columns:minmax(112px,1fr) minmax(125px,1.45fr) repeat(4,minmax(54px,.7fr))!important;gap:5px!important}
+.realm-guard .rg-npc-workspace .rg-npc-statbar .rg-npc-stat {min-width:0!important;min-height:42px!important;padding:4px!important}
+.realm-guard .rg-npc-workspace .rg-npc-statbar .rg-npc-stat button {font-size:10px!important;min-height:24px}
+.rg-npc-descriptors {display:grid;align-content:center;gap:2px;padding:5px 6px;font-size:10px;color:#483320;background:#f5e7c7;border:1px solid #b59767;border-radius:4px;min-width:0}
+.rg-npc-story {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0}
+.rg-npc-story label {display:grid;gap:2px;color:#553921;font-size:11px;font-weight:600}
+.rg-npc-workspace :is(.rg-npc-descriptors,.rg-npc-story) textarea {width:100%;min-height:28px!important;line-height:1.2;resize:vertical;background:#fff3d7!important;color:#362817!important;border:1px solid #bd9e6d!important;padding:4px}
+.rg-npc-workspace .rg-npc-story textarea {height:40px!important}
+.realm-guard .rg-npc-workspace .rg-npc-main {grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)!important;gap:9px!important}
+.rg-npc-workspace .rg-npc-traits {order:-2}
+.rg-npc-workspace .rg-npc-conditions {order:-1}
+.realm-guard .rg-npc-workspace .rg-npc-conditions .rg-npc-condition-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:3px!important}
+.realm-guard .rg-npc-workspace .rg-npc-conditions .rg-npc-condition {min-height:26px!important;padding:2px!important}
+.realm-guard .rg-npc-workspace .rg-npc-conditions .rg-npc-condition-toggle {min-height:24px!important;font-size:10px!important;gap:3px!important}
+.realm-guard .rg-npc-workspace .rg-npc-conditions .rg-npc-condition-toggle img {width:15px!important;height:15px!important}
+.rg-npc-workspace :is(.rg-npc-story-toggle,.rg-npc-extra) {border:1px solid #a8895d;border-radius:5px;padding:6px 8px;background:#ead4aa;color:#503620}
+.rg-npc-workspace :is(.rg-npc-story-toggle,.rg-npc-extra) summary {font-size:12px;font-weight:600;cursor:pointer}
+.rg-npc-workspace .rg-npc-extra .rg-panel {margin-top:6px}
+.rg-npc-workspace:is([data-rg-npc-layout="monster"],[data-rg-npc-layout="animal"]) .rg-npc-drop-hint {display:none!important}
+.rg-npc-workspace:is([data-rg-npc-layout="monster"],[data-rg-npc-layout="animal"]) .rg-npc-statbar .rg-npc-nature {border-color:#8c7848!important}
+@container rgworkspace (max-width:680px) {
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header,
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-header,
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density] .rg-header {grid-template-columns:78px minmax(0,1fr)!important}
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density] :is(.rg-portrait-wrap,.rg-portrait-stage) {width:76px!important;height:88px!important}
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-meta {grid-column:1/-1;display:flex!important;flex-wrap:wrap}
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"]:is([data-rg-workspace-tab="skills"],[data-rg-workspace-tab="gear"]) .rg-meta {grid-template-columns:repeat(auto-fit,minmax(125px,1fr))}
+}
+@container rgworkspace (max-width:490px) {
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="detailed"] .rg-header-nature {grid-template-columns:minmax(0,1fr)!important}
+}
+
+/* Compact uses a shared bottom row for the portrait tool, profile fields and Conditions. */
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-workspace-upper > .rg-statbar {
+  margin-block:3px 0!important; padding-block:0!important;
+}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header {
+  --rg-compact-header:#302d21;
+  --rg-compact-label:#e5c890;
+  grid-template-columns:126px minmax(0,1fr) 148px!important;
+  grid-template-areas:"portrait identity resources" "roll facts conditions";
+  gap:5px 10px!important;
+  background:var(--rg-compact-header)!important;
+}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-portrait-wrap {
+  grid-area:portrait; align-self:stretch; width:100%!important; height:auto!important; min-height:150px;
+}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-portrait-stage {
+  position:absolute; inset:0; width:100%!important; height:100%!important;
+}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-identity {grid-area:identity}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-meta {
+  grid-area:resources; align-self:stretch; display:grid!important;
+  grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(3,auto) 1fr; gap:4px;
+}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-meta .rg-resource {padding-block:3px}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-meta .rg-resource > button {height:25px;min-height:25px}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature {grid-column:1/-1; max-height:104px; margin:0!important}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-nature-stat {
+  display:grid!important; justify-items:center; align-content:center; justify-content:stretch; grid-template-columns:1fr auto;
+  gap:1px 4px!important; padding:3px 6px!important;
+}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-stat-roll {
+  grid-column:1/-1; min-height:18px!important; height:18px;
+}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-ability-learning {grid-row:3;grid-column:1/-1}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-nature-manage-btn {grid-row:2;grid-column:2}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-nature-values {grid-row:2;grid-column:1}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header-nature .rg-compact-progress {
+  flex-direction:row; gap:6px; min-height:14px!important;
+}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header > .rg-custom-roll-launch {grid-area:roll}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header > .rg-condition-launch {grid-area:conditions; width:100%; margin:0}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header > :is(.rg-custom-roll-launch,.rg-condition-launch) {align-self:end}
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header > .rg-custom-roll-launch,
+.realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-condition-launch-button {width:100%;height:27px;justify-content:center}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-facts {grid-area:facts;align-self:end;margin:0}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-facts label {color:var(--rg-compact-label)!important}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-facts :is(input,select,.rg-smart-select-trigger) {
+  height:27px!important;min-height:27px!important;
+}
+.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-facts .rg-age-range {display:none}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-condition-dropdown {
+  left:auto; right:0; width:min(390px,calc(100cqw - 24px));
+}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-condition-dropdown:before {left:auto;right:26px}
+
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-story .rg-drives {
+  background:var(--rg-compact-header)!important;border-color:#716041;color:var(--rg-compact-label)!important;
+}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-drives .rg-panel-title :is(h2,button.rg-drive-tab) {
+  color:var(--rg-compact-label)!important;
+}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-drives .rg-panel-title button.rg-drive-tab[aria-pressed="true"] {
+  color:#ff6666!important;-webkit-text-fill-color:currentColor!important;animation:rg-compact-drive-selected 1.6s ease-in-out infinite alternate;
+}
+@keyframes rg-compact-drive-selected {
+  from {opacity:.8;text-shadow:none}
+  to {opacity:1;text-shadow:0 0 6px #ff383866}
+}
+@media(prefers-reduced-motion:reduce) {
+  .realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-drives .rg-panel-title button.rg-drive-tab[aria-pressed="true"] {animation:none}
+}
+.realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-story textarea {
+  background:#1e2119!important;color:#f7e7c7!important;-webkit-text-fill-color:currentColor!important;border-color:#716041!important;
+}
+@container rgworkspace (max-width:645px) {
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-header {
+    grid-template-columns:106px minmax(0,1fr)!important;
+    grid-template-areas:"portrait identity" "roll facts" "resources resources" "conditions conditions";
+  }
+  .realm-guard.application .rg-sheet.character.rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-meta {
+    grid-template-columns:repeat(auto-fit,minmax(125px,1fr));grid-template-rows:none;
+  }
+  .realm-guard .rg-legacy-workspace[data-rg-sheet-density="compact"] .rg-character-facts {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+@container rg-npc (max-width:690px) {
+  .realm-guard .rg-npc-workspace .rg-npc-header {grid-template-columns:74px minmax(0,1fr)!important}
+  .realm-guard .rg-npc-workspace .rg-npc-header .rg-meta {grid-column:1/-1;display:flex!important;flex-wrap:wrap}
+  .realm-guard .rg-npc-workspace .rg-npc-statbar {grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .rg-npc-workspace .rg-npc-descriptors {grid-column:span 3}
+}
+@container rg-npc (max-width:535px) {
+  .realm-guard .rg-npc-workspace .rg-npc-main,.rg-npc-workspace .rg-npc-story {grid-template-columns:minmax(0,1fr)!important}
+}

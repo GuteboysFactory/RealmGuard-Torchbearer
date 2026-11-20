@@ -1,4 +1,3 @@
-import { consumeWiseHelpers } from './legacy-session.mjs';
 import { snapshotActors, actorChanges, restoreChanges, validateUndoSeries } from './roll-undo.mjs';
 import { reconcileDisposition } from './conflict-playtest.mjs';
 import { chooseConflictRoster, CONFLICT_ROSTER_KEY } from "./conflict-roster.mjs";
@@ -1221,8 +1220,8 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   const talentUse = activeConflictPolicy().presentation.showTalents ? resolveTalentUse(actor, talentId, source.name, { isSkill: !isNature, contextKey }) : null;
   if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match the selected conflict Skill/Ability.");
   const conditionData = actor._activeConditionRollData?.(source.name, { isSkill: !isNature }) ?? { dice: 0, active: [] };
-  const assist = actor._rollAssist?.({ traitId, wiseId, traitMode, versus: false }) ?? { traitDice: 0, trait: null, wise: null };
   const committedHelpers=(helperEntries ?? []).filter(entry=>entry?.actorId);
+  const assist = actor._rollAssist?.({ traitId, wiseId, traitMode, versus: false, help: committedHelpers }) ?? { traitDice: 0, trait: null, wise: null };
   if(committedHelpers.length) helperIds=committedHelpers.map(entry=>entry.actorId);
   const helpDice = helperIds.length;
   const fresh = beginnerLuck ? (conditionData.active ?? []).find(c => String(c.name ?? "").trim().toLowerCase() === "fresh") : null;
@@ -1240,14 +1239,14 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   let preHalf = null, beginnerDice = null;
   let pool;
   if (beginnerLuck) {
-    preHalf = Math.max(0, blAbilityBase + commonPre - Number(assist.traitPoolDice ?? 0) + preHalfConditionDice);
+    const fullWiseDice = Number(Boolean(assist.usesLegacyWise)) * Number(assist.wiseDice ?? 0) + Number(Boolean(assist.wiseHelp));
+    preHalf = Math.max(0, blAbilityBase + commonPre - Number(assist.traitPoolDice ?? 0) - fullWiseDice + preHalfConditionDice);
     beginnerDice = Math.ceil(preHalf / 2);
-    pool = Math.max(0, beginnerDice + Number(assist.traitPoolDice ?? 0) + personaDice + freshDice + natureTapDice);
+    pool = Math.max(0, beginnerDice + Number(assist.traitPoolDice ?? 0) + personaDice + freshDice + natureTapDice + fullWiseDice);
   } else {
     pool = Math.max(0, trainedBase + commonPre + Number(conditionData.dice ?? 0) + personaDice + natureTapDice);
   }
   if (pool < 1) return ui.notifications.warn("Realm Guard: Conflict dice pool is 0 after all modifiers.");
-  await consumeWiseHelpers(actor,committedHelpers);
   if (totalPersonaCost) {
     const spent = await spendRollResource(actor, "persona", totalPersonaCost, { reason: `${label} conflict roll${tapNature ? " · Tap Nature" : ""}` });
     if (spent && !spent.ok) return ui.notifications.warn(`Realm Guard: ${spent.reason}`);

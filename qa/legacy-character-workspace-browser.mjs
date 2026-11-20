@@ -76,7 +76,7 @@ try {
  await page.locator('[data-rg-drive="goal"]').click();assert.equal(await page.locator('.rg-drives textarea:visible').inputValue(),'Find the lost ranger');
  await page.evaluate(()=>sheet.render());assert.equal(await page.locator('[data-rg-drive="goal"]').getAttribute('aria-pressed'),'true');
  assert.equal(await page.locator('.rg-drives textarea:visible').count(),1);
- assert.equal(await page.locator('[data-rg-drive="goal"]').evaluate(e=>getComputedStyle(e).color),'rgb(57, 114, 59)');
+ assert.equal(await page.locator('[data-rg-drive="goal"]').evaluate(e=>getComputedStyle(e).color),'rgb(255, 102, 102)');
  const drive=page.locator('.rg-drives textarea:visible'),singleHeight=await drive.evaluate(e=>e.getBoundingClientRect().height);
  assert.ok(singleHeight<45,'Short text uses only a single line of height');
  await drive.fill('First line\nSecond line\nThird line\nFourth line');assert.ok(await drive.evaluate(e=>e.getBoundingClientRect().height)>singleHeight+45,'Explicit newlines expand the field');
@@ -91,13 +91,16 @@ try {
  assert.equal(await page.locator('.rg-silhouette-sex option').count(),2);
  assert.equal(await page.locator('[data-action="quickRollRole"], [data-action="quickRollUntrained"]').count(),0);
  assert.equal(await page.locator('.rg-role-versus').count(),0);
- assert.equal(await page.locator('.rg-turn-strip [data-action="customRoll"]').count(),1);
+ assert.equal(await page.locator('.rg-header > [data-action="customRoll"]').count(),1);
+ assert.equal(await page.locator('.rg-global-tools').count(),0);
+ assert.equal(await page.locator('.rg-turn-strip').count(),0);
+ assert.equal(await page.locator('.rg-header .rg-meta [data-ability-learning="nature"]').count(),1);
  assert.equal(await page.locator('.rg-equipment-point').count(),9);
  assert.match(await page.locator('.rg-inventory-figure').getAttribute('src'),/human-male/);
  assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).position),'absolute');
  assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).backgroundColor),'rgba(0, 0, 0, 0)');
  await page.locator('.rg-header-toggle').hover();assert.equal(await page.locator('.rg-header-toggle').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(57, 62, 39)');await page.mouse.move(0,0);
- for(const key of ['nature','will','health','resources','circles']) {
+ for(const key of ['will','health','resources','circles']) {
   assert.ok(await page.locator(`[data-ability-learning="${key}"]`).evaluate(node=>node.getBoundingClientRect().height<=46),'Ability card fits one compact row');
  }
  await page.screenshot({path:screenshot+'-header.png'});

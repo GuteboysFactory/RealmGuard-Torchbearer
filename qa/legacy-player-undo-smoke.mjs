@@ -14,12 +14,22 @@ const actor=new RealmGuardActor(actorData('hero'));game.actors.push(actor);const
 actor.items.push({id:'trait',name:'Bold',type:'trait',system:{rating:1}});actor._askFateAfterSixes=async()=>true;
 const create=ChatMessage.create;ChatMessage.create=async data=>{const m=await create(data);Hooks.callAll('createChatMessage',m);return m;};
 actor.system.resources.fate.value=9;actor.system.resources.persona.value=8;
-const before=undo.snapshotActors([actor.id]);fx.dice.push([6,1,4,1,4],[4,4],[4]);
+const before=undo.snapshotActors([actor.id]);fx.dice.push([6,1,4,1,4,4],[4]);
 await rollSkillWithOptions(Sheet,sheet,role,{obstacle:2,persona:1,traitId:'trait',traitMode:'help',wiseId:'wise',countLearning:true,help:[]});
 const message=game.messages.find(m=>m.flags?.['realm-guard']?.rollUndo);assert.ok(message);assert.equal(undo.canUndoRollMessage(message),true);assert.equal(undo.canUndoRollMessage(message,fx.observer),false);
-assert.equal(actor.system.resources.fate.value,8);assert.equal(actor.system.resources.persona.value,7);assert.equal(role.system.learning.passed,1);assert.equal(actor.items.get('wise').getFlag('realm-guard','wiseUsed'),true);
+assert.equal(actor.system.resources.fate.value,8);assert.equal(actor.system.resources.persona.value,7);assert.equal(role.system.learning.passed,1);assert.equal(actor.items.get('wise').getFlag('realm-guard','wiseUsed'),undefined);
 assert.equal(actor.getFlag('realm-guard','traitSessionUses').trait,1);
 assert.equal(await undo.undoSkillMessage(message),true);assert.deepEqual(undo.snapshotActors([actor.id]),before,'All resource, Wise, Trait, progression and flags return to their exact pre-roll values');assert.equal(await undo.undoSkillMessage(message),undefined);
+// A paid Wise reroll can be used on a separate test and Undo refunds its Persona.
+const ask = actor._applySelectedWiseReroll.bind(actor);
+actor._applySelectedWiseReroll = (faces, wise, assist) => ask(faces, wise, {...assist, chatDecision:{ask:async()=> 'wise'}});
+const paidBefore = undo.snapshotActors([actor.id]);
+fx.dice.push([1,4,4],[5]);
+await rollSkillWithOptions(Sheet,sheet,role,{obstacle:2,help:[]});
+assert.equal(actor.system.resources.persona.value,7);
+await undo.undoSkillMessage(game.messages.findLast(m=>m.flags?.['realm-guard']?.rollUndo));
+assert.deepEqual(undo.snapshotActors([actor.id]),paidBefore);
+actor._applySelectedWiseReroll = ask;
 // A failed trained test also restores Fail progression.
 actor.items.splice(actor.items.findIndex(i=>i.id==='wise'),1);fx.dice.push([1,1,1]);
 const failedBefore=undo.snapshotActors([actor.id]);await rollSkillWithOptions(Sheet,sheet,role,{obstacle:3,countLearning:true,help:[]});assert.equal(role.system.learning.failed,1);

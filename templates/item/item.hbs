@@ -17,6 +17,9 @@
     {{#if legacyMixedPolish}}<label>Beginner's Luck attempts<input type="number" name="system.beginnerAttempts" value="{{system.beginnerAttempts}}" min="0" step="1" /></label>
     </fieldset>{{/if}}
     <label>Description<textarea name="system.description">{{system.description}}</textarea></label>
+    {{#if canDeleteSkill}}
+      <footer class="rg-skill-edit-footer"><button type="button" data-action="deleteSkill"><i class="fa-solid fa-trash" aria-hidden="true"></i> Delete Skill</button></footer>
+    {{/if}}
   {{/if}}
 
   {{#if isTrait}}

@@ -1,7 +1,9 @@
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
 
 function usesMg1eTraits() { return getActiveM10BFamilyRulePolicy().mg1eTraits; }
 const NS = "realm-guard";
+const unlimitedLevelTwo = () => usesMg1eTraits() || legacyMixedPolishEnabled();
 const USE_FLAG = "traitSessionUses";
 
 export function traitLevel(trait) {
@@ -11,7 +13,7 @@ export function traitLevel(trait) {
 export function traitPositiveLimit(trait) {
   const level = traitLevel(trait);
   if (level === 1) return 1;
-  if (level === 2) return usesMg1eTraits() ? null : 2;
+  if (level === 2) return unlimitedLevelTwo() ? null : 2;
   if (level === 3) return usesMg1eTraits() ? 1 : null;
   return null;
 }
@@ -30,7 +32,7 @@ export function traitPositiveRemaining(actor, trait) {
 
 export function traitPositiveAvailable(actor, trait) {
   const level = traitLevel(trait);
-  if (usesMg1eTraits() && level === 2) return true;
+  if (unlimitedLevelTwo() && level === 2) return true;
   if (!usesMg1eTraits() && level === 3) return true;
   const remaining = traitPositiveRemaining(actor, trait);
   return level > 0 && Number(remaining ?? 0) > 0;
@@ -56,7 +58,7 @@ export function traitPositiveStatus(actor, trait) {
   const level = traitLevel(trait);
   if (level === 1 || level === 2) {
     const limit = traitPositiveLimit(trait);
-    if (usesMg1eTraits() && level === 2) {
+    if (unlimitedLevelTwo() && level === 2) {
       return { level, limit: null, used: traitPositiveUsed(actor, trait), remaining: null, available: true, label: "+1D on every applicable test", effect: "+1D" };
     }
     const used = Math.min(limit, traitPositiveUsed(actor, trait));
@@ -86,7 +88,7 @@ export async function consumeTraitPositiveUse(actor, trait) {
   if (!actor || !trait) return { consumed: false, reason: "missing" };
   const level = traitLevel(trait);
   if (!usesMg1eTraits() && level === 3) return { consumed: false, unlimited: true, level };
-  if (usesMg1eTraits() && level === 2) return { consumed: false, unlimited: true, level };
+  if (unlimitedLevelTwo() && level === 2) return { consumed: false, unlimited: true, level };
   const limit = traitPositiveLimit(trait);
   if (!limit) return { consumed: false, reason: "no-effect", level };
   const used = traitPositiveUsed(actor, trait);

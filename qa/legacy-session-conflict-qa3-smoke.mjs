@@ -12,9 +12,9 @@ refreshRulesProfileRuntime();
 const actor=new RealmGuardActor(actorData('ranger'));game.actors.push(actor);const wise=actor.items.get('wise');
 let asked=0;
 const decision=value=>({ask:async(question,choices)=>{asked++;assert.match(question,/1 Persona/);assert.ok(choices.every(choice=>choice.label.includes('1 Persona')));return value;}});
-fx.dice.push([4,5]);let result=await applyLegacyWiseReroll(actor,[1,2,4],wise,decision(wise.id));
-assert.deepEqual(result.faces,[4,5,4]);assert.equal(asked,0,'A prepared Wise cannot be offered again');assert.equal(actor.system.resources.persona.value,3);
-await wise.update({"flags.realm-guard.wiseUsed":false});
+let result=await applyLegacyWiseReroll(actor,[1,2,4],wise,decision(wise.id));
+assert.deepEqual(result.faces,[1,2,4]);assert.equal(asked,0,'A prepared Wise contributes only to the base pool');assert.equal(actor._rollAssist({wiseId:wise.id}).wiseDice,1);assert.equal(actor.system.resources.persona.value,3);
+await wise.update({"flags.realm-guard.wiseUsed":true}); // A flag saved by 1.13.5 cannot lock this roll.
 fx.dice.push([5,4]);result=await applyLegacyWiseReroll(actor,[1,2,4],null,decision(wise.id));
 assert.deepEqual(result.faces,[5,4,4]);assert.equal(result.personaSpent,1);assert.equal(actor.system.resources.persona.value,2);
 result=await applyLegacyWiseReroll(actor,[1,2,4],null,decision(null));assert.deepEqual(result.faces,[1,2,4]);assert.equal(actor.system.resources.persona.value,2);

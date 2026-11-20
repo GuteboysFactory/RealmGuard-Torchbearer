@@ -170,7 +170,7 @@ assert.ok(itemSheet.includes('"system.learning.failNeeded", Math.max(0, nextRati
 assert.ok(sheet.includes("Preserved unrated Wises are not listed here."));
 assert.ok(sheet.includes("Number(w.system?.rating ?? 0) > 0"), "I Am Wise selector must exclude preserved unrated Wises.");
 assert.ok(character.includes("PRESERVED · INACTIVE"));
-assert.ok(character.includes('{{#unless isStrictProfile}}<div class="rg-resource rg-level-resource"><span>LEVEL</span><strong>{{progression.level}}</strong></div>{{/unless}}'), "Strict sheet header must hide Level while Legacy Mixed keeps the existing header.");
+assert.ok(!character.includes("rg-level-resource"), "Level belongs in Overview, outside the character header.");
 
 const conflicts = fs.readFileSync("module/conflicts.mjs","utf8");
 assert.equal(conflicts.includes("isStrictRealmGuard"), false, "M10B.5 retires Strict identity routing from live Conflict UI.");
