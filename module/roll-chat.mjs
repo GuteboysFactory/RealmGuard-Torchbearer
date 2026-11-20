@@ -54,9 +54,11 @@ export async function beginRollChat(actor, label, faces) {
       await message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}<p>Resolving roll…</p></div>` });
       return choice;
     },
-    async finish(content) {
+    async finish(content, {versusTie = null, testSource = null} = {}) {
       pending.delete(message.id); active.delete(message.id);
-      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}${content}</div>`, "flags.realm-guard.rollDecisionPending": false });
+      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}${content}</div>`, "flags.realm-guard.rollDecisionPending": false,
+        ...(versusTie ? {"flags.realm-guard.versusTie":versusTie} : {}),
+        ...(testSource ? {"flags.realm-guard.testSource":{...testSource,actorUuid:actor.uuid??null}} : {}) });
     },
     async interrupt() {
       pending.get(message.id)?.answer(null); pending.delete(message.id); active.delete(message.id);

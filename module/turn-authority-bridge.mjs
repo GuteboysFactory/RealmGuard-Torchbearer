@@ -95,8 +95,8 @@ export function installTurnAuthorityBridge(nextHandlers = {}) {
   else globalThis.Hooks?.once?.("ready", attach);
 }
 
-export async function requestTurnAuthority(operation, payload = {}, { timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
-  if (globalThis.game?.user?.isGM) {
+export async function requestTurnAuthority(operation, payload = {}, { timeoutMs = REQUEST_TIMEOUT_MS, primaryOnly = false } = {}) {
+  if (globalThis.game?.user?.isGM && (!primaryOnly || primaryActiveGm()?.id === game.user.id)) {
     const handler = handlers[operation];
     if (typeof handler !== "function") return { ok: false, reason: `Unknown Turn authority operation: ${operation}` };
     return handler(payload, { requester: globalThis.game.user, local: true });

@@ -18,6 +18,12 @@
 .rg-separated-message {margin-block:14px!important;border:1px solid #967a46!important;border-left:5px solid #d6b66e!important;border-radius:10px!important;box-shadow:0 5px 12px #0008!important;overflow:hidden;background:#1c221d!important;color:#f0ead7!important}
 .rg-separated-message .message-header{padding:8px 10px;background:#30372d;border-bottom:1px solid #877445;color:#f5e9c8}
 .rg-separated-message .message-content{padding:10px}
+.rg-versus-tiebreak {display:grid;gap:7px;margin-top:10px;padding:9px;border:1px solid #97734b;background:#24291e;color:#f4e7cb}
+.rg-versus-tiebreak h4,.rg-versus-tiebreak p {margin:0;color:inherit}
+.rg-versus-tiebreak-side {display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding-block:5px;border-top:1px solid #625538}
+.rg-versus-tiebreak-side > b {flex:1 1 100%}
+.rg-versus-tiebreak [data-versus-tie-action] {justify-self:start;width:auto;background:#354a31;color:#ffeec9}
+.rg-versus-tiebreak-side select {width:auto}
 .rg-separated-message .rg-conflict-side-roll{margin:12px 0;padding:12px;border-radius:8px;background:#293029;border:1px solid #78846c}
 .rg-separated-message .rg-conflict-side-roll h4,.rg-separated-message .rg-readable-roll h3{background:#3c4835;color:#fff0c6;padding:9px;border-radius:5px;margin:0 0 10px}
 .rg-separated-message .rg-conflict-outcome{margin-top:16px;padding:14px;border:2px solid #b59a55;background:#151b15}

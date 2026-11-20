@@ -35,6 +35,10 @@ export async function respondToRoll(SheetClass,message){
     role=challengeTestChoices(actor).find(choice=>choice.id===options.replySelection.skillId);
     if(!role)return;
   }
+  if (challenge.versus) {
+    options.tieOpponent = (challenge.actorUuid ? fromUuidSync(challenge.actorUuid) : null) ?? game.actors.get(challenge.actorId);
+    options.tieOpposition = challenge.source;
+  }
   const result=role.type==="ability"
     ? await rollChallengeAbility(SheetClass,sheet,role,options,challenge)
     : await rollSkillWithOptions(SheetClass,sheet,role,options,{obstacle:challenge.obstacle,versus:challenge.versus,abilityKey});
@@ -99,10 +103,10 @@ function refreshResponseButtons(){
     for(const root of document.querySelectorAll(`[data-message-id="${CSS.escape(message.id)}"],[data-entry-id="${CSS.escape(message.id)}"]`))paintResponseButtons(message,root);
   }
 }
-export async function publishChallenge(actor,label,obstacle,{versus=false}={}){
+export async function publishChallenge(actor,label,obstacle,{versus=false,source=null}={}){
   if(!game.user?.isGM)return;
   const ob=Number(obstacle);if(!Number.isInteger(ob)||ob<0)return;
-  return ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),flags:{[NS]:{challenge:{label,obstacle:ob,versus,actorId:actor?.id??null}}},content:`<div class="realm-guard rg-challenge"><header>${versus?'VERSUS':'OBSTACLE'}</header><h3>${esc(label)}</h3><strong>Ob ${ob}</strong><p><button type="button" data-rg-respond>Choose Skill and respond</button></p></div>`});
+  return ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),flags:{[NS]:{challenge:{label,obstacle:ob,versus,actorId:actor?.id??null,actorUuid:source?.actorUuid??actor?.uuid??null,source}}},content:`<div class="realm-guard rg-challenge"><header>${versus?'VERSUS':'OBSTACLE'}</header><h3>${esc(label)}</h3><strong>Ob ${ob}</strong><p><button type="button" data-rg-respond>Choose Skill and respond</button></p></div>`});
 }
 export function installLegacyChatActions(SheetClass){
   if(!legacyMixedPolishEnabled())return;
@@ -112,7 +116,7 @@ export function installLegacyChatActions(SheetClass){
   Hooks.on('renderChatLog',chatButton);Hooks.on('renderChatInput',chatButton);Hooks.once('ready',chatButton);
   Hooks.on('renderChatMessageHTML',(message,html)=>{const root=html instanceof HTMLElement?html:html?.[0];if(!root)return;if(root.querySelector('.realm-guard'))root.classList.add('rg-separated-message');
     const challenge=message.flags?.[NS]?.challenge;if(challenge&&!message.flags?.[NS]?.rollUndo?.undone){root.classList.add('rg-separated-message');if(!root.querySelector("[data-rg-respond]")){const button=document.createElement("button");button.type="button";button.dataset.rgRespond="";button.textContent=`Respond · choose Skill · Ob ${challenge.obstacle}`;root.append(button);}for(const b of root.querySelectorAll('[data-rg-respond]'))b.addEventListener('click',()=>void respondToRoll(SheetClass,message));paintResponseButtons(message,root);}
-    if(game.user.isGM&&!challenge&&root.querySelector('.rg-chat-roll-pipeline')&&!message.flags?.[NS]?.rollDecisionPending&&!message.flags?.[NS]?.conflictRoll){const b=document.createElement('button');b.type='button';b.textContent='Ask players to respond…';b.onclick=async()=>{const values=await foundry.applications.api.DialogV2.wait({window:{title:'Player response target'},content:'<label>Obstacle / rolled successes<input name="ob" type="number" min="0" step="1" value="1"></label><label><input type="checkbox" name="versus" checked> Versus</label>',modal:false,rejectClose:false,buttons:[{action:'post',label:'Post challenge',callback:(_e,btn)=>({ob:Number(btn.form.elements.ob.value),versus:btn.form.elements.versus.checked})},{action:'cancel',label:'Cancel',callback:()=>null}]});if(values)await publishChallenge(game.actors.get(message.speaker?.actor),message.speaker?.alias??'GM challenge',values.ob,{versus:values.versus});};root.append(b);}
+    if(game.user.isGM&&!challenge&&root.querySelector('.rg-chat-roll-pipeline')&&!message.flags?.[NS]?.rollDecisionPending&&!message.flags?.[NS]?.versusTie&&!message.flags?.[NS]?.conflictRoll){const b=document.createElement('button');b.type='button';b.textContent='Ask players to respond…';b.onclick=async()=>{const values=await foundry.applications.api.DialogV2.wait({window:{title:'Player response target'},content:'<label>Obstacle / rolled successes<input name="ob" type="number" min="0" step="1" value="1"></label><label><input type="checkbox" name="versus" checked> Versus</label>',modal:false,rejectClose:false,buttons:[{action:'post',label:'Post challenge',callback:(_e,btn)=>({ob:Number(btn.form.elements.ob.value),versus:btn.form.elements.versus.checked})},{action:'cancel',label:'Cancel',callback:()=>null}]});if(values)await publishChallenge(game.actors.get(message.speaker?.actor),message.speaker?.alias??'GM challenge',values.ob,{versus:values.versus,source:message.flags?.[NS]?.testSource});};root.append(b);}
   });
   game.realmGuard??={};game.realmGuard.publishChallenge=publishChallenge;
   Hooks.on('renderApplicationV2',app=>{if(app.actor&&app.element){const title=app.element.querySelector('.window-title');if(title){title.textContent=app.actor.name;title.title=app.actor.name;}}});

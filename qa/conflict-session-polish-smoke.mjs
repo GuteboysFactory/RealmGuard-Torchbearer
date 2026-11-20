@@ -81,7 +81,13 @@ result=await complete(actor.rollRole(actor.items.get('fighter'),{tokenPowerId:'t
 actor=ranger();let tiedOpponent=new RealmGuardActor(actorData('opponent'));fixture.dice.push([4,1,1],[4,1]);
 result=await complete(actor.rollAutomaticVersus(actor.items.get('fighter'),tiedOpponent,{kind:'role',name:'Scout',rating:2}),['skip']);assert.equal(result.tied,true);
 actor=ranger();tiedOpponent=new RealmGuardActor(actorData('opponent'));fixture.dice.push([4,1,1],[4,1],[4,4,1,1],[1,1,1,1]);
-result=await complete(actor.rollAutomaticVersus(actor.items.get('fighter'),tiedOpponent,{kind:'role',name:'Scout',rating:2}),['0']);assert.equal(result.passed,true);assert.equal(fixture.messages.length,1);
+result=await complete(actor.rollAutomaticVersus(actor.items.get('fighter'),tiedOpponent,{kind:'role',name:'Scout',rating:2}),['skip']);
+assert.equal(result.tied,true);
+assert.equal(fixture.messages.length,1);
+const sharedTie=fixture.messages[0].flags['realm-guard'].versusTie;
+assert.deepEqual(sharedTie.sides.map(side=>side.options),[['health'],['health']]);
+assert.ok(sharedTie.sides.every(side=>side.ability===null && side.roll===null));
+assert.equal(fixture.dice.length,2,'The players roll the tiebreaker from their own chat controls');
 
 actor=ranger();fixture.dice.push([6,1,2]);
 const inProgress=actor.rollRole(actor.items.get('fighter'));

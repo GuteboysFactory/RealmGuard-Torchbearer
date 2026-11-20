@@ -1,9 +1,9 @@
-# 1.13.6 — Character sheets, map markers and Pass Checks
+# 1.13.7 — Versus tiebreakers in chat
 
-- **Character sheets in Legacy Mixed** offer Compact and Detailed layouts, a world default and a GM override. Compact keeps the same header across Character, Skills and Inventory & Gear. Level is in Overview, Concept is under Background in Compact, and custom Skills can be deleted from Edit.
-- **NPC, Monster and Animal sheets** prioritize Nature, descriptors, Skills and Traits. NPC Notes keep their saved text.
-- **Pass Checks** opens from the arrow beside Checks and searches player characters by name. It works in Legacy Mixed, Mouse Guard 1E and Mouse Guard 2E, during Players' Turn and with Turn Manager off.
-- **Map markers in Legacy Mixed** can be moved, edited, deleted, resized individually or resized together on a scene. The menu includes Show and Hide for players. The library has 162 searchable icons, including a new fantasy City symbol.
-- **Legacy Mixed playtest fixes** cover Wise use, Trait benefits and session resets, ability-based replies to chat challenges, automatic opposition, Ask for Help, the GM Control window, and the Session Break return button.
+In Legacy Mixed, a tied Versus test with two known characters now has a shared tiebreaker on the original chat card. Each character's controller confirms an ability and rolls from a button labelled with that character's name and ability. The card suggests the abilities from the original tests when available.
 
-This release promotes the runtime tested in QA.17. Foundry 13.351 was used for verification.
+The GM rolls for GM-controlled opponents. The card reports which character still needs to roll, then shows the winner and the margin once both rolls are in. A second tie in PvP is decided by the GM. A second tie against a GM-controlled opponent goes to the GM side.
+
+The shared card works with automatic Versus, manual Versus with a selected opponent, and replies to Versus challenges with an identified challenger. An anonymous challenge retains manual tie resolution.
+
+Verified in Foundry 13.351 with two player accounts and a GM.

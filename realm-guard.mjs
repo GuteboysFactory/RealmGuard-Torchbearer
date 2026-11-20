@@ -7,6 +7,7 @@ import { installLegacyChatFollow } from './module/legacy-chat-follow.mjs';
 import { installLegacyBreak } from './module/legacy-break.mjs';
 import { installLegacySessionView } from './module/legacy-session-view.mjs';
 import { installLegacyChatActions } from './module/legacy-chat-actions.mjs';
+import { installVersusTiebreak } from './module/versus-tiebreak.mjs';
 import { installRollUndo } from './module/roll-undo.mjs';
 import { installRollChat } from "./module/roll-chat.mjs";
 import { installDefaultSkillProvisioning } from "./module/default-skills.mjs";
@@ -139,6 +140,7 @@ Hooks.once("init", () => {
   installLegacyBreak();
   installLegacySessionView();
   installLegacyChatActions(RealmGuardActorSheet);
+  installVersusTiebreak();
   installRollUndo(RealmGuardActorSheet);
   installGmTools();
   installProgression();

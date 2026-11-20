@@ -11,6 +11,7 @@ import { diceFacesHtml } from "./dice-ui.mjs";
 import { traitLevel, traitPositiveStatus, traitPositiveDice, traitPositiveSuccessBonus, consumeTraitPositiveUse } from "./traits.mjs";
 import { applyMg2eWiseEffect } from "./m10c-mg2e-live-wises.mjs";
 import { getActiveM10BFamilyRulePolicy } from "./m10b-family-rules.mjs";
+import { versusTieState } from "./versus-tiebreak.mjs";
 
 function familyPolicy() { return getActiveM10BFamilyRulePolicy(); }
 function usesMg1eTraitRules() { return familyPolicy().mg1eTraits; }
@@ -272,7 +273,7 @@ export class RealmGuardActor extends Actor {
     return { key, label, base, conditions, dice: Math.max(0, base + Number(conditions.dice ?? 0)) };
   }
 
-  async _openTieDecision({ role, opponent, opposition, ownFaces, fateAlreadySpent = false, chatDecision = null } = {}) {
+  async _openTieDecision({ role, opponent, opposition, ownFaces, fateAlreadySpent = false, chatDecision = null, shared = false } = {}) {
     const esc = foundry.utils.escapeHTML;
     const ownOptions = this._tiebreakOptions(role.name, "role");
     const oppOptions = this._tiebreakOptions(opposition.name, opposition.kind);
@@ -280,10 +281,17 @@ export class RealmGuardActor extends Actor {
     const canTraitYield = this.traits.length > 0 && !Boolean(opponent?.hasPlayerOwner);
     if (chatDecision) {
       await chatDecision.show(ownFaces);
-      const choices = [
+      const alternatives = [
         ...(canTraitYield ? this.traits.map(trait => ({ label: `${trait.name} · yield to opponent`, value: { action: "trait", traitId: trait.id } })) : []),
-        ...(canFate ? [{ label: "Spend 1 Fate", value: { action: "fate" } }] : []),
-        ...ownOptions.flatMap(ownAbility => oppOptions.map(oppAbility => ({ label: `Tiebreaker · ${ownAbility} vs ${oppAbility}`, value: { action: "tiebreak", ownAbility, oppAbility } })))
+        ...(canFate ? [{ label: "Spend 1 Fate", value: { action: "fate" } }] : [])
+      ];
+      if (shared && !alternatives.length) return {action:"later"};
+      const choices = [
+        ...alternatives,
+        ...(shared ? [{label:"Choose tiebreaker abilities", value:{action:"later"}}] :
+          ownOptions.flatMap(ownAbility => oppOptions.map(oppAbility => ({
+            label: `Tiebreaker · ${ownAbility} vs ${oppAbility}`, value: { action: "tiebreak", ownAbility, oppAbility }
+          }))))
       ];
       return chatDecision.ask("Versus tie · choose a tiebreaker or defer", choices, { skip: { action: "later" } });
     }
@@ -344,10 +352,10 @@ export class RealmGuardActor extends Actor {
     });
   }
 
-  async _resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces, opponentFaces, fateAlreadySpent = false, chatDecision = null } = {}) {
+  async _resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces, opponentFaces, fateAlreadySpent = false, chatDecision = null, shared = false } = {}) {
     const initialOwn = ownFaces.filter(v => v >= 4).length;
     const initialOpp = opponentFaces.filter(v => v >= 4).length;
-    const decision = await this._openTieDecision({ role, opponent, opposition, ownFaces, fateAlreadySpent, chatDecision });
+    const decision = await this._openTieDecision({ role, opponent, opposition, ownFaces, fateAlreadySpent, chatDecision, shared });
     if (!decision || decision.action === "later") {
       return { resolved: false, tied: true, outcome: "TIE", passed: false, method: "pending", learningResult: null };
     }
@@ -369,6 +377,7 @@ export class RealmGuardActor extends Actor {
       if (fateSuccesses > initialOpp) {
         return { resolved: true, tied: false, outcome: "PASS", passed: true, method: "fate", learningResult: true, margin: fateSuccesses - initialOpp, fateFaces, finalOwnSuccesses: fateSuccesses, finalOpponentSuccesses: initialOpp, fateSpent: true };
       }
+      if (shared) return {resolved:false, tied:true, outcome:"TIE", method:"pending", fateSpent:true, fateFaces};
       // Fate did not break the tie; continue to the rules' tiebreaker roll.
     }
 
@@ -475,7 +484,7 @@ export class RealmGuardActor extends Actor {
     return Math.max(1,Number(result.margin||1));
   }
 
-  async rollRole(role, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within" } = {}) {
+  async rollRole(role, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", tieOpponent = null, tieOpposition = null } = {}) {
     let rollChat = null;
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
@@ -540,13 +549,15 @@ export class RealmGuardActor extends Actor {
       versus ? "Versus test" : ""
     ].filter(Boolean);
     const content = `<div class="realm-guard chat-roll rg-readable-roll"><h3>${foundry.utils.escapeHTML(role.name)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length ? `<div class="rg-roll-support-notes">${specialNotes.map(note => `<span>${note}</span>`).join("")}</div>` : ""}${(personaDice || tapNature || spendFate) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(persona || tapNature) ? `Persona −${personaDice+(tapNature?1:0)}` : "", spendFate ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Base roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${sixes}</strong></span></div>${natureTaxText}${this._resultSummaryHTML(successes, obstacle, { versus, targetLabel: versus ? "Target / Obstacle" : "Obstacle" })}</div>`;
-    await rollChat.finish(content);
-    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id}});
+    const source = {name:role.name, kind:"role"};
+    const versusTie = result.tied ? versusTieState(this, source, tieOpponent, tieOpposition) : null;
+    await rollChat.finish(content, {versusTie, testSource:source});
+    if(game.user.isGM&&!versusTie)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id,actorUuid:this.uuid,source}});
     return { roll, successes, sixes, passed, tied:result.tied, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
 
-  async rollAbility(abilityKey, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", natureUse = "within", doubleTapNature = false } = {}) {
+  async rollAbility(abilityKey, { talentUse = null,  modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, ignoreConditions = false, tapNature = false, natureScope = "within", natureUse = "within", doubleTapNature = false, tieOpponent = null, tieOpposition = null } = {}) {
     let rollChat = null;
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
@@ -597,7 +608,8 @@ export class RealmGuardActor extends Actor {
       spendFate?"Fate: Open 6s":""
     ].filter(Boolean);
     const content=`<div class="realm-guard chat-roll rg-nature-aware rg-readable-roll"><h3>${esc(label)}</h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${specialNotes.length?`<div class="rg-roll-support-notes">${specialNotes.map(note=>`<span>${note}</span>`).join("")}</div>`:""}${(personaDice||tapNature||doubleTapNature||spendFate)?`<p class="rg-resource-spend"><b>Resources spent:</b> ${[(personaDice||tapNature||doubleTapNature)?`Persona −${personaDice+(tapNature?1:0)+(doubleTapNature?1:0)}`:"",spendFate?"Fate −1":""].filter(Boolean).join(" · ")}</p>`:""}${Array.isArray(help)&&help.length?`<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h=>`${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>`:""}${rollFacesRowsHtml([{label:"Roll",faces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}<div class="rg-roll-final-count"><span><b>Final Successes</b><strong>${successes}</strong></span><span><b>6s</b><strong>${finalFaces.filter(v=>v===6).length}</strong></span></div>${taxText}${this._resultSummaryHTML(successes,obstacle,{versus})}</div>`;
-    await rollChat.finish(content);
+    const versusTie = result.tied ? versusTieState(this, {name:label, kind:"ability"}, tieOpponent, tieOpposition) : null;
+    await rollChat.finish(content, {versusTie, testSource:{name:label, kind:"ability"}});
     return {roll,successes,passed:result.passed,tied:result.tied,margin:result.margin,outcome:result.outcome,fateSpent:spendFate,natureTax:taxResult,tokenPowerId:power?.token?.id??null,tokenPowerName:power?.token?.name??"",tokenPowerLevel:power?.level??0};
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
@@ -626,7 +638,7 @@ export class RealmGuardActor extends Actor {
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
 
-  async rollBeginnerLuck(role, { talentUse = null,  abilityKey = "will", modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, opponent = null, opposition = null, countLearning = true, tapNature = false, natureScope = "within" } = {}) {
+  async rollBeginnerLuck(role, { talentUse = null,  abilityKey = "will", modifier = 0, extraDice = 0, help = [], obstacle = 1, versus = false, persona = 0, traitId = null, traitMode = "help", wiseId = null, tokenPowerId = null, opponent = null, opposition = null, countLearning = true, tapNature = false, natureScope = "within", tieOpponent = null, tieOpposition = null } = {}) {
     let rollChat = null;
     if (!claimActorRoll(this)) return ui.notifications.warn("Realm Guard: Finish the pending chat choices for this character first.");
     try {
@@ -675,6 +687,8 @@ export class RealmGuardActor extends Actor {
     if (spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
     const faces = baseFaces.concat(bonusFaces); let successes = faces.filter(v => v >= 4).length;
     let target = Number(obstacle ?? 1), targetLabel = "Obstacle", result;
+    const source = {name:role.name, kind:"role"};
+    let versusTie = null;
     let opponentFaces = [], opponentDice = 0;
     if (opponent && opposition) {
       const oppConditions = conditionRollData(opponent, opposition.name, { isSkill: opposition.kind === "role" });
@@ -683,8 +697,12 @@ export class RealmGuardActor extends Actor {
       const oppRoll = await new Roll(`${opponentDice}d6`).evaluate(); opponentFaces = oppRoll.dice.flatMap(d => d.results.map(r => r.result));
       target = opponentFaces.filter(v => v >= 4).length; targetLabel = opposition.name; successes += this._traitSuccessBonus(assist, successes, target, { versus: true }); result = this._resultData(successes, target, { versus: true });
       if (result.tied) {
-        const tie = await this._resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces: faces, opponentFaces, fateAlreadySpent: spendFate, chatDecision: rollChat });
-        if (tie?.resolved) result = { outcome: tie.outcome, tied: false, passed: tie.passed, margin: Number(tie.margin ?? 0), needsTiebreaker: false };
+        versusTie = versusTieState(this, source, opponent, opposition);
+        const tie = await this._resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces: faces, opponentFaces, fateAlreadySpent: spendFate, chatDecision: rollChat, shared:Boolean(versusTie) });
+        if (tie?.resolved) {
+          versusTie = null;
+          result = { outcome: tie.outcome, tied: false, passed: tie.passed, margin: Number(tie.margin ?? 0), needsTiebreaker: false };
+        }
       }
     } else { successes += this._traitSuccessBonus(assist, successes, target, {versus}); result = this._resultData(successes, target, {versus}); }
     const natureTax = result.tied ? 0 : this._natureTax(result, { tapped: tapNature, scope: natureScope });
@@ -710,8 +728,9 @@ export class RealmGuardActor extends Actor {
       tapNature?["Tap Nature after half",`+${natureTapDice}D · ${natureScope}`]:null
     ]);
     const content = `<div class="realm-guard chat-roll rg-beginner-chat rg-readable-roll"><h3>${esc(role.name)} <span class="rg-chat-versus">BEGINNER'S LUCK</span></h3>${playerTurnSpendHtml(turnSpend)}${poolBreakdown}${assist.blockedWise?`<div class="rg-roll-support-notes"><span>Wise blocked by Angry</span></div>`:""}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}${rollFacesRowsHtml([{label:"Roll",faces:baseFaces},{label:"Wise reroll",faces:wiseResult.rerollFaces},{label:"Token reroll",faces:tokenResult.rerollFaces},{label:"Fate dice",faces:bonusFaces}])}${opponent?`<div class="rg-roll-opponent"><header><b>Opponent</b><strong>${esc(opponent.name)} · ${esc(opposition.name)}</strong></header><div><span>${opponentDice}D</span>${diceFacesHtml(opponentFaces)}<b>${target} successes</b></div></div>`:""}${natureTaxText}${this._resultSummaryHTML(successes,target,{versus:Boolean(opponent)||versus,targetLabel})}<p class="rg-beginner-learning"><b>Learning:</b> ${Math.min(needed,currentAttempts+(countLearning && !result.tied ? 1 : 0))} / ${needed} Beginner's Luck attempts <small>(${countLearning ? (result.tied ? "unresolved tie — not recorded yet" : "pass/fail does not matter") : "not counted for learning"})</small></p></div>`;
-    await rollChat.finish(content);
-    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id}});
+    if (result.tied && !versusTie) versusTie = versusTieState(this, source, tieOpponent, tieOpposition);
+    await rollChat.finish(content, {versusTie, testSource:source});
+    if(game.user.isGM&&!versusTie)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:successes,versus:true,actorId:this.id,actorUuid:this.uuid,source}});
     return { roll, successes, passed: result.passed, tied: result.tied, margin: result.margin, outcome: result.outcome, fateSpent: spendFate, tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0 };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }
@@ -764,9 +783,12 @@ export class RealmGuardActor extends Actor {
     const opponentSixes = opponentFaces.filter(v => v === 6).length;
     let result = this._resultData(successes, opponentSuccesses, { versus: true });
     let tieResolution = null;
+    const source = {name:role.name, kind:"role"};
+    let versusTie = result.tied ? versusTieState(this, source, opponent, opposition) : null;
     if (result.tied) {
-      tieResolution = await this._resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces, opponentFaces, fateAlreadySpent: spendFate, chatDecision: rollChat });
+      tieResolution = await this._resolveAutomaticVersusTie({ role, opponent, opposition, ownFaces, opponentFaces, fateAlreadySpent: spendFate, chatDecision: rollChat, shared:Boolean(versusTie) });
       if (tieResolution?.resolved) {
+        versusTie = null;
         result = { outcome: tieResolution.outcome, tied: false, passed: tieResolution.passed, margin: Number(tieResolution.margin ?? 0), needsTiebreaker: false };
       }
     }
@@ -786,8 +808,8 @@ export class RealmGuardActor extends Actor {
       ? this._resultSummaryHTML(successes, opponentSuccesses, { versus: true, targetLabel: esc(opponentName) })
       : `<div class="rg-result-summary"><span><b>Successes</b><strong>${finalOwnSuccesses}</strong></span><span><b>${esc(opponentName)}</b><strong>${opponentSuccesses}</strong></span><span class="rg-result-final"><strong class="rg-roll-outcome ${result.passed ? "pass" : "fail"}">${result.passed ? "PASS" : "FAIL"}</strong><small class="rg-result-margin">${result.passed ? "Success" : "Failed"}: ${Number(result.margin ?? 0)}</small></span></div>`;
     const content = `<div class="realm-guard chat-roll rg-auto-versus"><h3>${esc(role.name)} <span class="rg-chat-versus">AUTO VERSUS</span></h3>${playerTurnSpendHtml(turnSpend)}${Array.isArray(help) && help.length ? `<p class="rg-teamwork-chat"><b>Teamwork:</b> ${help.map(h => `${esc(h.actorName)} — ${h.sourceKind === "Wise" ? (usesRatedWises() ? "Wise Teamwork" : "I Am Wise") : esc(h.sourceKind)}: ${esc(h.sourceName)} (+${Number(h.dice||1)}D${h.synergy ? " · Synergy" : ""})`).join(" · ")}</p>` : ""}<p><b>${esc(this.name)} · ${esc(role.name)}:</b> ${ownDice}d6 · Base ${Number(role.system.rating ?? 0)}D ${Number(modifier || 0) ? `· Modifier ${Number(modifier || 0) > 0 ? "+" : ""}${Number(modifier || 0)}D` : ""} ${Number(extraDice || 0) ? `· Extra Dice +${Math.max(0, Number(extraDice || 0))}D` : ""} ${Array.isArray(help) && help.length ? `· Teamwork ${help.reduce((n,h)=>n+Number(h.dice||0),0)}D` : ""} ${personaDice ? `· Persona +${personaDice}D` : ""} ${tapNature ? `· Tap Nature +${natureTapDice}D (${natureScope})` : ""} ${conditionData.active.length ? `· Conditions ${conditionData.active.map(c => `${esc(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(", ")}` : ""} ${this._traitChatText(assist, earnedTraitChecks)} ${this._tokenPowerChatText(power, tokenResult)} ${assist.wise ? `· ${usesRatedWises() ? "I Am Wise" : "Wise"}: ${esc(assist.wise.name)}` : ""} → ${diceFacesHtml(baseFaces)} ${wiseResult.rerollFaces.length ? `· <b>Wise reroll:</b> ${diceFacesHtml(wiseResult.rerollFaces)}` : ""} ${tokenResult.rerollFaces.length ? `· <b>Token reroll:</b> ${diceFacesHtml(tokenResult.rerollFaces)}` : ""} ${bonusFaces.length ? `· <b>Fate dice:</b> ${diceFacesHtml(bonusFaces)}` : ""} · <b>${successes} successes</b> · ${sixes} sixes</p>${(personaDice || tapNature || spendFate || tieResolution?.fateSpent) ? `<p class="rg-resource-spend"><b>Resources spent:</b> ${[(personaDice||tapNature)?`Persona −${personaDice+(tapNature?1:0)}`:"", (spendFate || tieResolution?.fateSpent) ? "Fate −1" : ""].filter(Boolean).join(" · ")}</p>` : ""}<p><b>vs ${esc(opponent.name)} · ${esc(opponentName)}:</b> ${opponentDice}d6 · Base ${opponentBase}D ${assist.opponentDice ? `· Trait Against +${assist.opponentDice}D` : ""} ${opponentConditionData.active.length ? `· Conditions ${opponentConditionData.active.map(c => `${esc(c.name)} ${Number(c.system.rollModifier ?? 0) >= 0 ? "+" : ""}${Number(c.system.rollModifier ?? 0)}D`).join(", ")}` : ""} → ${diceFacesHtml(opponentFaces)} · <b>${opponentSuccesses} successes</b> · ${opponentSixes} sixes</p>${tieDetail}${natureTaxText}${summary}</div>`;
-    await rollChat.finish(content);
-    if(game.user.isGM)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:finalOwnSuccesses,versus:true,actorId:this.id}});
+    await rollChat.finish(content, {versusTie, testSource:source});
+    if(game.user.isGM&&!versusTie)await rollChat.message.update({"flags.realm-guard.challenge":{label:role.name,obstacle:finalOwnSuccesses,versus:true,actorId:this.id,actorUuid:this.uuid,source}});
     return { roll: ownRoll, opponentRoll, successes: finalOwnSuccesses, opponentSuccesses, sixes, opponentSixes, passed: result.passed, tied: unresolvedTie, margin: result.margin, outcome: unresolvedTie ? "TIE" : result.outcome, needsTiebreaker: unresolvedTie, automaticVersus: true, opponentName, opponentKind: opposition.kind, fateSpent: Boolean(spendFate || tieResolution?.fateSpent), tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0, learningResult: tieResolution ? tieResolution.learningResult : result.passed, tieResolution };
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this); }
   }

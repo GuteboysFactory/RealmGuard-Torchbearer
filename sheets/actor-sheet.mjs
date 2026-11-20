@@ -780,7 +780,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       opposition = opponent ? RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId) : null;
       if (!opposition || opposition.rating <= 0) return ui.notifications.warn("Realm Guard: Choose a valid Versus opposition.");
     }
-    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope });
+    const tieOpponent = options.manualVersus ? legacyOpponentActor(options) : null;
+    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope, tieOpponent });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, `${role.name} · Beginner's Luck`);
     await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} · Beginner's Luck`);
@@ -877,7 +878,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       result = await this.actor.rollAutomaticVersus(role, opponent, opposition, { talentUse, modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
     } else {
       if (versus && game.user.targets.size > 1) ui.notifications.warn("Realm Guard: Automatic Versus needs exactly one target; using manual Obstacle instead.");
-      result = await this.actor.rollRole(role, { talentUse, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
+      const tieOpponent = options.manualVersus ? legacyOpponentActor(options) : null;
+      result = await this.actor.rollRole(role, { talentUse, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, tieOpponent });
     }
     if (result) {
       await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, role.name);
