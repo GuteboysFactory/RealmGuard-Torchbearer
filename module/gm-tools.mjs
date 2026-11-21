@@ -8,7 +8,6 @@ import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
 import { openContentStudio } from "./content-studio.mjs";
 import { baselineObstacle, liveRollObstacle, obstacleMode, OBSTACLE_MODES, OBSTACLE_MODE_HELP, setBaselineObstacle, setLiveRollObstacle, resetLiveRollObstacle, setObstacleMode, obstacleDifficultyText } from "./obstacles.mjs";
 import { openNpcTemplateLibrary } from "./npc-builder.mjs";
-import { openQuickTokenBuilder } from "./token-builder.mjs";
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value ?? 0)));
@@ -67,7 +66,6 @@ function selectedSummary(actors) {
         <button type="button" data-rg-inspect-action="center" data-actor-id="${esc(actor.id)}" title="Center on token"><i class="fa-solid fa-crosshairs"></i><span>Center</span></button>
         <button type="button" data-rg-inspect-action="roll" data-actor-id="${esc(actor.id)}" title="Quick Roll"><i class="fa-solid fa-dice"></i><span>Roll</span></button>
         <button type="button" data-rg-inspect-action="conditions" data-actor-id="${esc(actor.id)}" title="Conditions"><i class="fa-solid fa-heart-pulse"></i><span>Conditions</span></button>
-        <button type="button" data-rg-inspect-action="token" data-actor-id="${esc(actor.id)}" title="Token Builder"><i class="fa-solid fa-crop-simple"></i><span>Token</span></button>
       </div>
     </article>`;
   }).join("");
@@ -538,7 +536,6 @@ export async function openGmTools() {
     if (action === "center") return centerActorToken(actor);
     if (action === "roll") return quickActorRoll(actor);
     if (action === "conditions") return openConditionMenu(actor);
-    if (action === "token") return openQuickTokenBuilder(actor);
   });
 
   root?.querySelectorAll?.("[data-rg-gm]").forEach(button => button.addEventListener("click", async event => {

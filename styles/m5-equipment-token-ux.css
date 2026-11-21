@@ -33,39 +33,3 @@
 .realm-guard .rg-portrait-stage .rg-portrait {
   border-radius:8px !important;
 }
-
-/* Token Builder local file drag/drop affordance. */
-.rg-token-builder-stage[data-rg-drop-ready="true"] {
-  position:relative;
-}
-.rg-token-builder-stage[data-rg-drop-ready="true"]:after {
-  content:"Drop image here";
-  position:absolute;
-  left:50%;
-  bottom:14px;
-  transform:translateX(-50%);
-  padding:5px 10px;
-  border:1px solid rgba(217,189,121,.48);
-  border-radius:999px;
-  background:rgba(8,10,8,.76);
-  color:#d9bd79;
-  font:700 11px/1.2 Georgia,serif;
-  letter-spacing:.06em;
-  pointer-events:none;
-  opacity:.7;
-  z-index:8;
-}
-.rg-token-builder-stage.is-file-dragover {
-  outline:3px solid #d9bd79;
-  outline-offset:-5px;
-  box-shadow:inset 0 0 45px rgba(217,189,121,.22),0 0 18px rgba(217,189,121,.18);
-}
-.rg-token-builder-stage.is-file-dragover:after {
-  content:"Release to use as Character Art";
-  opacity:1;
-  background:rgba(38,47,31,.94);
-}
-.rg-token-builder-stage.is-uploading:after {
-  content:"Uploading artwork…";
-  opacity:1;
-}

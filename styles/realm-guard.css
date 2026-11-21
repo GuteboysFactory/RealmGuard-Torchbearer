@@ -2680,15 +2680,6 @@ body:has(#join-game) {
 .rg-obstacle-panel .rg-roll-dialog-grid > label { min-width:0; }
 .rg-obstacle-panel .rg-roll-dialog-grid > label > small { display:block; margin-top:.25rem; line-height:1.25; opacity:.72; }
 
-.rg-portrait-wrap .rg-token-button,
-.rg-npc-portrait-wrap .rg-token-button {
-  position:absolute; display:grid!important; place-items:center; width:28px!important; min-width:28px!important; height:28px!important;
-  padding:0!important; border-radius:50%!important; border:1px solid rgba(211,154,88,.7)!important;
-  background:rgba(16,18,15,.9)!important; color:#e5b06f!important; box-shadow:0 2px 8px rgba(0,0,0,.45);
-}
-.rg-portrait-wrap .rg-token-button { left:5px; bottom:5px; }
-.rg-npc-portrait-wrap .rg-token-button { left:-4px; bottom:-4px; }
-.rg-token-button:hover { background:#2a241a!important; color:#ffd399!important; }
 
 .realm-guard.npc-sheet { min-width:620px; }
 .realm-guard .rg-npc-header { grid-template-columns:96px minmax(0,1fr) minmax(154px,172px); gap:14px; align-items:stretch; padding:12px 14px; }
@@ -2708,21 +2699,6 @@ body:has(#join-game) {
 .realm-guard .rg-npc-quick-tools button { white-space:nowrap; }
 .realm-guard .rg-npc-main { grid-template-columns:minmax(360px,1.25fr) minmax(300px,.9fr); gap:12px; }
 
-.rg-token-builder { min-width:min(720px,88vw); display:grid; gap:.8rem; }
-.rg-token-builder header h2 { margin:.15rem 0; color:#e2c37c; font-family:Georgia,serif; }
-.rg-token-builder header p { margin:.2rem 0; opacity:.78; }
-.rg-token-builder-layout { display:grid; grid-template-columns:minmax(280px,1fr) minmax(260px,.8fr); gap:1rem; align-items:start; }
-.rg-token-builder-stage { position:relative; width:min(360px,100%); aspect-ratio:1; margin:auto; overflow:hidden; cursor:grab; border:1px solid #75633f; border-radius:12px; background:repeating-conic-gradient(#191a16 0 25%,#11120f 0 50%) 50%/24px 24px; box-shadow:inset 0 0 35px #0008; touch-action:none; }
-.rg-token-builder-stage:active { cursor:grabbing; }
-.rg-token-builder-stage img { position:absolute; left:50%; top:50%; width:100%; height:100%; max-width:none; max-height:none; transform-origin:center; user-select:none; pointer-events:none; }
-.rg-token-builder-ring { position:absolute; inset:8%; border:3px solid rgba(226,195,124,.88); border-radius:50%; box-shadow:0 0 0 999px rgba(0,0,0,.2); pointer-events:none; }
-.rg-token-builder-controls { display:grid; gap:.7rem; padding:.8rem; border:1px solid #514832; border-radius:8px; background:#141510; }
-.rg-token-builder-controls label { display:grid; grid-template-columns:1fr minmax(120px,1.2fr) auto; align-items:center; gap:.5rem; }
-.rg-token-builder-controls select,.rg-token-builder-controls input[type="range"] { width:100%; }
-.rg-token-builder-controls output { min-width:3rem; text-align:right; color:#d9bd79; }
-.rg-token-builder-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
-.rg-token-builder-actions button,.rg-token-use-portrait { min-height:34px; }
-.rg-token-builder-controls small { opacity:.7; line-height:1.35; }
 
 @media(max-width:900px){
   .realm-guard .rg-npc-header { grid-template-columns:84px minmax(0,1fr); }
@@ -2730,9 +2706,6 @@ body:has(#join-game) {
   .realm-guard .rg-npc-statbar { grid-template-columns:repeat(3,minmax(110px,1fr)); }
   .realm-guard .rg-npc-toolbar { grid-template-columns:1fr; }
   .realm-guard .rg-npc-quick-tools { justify-content:flex-start; }
-}
-@media(max-width:620px){
-  .rg-token-builder-layout { grid-template-columns:1fr; }
 }
 @media(max-width:760px){
   .rg-obstacle-panel .rg-roll-dialog-grid { grid-template-columns:1fr; }
@@ -2765,9 +2738,6 @@ body:has(#join-game) {
   .rg-npc-statbar { grid-template-columns:1fr; }
   .rg-npc-quick-tools { flex-wrap:wrap; }
 }
-.rg-token-update-scene { border-top:1px solid #514832; padding-top:.65rem; }
-.rg-token-update-scene > span:last-child { display:flex; align-items:center; gap:.45rem; }
-.rg-token-update-scene input[type="checkbox"] { width:auto; }
 
 
 /* v1.0.8.1 QA hotfix — keep each core Roll field visually attached to its value and explanation. */
@@ -2826,7 +2796,7 @@ body:has(#join-game) {
   .rg-obstacle-panel .rg-roll-dialog-grid.rg-roll-core-fields { grid-template-columns:1fr; }
 }
 
-/* v1.0.8.2 - NPC Conditions readability + manual Token Builder framing */
+/* v1.0.8.2 - NPC Conditions readability */
 .realm-guard .rg-npc-side .rg-npc-condition-grid {
   grid-template-columns: 1fr;
   gap: 5px;
@@ -2858,13 +2828,6 @@ body:has(#join-game) {
   width: 28px;
   height: 28px;
 }
-.rg-token-builder-stage img {
-  width: auto;
-  height: auto;
-  object-fit: unset;
-}
-/* Keep the visual crop guide matched to createRoundTokenAsset() radius (47% of output). */
-.rg-token-builder-ring { inset: 3%; }
 
 
 /* v1.0.8.3 - compact left-column GM Notes + saved NPC token portrait */
@@ -3619,6 +3582,8 @@ body:has(#join-game) {
 .rg-portrait-editor-stage.is-token { border-radius:50%; }
 .rg-portrait-editor-stage:active { cursor:grabbing; }
 .rg-portrait-editor-stage img { position:absolute; max-width:none; max-height:none; user-select:none; pointer-events:none; }
+.rg-portrait-editor-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
+.rg-portrait-editor-actions button { min-height:34px; }
 .rg-portrait-editor-controls { display:grid; gap:10px; }
 .rg-portrait-editor-controls label { display:grid; gap:4px; color:#e2d8bf; font-size:13px; }
 .rg-portrait-editor-controls input[type=range] { width:100%; }

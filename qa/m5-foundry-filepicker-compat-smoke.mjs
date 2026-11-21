@@ -14,9 +14,9 @@ const compat = fs.readFileSync("module/foundry-compat.mjs", "utf8");
 assert.ok(compat.includes("foundry?.applications?.apps?.FilePicker"));
 assert.ok(compat.includes("deprecatedGlobalReadRequired: false"));
 
-const ux = fs.readFileSync("module/token-builder-ux-hotfix.mjs", "utf8");
-assert.ok(ux.includes("modernFilePickerImplementation"));
-assert.ok(ux.includes("foundry.applications.apps.FilePicker.implementation"));
+assert.ok(!manifest.esmodules.includes("module/token-builder-ux-hotfix.mjs"));
+assert.ok(!fs.existsSync("module/token-builder.mjs"));
+assert.ok(!fs.existsSync("module/token-builder-ux-hotfix.mjs"));
 
 const smartScroll = fs.readFileSync("module/smart-select-scroll-hotfix.mjs", "utf8");
 assert.ok(smartScroll.includes(".rg-smart-select-menu"));
@@ -31,8 +31,8 @@ assert.ok(contextHelp.includes('window.addEventListener("scroll", () => closeSma
 console.log("PASS m5-foundry-filepicker-compat-smoke");
 
 const actorSheet = fs.readFileSync("sheets/actor-sheet.mjs", "utf8");
-const tokenBuilder = fs.readFileSync("module/token-builder.mjs", "utf8");
+const npcBuilder = fs.readFileSync("module/npc-builder.mjs", "utf8");
 assert.ok(actorSheet.includes("modernFilePickerImplementation"));
-assert.ok(tokenBuilder.includes("modernFilePickerImplementation"));
+assert.ok(npcBuilder.includes("modernFilePickerImplementation"));
 assert.ok(!actorSheet.includes("globalThis.FilePicker"));
-assert.ok(!tokenBuilder.includes("globalThis.FilePicker"));
+assert.ok(!npcBuilder.includes("globalThis.FilePicker"));

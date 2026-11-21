@@ -2,7 +2,7 @@
   <header class="rg-npc-header">
     <div class="rg-npc-portrait-wrap">
       <img class="rg-npc-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
-      {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard portrait / prototype token"><i class="fa-solid fa-palette"></i></button><button type="button" class="rg-token-button" data-action="tokenBuilder" title="Quick Token Builder"><i class="fa-solid fa-crop-simple"></i></button>{{/if}}
+      {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard portrait / prototype token"><i class="fa-solid fa-palette"></i></button>{{/if}}
     </div>
     <div class="rg-npc-identity">
       <div class="rg-brand-lockup"><span class="rg-brand-crest"><i class="fa-solid fa-skull"></i></span><span><div class="rg-brand">REALM GUARD / TORCHBEARER</div><div class="rg-brand-subtitle">{{#if legacyNpcWorkspace}}{{npcLayoutName}}{{else}}GM NPC{{/if}}</div></span></div>
@@ -37,7 +37,7 @@
   {{#if creatureLayout}}</details>{{/if}}
   {{/if}}
 
-  <div class="rg-npc-toolbar"><div class="rg-npc-drop-hint"><i class="fa-solid fa-arrow-down"></i><span>Drop Skills, Wises, Traits, Gear, Conditions, Talents or Tokens anywhere on this NPC sheet.</span></div><div class="rg-npc-quick-tools"><button type="button" data-action="tokenBuilder"><i class="fa-solid fa-crop-simple"></i> Token Builder</button><button type="button" data-action="customRoll"><i class="fa-solid fa-dice-d20"></i> Custom Roll</button></div></div>
+  <div class="rg-npc-toolbar"><div class="rg-npc-drop-hint"><i class="fa-solid fa-arrow-down"></i><span>Drop Skills, Wises, Traits, Gear, Conditions, Talents or Tokens anywhere on this NPC sheet.</span></div><div class="rg-npc-quick-tools"><button type="button" data-action="customRoll"><i class="fa-solid fa-dice-d20"></i> Custom Roll</button></div></div>
   <main class="rg-npc-main">
     <div class="rg-npc-left">
     <section class="rg-panel rg-npc-skills">

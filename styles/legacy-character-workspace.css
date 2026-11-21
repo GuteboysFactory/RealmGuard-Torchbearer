@@ -4,8 +4,8 @@
 .rg-legacy-workspace .rg-workspace-upper[hidden] { display:none!important; }
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-header { grid-template-columns:136px minmax(0,1fr) 150px!important; gap:12px!important; padding:10px!important; }
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-wrap,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-portrait-stage { width:132px!important; height:148px!important; }
-.rg-legacy-workspace .rg-art-button,.rg-legacy-workspace .rg-token-button { opacity:0; transition:opacity .15s; }
-.rg-legacy-workspace .rg-portrait-wrap:hover .rg-art-button,.rg-legacy-workspace .rg-portrait-wrap:focus-within .rg-art-button,.rg-legacy-workspace .rg-portrait-wrap:hover .rg-token-button,.rg-legacy-workspace .rg-portrait-wrap:focus-within .rg-token-button { opacity:1; }
+.rg-legacy-workspace .rg-art-button { opacity:0; transition:opacity .15s; }
+.rg-legacy-workspace .rg-portrait-wrap:hover .rg-art-button,.rg-legacy-workspace .rg-portrait-wrap:focus-within .rg-art-button { opacity:1; }
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-statbar { display:grid!important; grid-template-columns:1.25fr repeat(4,1fr)!important; gap:5px!important; padding:4px 0!important; }
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-stat { min-height:60px!important; padding:5px!important; gap:3px!important; display:flex!important; flex-wrap:wrap; align-content:center; justify-content:space-between; }
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-stat input { height:25px!important; width:34px!important; font-size:12px!important; padding:2px!important; }
@@ -68,7 +68,7 @@
  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-layout { grid-template-columns:minmax(0,1fr)!important; }
  .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-equipment-panel,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-gear-left-rail,.realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-unassigned-panel { grid-column:1!important; grid-row:auto!important; }
 }
-@media (hover:none) { .rg-legacy-workspace .rg-art-button,.rg-legacy-workspace .rg-token-button { opacity:1; } }
+@media (hover:none) { .rg-legacy-workspace .rg-art-button { opacity:1; } }
 /* Match the specificity of the older parchment and QA override sheets. */
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-trained-role .rg-role-actions .rg-compact-roll,
 .realm-guard.application .rg-sheet.character.rg-legacy-workspace .rg-tab-page[data-rg-page="skills"] .rg-untrained-actions .rg-compact-roll { flex:0 0 auto!important; width:42px!important; min-width:42px!important; color:#f7e7bd!important; }

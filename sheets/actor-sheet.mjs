@@ -15,7 +15,7 @@ import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarge
 import { compactLegacyRollDialog } from "../module/legacy-roll-layout.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
-import { openQuickTokenBuilder, openRangerPortraitEditor, rangerPortraitState, setRangerOriginalPortrait } from "../module/token-builder.mjs";
+import { openRangerPortraitEditor, rangerPortraitState, setRangerOriginalPortrait } from "../module/portrait-editor.mjs";
 import { traitPositiveStatus } from "../module/traits.mjs";
 import { tokenPowerOptionViews, tokenPowerEffectSummary, tokenPowerLinkSummary, tokenPowerLevel, tokenPowerUsed } from "../module/tokens-of-power.mjs";
 import { progressionView, setProgressionTotals, spendTrackedResource } from "../module/progression.mjs";
@@ -169,7 +169,6 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       gearUnassign: RealmGuardActorSheet._gearUnassign,
       createTestGear: RealmGuardActorSheet._createTestGear,
       chooseArt: RealmGuardActorSheet._chooseArt,
-      tokenBuilder: RealmGuardActorSheet._tokenBuilder,
       portraitSettings: RealmGuardActorSheet._portraitSettings,
       customRoll: RealmGuardActorSheet._customRoll,
       linkRelationshipActor: RealmGuardActorSheet._linkRelationshipActor,
@@ -233,7 +232,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
         try {
           const path = await uploadRangerPortrait(file);
           await setRangerOriginalPortrait(this.actor, path, { switchToOriginal: true });
-          ui.notifications.info(`Realm Guard: Original Portrait loaded for ${this.actor.name}. Click the portrait to frame it, or open Token Builder when you are ready to create the token.`);
+          ui.notifications.info(`Realm Guard: Original Portrait loaded for ${this.actor.name}. Click the portrait to frame it.`);
           await this.render({ force: true });
         } catch (error) {
           console.error("Realm Guard | Ranger portrait image drop failed", error);
@@ -643,10 +642,6 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static async _chooseArt() {
     await chooseRealmGuardArt(this.actor);
     await this.render({ force: true });
-  }
-
-  static async _tokenBuilder() {
-    await openQuickTokenBuilder(this.actor);
   }
 
   static async _portraitSettings() {

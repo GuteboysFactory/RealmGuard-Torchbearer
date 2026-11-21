@@ -169,7 +169,7 @@ export async function createNpcFromTemplate(templateId, { packId = PACK_ID, imag
     if (canvasDrop && token) {
       ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name} and placed on the Scene.`);
     } else {
-      if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}. Open Token Builder when you are ready to frame and save the round token.`);
+      if (imagePath) ui.notifications.info(`Realm Guard: Portrait loaded for ${actor.name}.`);
       ui.notifications.info(`Realm Guard: ${actor.name} created from ${template.name}.`);
     }
   }
