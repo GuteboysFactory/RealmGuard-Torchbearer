@@ -1,9 +1,9 @@
-# 1.13.7 — Versus tiebreakers in chat
+# 1.13.8 — NPC compendiums and interface improvements
 
-In Legacy Mixed, a tied Versus test with two known characters now has a shared tiebreaker on the original chat card. Each character's controller confirms an ability and rolls from a button labelled with that character's name and ability. The card suggests the abilities from the original tests when available.
+- **Import Image Folder** in Quick NPC Library creates an NPC from each image directly in a new Actor Compendium. Review the portraits, edit the suggested names, and choose a default template with optional overrides per NPC.
+- Dropping an NPC from a compendium creates a world copy with the template's stats. Dropping it on the map also places a token. The naming dialog opens when a world Actor already has the same name.
+- Player, NPC, and item sheets and selected Realm Guard dialogs open at more usable sizes.
+- **Keep portrait upright** in Token Builder preserves the token artwork's orientation while the token rotates.
+- The macro slots are hidden by default. Enable **Show Macro Hotbar** under Realm Guard in Configure Settings. The audio and main menu buttons are beside the player list when the slots are hidden.
 
-The GM rolls for GM-controlled opponents. The card reports which character still needs to roll, then shows the winner and the margin once both rolls are in. A second tie in PvP is decided by the GM. A second tie against a GM-controlled opponent goes to the GM side.
-
-The shared card works with automatic Versus, manual Versus with a selected opponent, and replies to Versus challenges with an identified challenger. An anonymous challenge retains manual tie resolution.
-
-Verified in Foundry 13.351 with two player accounts and a GM.
+Promoted from QA.20 after testing in Foundry VTT 13.351.

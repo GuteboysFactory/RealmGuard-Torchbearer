@@ -64,6 +64,12 @@ import { installSkillRollUx } from "./module/skill-roll-ux.mjs";
 import { installLegacyCharacterWorkspace } from "./module/legacy-character-workspace.mjs";
 import { installLegacySheetLayoutSettings } from "./module/legacy-sheet-layouts.mjs";
 import { installLegacySceneMenu } from "./module/legacy-scene-menu.mjs";
+import { installHotbarControlsDock } from "./module/hotbar-controls-dock.mjs";
+
+const HOTBAR_SETTING = "showMacroHotbar";
+function applyMacroHotbarVisibility(value) {
+  document.documentElement.classList.toggle("rg-hide-macro-hotbar", !value);
+}
 
 Hooks.once("init", () => {
   console.log(`Realm Guard / Torchbearer | Initializing v${game.system?.version ?? "1.13.0-qa.17"}`);
@@ -89,6 +95,17 @@ Hooks.once("init", () => {
   installLegacyCharacterWorkspace(RealmGuardActorSheet);
   installLegacySceneMenu(RealmGuardActorSheet);
   installWindowPositionPersistence();
+  game.settings.register("realm-guard", HOTBAR_SETTING, {
+    name: "Show Macro Hotbar",
+    hint: "Show the numbered macro slots and their controls at the bottom of the screen.",
+    scope: "user",
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: applyMacroHotbarVisibility
+  });
+  Hooks.once("ready", () => applyMacroHotbarVisibility(game.settings.get("realm-guard", HOTBAR_SETTING)));
+  installHotbarControlsDock();
   DocumentSheetConfig.registerSheet(Actor, "realm-guard", RealmGuardActorSheet, { types: ["character"], makeDefault: true, label: "Realm Guard / Torchbearer Ranger Sheet" });
 
   installCoreBaseline();

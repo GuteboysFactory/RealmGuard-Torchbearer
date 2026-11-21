@@ -27,7 +27,7 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
   static DEFAULT_OPTIONS = {
     ...super.DEFAULT_OPTIONS,
     classes: ["realm-guard", "actor-sheet", "npc-sheet"],
-    position: { width: 900, height: 720 },
+    position: { width: 920, height: 800 },
     actions: {
       ...super.DEFAULT_OPTIONS.actions,
       clearNpcSkill: RealmGuardNpcSheet._clearNpcSkill

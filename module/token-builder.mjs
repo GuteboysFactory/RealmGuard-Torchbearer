@@ -1,4 +1,5 @@
 import { modernFilePickerImplementation } from "./foundry-compat.mjs";
+import { fitWindowToViewport } from "./window-position-service.mjs";
 
 const NS = "realm-guard";
 
@@ -174,7 +175,7 @@ export async function createRoundTokenAsset(actor, {
   return path;
 }
 
-async function updateCurrentSceneTokens(actor, tokenPath, size) {
+async function updateCurrentSceneTokens(actor, tokenPath, size, lockRotation) {
   const scene = canvas?.scene;
   if (!scene) return 0;
   const updates = (scene.tokens?.contents ?? [])
@@ -183,6 +184,7 @@ async function updateCurrentSceneTokens(actor, tokenPath, size) {
       _id: token.id,
       width: size,
       height: size,
+      lockRotation,
       "texture.src": tokenPath,
       "texture.fit": "contain",
       "texture.anchorX": 0.5,
@@ -212,6 +214,7 @@ export async function openQuickTokenBuilder(actor) {
   const y = savedFraming.offsetY;
   const width = clamp(actor.prototypeToken?.width ?? 1, 0.5, 6);
   const height = clamp(actor.prototypeToken?.height ?? 1, 0.5, 6);
+  const lockRotation = actor.prototypeToken?.lockRotation === true;
 
   const content = `<div class="rg-token-builder" data-rg-token-builder>
     <header><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>Quick Token Builder</h2><p>Move the full portrait, zoom it and frame it inside the round guide. Nothing is saved until you choose <b>Create / Save Token</b>.</p></header>
@@ -229,6 +232,7 @@ export async function openQuickTokenBuilder(actor) {
         <div class="rg-token-builder-actions"><button type="button" data-rg-token-center><i class="fa-solid fa-crosshairs"></i> Center</button><button type="button" data-rg-token-fit-button><i class="fa-solid fa-compress"></i> Fit</button><button type="button" data-rg-token-fill-button><i class="fa-solid fa-expand"></i> Fill</button></div>
         <label>Token Size <select name="size"><option value="1" ${width === 1 && height === 1 ? "selected" : ""}>1 × 1</option><option value="2" ${width === 2 && height === 2 ? "selected" : ""}>2 × 2</option><option value="3" ${width === 3 && height === 3 ? "selected" : ""}>3 × 3</option></select></label>
         <button type="button" class="rg-token-use-portrait" data-rg-token-use-portrait><i class="fa-solid fa-image"></i> Reset to Source Artwork</button>
+        <label class="rg-token-update-scene"><span>Rotation</span><span><input type="checkbox" name="lockRotation" ${lockRotation ? "checked" : ""}> Keep portrait upright</span></label>
         <label class="rg-token-update-scene"><span>Current Scene</span><span><input type="checkbox" name="updatePlaced" checked> Update placed tokens for this Actor</span></label>
         <small>Center, Fit, Fill, dragging and zoom only change the preview. Create / Save Token renders the current framing into a new round PNG and then updates the prototype token.</small>
       </div>
@@ -238,6 +242,7 @@ export async function openQuickTokenBuilder(actor) {
   const DialogV2 = foundry.applications.api.DialogV2;
   const dialog = new DialogV2({
     window: { title: `Realm Guard · Token Builder · ${actor.name}`, resizable: true },
+    position: fitWindowToViewport(780, 610),
     content,
     modal: false,
     buttons: [
@@ -256,6 +261,7 @@ export async function openQuickTokenBuilder(actor) {
             const ox = clamp(form.elements.offsetX?.value ?? 0, -150, 150);
             const oy = clamp(form.elements.offsetY?.value ?? 0, -150, 150);
             const size = clamp(form.elements.size?.value ?? 1, 0.5, 6);
+            const keepPortraitUpright = Boolean(form.elements.lockRotation?.checked);
             const tokenPath = await createRoundTokenAsset(actor, { source: src, fit: fitMode, zoom: zoomValue, offsetX: ox, offsetY: oy });
             const actorUpdate = {
               "flags.realm-guard.tokenBuilderSourcePortrait": src,
@@ -265,6 +271,7 @@ export async function openQuickTokenBuilder(actor) {
               "prototypeToken.name": actor.name,
               "prototypeToken.width": size,
               "prototypeToken.height": size,
+              "prototypeToken.lockRotation": keepPortraitUpright,
               "prototypeToken.texture.src": tokenPath,
               "prototypeToken.texture.fit": "contain",
               "prototypeToken.texture.anchorX": 0.5,
@@ -278,7 +285,7 @@ export async function openQuickTokenBuilder(actor) {
             if (actor.type === "npc" || String(actor.getFlag?.(NS, "portraitMode") || "original") === "token") actorUpdate.img = tokenPath;
             await actor.update(actorUpdate);
             const updatePlaced = Boolean(form.elements.updatePlaced?.checked);
-            const updated = updatePlaced ? await updateCurrentSceneTokens(actor, tokenPath, size) : 0;
+            const updated = updatePlaced ? await updateCurrentSceneTokens(actor, tokenPath, size, keepPortraitUpright) : 0;
             ui.notifications.info(`Realm Guard: Token saved for ${actor.name}${updated ? ` and ${updated} Scene token${updated === 1 ? "" : "s"} updated` : ""}.`);
             return true;
           } catch (error) {

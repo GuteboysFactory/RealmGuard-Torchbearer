@@ -2730,6 +2730,8 @@ body:has(#join-game) {
   .realm-guard .rg-npc-statbar { grid-template-columns:repeat(3,minmax(110px,1fr)); }
   .realm-guard .rg-npc-toolbar { grid-template-columns:1fr; }
   .realm-guard .rg-npc-quick-tools { justify-content:flex-start; }
+}
+@media(max-width:620px){
   .rg-token-builder-layout { grid-template-columns:1fr; }
 }
 @media(max-width:760px){
@@ -4417,3 +4419,18 @@ body:has(#join-game) {
 .rg-disposition-allocation label { display:grid; flex:1; gap:4px; }
 .rg-disposition-allocation input { background:#fff1cf !important; color:#2b2115 !important; }
 .application:has(.rg-disposition-allocation) .dialog-buttons button { background:#38543a; color:#fff1cf; border:1px solid #a78853; }
+.rg-hide-macro-hotbar #hotbar #action-bar,
+.rg-hide-macro-hotbar #hotbar #hotbar-controls-right {
+  display: none !important;
+}
+
+#hotbar.rg-hotbar-controls-docked {
+  position: relative;
+}
+
+#hotbar.rg-hotbar-controls-docked #hotbar-controls-left {
+  position: absolute;
+  left: var(--rg-hotbar-controls-left);
+  bottom: var(--rg-hotbar-controls-bottom);
+  height: auto;
+}

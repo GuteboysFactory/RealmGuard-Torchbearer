@@ -1,4 +1,5 @@
 import { installLegacyItemDrops } from '../module/legacy-item-drop.mjs';
+import { fitWindowToViewport } from "../module/window-position-service.mjs";
 import { createCustomTalent } from '../module/legacy-talent-library.mjs';
 import { challengeTestChoices } from '../module/legacy-chat-actions.mjs';
 import { enlistRollActors } from '../module/roll-undo.mjs';
@@ -125,7 +126,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static DEFAULT_OPTIONS = {
     tag: "form",
     classes: ["realm-guard", "actor-sheet"],
-    position: { width: 820, height: 760 },
+    position: { width: 860, height: 850 },
     window: { resizable: true },
     form: { closeOnSubmit: false, submitOnChange: true, handler: RealmGuardActorSheet._onSubmit },
     actions: {
@@ -198,6 +199,14 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   _rgActiveTab = "character";
   _rgCharacterTab = "overview";
   _rgConditionsOpen = false;
+
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+    if (options.isFirstRender) {
+      const { width, height } = options.position;
+      Object.assign(options.position, fitWindowToViewport(width, height));
+    }
+  }
 
   _onRender(context, options) {
     super._onRender(context, options);

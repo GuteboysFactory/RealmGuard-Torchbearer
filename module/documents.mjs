@@ -37,6 +37,42 @@ function rollFacesRowsHtml(rows = []) {
   return `<div class="rg-roll-faces-rows">${rows.filter(row => row?.faces?.length).map(row => `<div><b>${foundry.utils.escapeHTML(row.label)}</b>${diceFacesHtml(row.faces)}</div>`).join("")}</div>`;
 }
 export class RealmGuardActor extends Actor {
+  static async create(data = {}, operation = {}) {
+    if (!game.user?.isGM || !operation.fromCompendium || operation.pack || operation.parent
+      || operation.noHook || operation.adventurersTomeIdentityChecked || data?.type !== "npc") {
+      return super.create(data, operation);
+    }
+
+    // A deliberate template import creates a new identity. Only exact Actor names need a prompt.
+    const importOptions = { ...operation, adventurersTomeIdentityChecked: true };
+    const normalizeName = value => String(value ?? "").trim().normalize("NFC").toLowerCase();
+    const templateName = normalizeName(data.name);
+    if (!templateName || !game.actors.some(actor => normalizeName(actor.name) === templateName)) {
+      return super.create(data, importOptions);
+    }
+
+    const source = data.toObject?.() ?? foundry.utils.deepClone(data);
+    const originalName = source.name;
+    const name = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Name NPC" },
+      modal: true,
+      rejectClose: false,
+      content: `<p>An Actor already uses this name. Choose a name for the new NPC.</p>
+        <label>NPC Name <input name="npcName" value="${foundry.utils.escapeHTML(originalName)}" autofocus></label>`,
+      buttons: [
+        { action: "import", label: "Create NPC", default: true, callback: (_event, button) => button.form.elements.npcName.value.trim() },
+        { action: "keepName", label: "Keep Original Name", callback: () => originalName }
+      ]
+    });
+    if (typeof name === "string" && name && name !== originalName) {
+      source.name = name;
+      if (!source.prototypeToken?.name || source.prototypeToken.name === originalName) {
+        source.prototypeToken = { ...source.prototypeToken, name };
+      }
+    }
+    return super.create(source, importOptions);
+  }
+
   get roles() { return this.items.filter(i => i.type === "role"); }
   get traits() { return this.items.filter(i => i.type === "trait"); }
   get wises() { return this.items.filter(i => i.type === "wise"); }

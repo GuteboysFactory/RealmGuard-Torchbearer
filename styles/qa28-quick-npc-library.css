@@ -67,6 +67,18 @@
   background: rgba(255,249,228,.90);
 }
 
+.realm-guard .rg-quick-npc-pack {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.realm-guard .rg-quick-npc-pack select {
+  flex: 1;
+  min-width: 0;
+}
+
 .realm-guard .rg-quick-npc-query i {
   color: #75552d !important;
   -webkit-text-fill-color: #75552d !important;
@@ -638,4 +650,48 @@ canvas.rg-quick-npc-canvas-image-drop {
   .realm-guard .rg-npc-group-grid { grid-template-columns:1fr; }
   .realm-guard .rg-npc-group-review-row { grid-template-columns:1fr; }
   .realm-guard .rg-npc-group-name { grid-template-columns:1fr; }
+}
+.rg-quick-npc-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rg-npc-folder-import fieldset {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rg-npc-folder-import label {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rg-npc-folder-preview {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rg-npc-folder-preview li {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rg-npc-folder-preview img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  grid-row: span 2;
+}
+
+.rg-npc-folder-preview small {
+  grid-column: 2 / -1;
+  overflow-wrap: anywhere;
 }

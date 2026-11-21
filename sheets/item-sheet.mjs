@@ -1,4 +1,5 @@
 import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
+import { fitWindowToViewport } from "../module/window-position-service.mjs";
 import { normalizeContainerPreset, detachContainedGear } from "../module/inventory.mjs";
 import { getActiveProfileCapabilities } from "../module/rules-profile-service.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
@@ -14,7 +15,7 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
   static DEFAULT_OPTIONS = {
     tag: "form",
     classes: ["realm-guard", "item-sheet"],
-    position: { width: 520, height: 500 },
+    position: { width: 590, height: 620 },
     window: { resizable: true },
     actions: { deleteSkill: RealmGuardItemSheet._deleteSkill },
     form: { closeOnSubmit: false, submitOnChange: true, handler: RealmGuardItemSheet._onSubmit }
@@ -38,13 +39,14 @@ export class RealmGuardItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)
     if (confirmed && this.canDeleteSkill) await this.item.delete();
   }
 
-  async _onFirstRender(context, options) {
-    await super._onFirstRender(context, options);
-    if (this.item.type !== "talent" || !legacyMixedPolishEnabled()) return;
-    this.setPosition({
-      width: Math.min(690, (globalThis.innerWidth ?? 730) - 32),
-      height: Math.min(670, (globalThis.innerHeight ?? 710) - 40)
-    });
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+    if (!options.isFirstRender) return;
+    const { width, height } = options.position;
+    const size = this.item.type === "talent"
+      ? fitWindowToViewport(Math.max(width, 720), Math.max(height, 760))
+      : fitWindowToViewport(width, height);
+    Object.assign(options.position, size);
   }
 
   static async _onSubmit(event, form, formData) {

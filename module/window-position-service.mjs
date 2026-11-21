@@ -6,6 +6,13 @@ const observed = new WeakSet();
 let resizeObserver = null;
 let mutationObserver = null;
 
+export function fitWindowToViewport(width, height) {
+  return {
+    width: Math.min(width, Math.max(1, (globalThis.innerWidth ?? width + 2 * EDGE) - 2 * EDGE)),
+    height: Math.min(height, Math.max(1, (globalThis.innerHeight ?? height + 2 * EDGE) - 2 * EDGE))
+  };
+}
+
 function safeKey(value) {
   return String(value ?? "window").trim().toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "").slice(0, 96) || "window";
 }
