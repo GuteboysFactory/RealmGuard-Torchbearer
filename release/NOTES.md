@@ -1,7 +1,8 @@
-# 1.13.9 - Token Builder handoff to Adventurer's Tome
+# 1.13.10 – NPC tools, illustrated manual and Condition icons
 
-Realm Guard's built-in Token Builder has been retired. Enable a version of Adventurer's Tome that includes Token Builder to create or edit token artwork from player and NPC sheets.
+- **Archive NPCs.** Select existing NPCs across Actor folders and copy them into a private Actor compendium. Each copy is verified. GMs can separately remove eligible originals after confirmation. NPCs used by a token or combatant are protected.
+- **Apply Stats Template.** Review and copy Ability values and Skill ratings from an Actor compendium or another NPC in the world. The target keeps its name, artwork, token, notes and equipment. Skills absent from the source are set to 0D.
+- **System Manual & Rules Reference.** The searchable Swedish manual now has 38 workflow topics and four illustrations, with step-by-step instructions for GMs and players.
+- **Active Condition icons.** Token badges are normally 40% larger, with a darker backing, a light outline and the existing hover details.
 
-Realm Guard's Character Portrait editor still adjusts the artwork and framing displayed on the character sheet. Existing portrait and token artwork is preserved. When Tome manages an Actor's artwork, the Token Portrait option uses the current prototype token image.
-
-Verified in Foundry VTT 13.351 with the Tome Token Builder in a local integration test.
+Verified from the accepted QA.23 build in Foundry VTT 13.351.

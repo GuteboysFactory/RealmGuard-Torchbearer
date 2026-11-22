@@ -695,3 +695,42 @@ canvas.rg-quick-npc-canvas-image-drop {
   grid-column: 2 / -1;
   overflow-wrap: anywhere;
 }
+.rg-npc-archive fieldset,
+.rg-npc-archive [data-rg-archive-select] {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rg-npc-archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rg-npc-archive-list {
+  list-style: none;
+  max-height: 42vh;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.rg-npc-archive-list label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rg-npc-archive-list small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.rg-npc-stats-review td,
+.rg-npc-stats-review th {
+  text-align: left;
+}

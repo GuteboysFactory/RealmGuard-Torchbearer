@@ -3,6 +3,8 @@ import { installNpcObstacleTools } from '../module/legacy-npc-obstacle.mjs';
 import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
 import { makeSheetLayoutControl, npcSheetLayout } from "../module/legacy-sheet-layouts.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
+import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
+import { reviewNpcStatsTemplate, statsTemplateTarget } from "../module/npc-stat-template.mjs";
 
 const rgNpcDropBoundRoots = new WeakSet();
 
@@ -30,7 +32,8 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
     position: { width: 920, height: 800 },
     actions: {
       ...super.DEFAULT_OPTIONS.actions,
-      clearNpcSkill: RealmGuardNpcSheet._clearNpcSkill
+      clearNpcSkill: RealmGuardNpcSheet._clearNpcSkill,
+      applyStatsTemplate: RealmGuardNpcSheet._applyStatsTemplate
     }
   };
 
@@ -180,6 +183,7 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
     const npcLayout = legacyNpcWorkspace ? npcSheetLayout(this.actor) : "npc";
     return foundry.utils.mergeObject(context, {
       legacyNpcWorkspace,
+      canApplyStatsTemplate: Boolean(statsTemplateTarget(this.actor)),
       npcLayout,
       npcLayoutName: {npc: "NPC", monster: "Monster", animal: "Animal"}[npcLayout],
       creatureLayout: npcLayout !== "npc",
@@ -192,6 +196,20 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
         system: item.system
       }))
     }, { inplace: false });
+  }
+
+  static async _applyStatsTemplate() {
+    const actor = statsTemplateTarget(this.actor);
+    if (!actor) return;
+    await openNpcTemplateLibrary({
+      selectOnly: true,
+      statsTemplateTargetId: actor.id,
+      onTemplateSelected: async (entry, _metadata, pack) => {
+        const source = pack ? await pack.getDocument(entry._id) : game.actors.get(entry._id);
+        if (!source) return ui.notifications.warn("Realm Guard: The selected NPC is no longer available.");
+        return reviewNpcStatsTemplate(actor, source);
+      }
+    });
   }
 
   static async _clearNpcSkill(event, target) {

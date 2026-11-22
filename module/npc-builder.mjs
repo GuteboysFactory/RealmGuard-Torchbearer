@@ -1,6 +1,7 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { fitWindowToViewport } from "./window-position-service.mjs";
 import { openNpcFolderImport } from "./npc-folder-import.mjs";
+import { openNpcArchive } from "./npc-archive.mjs";
 import { modernFilePickerImplementation } from "./foundry-compat.mjs";
 import { quickNpcMetadataFromIndex, scoreQuickNpcEntry, QUICK_NPC_LIBRARY_VERSION, QUICK_NPC_GROUP_LIBRARY_VERSION, QUICK_NPC_GROUP_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
 
@@ -8,6 +9,7 @@ const NS = "realm-guard";
 export const QUICK_NPC_PACK_ID = "world.realm-guard-starter-npc-templates";
 const PACK_ID = QUICK_NPC_PACK_ID;
 const FALLBACK_IMG = "systems/realm-guard/assets/actors/npc-creature.webp";
+const WORLD_NPC_SOURCE = { collection: "world-npcs", title: "World NPCs" };
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 
 let boundCanvasElement = null;
@@ -257,7 +259,7 @@ function templateCard(entry) {
     <div class="rg-npc-template-copy">
       <div class="rg-npc-template-badges">${badges}</div>
       <h3>${esc(entry.name)}</h3>
-      <small>${esc(meta.category || "NPC")}${meta.subcategory ? ` · ${esc(meta.subcategory)}` : ""}</small>
+      <small>${entry.folderPath ? esc(entry.folderPath) : esc(meta.category || "NPC") + (meta.subcategory ? ` · ${esc(meta.subcategory)}` : "")}</small>
       <p>${esc(entry.system?.concept || "Quick NPC template")}</p>
       ${relationships ? `<div class="rg-npc-template-relations"><i class="fa-solid fa-link"></i> ${esc(relationships)}</div>` : ""}
     </div>
@@ -498,16 +500,27 @@ export async function openNpcGroupTemplateLibrary() {
   return dialog;
 }
 
-export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null, closeAfterCreate = false, selectOnly = false, onTemplateSelected = null } = {}) {
+export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = null, canvasDrop = null, actorName = "", folderName = "NPC", folderFlag = "npcTemplateFolder", onCreated = null, closeAfterCreate = false, selectOnly = false, statsTemplateTargetId = null, onTemplateSelected = null } = {}) {
   if (!game.user?.isGM) return ui.notifications.warn("Realm Guard: NPC Templates are GM only.");
-  const packs = selectOnly
+  const statsTemplate = selectOnly && Boolean(statsTemplateTargetId);
+  const packs = selectOnly && !statsTemplate
     ? [game.packs.get(PACK_ID)].filter(Boolean)
     : Array.from(game.packs.values()).filter(pack => pack.collection === PACK_ID || pack.documentName === "Actor");
+  if (statsTemplate) packs.push(WORLD_NPC_SOURCE);
   if (!packs.length) return ui.notifications.warn("Realm Guard: No Actor compendium is available.");
   const pack = packs.find(pack => pack.collection === PACK_ID) ?? packs[0];
-  const loadEntries = async selectedPack => Array.from(await selectedPack.getIndex({
-    fields: ["type", "img", "system.rank", "system.concept", "flags.realm-guard.npcTemplate"]
-  })).filter(entry => entry.type === "npc" || (selectedPack.collection === PACK_ID && !entry.type));
+  const loadEntries = async selectedPack => {
+    if (selectedPack === WORLD_NPC_SOURCE) {
+      return game.actors.filter(actor => actor.type === "npc" && actor.id !== statsTemplateTargetId)
+        .map(actor => ({
+          _id: actor.id, name: actor.name, img: actor.img, system: { rank: actor.system.rank, concept: actor.system.concept },
+          folderPath: actor.folder ? [...actor.folder.ancestors].reverse().concat(actor.folder).map(folder => folder.name).join(" / ") : "Unfiled"
+        }));
+    }
+    return Array.from(await selectedPack.getIndex({
+      fields: ["type", "img", "system.rank", "system.concept", "flags.realm-guard.npcTemplate"]
+    })).filter(entry => entry.type === "npc" || (selectedPack.collection === PACK_ID && !entry.type));
+  };
   let entries = await loadEntries(pack);
 
   const canvasSpawn = Boolean(imageFile && canvasDrop);
@@ -524,15 +537,19 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
       <div class="rg-brand">REALM GUARD / TORCHBEARER · GM</div>
       ${canvasPreview}
       <div class="rg-quick-npc-heading">
-        <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>${selectOnly ? "Choose a different template for this relationship NPC. Nothing is created until you confirm the Recruitment review." : canvasSpawn ? "Search and choose a template. Double-click a result to create the NPC and place its token at the image drop point." : "Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it."}</p></div>
+        <div><h2>Quick NPC Library <span>v${esc(QUICK_NPC_LIBRARY_VERSION)}</span></h2><p>${statsTemplate ? "Choose a compendium template or a World NPC to review its stats."
+          : selectOnly ? "Choose a different template for this relationship NPC. Nothing is created until you confirm the Recruitment review."
+          : canvasSpawn ? "Search and choose a template. Double-click a result to create the NPC and place its token at the image drop point."
+          : "Search, choose, BAM — a complete editable NPC Actor. Double-click a result for instant creation or drop a local image onto it."}</p></div>
         ${!selectOnly && !canvasSpawn ? `<div class="rg-quick-npc-library-actions">
           <button type="button" class="rg-open-group-templates" data-rg-open-group-templates><i class="fa-solid fa-people-group"></i> Group Templates</button>
           <button type="button" class="rg-open-group-templates" data-rg-import-npc-folder><i class="fa-solid fa-folder-open"></i> Import Image Folder</button>
+          <button type="button" class="rg-open-group-templates" data-rg-open-npc-archive><i class="fa-solid fa-box-archive"></i> Archive NPCs</button>
         </div>` : ""}
         <strong data-rg-result-count>${entries.length} templates</strong>
       </div>
       <div class="rg-quick-npc-search">
-        ${packs.length > 1 ? `<label class="rg-quick-npc-pack">NPC Compendium <select data-rg-npc-pack>${packs.map(source =>
+        ${packs.length > 1 || statsTemplate ? `<label class="rg-quick-npc-pack">${statsTemplate ? "Stats Source" : "NPC Compendium"} <select data-rg-npc-pack>${packs.map(source =>
           `<option value="${esc(source.collection)}" ${source === pack ? "selected" : ""}>${esc(source.title || source.collection)}</option>`).join("")}</select></label>` : ""}
         <label class="rg-quick-npc-query"><i class="fa-solid fa-magnifying-glass"></i><input type="search" data-rg-npc-search value="${esc(initialQuery)}" placeholder="Try: bartender, healer bree, old ranger, big orc..."></label>
         <select data-rg-npc-category></select>
@@ -540,9 +557,9 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
         <select data-rg-npc-competence></select>
         <button type="button" data-rg-npc-clear><i class="fa-solid fa-eraser"></i> Clear</button>
       </div>
-      <div class="rg-quick-npc-help">${selectOnly ? `<span><i class="fa-solid fa-check"></i> Select = use this template suggestion</span><span><i class="fa-solid fa-shield-halved"></i> No NPC is created in this picker</span>` : `<span><i class="fa-solid fa-bolt"></i> Create = normal editable Actor</span><span><i class="fa-solid fa-image"></i> Drop local image = same template + portrait</span><span><i class="fa-solid fa-copy"></i> Template never stays linked to the created Actor</span>`}</div>
+      <div class="rg-quick-npc-help">${selectOnly ? `<span><i class="fa-solid fa-check"></i> ${statsTemplate ? "Select = review stats" : "Select = use this template suggestion"}</span><span><i class="fa-solid fa-shield-halved"></i> No NPC is created in this picker</span>` : `<span><i class="fa-solid fa-bolt"></i> Create = normal editable Actor</span><span><i class="fa-solid fa-image"></i> Drop local image = same template + portrait</span><span><i class="fa-solid fa-copy"></i> Template never stays linked to the created Actor</span>`}</div>
       <div class="rg-npc-template-grid" data-rg-npc-results></div>
-      <div class="rg-quick-npc-empty" data-rg-npc-empty hidden><i class="fa-solid fa-magnifying-glass"></i><p>No NPC templates match this search.</p><small>Try a synonym, culture, occupation or broader term.</small></div>
+      <div class="rg-quick-npc-empty" data-rg-npc-empty hidden><i class="fa-solid fa-magnifying-glass"></i><p>${statsTemplate ? "No NPCs match this source and search." : "No NPC templates match this search."}</p><small>Try a synonym, culture, occupation or broader term.</small></div>
     </div>`,
     modal: false,
     buttons: [{ action: "close", label: "Close", callback: () => true }]
@@ -576,6 +593,9 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
     event.preventDefault();
     void openNpcGroupTemplateLibrary();
   });
+  root.querySelector("[data-rg-open-npc-archive]")?.addEventListener("click", () => {
+    void openNpcArchive().catch(error => ui.notifications.error(`Realm Guard: ${error.message}`));
+  });
 
   const renderResults = () => {
     const filters = {
@@ -591,19 +611,34 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
 
     const visible = matches.slice(0, 120);
     results.innerHTML = visible.map(result => templateCard(result.entry)).join("");
-    count.textContent = matches.length === entries.length ? `${matches.length} templates` : `${matches.length} / ${entries.length}`;
+    count.textContent = matches.length === entries.length ? `${matches.length} ${activePack === WORLD_NPC_SOURCE ? "NPCs" : "templates"}` : `${matches.length} / ${entries.length}`;
     empty.hidden = matches.length > 0;
     results.hidden = matches.length === 0;
     if (selectOnly) {
       const byId = new Map(entries.map(entry => [String(entry._id), entry]));
+      const sourcePack = activePack;
+      let selecting = false;
+      const choose = async id => {
+        const entry = byId.get(String(id || ""));
+        if (!entry || selecting) return;
+        selecting = true;
+        try {
+          if (statsTemplate) await dialog.close();
+          if (typeof onTemplateSelected === "function") {
+            await onTemplateSelected(entry, quickNpcMetadataFromIndex(entry), sourcePack === WORLD_NPC_SOURCE ? null : sourcePack);
+          }
+          if (!statsTemplate) await dialog.close();
+        } catch (error) {
+          ui.notifications.error(`Realm Guard: ${error.message}`);
+        } finally {
+          selecting = false;
+        }
+      };
       results.querySelectorAll("[data-rg-template-create]").forEach(button => {
         button.innerHTML = '<i class="fa-solid fa-check"></i> Select';
         button.addEventListener("click", async event => {
           event.preventDefault();
-          const entry = byId.get(String(button.dataset.rgTemplateCreate || ""));
-          if (!entry) return;
-          if (typeof onTemplateSelected === "function") await onTemplateSelected(entry, quickNpcMetadataFromIndex(entry));
-          await dialog.close();
+          await choose(button.dataset.rgTemplateCreate);
         });
       });
       results.querySelectorAll("[data-rg-npc-template]").forEach(card => {
@@ -611,10 +646,7 @@ export async function openNpcTemplateLibrary({ initialQuery = "", imageFile = nu
         card.addEventListener("dblclick", async event => {
           if (event.target?.closest?.("button")) return;
           event.preventDefault();
-          const entry = byId.get(String(card.dataset.rgNpcTemplate || ""));
-          if (!entry) return;
-          if (typeof onTemplateSelected === "function") await onTemplateSelected(entry, quickNpcMetadataFromIndex(entry));
-          await dialog.close();
+          await choose(card.dataset.rgNpcTemplate);
         });
       });
     } else {

@@ -31,7 +31,7 @@ export const RULES_REFERENCE_PAGES = Object.freeze([
       <p>${badge("RULE")} Tests use pools of six-sided dice. A die showing <b>4, 5 or 6</b> is a success.</p>
       <p><b>Obstacle test:</b> the GM sets an Obstacle (Ob). The test passes when successes are equal to or greater than the Obstacle.</p>
       <p><b>Versus test:</b> both sides roll the appropriate Skill or Ability. Higher successes win. Equal successes are a tie and use the system's tie-resolution flow rather than being silently treated as a pass or fail.</p>
-      <p>${badge("AUTOMATED")} The Roll Dialog starts at Ob 1 / Modifier 0, calculates pool additions and penalties, and reports successes and margin in chat.</p>
+      <p>${badge("AUTOMATED")} The Roll Dialog follows the configured ordinary roll workflow. A new world's Baseline Obstacle defaults to 2. Check the roll's own target for rule-specific tests. Chat shows the resulting pool, successes and margin.</p>
       <p>${badge("GM CALL")} The GM still decides when a test is required, which Skill/Ability fits, and the Obstacle when no explicit factor supplies it.</p>
       ${sourceLine("Mouse Guard 2E obstacle and versus procedures, retained where Realm Guard does not replace them.")}`
   },
@@ -59,8 +59,8 @@ export const RULES_REFERENCE_PAGES = Object.freeze([
     name: "Traits, Wises, Help, Fate and Persona",
     source: "Mouse Guard 2E inherited core with project-safe Wise handling",
     html: `
-      <p>${badge("RULE")} Traits may help their owner when relevant. Trait Against may be used in the intended GM Turn context to earn Checks. Traits are not a Teamwork source for helping another Ranger.</p>
-      <p><b>Wises are intentionally unrated.</b> They remain knowledge tags used by the current Wise support/reroll flow. This project does not add numeric Wise ratings or Wises 2.0.</p>
+      <p>${badge("RULE")} In Legacy Mixed, a relevant level 1 Trait grants +1D once per session. Level 2 grants +1D once per relevant test. Level 3 can grant +1 success on a passed or tied test. Start Session restores session-limited uses. Trait Against can earn Checks in the appropriate GM Turn test.</p>
+      <p><b>Wises are intentionally unrated.</b> A relevant Wise can grant +1D before the roll or allow a reroll of failed dice for 1 Persona when offered. These choices share the Wise use for that test.</p>
       <p><b>Teamwork:</b> eligible patrol-mates may contribute with an appropriate Skill. A relevant Wise may instead grant +1D through <b>I Am Wise</b>; it is not Trait-based Help. Conflict action rolls limit Help according to the Conflict procedure.</p>
       <p><b>Persona</b> may be committed before a roll for +1D per point, up to +3D, and for supported Nature spends. <b>Fate</b> enables Open 6s after a qualifying roll; one Fate activation can continue through its open-ended six chain.</p>
       <p>${badge("AUTOMATED")} Current resources are deducted only when a spend is actually committed. Cancelling before the roll does not spend the resource.</p>

@@ -41,7 +41,10 @@
   <main class="rg-npc-main">
     <div class="rg-npc-left">
     <section class="rg-panel rg-npc-skills">
-      <div class="rg-panel-title"><div><h2>Quick Skills</h2><small>Only trained NPC skills are shown.</small></div><button type="button" data-action="createRole">+ Skill</button></div>
+      <div class="rg-panel-title"><div><h2>Quick Skills</h2><small>Only trained NPC skills are shown.</small></div><div>
+        {{#if canApplyStatsTemplate}}<button type="button" data-action="applyStatsTemplate">Apply Stats Template</button>{{/if}}
+        <button type="button" data-action="createRole">+ Skill</button>
+      </div></div>
       <div class="rg-npc-skill-list">
         {{#each trainedRoles as |role|}}
         <article class="rg-npc-skill {{#if role.system.versus}}is-versus{{/if}}" data-item-id="{{role.id}}">

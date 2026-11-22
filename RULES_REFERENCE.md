@@ -1,7 +1,7 @@
 # Realm Guard / Torchbearer - Rules Reference
 
-**Version:** 1.0.0  
-**Purpose:** concise reference for the rules and project expansions implemented by the Foundry system.
+**Profile:** Realm Guard Legacy Mixed
+**Purpose:** concise reference for the rules and project expansions used by this profile. See the [user manual](SYSTEM_MANUAL.md) for step-by-step workflows.
 
 ## Source hierarchy
 
@@ -16,7 +16,7 @@ Labels used below: **RULE**, **AUTOMATED**, **GM CALL**, **RG/TB FOUNDRY**.
 
 **RULE:** Roll d6s; 4-6 are successes. An Obstacle test passes when successes meet or exceed the Ob. In Versus, higher successes win; equal successes use tie resolution.
 
-**AUTOMATED:** the Roll Dialog starts at Ob 1 / Modifier 0 and reports pool, successes and margin.
+**AUTOMATED:** the Roll Dialog uses the configured ordinary roll workflow and reports pool, successes and margin. A new world's Baseline Obstacle defaults to 2. Rule-specific tests can use their own obstacles.
 
 **GM CALL:** the table still decides when a test is required, what Skill/Ability applies and the Obstacle when no factor supplies it.
 
@@ -36,7 +36,9 @@ Nature can be used when the action genuinely matches a descriptor. Tap Nature an
 
 ## Traits, Wises, Help, Fate and Persona
 
-**RULE:** Beneficial Trait use follows Mouse Guard 2E: Level 1 grants +1D once per session; Level 2 grants +1D twice per session; Level 3 grants +1s on relevant passed/tied tests. Only one Trait may help you on a test. Beneficial Level 1/2 uses are session state and reset when End Session is finalized. Trait Against is a separate use of a Trait and can earn Checks in the intended GM Turn context. Traits do not Help another Ranger. Wises remain unrated knowledge and are not limited to one use per session; their normal restriction is once per test/effect where relevant. No numeric Wises 2.0 subsystem is added.
+**RULE:** In Legacy Mixed, a beneficial level 1 Trait grants +1D once per session. A level 2 Trait grants +1D once per relevant test. A level 3 Trait grants +1 success on a relevant passed or tied test. Only one Trait can benefit the active Ranger on a test. Start Session restores the sessions' limited uses. Trait Against can earn Checks during the appropriate GM Turn test. Traits are for the acting Ranger's own test.
+
+Wises are unrated knowledge. A relevant Wise can grant +1D before the roll or let the acting Ranger spend 1 Persona to reroll failed dice when offered. The two options share the Wise use for that test.
 
 Teamwork can add eligible patrol-mate Help from an appropriate Skill. A relevant Wise may instead add +1D through I Am Wise. Persona can add +1D per point up to +3D before a roll and can also support configured Nature spends. Fate enables Open 6s after a qualifying roll.
 

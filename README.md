@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.4
+**Version:** 1.13.10
 **Target:** Foundry VTT 13.351  
 **Status:** Stable
-**Current stable:** v1.13.4
+**Current stable:** v1.13.10
 
-Stable 1.13.4 refines the character workspace **only for Legacy Mixed**: progression in Skill/ability name rows, readable untrained controls, a transparent header toggle, narrower roll forms with folded explanations, individual equipment anchors for eight figures, and removal of the GM menu HUD deprecation. Other profiles and accepted startup performance remain unchanged. See RELEASE_NOTES_v1.13.4.md and TEST_PROTOCOL_v1.13.4.md. QA testers must switch to the stable manifest because the QA version number is higher.
+Stable 1.13.10 adds NPC archiving, stat templates from compendia and world NPCs, an expanded illustrated manual, and clearer Condition icons. See the [release notes](RELEASE_NOTES_v1.13.10.md) and [illustrated user manual](SYSTEM_MANUAL.md).
 
 ## 1.13.1 startup performance
 
@@ -30,7 +30,7 @@ Existing tools include the following; their rules and automation follow the sele
 - Smart NPC Drag & Drop, NPC Templates and Quick Spawn
 - corrected Trait session-use rules and End Session reset
 - persistent Ranger portrait framing and non-destructive Original Portrait / Token Portrait switching
-- persistent Token Builder framing with preserved source artwork
+- Token Builder via Adventurer’s Tome, with existing Realm Guard portrait artwork and framing retained
 - improved GM Quick Inspector layout and canvas token-name hover
 - contextual hover explanations across supported dropdowns and Conflict controls
 - audited Tap Nature availability in Conflict, including Beginner's Luck post-halving behavior and Resources/Circles exclusions
@@ -49,7 +49,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard.zip` from the GitHub release for 1.13.1 and extract its contents into Foundry’s `Data/systems/realm-guard/` directory. QA-channel installations continue following QA until changed to the stable manifest.
+Download `realm-guard.zip` from the [stable GitHub release](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/tag/1.13.10) and extract it into Foundry’s `Data/systems/realm-guard/` directory. Use the stable manifest to switch from QA back to stable.
 
 ## Rules identity
 
@@ -66,7 +66,7 @@ The release is not presented as a one-to-one digital edition of any single sourc
 
 The integrated manual contains:
 
-- **Using the Foundry System** — where the tools live and how the implemented play loop works.
+- **Användarmanual** — [step-by-step instructions](SYSTEM_MANUAL.md) for players and GMs, with exact Foundry control names and illustrated examples.
 - **Rules Reference** — concise summaries of the rules and automation boundaries actually used by the system.
 
 Rules are marked as `RULE`, `AUTOMATED`, `GM CALL`, or `RG/TB FOUNDRY` where appropriate.

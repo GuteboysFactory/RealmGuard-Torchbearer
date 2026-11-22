@@ -281,7 +281,6 @@ async function refreshActorTokens(actor) {
   for (const token of actorTokens(actor)) {
     try {
       await token.drawEffects();
-      decorateConditionTokenEffects(token);
     } catch (err) {
       console.warn("Realm Guard | Could not refresh token effects", err);
     }
@@ -545,16 +544,6 @@ function showHoverTooltip(condition, event) {
   positionHoverTooltip(event);
 }
 
-function spriteSource(sprite) {
-  return String(
-    sprite?.texture?.source?.resource?.src ??
-    sprite?.texture?.baseTexture?.resource?.url ??
-    sprite?.texture?.source?.label ??
-    sprite?.texture?.label ??
-    ""
-  );
-}
-
 function bindConditionSprite(sprite, condition) {
   if (!sprite || !condition) return;
   if (sprite._rgConditionHoverBoundTo === condition.id) return;
@@ -581,68 +570,54 @@ function bindConditionSprite(sprite, condition) {
 }
 
 export function decorateConditionTokenEffects(token) {
-  if (!token?.effects || !token.actor) return;
+  const { actor, effects } = token;
+  if (!actor || !effects?.bg || !effects.renderable) return;
 
-  const active = token.actor.conditions?.filter(c => c.system.active) ?? [];
-  if (!active.length) {
-    removeHoverTooltip();
-    return;
+  const scale = canvas.dimensions.uiScale;
+  const { width, height } = token.document.getSize();
+  const nativeSize = 20 * scale;
+  const conditionSize = Math.max(nativeSize, Math.min(28 * scale, width, height));
+  const activeEffects = actor.temporaryEffects ?? [];
+  const badges = [];
+  for (const sprite of effects.children) {
+    if (!sprite.texture || sprite === effects.overlay) continue;
+    // Foundry assigns the index of the source ActiveEffect as the sprite's zIndex.
+    const itemId = activeEffects[sprite.zIndex]?.getFlag("realm-guard", "conditionItemId");
+    const condition = itemId ? actor.items.get(itemId) : null;
+    badges.push({ sprite, condition: condition?.type === "condition" && condition.system.active ? condition : null });
   }
+  if (!badges.some(({ condition }) => condition)) return;
 
-  const sprites = (token.effects.children ?? []).filter(c => c?.texture);
-  if (!sprites.length) return;
-
-  const unused = new Set(active);
-  for (const sprite of sprites) {
-    const src = spriteSource(sprite);
-    let condition = active.find(c => {
-      const icon = String(c.system.icon ?? "");
-      return src && icon && (src.includes(icon) || icon.includes(src));
-    });
-
-    // Foundry may wrap/normalize effect texture URLs. Fall back to effect order only
-    // when the number of visible effect sprites matches the number of active RG Conditions.
-    if (!condition && sprites.length === active.length) {
-      condition = active[sprites.indexOf(sprite)] ?? null;
+  const bg = effects.bg.clear();
+  let x = 0;
+  let y = 0;
+  let columnWidth = 0;
+  for (const { sprite, condition } of badges) {
+    const size = condition ? conditionSize : nativeSize;
+    if (y > 0 && y + size > height + 1e-6) {
+      x += columnWidth;
+      y = 0;
+      columnWidth = 0;
     }
 
-    if (!condition) continue;
-    unused.delete(condition);
-    bindConditionSprite(sprite, condition);
-  }
-}
+    sprite.width = sprite.height = size;
+    sprite.position.set(x, y);
+    bg.beginFill(0x000000, condition ? 0.85 : 0.40)
+      .lineStyle(scale, condition ? 0xEAD8AA : 0x000000)
+      .drawRoundedRect(x + scale, y + scale, size - 2 * scale, size - 2 * scale, 2 * scale)
+      .endFill();
+    if (condition) bindConditionSprite(sprite, condition);
 
-function queueConditionDecoration(token) {
-  if (!token) return;
-  for (const delay of [0, 50, 150, 350]) {
-    setTimeout(() => decorateConditionTokenEffects(token), delay);
+    y += size;
+    columnWidth = Math.max(columnWidth, size);
   }
 }
 
 export function installConditionTokenHover() {
-  Hooks.on("canvasReady", () => {
-    for (const token of canvas.tokens?.placeables ?? []) queueConditionDecoration(token);
+  Hooks.on("refreshToken", (token, flags) => {
+    if (flags?.refreshEffects) decorateConditionTokenEffects(token);
   });
-
-  // Foundry v13 can rebuild token effect sprites after canvasReady, zoom/refresh,
-  // or ActiveEffect changes. Rebind whenever the token is drawn/refreshed/hovered.
-  Hooks.on("drawToken", token => queueConditionDecoration(token));
-  Hooks.on("refreshToken", token => queueConditionDecoration(token));
-  Hooks.on("hoverToken", token => queueConditionDecoration(token));
-
-  Hooks.on("createActiveEffect", effect => {
-    const actor = effect.parent;
-    if (actor instanceof Actor) setTimeout(() => actorTokens(actor).forEach(queueConditionDecoration), 50);
-  });
-  Hooks.on("updateActiveEffect", effect => {
-    const actor = effect.parent;
-    if (actor instanceof Actor) setTimeout(() => actorTokens(actor).forEach(queueConditionDecoration), 50);
-  });
-  Hooks.on("deleteActiveEffect", effect => {
-    removeHoverTooltip();
-    const actor = effect.parent;
-    if (actor instanceof Actor) setTimeout(() => actorTokens(actor).forEach(queueConditionDecoration), 50);
-  });
+  Hooks.on("deleteActiveEffect", removeHoverTooltip);
 }
 
 
