@@ -72,10 +72,11 @@ export const RULES_REFERENCE_PAGES = Object.freeze([
     html: `
       <p>${badge("RULE")} In <b>Structured Mode</b>, play uses GM Turn and Players' Turn. Each Ranger starts Players' Turn with one Free Test; additional tests cost Checks. The no-two-tests-in-a-row guard applies in group play, with solo play exempt.</p>
       <p>Checks can be passed between Rangers under the implemented rules. Trait Against earns Checks only in the intended GM Turn context.</p>
-      <p><b>Recovery order:</b> Hungry &amp; Thirsty -> Angry -> Tired -> Injured -> Strained. Players' Turn recovery uses the Free Test first, then Checks. Supported GM Turn recovery costs two Checks.</p>
+      <p><b>Legacy Mixed recovery order:</b> Hungry &amp; Thirsty → Angry → Tired → Injured → Strained → Sick. Players' Turn recovery uses the Free Test first, then Checks. Supported GM Turn recovery costs two Checks.</p>
       <p>Canonical recovery examples used by the system include Angry: Will Ob 2, Tired: Health Ob 3, Injured: Health Ob 4 and Realm Guard <b>Strained</b>: Will Ob 4. Afraid and Fresh have their own implemented handling.</p>
+      <p><b>Sick:</b> −1D to Skills, Nature, Will and Health, excluding Will or Health recovery tests. Roll Will Ob 4 without Help. On failure, seek Healer Ob 4 in Legacy Mixed and Mouse Guard 2E, or Ob 3 in Mouse Guard 1E. If treatment fails or is waived in the Players' Turn, the GM reduces an eligible Skill or Ability by one and clears Sick. Resources and Circles are excluded.</p>
       <p>${badge("RG/TB FOUNDRY", "RG/TB FOUNDRY")} <b>Free Play</b> is an optional mode that disables the Turn/Check test economy while preserving the underlying Actor data and Recovery rules.</p>
-      ${sourceLine("Mouse Guard 2E Players' Turn/Checks and recovery framework; Realm Guard replaces Sick with Strained; Free Play is a Foundry option.")}`
+      ${sourceLine("Mouse Guard 2E Players' Turn and recovery framework; Strict Realm Guard uses Strained; Free Play is a Foundry option.")}`
   },
   {
     name: "Inventory, Gear and Tokens of Power",

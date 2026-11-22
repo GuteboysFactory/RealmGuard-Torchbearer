@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.10
+**Version:** 1.13.11
 **Target:** Foundry VTT 13.351  
 **Status:** Stable
-**Current stable:** v1.13.10
+**Current stable:** v1.13.11
 
-Stable 1.13.10 adds NPC archiving, stat templates from compendia and world NPCs, an expanded illustrated manual, and clearer Condition icons. See the [release notes](RELEASE_NOTES_v1.13.10.md) and [illustrated user manual](SYSTEM_MANUAL.md).
+Stable 1.13.11 restores Sick to existing and new player and NPC Actors in Legacy Mixed and Mouse Guard. See the [release notes](RELEASE_NOTES_v1.13.11.md) and [illustrated user manual](SYSTEM_MANUAL.md).
 
 ## 1.13.1 startup performance
 
@@ -49,7 +49,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard.zip` from the [stable GitHub release](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/tag/1.13.10) and extract it into Foundry’s `Data/systems/realm-guard/` directory. Use the stable manifest to switch from QA back to stable.
+Download `realm-guard.zip` from the [stable GitHub release](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/tag/1.13.11) and extract it into Foundry’s `Data/systems/realm-guard/` directory. Use the stable manifest to switch from QA back to stable.
 
 ## Rules identity
 

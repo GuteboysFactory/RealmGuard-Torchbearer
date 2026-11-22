@@ -286,7 +286,7 @@ export async function createQuickNpc() {
   if (!actor) return null;
 
   await setNpcSkillRatings(actor, result.skills);
-  if (result.defaults) await ensureDefaultConditions(actor);
+  await ensureDefaultConditions(actor, { sickOnly: !result.defaults });
   const loadoutResult = await addNpcDefaultGear(actor, result.loadout, result.rank, result.concept);
   const gearNote = loadoutResult.created.length ? ` Loadout: ${loadoutResult.label} (${loadoutResult.created.map(item => item.name).join(", ")}).` : "";
   ui.notifications.info(`Realm Guard: ${actor.name} created in Actors > ${NPC_FOLDER_NAME}.${gearNote} Drag the Actor to a Scene to create a token.`);

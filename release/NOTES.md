@@ -1,8 +1,6 @@
-# 1.13.10 – NPC tools, illustrated manual and Condition icons
+# 1.13.11 – Restore Sick
 
-- **Archive NPCs.** Select existing NPCs across Actor folders and copy them into a private Actor compendium. Each copy is verified. GMs can separately remove eligible originals after confirmation. NPCs used by a token or combatant are protected.
-- **Apply Stats Template.** Review and copy Ability values and Skill ratings from an Actor compendium or another NPC in the world. The target keeps its name, artwork, token, notes and equipment. Skills absent from the source are set to 0D.
-- **System Manual & Rules Reference.** The searchable Swedish manual now has 38 workflow topics and four illustrations, with step-by-step instructions for GMs and players.
-- **Active Condition icons.** Token badges are normally 40% larger, with a darker backing, a light outline and the existing hover details.
-
-Verified from the accepted QA.23 build in Foundry VTT 13.351.
+- Existing and new player and NPC Actors in Legacy Mixed and Mouse Guard receive Sick where missing. Existing Sick entries keep their current active state.
+- Sick applies −1D to Skills, Nature, Will and Health. Resources, Circles and Will or Health recovery tests are exempt.
+- Self-recovery is Will Ob 4 without Help. On failure, the recovery card gives the profile's Healer difficulty. It is Ob 4 in Legacy Mixed and Mouse Guard 2E, and Ob 3 in Mouse Guard 1E. GM adjudicates treatment and any permanent reduction.
+- Strict Realm Guard uses Strained. The manual and in-system rule reference document the applicable routes.

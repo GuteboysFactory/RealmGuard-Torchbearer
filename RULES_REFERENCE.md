@@ -48,9 +48,11 @@ Teamwork can add eligible patrol-mate Help from an appropriate Skill. A relevant
 
 **RULE:** Structured Mode has GM Turn and Players' Turn. Each Ranger gets one Free Test at Players' Turn start; additional tests cost Checks. Group play uses action rotation; solo play is exempt.
 
-Recovery order is Hungry & Thirsty -> Angry -> Tired -> Injured -> Strained. Supported GM Turn recovery costs two Checks.
+Legacy Mixed recovery order is Hungry & Thirsty → Angry → Tired → Injured → Strained → Sick. Supported GM Turn recovery costs two Checks.
 
 Current canonical examples include Angry Will Ob 2, Tired Health Ob 3, Injured Health Ob 4 and Strained Will Ob 4.
+
+Sick applies −1D to Skills, Nature, Will and Health. Resources, Circles and Will or Health recovery tests are exempt. Roll Will Ob 4 without Help to recover. On failure, seek a Healer at Ob 4 in Legacy Mixed and Mouse Guard 2E, or Ob 3 in Mouse Guard 1E. If treatment fails or is waived in the Players' Turn, the GM reduces an eligible Skill or Ability by one and clears Sick. Resources and Circles are excluded from the reduction. Strict Realm Guard uses Strained as its profile condition.
 
 **RG/TB FOUNDRY:** Free Play disables the Turn/Check test economy while preserving Actor data and recovery mechanics.
 

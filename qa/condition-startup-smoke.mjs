@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { RG_DEFAULT_CONDITIONS, installConditionRuleAlignment, setConditionActive } from "../module/conditions.mjs";
+import { RG_DEFAULT_CONDITIONS, conditionRecoveryPolicy, conditionRollData, installConditionRuleAlignment, recoveryMethods, setConditionActive, validateRecoveryAttempt } from "../module/conditions.mjs";
+import { familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
 import { refreshRulesProfileRuntime } from "../module/rules-profile-service.mjs";
 
 const counts={itemUpdates:0,itemBatches:0,effectUpdates:0,effectCreates:0,effectDeletes:0,draws:0};
@@ -11,7 +12,7 @@ function effect(actor,data,id="effect") {return {...clone(data),id,img:data.img?
   async update(update){counts.effectUpdates++;Object.assign(this,clone(update),{img:update.img??update.icon,statuses:new Set(update.statuses)});},
   async delete(){counts.effectDeletes++;actor.effects=actor.effects.filter(e=>e!==this);}
 };}
-function fixture(index,includeSick=false) {
+function fixture(index,includeSick=true) {
   const actor={id:"actor-"+index,uuid:"Actor.actor-"+index,name:"Actor "+index,type:"character",flags:{},effects:[],items:[],
     get conditions(){return this.items.filter(i=>i.type==="condition");},
     getFlag(ns,key){return this.flags?.[ns]?.[key];},
@@ -79,4 +80,44 @@ for(const id of ["realm-guard-strict","mg1e","mg2e"]) {
   assert.equal(JSON.stringify(counts),before,id+": current Conditions must not be rewritten");
   assert.equal(JSON.stringify(game.actors.contents),familyData,id+": preserved Condition data must remain intact");
 }
-console.log("PASS Condition startup: all four stable profiles, warm world zero writes/redraws, changed-only batched repair, idempotent ActiveEffects, live toggles intact, custom/TB2E data preserved and primary-GM authority retained");
+const oldNpc=fixture(200,false);
+oldNpc.type="npc";
+oldNpc.flags["realm-guard"]={quickNpc:{addDefaultConditions:false}};
+oldNpc.items=[];
+oldNpc.effects=[];
+oldNpc.system={attributes:{will:{value:4}}};
+let sickCreations=0;
+oldNpc.createEmbeddedDocuments=async (type, docs) => {
+  assert.equal(type,"Item");
+  sickCreations+=docs.length;
+  const created=docs.map(data=>({...data,id:"new-sick",getFlag:(ns,key)=>data.flags?.[ns]?.[key]}));
+  oldNpc.items.push(...created);
+  return created;
+};
+activeProfileId="realm-guard-legacy-mixed";
+refreshRulesProfileRuntime();
+game.actors.contents=[oldNpc];
+await ready();
+await ready();
+assert.equal(sickCreations,1,"A legacy NPC with defaults disabled gains only one Sick item");
+const [sick]=oldNpc.conditions;
+assert.equal(sick.name,"Sick");
+assert.equal(sick.system.active,false);
+sick.system.active=true;
+const test=(label,isSkill=false)=>conditionRollData(oldNpc,label,{isSkill}).dice;
+assert.deepEqual([test("Scout",true),test("Nature"),test("Will"),test("Health"),test("Resources"),test("Circles")],[-1,-1,-1,-1,0,0]);
+for (const [id, healerObstacle] of [["realm-guard-legacy-mixed",4],["mg1e",3],["mg2e",4]]) {
+  activeProfileId=id;
+  refreshRulesProfileRuntime();
+  const [method]=recoveryMethods(oldNpc,sick);
+  assert.deepEqual([method.name,method.obstacle,method.helpAllowed],["Will",4,false]);
+  const failure=familyRecoveryState("Sick",{passed:false},conditionRecoveryPolicy(sick));
+  assert.equal(failure.healerObstacle,healerObstacle);
+  assert.equal(failure.nextAction,`HEALER_OB${healerObstacle}_OR_PLAYERS_TURN_WAIVE`);
+  sick.flags["realm-guard"].profileRecoveryState={profileId:id,state:failure.state};
+  assert.match(validateRecoveryAttempt(oldNpc,sick).reason,new RegExp(`Healer test at Ob ${healerObstacle}`));
+}
+activeProfileId="realm-guard-strict";
+refreshRulesProfileRuntime();
+assert.equal(test("Scout",true),0,"Strict keeps Strained as its rules-profile condition");
+console.log("PASS Condition startup and Sick provisioning, roll penalties, recovery and profile routing");

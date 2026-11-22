@@ -8,7 +8,7 @@ import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
 import { isDefaultSkill } from "../module/default-skills.mjs";
 import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
-import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt } from "../module/conditions.mjs";
+import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt, conditionRecoveryPolicy } from "../module/conditions.mjs";
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
 import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget, legacyOpponentActor } from "../module/legacy-roll-targets.mjs";
@@ -1467,7 +1467,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       if (method.kind === "ability") await recordAbilityTest(this.actor, method.key, Boolean(result.passed));
       if (method.kind === "role") await RealmGuardActorSheet._recordLearning.call(this, method.item, Boolean(result.passed));
     }
-    const recoveryPolicy = getActiveM10BConditionRecoveryPolicy();
+    const recoveryPolicy = conditionRecoveryPolicy(item);
     let profileRecovery = null;
     if (recoveryPolicy.familySemantics) {
       profileRecovery = familyRecoveryState(item.name, {

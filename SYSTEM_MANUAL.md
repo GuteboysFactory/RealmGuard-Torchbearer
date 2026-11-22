@@ -1,6 +1,6 @@
 # Realm Guard / Torchbearer – användarmanual
 
-Manualen beskriver **Realm Guard 1.13.10** i Foundry VTT 13.351. Knapparna anges med sina namn i Foundry. Exemplen gäller Legacy Mixed där en annan regelprofil inte anges.
+Manualen beskriver **Realm Guard 1.13.11** i Foundry VTT 13.351. Knapparna anges med sina namn i Foundry. Exemplen gäller Legacy Mixed där en annan regelprofil inte anges.
 
 ## Innehåll
 
@@ -259,7 +259,15 @@ Pass Checks finns på spelarblad i **Legacy Mixed, Mouse Guard 1E och Mouse Guar
 2. Följ villkoret eller slå den föreslagna Skillen eller Abilityn. Kontrollera kostnaden i dialogen när Turn Manager används. I Legacy Mixed kan tillåten Recovery i GM Turn kosta två Checks.
 3. Vid lyckad automatiserad Recovery tas Conditionen bort. Ett misslyckat slag kan lämna den aktiv eller ge nästa steg enligt profilen. Läs utfallet före nästa Recovery.
 
-Legacy Mixed använder normalt ordningen **Hungry & Thirsty → Angry → Tired → Injured → Strained**. Exempel är Angry med Will Ob 2, Tired med Health Ob 3, Injured med Health Ob 4 och Strained med Will Ob 4. **Fresh** kan inte vara tillsammans med en annan aktiv Condition. **Afraid** har särskilda konsekvenser och kan hindra Help. GM kan skapa egna Conditions och välja manuell, Ability-baserad eller Skill-baserad Recovery.
+Legacy Mixed använder ordningen **Hungry & Thirsty → Angry → Tired → Injured → Strained → Sick**. Exempel är Angry med Will Ob 2, Tired med Health Ob 3, Injured med Health Ob 4 och Strained med Will Ob 4. **Fresh** kan inte vara tillsammans med en annan aktiv Condition. **Afraid** har särskilda konsekvenser och kan hindra Help. GM kan skapa egna Conditions och välja manuell, Ability-baserad eller Skill-baserad Recovery.
+
+**Sick** ger −1D på Skills, Nature, Will och Health. Resources, Circles och återhämtningsslag med Will eller Health är undantagna.
+
+1. Öppna **Conditions** och välj **Recovery** vid **Sick** för att slå Will mot Ob 4 utan Help. Vid framgång stängs tillståndet av.
+2. Vid misslyckande ligger Sick kvar. Slå **Healer** från läkarens blad med Ob 4 i Legacy Mixed och Mouse Guard 2E eller Ob 3 i Mouse Guard 1E. GM stänger av Sick på den sjuka karaktären om behandlingen lyckas.
+3. Om behandlingen misslyckas eller karaktären avstår från den under Players’ Turn sänker GM en tillåten Skill eller Ability permanent med ett steg och stänger av Sick. Resources och Circles kan inte väljas.
+
+Strict Realm Guard använder **Strained** som profilens motsvarande tillstånd.
 
 ### Conflict Engine från start till kompromiss
 

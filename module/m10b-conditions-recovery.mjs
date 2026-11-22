@@ -212,7 +212,7 @@ export function familyRecoveryState(conditionName, { priorState = "NORMAL", pass
     }
     return passed
       ? freeze({ conditionName, state: "RECOVERED", activeAfter: false, nextAction: "NONE", liveApplication: false, profileId: policy.profileId })
-      : freeze({ conditionName, state: "HEALER_REQUIRED", activeAfter: true, nextAction: "HEALER_OB3_OR_PLAYERS_TURN_WAIVE", healerObstacle: Number(rule.healerObstacle ?? 3), liveApplication: false, profileId: policy.profileId });
+      : freeze({ conditionName, state: "HEALER_REQUIRED", activeAfter: true, nextAction: `HEALER_OB${Number(rule.healerObstacle ?? 3)}_OR_PLAYERS_TURN_WAIVE`, healerObstacle: Number(rule.healerObstacle ?? 3), liveApplication: false, profileId: policy.profileId });
   }
   if (key === "strained" && String(rule.failedRecovery ?? "").toUpperCase() === "COUNSEL_FROM_FRIEND") {
     if (String(route).toUpperCase() === "COUNSEL") {

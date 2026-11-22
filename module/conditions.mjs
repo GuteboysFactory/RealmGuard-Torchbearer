@@ -1,5 +1,6 @@
 import {
   getActiveM10BConditionRecoveryPolicy,
+  resolveM10BConditionRecoveryPolicy,
   familyConditionRollEffects,
   familyRecoveryBlocker,
   familyRecoveryEconomy,
@@ -12,21 +13,27 @@ export const RG_DEFAULT_CONDITIONS = [
   { name: "Angry", icon: "systems/realm-guard/assets/conditions/angry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 2, recoveryNote: "Recover with an Ob 2 Will test. While Angry, beneficial Trait and Wise effects are unavailable; precision/social Ob increases remain GM-adjudicated.", description: "Angry subtracts 1 from disposition for conflicts that use Will as their base. Supplementary Torchbearer alignment also blocks beneficial Trait/Wise effects while Angry." },
   { name: "Tired", icon: "systems/realm-guard/assets/conditions/tired.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 3, recoveryNote: "Recover from fatigue with an Ob 3 Health test.", description: "Tired subtracts 1 from disposition for all conflicts. It does not penalize ordinary Skill tests." },
   { name: "Strained", icon: "systems/realm-guard/assets/conditions/strained.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Realm Guard: recover with an Ob 4 Will test. Failure leaves Strained active; counsel may be required. Seeking counsel during the GM Turn costs two Checks.", description: "Mental fatigue and stress impose -1D to Nature, Will, Health and skill tests. This penalty does not apply to Resources or Circles tests, nor to Will or Health recovery tests." },
-  { name: "Sick", icon: "systems/realm-guard/assets/conditions/sick.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Mouse Guard 1E: recover with an Ob 4 Will test. On failure, seek a Healer at Ob 3 or use the Players' Turn waiver and take a permanent reduction.", description: "Mouse Guard 1E: Sick imposes -1D to Nature, Will, Health and skill tests. The penalty does not apply to Resources or Circles, nor to Will and Health recovery tests." },
+  { name: "Sick", icon: "systems/realm-guard/assets/conditions/sick.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 4, recoveryNote: "Try Will at Ob 4 without Help. On failure, seek treatment from a Healer (Ob 4 in Legacy Mixed and Mouse Guard 2E, Ob 3 in Mouse Guard 1E). If treatment fails, or if you forgo treatment in the Players' Turn, the GM reduces an eligible Skill or Ability by 1 and clears Sick.", description: "Sick imposes -1D to Nature, Will, Health and Skill tests. Resources, Circles and Will or Health recovery tests are exempt." },
   { name: "Hungry & Thirsty", icon: "systems/realm-guard/assets/conditions/hungry.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "resources", recoveryObstacle: 1, recoveryNote: "Eat and drink. Use Resources Ob 1, or an available Cook/Brewer/Baker Skill at Ob 1 when appropriate.", description: "Hungry & Thirsty subtracts 1 from disposition for any conflict. It must be dealt with before later canonical recovery conditions." },
   { name: "Afraid", icon: "systems/realm-guard/assets/conditions/afraid.svg", rollModifier: 0, appliesTo: "none", recoveryType: "ability", recoveryAbility: "will", recoveryObstacle: 3, recoveryNote: "Supplementary Torchbearer rule: recover with an Ob 3 Will test. Afraid Rangers cannot Help and cannot use Beginner's Luck.", description: "Supplementary condition rule: while Afraid, the Ranger cannot Help another Ranger and cannot use Beginner's Luck. Nature remains available for untrained actions when appropriate." },
   { name: "Injured", icon: "systems/realm-guard/assets/conditions/injured.svg", rollModifier: -1, appliesTo: "skills,nature,will,health", recoveryType: "ability", recoveryAbility: "health", recoveryObstacle: 4, recoveryNote: "Recover with an Ob 4 Health test. Recovery tests ignore the Injury penalty.", description: "Injured imposes -1D to Nature, Will, Health and skill tests. The penalty does not apply to Resources or Circles, nor to Will or Health recovery tests." },
   { name: "Fresh", icon: "systems/realm-guard/assets/conditions/fresh.svg", rollModifier: 1, appliesTo: "skills,nature,will,health", recoveryType: "manual", recoveryAbility: "", recoveryObstacle: 0, recoveryNote: "Supplementary Torchbearer state: +1D to tests except Resources and Circles. In Beginner's Luck, Fresh is added after halving.", description: "Fresh grants +1D to tests except Resources and Circles. Fresh cannot coexist with another active Condition." }
 ];
 
-export const RG_RECOVERY_ORDER = ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained"];
-const RG_LEGACY_DEFAULT_CONDITION_NAMES = Object.freeze(["Angry", "Tired", "Strained", "Hungry & Thirsty", "Afraid", "Injured", "Fresh"]);
+export const RG_RECOVERY_ORDER = ["Hungry & Thirsty", "Angry", "Tired", "Injured", "Strained", "Sick"];
+const RG_LEGACY_DEFAULT_CONDITION_NAMES = Object.freeze(["Angry", "Tired", "Strained", "Hungry & Thirsty", "Afraid", "Injured", "Fresh", "Sick"]);
 
 const FALLBACK_ICON = "systems/realm-guard/assets/conditions/condition.svg";
 const normalize = value => String(value ?? "").trim().toLowerCase();
 export const isDefaultCondition = item => Boolean(item?.getFlag?.("realm-guard", "defaultCondition"));
 export function conditionStatusId(item) { return `realm-guard.condition.${item.id}`; }
 
+export function conditionRecoveryPolicy(condition) {
+  const policy = getActiveM10BConditionRecoveryPolicy();
+  if (policy.profileId !== "realm-guard-legacy-mixed" || normalize(condition?.name) !== "sick") return policy;
+  const { sick } = resolveM10BConditionRecoveryPolicy("mg2e").recovery;
+  return { ...policy, familySemantics: true, recovery: { ...policy.recovery, sick } };
+}
 
 export function conditionAppliesToRoll(condition, rollName, { isSkill = true } = {}) {
   if (!condition?.system?.active) return false;
@@ -83,6 +90,13 @@ export function recoveryBlocker(actor, condition) {
 export function validateRecoveryAttempt(actor, condition) {
   if (!actor || condition?.type !== "condition") return { ok: false, reason: "Invalid recovery target." };
   if (!condition.system?.active) return { ok: false, reason: `${condition.name} is not active.` };
+  if (normalize(condition.name) === "sick") {
+    const policy = conditionRecoveryPolicy(condition);
+    const previous = condition.getFlag?.("realm-guard", "profileRecoveryState");
+    if (policy.recovery.sick && previous?.profileId === policy.profileId && previous.state === "HEALER_REQUIRED") {
+      return { ok: false, reason: `Sick now requires a Healer test at Ob ${policy.recovery.sick.healerObstacle}, or the Players' Turn waiver.` };
+    }
+  }
   const blocker = recoveryBlocker(actor, condition);
   if (blocker) return { ok: false, reason: `Recover ${blocker.name} before ${condition.name}.` };
   if (turnManagerEnabled() && recoveryAttempted(actor, condition.name)) return { ok: false, reason: `${condition.name} already had a recovery attempt this ${turnLabel()}.` };
@@ -99,7 +113,7 @@ export function validateRecoveryAttempt(actor, condition) {
 
 export function recoveryMethods(actor, condition) {
   const key = normalize(condition?.name);
-  const policy = getActiveM10BConditionRecoveryPolicy();
+  const policy = conditionRecoveryPolicy(condition);
   if (policy.familySemantics) {
     return familyRecoveryMethods(actor, condition?.name, policy).map(entry => {
       if (entry.kind === "skill") {
@@ -161,14 +175,14 @@ export async function recoverCondition(actor, condition) {
   return ui.notifications.info("Realm Guard: Use the Ranger sheet Recovery control so the Turn/Check economy and Roll Dialog are applied.");
 }
 
-export async function ensureDefaultConditions(actor) {
+export async function ensureDefaultConditions(actor, { sickOnly = false } = {}) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
   if (isTb2eWizardActor(actor)) return [];
   const existing = new Map(actor.conditions.map(c => [normalize(c.name), c]));
   const create = [];
   const policy = getActiveM10BConditionRecoveryPolicy();
   const wanted = policy.familySemantics ? policy.adverseConditions : RG_LEGACY_DEFAULT_CONDITION_NAMES;
-  const defaults = RG_DEFAULT_CONDITIONS.filter(c => wanted.some(name => normalize(name) === normalize(c.name)));
+  const defaults = RG_DEFAULT_CONDITIONS.filter(c => (!sickOnly || c.name === "Sick") && wanted.some(name => normalize(name) === normalize(c.name)));
   for (const c of defaults) {
     const found = existing.get(normalize(c.name));
     if (found) {
@@ -205,7 +219,7 @@ async function migrateAndProvisionConditions() {
       report.actorsScanned++;
       const quickNpc = actor.getFlag?.("realm-guard", "quickNpc");
       const skipNpcDefaults = actor.type === "npc" && quickNpc?.addDefaultConditions === false;
-      if (!skipNpcDefaults) report.createdConditions += (await ensureDefaultConditions(actor)).length;
+      report.createdConditions += (await ensureDefaultConditions(actor, { sickOnly:skipNpcDefaults })).length;
       const changes = await enrichCanonicalConditionData(actor);
       report.conditionUpdates += changes.conditionUpdates;
       report.effectChanges += changes.effectChanges;
@@ -260,9 +274,10 @@ async function enrichCanonicalConditionData(actor) {
 
 export function installConditionRuleAlignment() {
   Hooks.on("createActor", async (actor, _options, userId) => {
-    if (_options?.realmGuardSkipRecruitmentProvisioning) return;
     if (userId !== game.user.id || !["character", "npc"].includes(actor.type)) return;
-    try { await ensureDefaultConditions(actor); }
+    if (_options?.realmGuardSkipRecruitmentProvisioning) return;
+    const sickOnly = actor.type === "npc" && actor.getFlag?.("realm-guard", "quickNpc")?.addDefaultConditions === false;
+    try { await ensureDefaultConditions(actor, { sickOnly }); }
     catch (err) { console.error(`Realm Guard | Could not provision default Conditions for new Actor ${actor.name}`, err); }
   });
   if (game.ready) queueMicrotask(() => migrateAndProvisionConditions());
@@ -341,7 +356,11 @@ export async function setConditionActive(actor, item, active) {
       await syncConditionEffect(actor, fresh);
     }
   }
-  await item.update({ "system.active": next }, { realmGuardSkipConditionSync: true });
+  const update = { "system.active": next };
+  if (!next && normalize(item.name) === "sick" && item.getFlag?.("realm-guard", "profileRecoveryState")) {
+    update["flags.realm-guard.-=profileRecoveryState"] = null;
+  }
+  await item.update(update, { realmGuardSkipConditionSync: true });
   await syncConditionEffect(actor, item);
   return true;
 }
