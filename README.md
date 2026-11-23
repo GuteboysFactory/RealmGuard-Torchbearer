@@ -1,11 +1,11 @@
 # Realm Guard / Torchbearer for Foundry VTT
 
-**Version:** 1.13.12
+**Version:** 1.13.13
 **Target:** Foundry VTT 13.351  
 **Status:** Stable
-**Current stable:** v1.13.12
+**Current stable:** v1.13.13
 
-Stable 1.13.12 fixes guided and quick Ranger Recruitment for standard Foundry players. See the [release notes](RELEASE_NOTES_v1.13.12.md) and [illustrated user manual](SYSTEM_MANUAL.md).
+Stable 1.13.13 adds **Create Character** for Humans, Dwarves, Hobbits, and Elves in Legacy Mixed, a bilingual manual with optional walkthroughs, and clearer token Conditions. See the [release notes](RELEASE_NOTES_v1.13.13.md) and [illustrated user manual](SYSTEM_MANUAL.md).
 
 ## 1.13.1 startup performance
 
@@ -49,7 +49,7 @@ In Foundry VTT, open **Game Systems > Install System** and paste this Manifest U
 
 ### Manual installation
 
-Download `realm-guard.zip` from the [stable GitHub release](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/tag/1.13.12) and extract it into Foundry’s `Data/systems/realm-guard/` directory. Use the stable manifest to switch from QA back to stable.
+Download `realm-guard.zip` from the [stable GitHub release](https://github.com/GuteboysFactory/RealmGuard-Torchbearer/releases/tag/1.13.13) and extract it into Foundry’s `Data/systems/realm-guard/` directory. Use the stable manifest to switch from QA back to stable.
 
 ## Rules identity
 
@@ -66,7 +66,7 @@ The release is not presented as a one-to-one digital edition of any single sourc
 
 The integrated manual contains:
 
-- **Användarmanual** — [step-by-step instructions](SYSTEM_MANUAL.md) for players and GMs, with exact Foundry control names and illustrated examples.
+- **User manual** — Step-by-step instructions for players and GMs with Foundry control names and illustrated examples. [English](SYSTEM_MANUAL.md) · [Svenska](SYSTEM_MANUAL.sv.md)
 - **Rules Reference** — concise summaries of the rules and automation boundaries actually used by the system.
 
 Rules are marked as `RULE`, `AUTOMATED`, `GM CALL`, or `RG/TB FOUNDRY` where appropriate.

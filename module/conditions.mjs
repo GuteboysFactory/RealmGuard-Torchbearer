@@ -592,44 +592,44 @@ export function decorateConditionTokenEffects(token) {
   const { actor, effects } = token;
   if (!actor || !effects?.bg || !effects.renderable) return;
 
-  const scale = canvas.dimensions.uiScale;
-  const { width, height } = token.document.getSize();
-  const nativeSize = 20 * scale;
-  const conditionSize = Math.max(nativeSize, Math.min(28 * scale, width, height));
   const activeEffects = actor.temporaryEffects ?? [];
-  const badges = [];
+  const conditions = [];
+  const otherIcons = [];
   for (const sprite of effects.children) {
     if (!sprite.texture || sprite === effects.overlay) continue;
     // Foundry assigns the index of the source ActiveEffect as the sprite's zIndex.
     const itemId = activeEffects[sprite.zIndex]?.getFlag("realm-guard", "conditionItemId");
     const condition = itemId ? actor.items.get(itemId) : null;
-    badges.push({ sprite, condition: condition?.type === "condition" && condition.system.active ? condition : null });
+    if (condition?.type === "condition" && condition.system.active) conditions.push({ sprite, condition });
+    else otherIcons.push(sprite);
   }
-  if (!badges.some(({ condition }) => condition)) return;
+  if (!conditions.length) return;
+
+  const scale = canvas.dimensions.uiScale;
+  const { width, height } = token.document.getSize();
+  const perColumn = 3;
+  const gap = Math.min(2 * scale, height / 12);
+  const size = Math.min(38 * scale, width, (height - gap * (perColumn - 1)) / perColumn);
+  for (const [index, { sprite, condition }] of conditions.entries()) {
+    const column = Math.floor(index / perColumn);
+    sprite.width = sprite.height = size;
+    sprite.position.set(column ? -column * (size + gap) : 0, (index % perColumn) * (size + gap));
+    bindConditionSprite(sprite, condition);
+  }
 
   const bg = effects.bg.clear();
-  let x = 0;
-  let y = 0;
-  let columnWidth = 0;
-  for (const { sprite, condition } of badges) {
-    const size = condition ? conditionSize : nativeSize;
-    if (y > 0 && y + size > height + 1e-6) {
-      x += columnWidth;
-      y = 0;
-      columnWidth = 0;
-    }
-
-    sprite.width = sprite.height = size;
+  if (!otherIcons.length) return;
+  const nativeSize = 20 * scale;
+  const rows = Math.max(1, Math.floor(height / nativeSize + 1e-6));
+  bg.beginFill(0x000000, 0.40).lineStyle(scale, 0x000000);
+  for (const [index, sprite] of otherIcons.entries()) {
+    const x = size + gap + Math.floor(index / rows) * nativeSize;
+    const y = (index % rows) * nativeSize;
+    sprite.width = sprite.height = nativeSize;
     sprite.position.set(x, y);
-    bg.beginFill(0x000000, condition ? 0.85 : 0.40)
-      .lineStyle(scale, condition ? 0xEAD8AA : 0x000000)
-      .drawRoundedRect(x + scale, y + scale, size - 2 * scale, size - 2 * scale, 2 * scale)
-      .endFill();
-    if (condition) bindConditionSprite(sprite, condition);
-
-    y += size;
-    columnWidth = Math.max(columnWidth, size);
+    bg.drawRoundedRect(x + scale, y + scale, nativeSize - 2 * scale, nativeSize - 2 * scale, 2 * scale);
   }
+  bg.endFill();
 }
 
 export function installConditionTokenHover() {

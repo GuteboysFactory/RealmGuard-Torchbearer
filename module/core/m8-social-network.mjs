@@ -281,6 +281,7 @@ export function buildLegacySocialNetworkSnapshot(actor) {
         profession: clean(person?.profession),
         peopleName: clean(person?.people),
         location: clean(person?.location),
+        notes: clean(person?.notes),
         role: clean(entry?.role) || RelationshipRole.OTHER,
         status: clean(entry?.status) || RelationshipStatus.UNKNOWN,
         confidence: "STRUCTURED_HIGH",

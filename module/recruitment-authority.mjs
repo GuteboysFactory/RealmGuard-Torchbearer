@@ -6,13 +6,13 @@ const REQUEST_ID = "recruitmentRequestId";
 const queued = new Set();
 let queue = Promise.resolve();
 
-export async function submitRangerRecruitment(draft, profileHash) {
+export async function submitRangerRecruitment(draft, profileHash, kind = "ranger") {
   const whisper = game.users.filter(user => user.isGM).map(user => user.id);
   if (!whisper.length) throw new Error("This world has no GM account to process Recruitment.");
   const request = await ChatMessage.create({
     whisper,
-    content: "<p>Ranger Recruitment submitted. Realm Guard creates the character automatically when a GM is connected.</p>",
-    flags: { [SYSTEM]: { [REQUEST]: { status: "pending", draft, profileHash } } }
+    content: "<p>Character creation submitted. Realm Guard creates the character automatically when a GM is connected.</p>",
+    flags: { [SYSTEM]: { [REQUEST]: { status: "pending", draft, profileHash, kind } } }
   });
   if (!request) throw new Error("Recruitment could not be submitted.");
 }

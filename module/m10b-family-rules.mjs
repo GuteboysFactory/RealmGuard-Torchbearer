@@ -64,7 +64,10 @@ export function helperSourceAllowedForTest(sourceKind, testKind, policy = getAct
   return Boolean(source && allowedHelperKindsForTest(testKind, policy).includes(source));
 }
 
-export function natureDescriptorText(policy = getActiveM10BFamilyRulePolicy()) {
+export function natureDescriptorText(policy = getActiveM10BFamilyRulePolicy(), actor = null) {
+  if (policy.profileId === "realm-guard-legacy-mixed" && actor?.getFlag?.("realm-guard", "communityBackground")) {
+    return String(actor.system.natureDescriptors ?? "").split(",").map(value => value.trim()).filter(Boolean).join(" · ");
+  }
   return policy.nature.descriptors.join(" · ");
 }
 

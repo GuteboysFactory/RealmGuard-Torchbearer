@@ -1,212 +1,167 @@
-# Realm Guard / Torchbearer – användarmanual
+# Realm Guard / Torchbearer — User Manual
 
-Manualen beskriver **Realm Guard 1.13.12** i Foundry VTT 13.351. Knapparna anges med sina namn i Foundry. Exemplen gäller Legacy Mixed där en annan regelprofil inte anges.
+This guide covers **Realm Guard 1.13.13**, including the character creation and practice guides, tested in Foundry VTT 13.351. Button names match the Foundry interface. Examples use Legacy Mixed unless another Rules Profile is named. [Svenska](SYSTEM_MANUAL.sv.md)
 
-## Innehåll
+## Contents
 
-- [Kom igång](#kom-igång)
-- [Karaktärer och utrustning](#karaktärer-och-utrustning)
-- [Slag och utveckling](#slag-och-utveckling)
-- [Spelpass och konflikter](#spelpass-och-konflikter)
-- [NPC och compendia](#npc-och-compendia)
-- [Kartor och GM-verktyg](#kartor-och-gm-verktyg)
-- [Inställningar och felsökning](#inställningar-och-felsökning)
+- [Getting started](#getting-started)
+- [Characters and equipment](#characters-and-equipment)
+- [Rolling and advancement](#rolling-and-advancement)
+- [Sessions and conflicts](#sessions-and-conflicts)
+- [NPCs and compendia](#npcs-and-compendia)
+- [Maps and GM tools](#maps-and-gm-tools)
+- [Settings and troubleshooting](#settings-and-troubleshooting)
+- [Advanced examples](#advanced-examples)
 
-## Kom igång
+## Getting started
 
-### Första spelkvällen
+### Your first session
 
-Den här starten tar er från en öppnad värld till ert första slag. GM förbereder scen och behörigheter. Varje spelare behöver kunna öppna och styra sin egen karaktär.
+1. **GM** opens the world and checks **Configure Settings → Realm Guard / Torchbearer → Rules Profile Management**. Open a scene with the party's tokens and give players ownership of any existing characters.
+2. **Players** join at the world's address. Open a character under **Actors** or double-click its token. If you need a character, use **Recruit Ranger** or **Create Ranger**. Realm Guard grants ownership automatically.
+3. When the GM asks for a test, open the relevant Skill or Ability. Check the **Obstacle** or opponent, click **Roll**, then resolve any choices on the chat card.
+4. Use **Turn Manager** for GM Turn and Players’ Turn, **Conflict Engine** for a structured conflict, and **End Session** for rewards.
 
-1. **GM** öppnar världen, kontrollerar regelprofilen i **Configure Settings → Realm Guard / Torchbearer → Rules Profile Management** och tilldelar varje spelare ägarskap över sin Actor. Öppna en scen där spelarna kan hitta sina tokens.
-2. **Spelaren** ansluter via världens adress och öppnar karaktären från **Actors** eller genom att dubbelklicka på sin token. Kontrollera att rätt karaktär är vald för användaren i Foundry. Det underlättar Help-förfrågningar och deltagarlistor.
-3. Klicka på den Skill eller Ability som GM ber om. Kontrollera **Obstacle** eller motståndare och välj **Roll**. Läs utfallet på chattkortet och slutför eventuella val för Fate, omslag och Learning.
-4. GM öppnar **Conflict Engine** när spelarna behöver lösa flera handlingar som en gruppkonflikt. Använd **Turn Manager** om ni spelar med GM Turn och Players’ Turn. Avsluta spelpasset i **End Session**.
+### Find help in the manual
 
-### Hitta rätt instruktion i manualen
+Open **System Manual & Rules Reference** with the book icon beside the sidebar, from chat, or from GM Dock. The toolbar offers **English** and **Svenska** and remembers your choice. Search by task or interface label, such as **Pass Checks**, **Respond**, or **Import Image Folder**. Clear the search to see all topics. Use **Expand All** or **Collapse All** to change what is open.
 
-Öppna **System Manual & Rules Reference** med bokikonen vid sidopanelen, från chatten eller via **GM Dock**. Här finns både instruktioner för knapparna och regelreferensen för spelbordet.
+In Legacy Mixed, **Start Guide** opens an optional walkthrough. Try **Create Your Ranger**, **Find Your Way Around the Character Sheet**, or **Make Your First Roll**. The practice roll uses a guide window and leaves your characters, resources, and world chat untouched. Use **Open Active Profile Rules** where offered for profile-specific mechanics.
 
-1. Skriv namnet på knappen eller det du vill göra i sökfältet, till exempel **Pass Checks**, **Respond** eller **Import Image Folder**. Matchande avsnitt öppnas så att du kan läsa stegen direkt.
-2. Rensa sökfältet för att se alla avsnitt igen. Använd **Expand All** för att läsa flera avsnitt i följd och **Collapse All** för att snabbt se rubrikerna.
-3. Öppna **Open Active Profile Rules** när frågan gäller en regel i världens aktiva profil, till exempel hur Wises fungerar.
+### Terms on the sheet
 
-### Ord du möter på bladet
+An **Actor** is a saved character. A **token** is a placement on a scene. **Prototype Token** stores defaults for future placements. Existing tokens can have their own settings. An **Actor Compendium** is a reusable library. Importing from it creates a world copy.
 
-**Actor** är den sparade karaktären i Foundry. En **token** är instansen på kartan, och **Prototype Token** innehåller utgångsvärdena för nästa placering. Därför kan en ändring på prototypen kräva ett separat val för att påverka tokens som redan ligger på en scen. Ett **Actor Compendium** är ett bibliotek med karaktärer som du kan ta fram vid behov. När en NPC tas fram ur ett compendium skapas en världskopia.
+A **Skill** is a trained or untrained proficiency. An **Ability** is a core stat, such as Health or Will. **3D** means three dice. A **Check** is a resource used in play. **Learning** tracks progress towards improving a rating.
 
-**Skill** är en tränad eller otränad färdighet. **Ability** är ett grundvärde som Health eller Will. **D** står för tärningar i poolen, så **3D** betyder tre tärningar. Ett **Check** är en spelresurs, medan **Learning** är markeringarna som kan utveckla ett värde.
+### Install and update Realm Guard
 
-### Installera och uppdatera Realm Guard
+1. In Setup, choose **Game Systems → Install System** and paste the stable address into **Manifest URL**. [Stable manifest](https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json)
+2. Choose **Realm Guard / Torchbearer** for a new world. For an existing installation use the update button in **Game Systems** and check the version before launching.
+3. To install a local QA ZIP, stop your test instance, move its system folder aside, and unpack into **Data/systems/realm-guard**. The file `system.json` belongs directly in that folder. Check the QA version after restarting. To switch back, install stable from its manifest or release package.
 
-Installera systemet i Foundry en gång per server. Därefter kan flera världar använda samma installation. Ett lokalt QA-paket installeras manuellt och passar i en separat testinstans.
+### Choose and understand the Rules Profile
 
-1. Öppna Foundrys **Setup → Game Systems → Install System**.
-2. Sätt in den [stabila manifestadressen](https://raw.githubusercontent.com/GuteboysFactory/RealmGuard-Torchbearer/main/channels/stable/system.json) i **Manifest URL** och installera.
-3. Välj **Realm Guard / Torchbearer** när du skapar en värld. För en befintlig värld använder du systemets uppdateringsknapp i **Game Systems** och kontrollerar versionsnumret innan du öppnar världen.
+- **Legacy Mixed** combines Realm Guard rules with inherited Mouse Guard 2E mechanics and selected Torchbearer additions. It includes Compact sheets and the custom GM map menu.
+- **Strict Realm Guard** follows the Realm Guard v1.6 source and Mouse Guard 1E lineage. Consult its reference for Traits, Wises, and Nature.
+- **Mouse Guard 1E** and **Mouse Guard 2E** have edition-specific rules and creation choices.
+- **Torchbearer 2E** is a preview in stable Realm Guard. Profile Management lists what you can preview.
 
-För ett lokalt QA-paket stänger du Foundrys testinstans, flyttar undan testinstansens befintliga systemmapp och packar upp i **Data/systems/realm-guard**. **system.json** ska ligga direkt i den mappen. Kontrollera QA-numret efter omstart. Om QA-versionen har ett högre nummer än stable kan du behöva installera stable från dess manifest eller releasepaket för att byta tillbaka. Använd en separat testvärld så att den vanliga kampanjen har sin egen installation.
+As GM, open **Manage Rules Profile** and review **World Impact Snapshot** and the read-only preview. Finish pending rolls before switching between sessions. Reload clients as instructed and verify the active profile. From Legacy Mixed, use the profile previews or **Open Legacy Mixed Rules Journal**.
 
-### Välj och förstå regelprofilen
+## Characters and equipment
 
-Regelprofilen avgör vilka regelval, uträkningar och arbetsflöden världen använder. Som GM kan du granska en annan profil före ett eventuellt byte.
+### Create a Ranger with Recruitment
 
-- **Legacy Mixed** används av många befintliga Realm Guard-världar. Realm Guard går först där det har egna regler. Mouse Guard 2E används för ärvda regler och utvalda Torchbearer 2E-idéer ingår där de anges. Här finns också Compact-bladen och kartans särskilda GM-meny.
-- **Strict Realm Guard** följer projektets regelkälla för Realm Guard v1.6 och dess Mouse Guard 1E-linje. Använd profilens referens för till exempel Traits, Wises och Nature.
-- **Mouse Guard 1E** och **Mouse Guard 2E** har egna regelval och skapandeflöden. Vilka val som syns under ett slag kan skilja sig från Legacy Mixed.
-- **Torchbearer 2E** visas som förhandsgranskning i stabila Realm Guard. Profilens status i menyn visar vilka delar som går att förhandsgranska.
+Choose **Recruit Ranger** for **GUIDED** explanations or **Create Ranger** for **QUICK**. Both use the same rules. **Recruitment Guide** explains each step.
 
-1. Öppna **Configure Settings → Realm Guard / Torchbearer → Rules Profile Management** och välj **Manage Rules Profile**.
-2. Läs **World Impact Snapshot** för att se världens omfattning. Öppna profilens förhandsgranskning för att se vilka regler och arbetsflöden som berörs. Förhandsgranskningen är skrivskyddad.
-3. Slutför öppna slag och gör eventuella profilbyten mellan spelpass. Bekräfta bytet och följ dialogens instruktion om att ladda om klienterna. Kontrollera sedan den aktiva profilen i samma fönster.
+1. Enter a name, Concept, Station, and age. Station sets starting values and how many choices you get.
+2. Answer the Nature questions. Dúnadan Nature uses Tradition, Family, and Grief. Answers can limit eligible Traits.
+3. Choose Homeland and allocate Natural Talent, Life Experience, Service, and Specialty. Follow the displayed budgets. Natural Talent here is a Skill choice. Talents from Level Up come later.
+4. Fill in Wises, Resources, Circles, Traits, and relationships. Review Parents, Senior Artisan, Mentor, Friend, and Enemy. **Allow Servants of the Enemy as personal Enemies** is an optional Legacy house rule.
+5. Enter Belief, Goal, and Instinct and review starting Gear. Confirm **Create Ranger**. The Actor appears under **Actors → PC**. Standard Players receive ownership, and the first Ranger is assigned if they have no character. Requests made while the GM is offline are processed when a GM connects.
 
-**Open Active Profile Rules** öppnar den aktiva källprofilens regelreferens. Från Legacy Mixed finns förhandsgranskning av Strict och MG1E. **Open Legacy Mixed Rules Journal** öppnar den permanenta Legacy Mixed-journalen.
+### Create a Human, Dwarf, Hobbit, or Elf
 
-## Karaktärer och utrustning
+In Legacy Mixed, open **Actors → Create Character** or click **Start Guide** here. A Dúnadan Ranger uses **Recruit Ranger**.
 
-### Skapa en Ranger med Recruitment
+1. **People and Background**. Choose **People** and a **Background** from Realm Guard's occupations. Enter **Name**, **Age**, an optional **Concept** and a **Biography / Background**. Borin Stonehand is a **Dwarf** and **Stonemason**.
+2. **Nature**. Answer all three questions for your people. Start at 3. The choices are +1, 0, and −1, with a final range of 2–6. Borin protects his life's work (+1), tries both methods (0), and asks for relief (0). He starts at Nature 4/4.
+3. **Homeland**. Pick a place and one **Homeland Skill** and **Homeland Trait**. Borin chooses **Erebor**, **Stonemason**, and **Stubborn**.
+4. **Life Experience**. Choose one Skill each for **Area of Natural Talent**, **Family Trade**, **Convincing Others**, **Apprenticeship**, and **Mentor Training**. Each adds one check. Starting rating is the total checks for that Skill + 1, up to 6D.
+5. **Experience and Specialty**. Spend six **Experience Checks** and choose a **Specialty** for one extra check. Borin adds two checks to **Stonemason** and spreads the rest across other Skills.
+6. **Knowledge and Wises**. Assign two Wise checks. Choose existing Wises or write your own. Two checks in the same Wise produce one unrated Wise item in Legacy Mixed.
+7. **Resources and Circles**. The two abilities start at 2. Check the statements that apply and fill in their supporting choices when required. For example, a practiced trade must be one you trained. Some answers also restrict Traits.
+8. **Traits**. Choose an **Innate Quality**. Repeating the **Homeland Trait** gives it level 2. If an answer conflicts with your Homeland Trait, use **Back** to change it.
+9. **House and Relationships**. Enter **House or Lineage** and **Insignia**. Add at least one family member, a **Master Artisan or Teacher**, **Mentor**, **Friend**, and **Rival**. Pick **Occupation** and **Location** from the lists. Choose the Rival's **People / Type**. **What connects you?** is saved in **Relationships** on the sheet.
+10. **Drives and Gear**. Write **Belief**, **Goal**, and **Instinct**. Pick a **Weapon**, enter armor and distinctive gear as needed, and review the gear supplied by your Background.
+11. **Review Your Character**. Review the finished sheet values and click **Create Character**. The Actor appears under **Actors → PC**. If the GM is offline, the request is processed on their next login.
 
-**Create Ranger** skapar en spelarkaraktär med profilens startvärden, färdigheter och utrustning. Välj **GUIDED** för förklaringar vid varje steg eller **QUICK** när du känner till valen. Båda använder samma profilregler. Öppna **Recruitment Guide** om du vill läsa igenom stegen först.
+Will 3, Health 4, Fate 1, Persona 1, and the experience budget are shared starting values for these Legacy Mixed house rules. The character uses their own people's Nature and has no Ranger Station. The GM can optionally create linked relationship NPCs when creating a character as GM.
 
-1. Välj namn, Concept, Station och ålder. Station styr bland annat startvärden och antal val.
-2. Besvara Nature-frågorna. I Realm Guards rekrytering är Dúnadan Nature kopplad till Tradition, Family och Grief.
-3. Välj Homeland och fördela Natural Talent, Life Experience, Service och Specialty. Läs budgeten i steget. Natural Talent i rekryteringen är ett färdighetsval. Talents från Level Up hör till senare progression.
-4. Fyll i Wises, Resources, Circles, Traits och relationer. Granska föreslagna NPC:er för exempelvis Parents, Senior Artisan, Mentor, Friend och Enemy. Den särskilda husregeln **Allow Servants of the Enemy as personal Enemies** lägger till sådana fiendeval där Realm Guard normalt föreslår de fria folken.
-5. Skriv Belief, Goal och Instinct och granska startutrustningen. Bekräfta sammanfattningen så skapas karaktären i **Actors → PC**, med mappen skapad vid behov.
+### The character sheet and its layouts
 
-Som spelare hittar du **Recruit Ranger** och **Create Ranger** under **Actors** med Foundrys vanliga spelarroll. Om en GM är ansluten skapar Realm Guard rollpersonen automatiskt och ger dig ägarskap. Om GM är offline sparas ansökan i chatten och behandlas automatiskt när en GM ansluter. Din första rollperson väljs också för ditt konto om du saknar en tilldelad karaktär.
+Under **Character**, **Overview** has Wises, Traits, and **Level & Talents**. **Background** has history and Concept in Compact, **Relationships** has contacts, and **Notes** holds your notes. Use **Skills** to roll and edit Skills and **Inventory & Gear** for carried items.
 
-### Spelarbladet och dess layouter
+In Legacy Mixed use **Sheet layout → Follow world default**, **Compact**, or **Detailed**. Compact keeps Nature, Will, Health, Resources, Circles, Conditions, and Custom Roll in reach across the main tabs. Switch story fields with **Nature**, **Belief**, **Goal**, **Instinct**, or **Creed**. The Nature stat gives Current, Maximum, and Tax.
 
-Dubbelklicka på din token eller öppna karaktären från **Actors**. De tre huvudflikarna används till olika delar av spelet.
+GM can set **Legacy Mixed · Default player sheet** and temporarily enforce it with **Legacy Mixed · Apply default to all player sheets**. Individual layouts return when enforcement is disabled.
 
-| Vill du göra detta? | Öppna |
-| --- | --- |
-| Hantera Wises, Traits och Talents | **Character → Overview** |
-| Ändra bakgrund eller Concept i Compact | **Character → Background** |
-| Hitta karaktärens relationer och kontakter | **Character → Relationships** |
-| Spara egna anteckningar | **Character → Notes** |
-| Slå, lägga till eller redigera en färdighet | **Skills** |
-| Se vad karaktären bär och var det ligger | **Inventory & Gear** |
+![Compact character sheet with the Pass Checks arrow beside Checks](assets/ui/manual/character-sheet.png)
 
-I Legacy Mixed väljer ägaren **Sheet layout → Follow world default**, **Compact** eller **Detailed**. Compact behåller den samlade överdelen när du byter mellan huvudflikarna. Nature, Will, Health, Resources, Circles, Conditions och **Custom Roll** finns vid överdelen. Klicka på **Nature**, **Belief**, **Goal**, **Instinct** eller **Creed** för att byta berättelsefält. Nature-rutan visar själva värdet, maximum och Tax.
+### Portraits and map tokens
 
-GM väljer **Legacy Mixed · Default player sheet** i världens inställningar. **Legacy Mixed · Apply default to all player sheets** använder världens layout tillfälligt på alla blad. Spelarnas egna val används igen när den tvingande inställningen stängs av.
+1. Click the portrait to open **Character Portrait**. Select **Original Portrait** or **Token Portrait** when available.
+2. Drag the preview or use **Zoom**, **Center**, **Fit**, or **Fill**. Click **Save Portrait**. The two modes keep separate framing. The palette button opens included artwork.
+3. Use Adventurer's Tome's **Token Builder** for map art if that module includes it. It updates the prototype. **Keep portrait upright** lets the token turn while the portrait stays upright. Choose the option for existing scene tokens if you want to update them too.
 
-Exempel vid bordet. Öppna **Skills** för att slå Scout och stanna på fliken när du sedan behöver titta på Conditions. I Compact finns Conditions kvar i överdelen. Byt till **Inventory & Gear** för att se utrustningen.
+### Inventory, equipment, and containers
 
-![Compact-bladet med Pass Checks-pilen vid Checks högst upp till höger](assets/ui/manual/character-sheet.png)
+Add Gear from **Inventory & Gear** or a compendium. Unplaced items are under **Unassigned Gear**. Drag a piece to **Left Hand**, **Right Hand**, **Head**, **Belt**, **Pocket**, or another appropriate slot. A two-handed weapon occupies both hands.
 
-### Porträtt på bladet och token på kartan
-
-**Character Portrait** bestämmer vilken bild och vilket utsnitt spelarbladet visar. Kartans token har en egen bild i **Prototype Token** och egna inställningar efter placering.
-
-1. Klicka på porträttet på spelarbladet. Välj **Original Portrait** eller **Token Portrait** när en tokenbild finns.
-2. Dra bilden i förhandsvisningen och använd **Zoom**, **Center**, **Fit** eller **Fill** för att få rätt utsnitt.
-3. Välj **Save Portrait** och kontrollera resultatet på bladet. Realm Guard sparar utsnittet separat för de två lägena. Palettknappen öppnar systemets medföljande bilder.
-
-Sedan **1.13.9** finns själva Token Builder i **Adventurer’s Tome**. Aktivera en Tome-version som innehåller verktyget. Öppna dess knapp vid bilden på spelar- eller NPC-bladet, välj en bild och ram, granska utsnittet och spara. Tome uppdaterar Actor-prototypens tokenbild. **Keep portrait upright** låter token byta riktning medan bilden står rättvänd. Om du vill uppdatera redan placerade tokens väljer du även scenalternativet när det erbjuds. Realm Guards separata porträtteditor använder den aktuella prototypbilden i Token Portrait-läget. Äldre bildfiler och tokens finns kvar.
-
-### Inventarie, utrustning och behållare
-
-Inventariet visar vad karaktären har, vad den använder och vad som är nedpackat. Du kan till exempel förvara en fackla i en väska och flytta den till en hand när den behövs.
-
-1. Öppna **Inventory & Gear**. Lägg till Gear från bladet eller från ett medföljande eller eget compendium. Utrustning som saknar placering visas under **Unassigned Gear**.
-2. Dra utrustning till rätt fält på figuren, till exempel **Left Hand**, **Right Hand**, **Head**, **Neck**, **Cloak**, **Torso**, **Belt**, **Pocket** eller **Feet**. Ett tvåhandsvapen upptar båda händerna och blockerar den andra handens placering.
-3. Lägg föremål i en kompatibel behållare för att packa dem. Kontrollera kvantitet, placering och kapacitet på föremålets blad om du behöver reda ut varför något inte får plats. Dra tillbaka utrustning till **Unassigned Gear** när du vill frigöra platsen och behålla föremålet.
-4. Välj det vapen eller verktyg som används för handlingen i konfliktens **Weapon / Tool**. Inventariets placering och konfliktens aktuella val fyller olika funktioner.
+To pack gear, move it to a compatible container and check quantity and capacity if it will not fit. Return gear to **Unassigned Gear** to free a slot while retaining the item. During a conflict, confirm the chosen **Weapon / Tool** for the exchange.
 
 ### Tokens of Power
 
-Ett **Token of Power** är en relik eller kraft som kan påverka ett passande slag. Exempelvis kan en relik kopplad till Scout ge extra tärningar när Rangern spanar efter ett bakhåll.
+A **Token of Power** is a named relic or ability. Open it under **Inventory & Gear** to check level, supported Skills or Abilities, and effect. During an eligible roll choose it if offered and check the pool or reroll. The table decides whether a situational relic applies.
 
-1. Öppna föremålet i **Inventory & Gear**. Kontrollera nivå, vilken Skill eller Ability det hör till och vilken effekt det ger.
-2. Öppna ett matchande slag. Välj reliken när den erbjuds och kontrollera ändringen i tärningspoolen eller på kortet för omslag. För en särskild situationsbunden användning bedömer bordet om den passar.
-3. Läs användningsmarkeringen på bladet efter slaget. **Start Session** återställer effekter med en gräns per session.
+In Legacy Mixed, level 1 usually grants +1D once per session, level 2 grants +1D when the linked use applies, and level 3 offers a relevant failed-dice reroll once per session. **Start Session** resets supported session uses.
 
-I Legacy Mixed ger nivå 1 normalt +1D en gång per session, nivå 2 normalt +1D varje gång den länkade användningen passar och nivå 3 ett relevant omslag av misslyckade tärningar en gång per session. Bladet markerar användningen. **Start Session** återställer sessionsbundna effekter. Kontrollera föremålets konfiguration och den aktiva profilens referens för andra effekter.
+## Rolling and advancement
 
-## Slag och utveckling
+### Standard tests and reading the chat card
 
-### Vanliga slag och att läsa chattkortet
+1. Agree on the action and stakes. Open a Skill under **Skills**, an Ability in the header, or an NPC Skill under **Quick Skills**.
+2. Check **Obstacle** and **Dice pool**. In Legacy Mixed each 4, 5, or 6 is a success. Three successes against Ob 2 give **PASS** by one. The same dice against Ob 4 give **FAIL** by one.
+3. Use **Extra Dice** for agreed bonuses. Select **Count this test for Learning** when an eligible test should count for advancement.
+4. Click **Roll** and resolve Fate or reroll choices. Open chat card details to see how the pool was assembled.
 
-Använd ett vanligt Skill- eller Ability-slag när gruppen kommit överens om vad karaktären försöker göra och vad som händer vid framgång eller misslyckande.
+### Custom Roll and Undo
 
-1. Öppna slaget från en Skill under **Skills**, en Ability i överdelen eller ett värde i NPC:ns **Quick Skills**.
-2. Kontrollera **Obstacle** och **Dice pool**. Välj stöd som faktiskt gäller för försöket. Ett slag mot Ob 2 behöver två framgångar.
-3. Välj **Roll**, slutför erbjudna efterval och läs slutresultatet i chatten. Öppna detaljerna om du vill se hur poolen räknades ut.
+**Custom Roll → Free Dice Pool** lets you enter your own label, dice, and Ob for an improvised test. It does not log Skill or Ability Learning. To correct an eligible result, choose **Undo** on its chat card. Read what was reverted and check whether later decisions relied on that roll. Legacy Mixed chat following keeps the current decision card in view.
 
-- **Dice pool** visar tärningar och automatiska modifieringar. Använd **Extra Dice** för manuella extratärningar som bordet kommit överens om.
-- **Obstacle**, ofta **Ob**, är antalet framgångar som krävs. I Legacy Mixed ger 4–6 en framgång. Tre framgångar mot Ob 2 ger **PASS** med marginal 1. Samma kast mot Ob 4 ger **FAIL** med en framgång för lite.
-- **Count this test for Learning** låter ett berättigat test bokföras för utveckling. Slå av valet om ni exempelvis provar en pool utan att bokföra testet.
-- Chattkortet visar tärningar, pass/fail/tie och marginal. Öppna detaljerna för att se varför tärningar lades till eller togs bort. Ägna efterval för Fate och omslag ett ögonblick innan ni går vidare.
+### Versus, Respond, and tiebreakers
 
-### Custom Roll och Undo
+1. Set **Versus** and select an opponent, or use **Respond** on a challenge and choose the relevant Skill or Ability.
+2. Equal successes show **TIE**. With two identified participants in Legacy Mixed, confirm an eligible Ability on the tiebreaker card and click the named button for your character. The GM rolls for a GM-controlled opponent.
+3. Read the winner and margin. In a second tie between two PCs the GM decides. Against a GM opponent the GM side wins the second tie. An anonymous challenge uses manual tie handling.
 
-Använd **Custom Roll → Free Dice Pool** för ett fristående kast där du själv anger tärningspoolen. Ange etikett och Ob när dialogen frågar efter dem, slå och läs resultatkortet. Den fria poolen bokför ingen Learning för en Skill eller Ability.
+### Untrained Skills, Learning, and advancement
 
-Om ett slag behöver korrigeras, öppna dess chattkort och välj **Undo** när knappen finns. Läs återställningen och kontrollera vilka senare val som redan bygger på slaget innan ni går vidare. I Legacy Mixed kan chattens automatiska följning hålla kortet synligt medan eftervalen slutförs.
+A Skill at 0D uses **Beginner's Luck**. Choose Will or Health as offered. Legacy Mixed halves the relevant base pool and rounds up before Persona. Eligible **Tap Nature** dice are added afterward. The attempt counts toward learning the untrained Skill, normally at 2D.
 
-### Versus, Respond och tiebreaker
+Eligible trained tests mark **P** or **F**. A rating improves when both requirements are reached. Nature uses Maximum for its requirement, and Legacy Mixed advancement of taxed Nature increases Current and Maximum by one. Use **Skills → Edit** to change or remove an eligible custom Skill. A canonical NPC Skill at 0D leaves **Quick Skills**.
 
-**Versus** jämför två slag. Använd det när en motståndares handling sätter motståndet, till exempel när en spejare försöker passera en vakt som håller utkik.
+### Nature, Persona, and Fate
 
-1. Välj **Versus** i slagdialogen och ange ett mål där valet erbjuds. Välj motståndare via kartan eller listan i den dialog som överblickar motståndare. För en utmaning i chatten svarar motparten genom **Respond** och väljer den relevanta Skillen eller Abilityn.
-2. När båda har slagit jämför systemet antalet framgångar. Vid lika resultat står det **TIE**.
-3. I Legacy Mixed får båda kända deltagare ett gemensamt tiebreaker-kort. Varje sida väljer och bekräftar en tillgänglig förmåga, exempelvis **Will**, **Health** eller **Nature**. Klicka på knappen för din egen karaktär. Den anger vilket Ability du slår. GM slår för en GM-styrd motståndare.
-4. Kortet visar vilken sida som återstår och därefter vinnare och marginal. Vid en andra tie mellan spelarkaraktärer avgör GM. Mot en GM-styrd motståndare går den andra tien till GM-sidan. En anonym utmaning har manuell tiehantering.
+Roll **Nature** for an action matching a descriptor. Use **Tap Nature** for support on a different eligible roll. Read Current and Maximum and follow up on any **Tax**. Resources and Circles use separate restrictions.
 
-### Otränade Skills, Learning och framsteg
+Spend **Persona** before rolling for allowed bonuses, normally up to +3D in Legacy Mixed, or for designated effects like Tap Nature. Spend **Fate** when **Open 6s** is offered to roll follow-up dice. Read the final result after these choices. Actual spending may count toward **Lifetime Spent Fate/Persona**. Awards and balance adjustments are tracked separately.
 
-**Learning** bokför användning av en Skill eller Ability. En otränad Skill räknar försök, medan ett tränat värde normalt behöver både lyckade och misslyckade slag för att höjas.
+### Resources, Circles, and contacts
 
-En Skill på **0D** slås med **Beginner’s Luck**. Välj Will eller Health enligt dialogens villkor. I Legacy Mixed halveras den relevanta poolen före Persona och rundas uppåt. Tillåtna **Tap Nature**-tärningar läggs till efter halveringen. Försöket bokförs för den otränade färdigheten. När du når rätt antal försök lär sig karaktären normalt färdigheten på 2D.
+Click **Resources** to obtain goods or services. Agree what you are trying to obtain, check its own Ob, and read any Tax after the test. Click **Circles** to find someone. Agree how accessible the person is and check which Social Network routes the profile offers.
 
-Tränade Skills och Abilities visar Pass/Fail-kraven. Berättigade slag markerar utfallet. När båda kraven är uppfyllda höjs värdet automatiskt. Nature använder maximum vid beräkning av inlärningskravet. I Legacy Mixed höjer ett avancemang av beskattad Nature både Current och Maximum med ett. Beginner’s Luck utvecklar den utränade Skillen enligt sitt eget flöde.
-
-1. Öppna **Skills** och välj färdigheten. Vid 0D går du igenom **Beginner’s Luck**-dialogen. Kontrollera att **Count this test for Learning** är aktivt om slaget ska bokföras.
-2. Läs chattkortet och kontrollera Pass/Fail eller försöksräknaren på bladet. **P** och **F** visar sparade framgångs- och misslyckandemarkeringar jämfört med kraven för nästa värde.
-3. Använd **Edit** när du behöver ändra en Skill. Där ligger också borttagning för egna Skills där det är tillåtet. En kanonisk NPC-Skill på 0D lämnar **Quick Skills**.
-
-### Nature, Persona och Fate
-
-**Nature** har ett aktuellt värde och ett maximum. Om handlingen följer en Nature descriptor bedömer bordet om Nature ska vara själva slaget. **Tap Nature** låter Nature stödja ett annat slag där alternativet är tillåtet. Läs Tax efter slaget. Aktuell Nature kan minska medan maximum ligger kvar. Särskilda slag som Resources och Circles använder egna begränsningar.
-
-**Persona** ger tillåtna bonusar före slaget, normalt upp till +3D i Legacy Mixed. Persona kan också betala uttryckliga val som Tap Nature eller en Wise-effekt. **Fate** används när kortet erbjuder **Open 6s**. Då kan sexor ge följdtärningar innan resultatet räknas färdigt. En genomförd spendering kan räknas till **Lifetime Spent Fate/Persona**. Utdelning och GM:s plus/minus-korrigeringar är separata från den räknaren.
-
-1. Välj ett rent Nature-slag från bladets **Nature** när handlingen passar. Om du slår en Skill och vill använda Nature som stöd väljer du **Tap Nature** i dialogen där det erbjuds.
-2. Välj hur mycket Persona du vill lägga på slaget och kontrollera poolen före **Roll**. Läs eventuell **Tax** i resultatet och kontrollera Nature Current på bladet.
-3. Om slaget ger sexor och du får **Open 6s**, välj om du vill spendera Fate. Vänta på slutresultatet innan du läser marginalen.
-
-### Resources, Circles och kontakter
-
-**Resources** används för att försöka få tag i varor eller tjänster. Klicka på **Resources** på bladet, gå igenom vad du försöker få tag i med GM och använd den svårighet som gäller för just köpet. Läs resultatet i chatten och kontrollera eventuell **Tax** på bladet. **Baseline Obstacle** styr vanliga slag. Resources har ett eget Ob-flöde.
-
-**Circles** används för att hitta en person som kan hjälpa till. Klicka på **Circles** på bladet, beskriv vem du söker och hur tillgänglig personen borde vara. När profilen erbjuder Social Network väljer du sedan hur den personen hör ihop med karaktärens redan sparade relationer.
-
-| Val | När det passar och vad som händer |
+| Choice | Result |
 | --- | --- |
-| **Standard Test** | Slå Circles för en situation där ingen kontaktpost behövs. |
-| **Known Person** | Välj en person som finns i karaktärens nätverk. Slaget hänvisar till den personen. Du kan fortfarande behöva spela ut vad personen vill eller kan göra. |
-| **Find New Person** | Beskriv en ny person. Ett lyckat slag kan lägga till en **Neutral Contact** i nätverket. Om ni vill spela personen på kartan skapar GM en NPC separat. |
+| **Standard Test** | Roll without recording a particular contact. |
+| **Known Person** | Refer to an existing contact. Some profiles give a bonus on later tests for the same person. |
+| **Find New Person** | Describe someone new. Success can record a **Neutral Contact**. The GM creates an NPC separately if needed. |
 
-Fortsätt till Circles-slaget, granska Ob och läs utfallet i chatten. Öppna **Character → Relationships** för att följa upp kontakter som sparats där. Vissa profiler ger en bonus för senare Circles-slag som gäller samma registrerade kontakt.
+Afterward, check **Character → Relationships**.
 
-### Traits, Wises, Help och Synergy
+### Traits, Wises, Help, and Synergy
 
-Välj en relevant **Trait** för egen fördel i slagdialogen. I Legacy Mixed ger nivå 1 normalt +1D en gång per session. Nivå 2 ger +1D en gång per relevant slag utan sessionstak. Nivå 3 följer profilens regler för +1 framgång på ett annars lyckat eller bundet slag. **Trait Against** är ett annat sätt att använda en Trait och kan ge Checks i rätt GM Turn-situation.
+Choose an applicable **Trait** in the roll dialog. In Legacy Mixed, level 1 normally gives +1D once per session, level 2 gives +1D per eligible roll, and level 3 can add a success on a qualifying pass or tie. **Trait Against** can earn Checks in an eligible GM Turn situation. A relevant **Wise** can grant +1D before the roll or offer a failed-dice reroll for 1 Persona. These share the same Wise use in that test.
 
-I Legacy Mixed kan en relevant **Wise** bidra med +1D före ett slag eller betala 1 Persona för att slå om misslyckade tärningar när kortet erbjuder det. De två valen delar samma Wise-användning för slaget. Använd den aktiva profilens referens när andra regler för Wises eller Traits gäller.
-
-1. Klicka **Ask for Help** när en patrolkamrat kan bidra.
-2. Hjälparen får ett eget val, till exempel tränad Skill eller Ability för +1D, eller **I Am Wise** där en Wise passar. **Afraid** kan hindra en Ranger från att hjälpa.
-3. Godkänd hjälp visas under **Help / Teamwork**. Spelaren som gör slaget kan förbereda det medan andra svarar. Om hjälparen väljer **Synergy** när det erbjuds kopplas Fate och eventuell Learning till den hjälparens valda källa. Den slutliga pass/fail-markeringen används efter ett avgjort slag. En ännu oavgjord tie förbrukar inte Fate i detta flöde.
+1. Choose **Ask for Help**. The helper selects an applicable trained Skill, Ability, or **I Am Wise** where offered. **Afraid** can prevent Help.
+2. Check support under **Help / Teamwork**. A helper choosing **Synergy** can spend Fate and receive Learning on the chosen source when the result is settled. An unresolved tie does not use the helper's Fate.
 
 ### Level & Talents
 
-I Legacy Mixed utgår **Level & Talents** från faktiskt spenderad Fate och Persona. Båda trösklarna måste uppnås. Se målen under **Character → Overview**. Du börjar på nivå 1 och får en Talent-plats på varje nivå från 2 till 10. Utdelning och manuell balansjustering räknas separat från verklig spendering.
+In Legacy Mixed, **Character → Overview → Level & Talents** tracks actual Fate and Persona spending. Both thresholds must be met. A character starts at level 1 and earns one Talent slot per level from 2 through 10.
 
-| Nivå | Spenderad Fate totalt | Spenderad Persona totalt |
+| Level | Total Fate spent | Total Persona spent |
 | --- | --- | --- |
 | 2 | 3 | 3 |
 | 3 | 7 | 6 |
@@ -218,246 +173,198 @@ I Legacy Mixed utgår **Level & Talents** från faktiskt spenderad Fate och Pers
 | 9 | 64 | 28 |
 | 10 | 77 | 32 |
 
-Öppna Talent-väljaren när bladet visar en ledig plats. Sök eller filtrera på nivå och läs vilken Skill, Ability eller situation effekten gäller. **Passive**, **Once per Session** och **Once per Conflict** anger när effekten får användas. Bekräfta valet eller stäng och välj senare. Level & Talents är ett Foundry-tillägg till Realm Guard.
+Open the Talent picker when a slot is available. Search by level or read which Skill, Ability, or situation fits. **Passive**, **Once per Session**, and **Once per Conflict** describe availability. Confirm or come back later. This progression is a Realm Guard Foundry addition.
 
 
-## Spelpass och konflikter
+## Sessions and conflicts
 
-### Start Session och Session Break
+### Start Session and Session Break
 
-**Start Session** förbereder ett nytt spelpass. Öppna verktyget som GM och bekräfta. Då återställs stödda Traits, Talents och Tokens of Power med en gräns per session. Karaktärernas Fate, Persona, Conditions och Learning ligger kvar.
+Use **Start Session** as GM when a new session starts. It resets supported session-bound Traits, Talents, and Tokens of Power. Fate, Persona, Conditions, and Learning remain.
 
-**Session Break** visar en gemensam rasttimer och vem som är tillbaka.
+For a break within the same session, use **Session Break**, enter a duration such as **10:00**, and click **Start break**. Players choose **I am back** when ready. The GM can use **Change timer** or close the break before play resumes.
 
-1. Öppna **Session Break** som GM. Skriv till exempel **10:00** och välj **Start break**.
-2. Varje deltagare klickar på **I am back** på sitt kort när den är tillbaka. GM ser statusen i rastfönstret.
-3. Använd **Change timer** om ni behöver mer tid. Stäng rastfönstret när ni fortsätter pågående session.
+### Turn Manager, Checks, and Pass Checks
 
-### Turn Manager, Checks och Pass Checks
+As GM, use **Turn Manager → Start GM Turn** or **Start Players’ Turn**. In Legacy Mixed each Ranger usually gets one **Free Test** in Players’ Turn and can spend Checks for further tests. **Done / Discard** ends that character's turn and handles remaining Checks under the active rules.
 
-**Turn Manager** håller reda på spelarnas turer och testkostnader. GM väljer **Start GM Turn** eller **Start Players’ Turn**. I Legacy Mixed börjar en Ranger normalt Players’ Turn med ett **Free Test**. Om du vill göra ytterligare test granskar du Check-kostnaden i slagdialogen. **Done / Discard** avslutar den aktiva Rangerns spelartur och hanterar kvarvarande Checks enligt profilen.
+To give another PC a Check, click the arrow beside **Checks**. Use **Search patrol-mates**, choose a character, set an amount where offered, and click **Pass Check**. In Legacy Mixed the recipient is usually a patrol-mate with no Checks. Check the new balances and chat card. If the recipient is missing, check Actor ownership, character assignment, and eligibility. Pass Checks also works in manual play and supported Mouse Guard profiles.
 
-**Pass Checks** överför en Check mellan spelarkaraktärer. Använd det till exempel när en patrolkamrat behöver ett extra försök.
+### Conditions and Recovery
 
-1. Öppna din PC och klicka på pilen bredvid **Checks**.
-2. Skriv rollpersonens namn i **Search patrol-mates**, välj mottagare och ange antal när dialogen erbjuder det. I Legacy Mixed är mottagaren normalt en patrolkamrat som saknar Checks.
-3. Välj **Pass Check**. Kontrollera nya saldon och chattkortet som visar överföringen. Om mottagaren inte syns, kontrollera Actor-ägarskap, vald spelarkaraktär och mottagarens behörighet.
+Use **Conditions** on the sheet, on a token, or from GM tools. Toggle a Condition and hover its map icon to read the effect and recovery instructions. Check the modifier breakdown on the next affected roll.
 
-Pass Checks finns på spelarblad i **Legacy Mixed, Mouse Guard 1E och Mouse Guard 2E**. Funktionen fungerar även när Turn Manager är av och ni hanterar turerna manuellt. Med **Free Play** sköter bordet test- och turkostnaderna. Sparade Checks och övriga resurser finns kvar.
+1. Use **Recovery** on the active Condition.
+2. Choose a method where offered. Check the Ob and any turn cost. In Legacy Mixed, eligible GM Turn recovery costs two Checks.
+3. A successful automated recovery clears the Condition. On failure, read the next step before trying again.
 
-### Conditions och Recovery
+Legacy Mixed uses Hungry & Thirsty → Angry → Tired → Injured → Strained → Sick. Examples are Angry with Will Ob 2, Tired with Health Ob 3, Injured with Health Ob 4, and Strained with Will Ob 4. **Fresh** cannot coexist with another active Condition. **Afraid** can prevent Help. GMs can create custom Conditions with manual, Ability-based, or Skill-based recovery.
 
-**Conditions** är tillstånd som påverkar karaktärens handlingar. En skadad Ranger kan till exempel få färre tärningar på ett slag.
+**Sick** gives −1D to Skills, Nature, Will, and Health. Resources, Circles, and Will or Health recovery tests are exempt. Self-recovery is Will Ob 4 without Help. If it fails, use **Healer** from the healer's sheet at Ob 4 in Legacy Mixed or MG2E and Ob 3 in MG1E. GM clears Sick after successful treatment. If treatment fails or is waived in Players’ Turn, the GM reduces an eligible Skill or Ability by one and clears Sick. Resources and Circles cannot be reduced this way. Strict Realm Guard uses **Strained**.
 
-1. Öppna **Conditions** på spelar- eller NPC-bladet, i tokenens kontroller eller genom GM:s verktyg.
-2. Klicka på tillståndet för att slå på eller av det. När det är aktivt syns dess ikon på tokenen på kartan. För musen över ikonen för att läsa effekt och återhämtningsvillkor. Ikonen är större och har mörk botten med ljus kant.
-3. Öppna ett berört slag och läs modifieringen i tärningspoolen. Vilka slag och handlingar som påverkas beror på regelprofilen och tillståndet.
+### Conflict Engine from setup to compromise
 
-**Recovery** ger dig ett sätt att försöka bli av med en aktiv Condition enligt reglerna.
+1. Open **Conflict Engine** from GM Dock or the map. Choose type, participants, and captains. Enter a **Goal** for each side and choose **Save Goal**, then set **Starting Disposition**.
+2. Disposition is the side's shared endurance. A calculated start adds successes to the full base Ability. An eligible untrained Skill uses Beginner's Luck. Opposition can use **Calculated**, **Nature**, **Fixed**, or **Manual** Disposition.
+3. Each side secretly scripts three actions. **Attack** pressures the other side, **Defend** protects or restores Disposition, **Feint** works around a defence, and **Maneuver** creates an advantage. The action pairing determines Independent, Versus, or Trumped resolution.
+4. Assign each action and choose **Exchange Weapon / Tool**. An Actor keeps the selected tool through that exchange and can change it next time. Check any weapon requirement and **Unarmed** effect.
+5. Lock both plans. Roll for each revealed pair, then resolve the chat card and any Maneuver choices. Use **Exchange History** to see earlier actions.
+6. When a side reaches zero Disposition, open **Conflict Complete** and review the compromise guidance. The table decides what the loss means in the fiction.
 
-1. Öppna den aktiva Conditionen och välj **Recovery** där det erbjuds.
-2. Följ villkoret eller slå den föreslagna Skillen eller Abilityn. Kontrollera kostnaden i dialogen när Turn Manager används. I Legacy Mixed kan tillåten Recovery i GM Turn kosta två Checks.
-3. Vid lyckad automatiserad Recovery tas Conditionen bort. Ett misslyckat slag kan lämna den aktiv eller ge nästa steg enligt profilen. Läs utfallet före nästa Recovery.
+If an exchange stalls, check the goal, assignments, plan locks, pending rolls, and Maneuver choices. **Abort** ends a mistakenly started conflict and clears its temporary state.
 
-Legacy Mixed använder ordningen **Hungry & Thirsty → Angry → Tired → Injured → Strained → Sick**. Exempel är Angry med Will Ob 2, Tired med Health Ob 3, Injured med Health Ob 4 och Strained med Will Ob 4. **Fresh** kan inte vara tillsammans med en annan aktiv Condition. **Afraid** har särskilda konsekvenser och kan hindra Help. GM kan skapa egna Conditions och välja manuell, Ability-baserad eller Skill-baserad Recovery.
+### End Session and rewards
 
-**Sick** ger −1D på Skills, Nature, Will och Health. Resources, Circles och återhämtningsslag med Will eller Health är undantagna.
+Open **End Session** as GM. Select actual participants and review Belief, Goal, and Instinct. Choose **Review Awards**, check recipients and amounts, and select **Finish Session** once. **Start Next Session** is for the next session.
 
-1. Öppna **Conditions** och välj **Recovery** vid **Sick** för att slå Will mot Ob 4 utan Help. Vid framgång stängs tillståndet av.
-2. Vid misslyckande ligger Sick kvar. Slå **Healer** från läkarens blad med Ob 4 i Legacy Mixed och Mouse Guard 2E eller Ob 3 i Mouse Guard 1E. GM stänger av Sick på den sjuka karaktären om behandlingen lyckas.
-3. Om behandlingen misslyckas eller karaktären avstår från den under Players’ Turn sänker GM en tillåten Skill eller Ability permanent med ett steg och stänger av Sick. Resources och Circles kan inte väljas.
+In Legacy Mixed, playing a Belief or Instinct or making progress on an unfinished Goal can earn Fate. Reaching the Goal or acting against a Belief can earn Persona. **MVP** and **Workhorse** go to different Rangers. **Embodiment** can go to several Rangers, usually short of the entire party. Solo play is an exception.
 
-Strict Realm Guard använder **Strained** som profilens motsvarande tillstånd.
+## NPCs and compendia
 
-### Conflict Engine från start till kompromiss
+### Create and edit NPCs
 
-**Conflict Engine** leder båda lagen genom en längre konflikt, till exempel en jakt, en argumentation eller en strid. Den håller reda på mål, hemliga val, slag och lagens Disposition.
+- For an NPC with your own stats, use **GM Control → Quick NPC**. Enter name, stats, and an optional loadout and open the result in **Actors**.
+- For a ready-made role, use **Quick NPC Library** in GM Dock. Search by profession, culture, or competence and choose **Create**. The editable copy appears under **Actors → NPC**.
+- To create a group, use **Quick NPC Library → Group Templates** and review its members before confirming.
 
-1. Öppna **Conflict Engine** från GM Dock eller kartans snabbmeny. Välj konflikttyp, deltagare och kapten. Kontrollera att båda sidor innehåller rätt Actors.
-2. Skriv ett **Goal** för varje sida och välj **Save Goal**. När båda är klara går ni till **Starting Disposition**. Disposition är lagets gemensamma värde i konflikten. I ett beräknat startslag läggs framgångarna till full basförmåga. En otränad konfliktfärdighet använder Beginner’s Luck där det är tillämpligt. Oppositionen kan ha **Calculated**, **Nature**, **Fixed** eller **Manual** Disposition. Granska fördelningen om spelarna ska fördela lagets totalsumma.
-3. Båda sidor väljer tre handlingar i hemlighet. **Attack** pressar motståndaren, **Defend** skyddar och kan återhämta Disposition, **Feint** kan komma runt ett försvar och **Maneuver** skapar ett taktiskt övertag. Guiden i fönstret förklarar korten. Matrisen avgör sedan om kombinationen är Independent, Versus eller Trumped.
-4. Kaptenen tilldelar varje handling till en deltagare och väljer **Exchange Weapon / Tool**. En Actor använder samma tilldelade verktyg under det aktuella utbytet med tre handlingar och kan välja ett nytt i nästa utbyte. Fight kan använda lämpliga vapen från utrustningen. Andra konflikter kan använda sparade eller improviserade verktyg. Ett anpassat verktyg kan gälla för konflikten eller sparas på Actor. Kontrollera kraven för kortet och eventuell **Unarmed**-effekt i panelen.
-5. Lås planerna. När båda är låsta visas första paret. Slå och läs resultatkortet. Där ser du båda sidors tärningar, Help, om Disposition ändras och eventuella Maneuver-val. Nästa par går vidare när handlingen och dess efterval har lösts. **Exchange History** visar tidigare handlingar.
-6. När en sida når noll Disposition visas **Conflict Complete**. Öppna kompromissvalet och använd vägledningen för att bedöma konsekvenserna av förlorad Disposition. Bordet avgör den konkreta kompromissen och hur den kommer in i berättelsen.
+In Legacy Mixed use **Sheet type → NPC**, **Monster**, or **Animal**. **Quick Skills** shows trained Skills. Record tactics and motives in **NPC Notes**. Drop a supported Item from a compendium onto the sheet. A Skill drop lets you choose a rating and reuses an existing canonical 0D entry. Other Items can prompt for what to do with an existing name.
 
-Om konflikten väntar, kontrollera om någon ännu ska spara målet, tilldela en Actor, låsa planen, slå eller välja en Maneuver. **Abort** avslutar en felstartad konflikt och rensar dess tillfälliga tillstånd. Läs det senaste chattkortet innan du börjar om.
+### Create from an image or a compendium template
 
-### End Session och belöningar
+- Drop an image on a **Quick NPC Library** card to use that template with your picture. The filename suggests a name. **NPC Compendium** selects the source pack.
+- Drop an image onto the map as GM and select a template. The new NPC's token appears where you dropped it. You can frame the image in Tome's **Token Builder** later.
+- Drag an NPC from **Compendium Packs** to **Actors** for a world copy, or onto the map for a copy and a token. If an Actor already has the name, **Name NPC** offers a new name or **Keep Original Name**. An Item with the same name does not block the drop.
 
-**End Session** samlar genomgången och sparar belöningarna på rätt karaktärer.
+### Import an image folder into a new compendium
 
-1. Öppna **End Session** som GM. Markera dem som deltog och gå igenom deras Belief, Goal och Instinct med gruppen.
-2. Välj **Review Awards**. Kontrollera mottagare och hur mycket Fate eller Persona varje karaktär ska få.
-3. Välj **Finish Session** när fördelningen stämmer. Då sparas belöningarna. Välj **Start Next Session** när nästa spelpass börjar.
+1. Open **Quick NPC Library**, select a source under **NPC Compendium**, and choose **Import Image Folder**.
+2. Select a local image folder. Inspect the list. Subfolders follow when the browser includes them. PNG, JPG, and WebP are supported examples.
+3. Name the new **Actor Compendium**, set **Default Template**, and adjust **NPC Name** or **Template Override** per row as needed.
+4. Click **Create Compendium**. Successful rows store their images and template stats. Identical filenames get separate paths. Use **Retry Failed Rows** if necessary. Open the result under **Compendium Packs** and drag out an NPC when you need it.
 
-I Legacy Mixed kan följd Belief, framsteg mot ett oavslutat Goal och spelad Instinct ge Fate. Uppnått Goal och att spela emot sin Belief kan ge Persona. **MVP** och **Workhorse** går till en Ranger var och till olika personer. **Embodiment** gäller gestaltning och kan tilldelas fler än en Ranger, men normalt inte hela gruppen. Solospel har ett undantag för den enda Rangern. Läs genomgången före utdelning så att belöningar uppdateras en gång per session.
+### Archive existing NPCs
 
-## NPC och compendia
+1. As GM open **GM Dock → Quick NPC Library → Archive NPCs**. Use **Actor Folder**, **Find NPC**, and **Select Visible** to collect NPCs from one or several folders.
+2. Name the archive and click **Create Archive**. Realm Guard verifies each copy in a private Actor Compendium. Names, images, token settings, stats, notes, Items, and Active Effects follow. Use **Retry Unverified Copies** if needed.
+3. Optionally select **Remove Selected Originals** and confirm separately. NPCs used by tokens or combatants are protected, including in inactive scenes. Originals or copies that changed after verification are also protected.
+4. To restore, drag a copy from **Compendium Packs** to **Actors** or the map. The restored Actor has a new identity. Update links that still point to a removed original.
 
-### Skapa och redigera NPC:er
+![Archive review with verified copies and a protected NPC](assets/ui/manual/archive-review.png)
 
-En NPC som skapas med de här verktygen sparas som en redigerbar Actor. Välj arbetsflöde utifrån vad du redan har förberett.
+### Apply a stats template to an existing NPC
 
-| Om du behöver | Gör så här |
-| --- | --- |
-| En enskild NPC med egna värden | Öppna **GM Control → Quick NPC**, fyll i namn och grundvärden och välj eventuellt utrustningspaket. Bekräfta och kontrollera bladet i **Actors**. |
-| En färdig hantverkare, vakt eller annan roll | Öppna **Quick NPC Library** i GM Dock. Sök på exempelvis yrke, kultur eller kompetens och välj **Create** på kortet. Öppna kopian under **Actors → NPC** för att justera den. |
-| Flera NPC:er som hör ihop | Öppna **Quick NPC Library → Group Templates**. Välj en grupp, granska medlemmarna och bekräfta vilka som ska skapas. |
+1. Open the target sheet and choose **Apply Stats Template** beside **Quick Skills**.
+2. Under **Stats Source**, choose **Starter NPC Templates**, a custom **Actor Compendium**, or **World NPCs**. Search by name and click **Select**. World NPC cards show the folder path.
+3. Read the **Current** and **Template** columns in **Review NPC Stats**. Use **Cancel** to stop or **Apply Stats** to confirm.
+4. Nature, Will, Health, Resources, and Circles take the source values and limits. Matching Skills update, new trained Skills are added, and Skills absent from the source become 0D. The target keeps its name, artwork, token, gear, and notes. The source remains unchanged.
 
-I Legacy Mixed väljer du **Sheet type → NPC**, **Monster** eller **Animal**. Bladet visar Nature och descriptors samt Will, Health, Resources och Circles. **Quick Skills** visar tränade Skills. **NPC Notes** används för exempelvis motivation, specialregler eller taktik. På bladet finns även Conditions, Traits, Wises, Talents, Tokens of Power och utrustning.
+![Review comparing current NPC stats with template values](assets/ui/manual/stats-review.png)
 
-Dra en stödd Item från ett compendium till NPC-bladet. Realm Guard tolkar dess typ, till exempel Skill, Wise, Trait, Gear, Condition, Talent eller Token of Power. För Skills väljer du värdet. En kanonisk förmåga som redan finns på 0D aktiveras i sin befintliga post. För andra Items kan du få ett val om en post med samma namn redan finns.
+## Maps and GM tools
 
-### Skapa från en bild eller dra ut en compendium-mall
+### Map markers and shortcuts
 
-Använd bilden som utgångspunkt när du vill skapa en ny NPC med ett visst utseende. Använd compendium-mallen direkt när karaktären redan finns förberedd där.
+In Legacy Mixed, right-click a blank location in the token layer and choose **Create item / place on map…**. Enter **Name**, use **Search Icons**, set size and player visibility, then click **Create on map**. Right-click a marker for **Edit**, **Move marker…**, **Show to players**, **Hide from players**, **Resize all markers on this scene…**, or **Delete**. Open any linked journal from the editor.
 
-- **Bild till ett mallkort.** Dra en bild från datorn direkt till den mall du vill använda i **Quick NPC Library**. Realm Guard skapar en NPC med bilden och stats från mallen. Filnamnet föreslås som namn. **NPC Compendium** väljer vilket pack mallarna hämtas från.
-- **Bild till kartan.** Släpp en bild på kartan som GM och välj en mall. När du valt mallen skapas en NPC och en token placeras vid släppunkten. Du kan rama in bilden senare i Tomes Token Builder.
-- **Compendium till Actors.** Dra en NPC till **Actors** för en separat världskopia. Dokumentet i compendiet finns kvar.
-- **Compendium till kartan.** Dra mallen till kartan för både en Actor-kopia och en token. Ett ledigt Actor-namn skapas direkt. Om en Actor redan har samma namn öppnas **Name NPC**. Ange ett nytt namn eller välj **Keep Original Name**. Token-namnet följer namnet på den nya NPC:n när mallen använde sitt Actor-namn. Ett Item med samma namn stoppar inte mallen.
+Hover a marker or token and press **H** to toggle visibility in the active layer. GM can change the shortcut in **Configure Controls**. Shift-right-click opens Foundry's usual menu. The token menu also opens the sheet, Conditions, Custom Roll, or opponent selection. Use **Place existing NPC…** at an empty point to place an existing Actor.
 
-### Importera en bildmapp till ett nytt compendium
+![Map marker editor with name and icon search](assets/ui/manual/map-marker.png)
 
-Det här verktyget bygger ett NPC-bibliotek från många bilder på en gång. Om du har en mapp med porträtt på bybor kan du använda en gemensam mall för gruppen och välja en annan mall för exempelvis byns vakt.
+### GM Dock and GM Control
 
-1. Öppna **Quick NPC Library** och välj mappens mallkälla i **NPC Compendium**. Klicka **Import Image Folder** och välj bildmappen på datorn.
-2. Granska listan. Bilder i undermappar följer med när webbläsarens mappval inkluderar dem. Tomma och ej stödda filer hoppas över. PNG, JPG och WebP är exempel på stödda format.
-3. Ange namn på det nya **Actor Compendium** och välj **Default Template**. Du kan redigera **NPC Name** och använda **Template Override** på enskilda rader. Utan en egen mall på raden används standardmallen.
-4. Klicka **Create Compendium**. Varje rad får en uppladdad bild och mallens stats i det nya compendiet. Bilder med samma filnamn får skilda sökvägar. Vid fel kan **Retry Failed Rows** göra ett nytt försök i samma dialog och behålla tidigare lyckade rader.
-5. Öppna resultatet i **Compendium Packs** och granska ett par NPC:er. Dra ut en NPC till Actors eller kartan när du behöver den.
+**GM Dock** contains shortcuts. Hover to read the labels. Legacy Mixed has **Session**, **Other tools**, and **Customize quick access…**. Drag the dock by its handle or choose **Reset GM Dock position**.
 
-### Arkivera befintliga NPC:er
+Select tokens, then open **GM Control**. Verify the names under **Selected Tokens** before opening a sheet, centring the map, rolling, or handling Conditions. Use **Group Conditions** for several selected targets. In **Group Resource Admin** choose Fate, Persona, or Checks, enter a positive or negative **Change**, and click **Apply**. It adjusts each selected Actor within the profile limits.
 
-Det här verktyget utgår från NPC:er som redan finns i världen och kopierar deras namn, porträtt, tokeninställningar, stats, anteckningar, Items och Active Effects.
+### Obstacle Control during play
 
-1. Öppna **GM Dock → Quick NPC Library → Archive NPCs** som GM. Välj en **Actor Folder** för att se dess NPC:er och undermappar. **Find NPC** söker på namn och **Select Visible** markerar resultaten. Ändra filter för att lägga till NPC:er från andra mappar i samma urval.
-2. Namnge det nya **Actor Compendium** och välj **Create Archive**. Realm Guard skapar ett GM-privat compendium och jämför varje kopia med originalet. Läs antal verifierade kopior. Använd **Retry Unverified Copies** i samma dialog om någon rad misslyckades.
-3. Efter verifieringen kan du stänga dialogen och behålla både original och kopior. För att frigöra utrymme i Actors-listan markerar du de original du vill ta bort och väljer **Remove Selected Originals**. Bekräfta separat. NPC:er med tokens även i inaktiva scener eller med stridsdeltagare skyddas. Ett original lämnas också kvar om det eller arkivkopian ändrats sedan verifieringen.
-4. När du vill ta fram en NPC igen öppnar du arkivet i **Compendium Packs** och drar den till Actors eller kartan. Foundry skapar en ny världskopia. Uppdatera vid behov länkar som pekade på den borttagna Actor-identiteten.
+Open **Obstacle Control** in GM Dock. **Baseline Obstacle** sets the starting difficulty for ordinary Skill and Ability rolls. **Change Open Rolls Live** adjusts open rolls still following Baseline. **Reset** returns them to the baseline. A manually edited Ob may stop following live changes.
 
-![Arkivgranskning med verifierade kopior och en skyddad NPC](assets/ui/manual/archive-review.png)
+**Ordinary Roll Workflow** offers baseline, GM approval, or manual Ob. With approval, GM can review the Ob while the player makes other choices. Versus, Resources, Circles, and rule-specific tests have separate difficulties. Ask players to verify the displayed Ob before rolling.
 
-### Applicera en statsmall på en befintlig NPC
+### Starter Compendiums and custom libraries
 
-**Apply Stats Template** ersätter grundvärden och Skills på en befintlig NPC. Albertus har till exempel redan rätt porträtt, token och namn, men behöver en vakts stats.
+Open **Starter Compendiums** as GM and choose **Add Missing Entries** for the relevant library. The built-in sets include Skills, Traits, Wises, Conditions, Gear, Tokens of Power, Talents, and NPC Templates. Existing edits are kept.
 
-1. Öppna Albertus blad. Under **Quick Skills** klickar du **Apply Stats Template**.
-2. I **Stats Source** väljer du **Starter NPC Templates**, ett eget **Actor Compendium** eller **World NPCs** för NPC:er som redan finns under **Actors**. Sök på namn och välj **Select** vid rätt NPC. Om flera har samma namn visas mappsökvägen på kortet för en NPC från världen.
-3. Läs **Review NPC Stats**. Kolumnerna **Current** och **Template** visar värdena före och efter. Klicka på **Cancel** om du vill avbryta.
-4. Välj **Apply Stats**. Nature, Will, Health, Resources och Circles får källans värden och gränser. Matchande Skills uppdateras och nya tränade Skills läggs till. Skills som saknas i källan sätts till **0D** och försvinner från Quick Skills.
-5. Kontrollera de nya värdena på bladet. Albertus är samma Actor och behåller namn, porträtt, token, anteckningar och utrustning. Käll-NPC:n är oförändrad.
-
-![Förhandsgranskning med nuvarande NPC-värden och mallens värden](assets/ui/manual/stats-review.png)
-
-
-## Kartor och GM-verktyg
-
-### Kartmarkörer och snabbkommandon
-
-I Legacy Mixed använder GM kartans högerklicksmeny. Stå i tokenlagret för att öppna menyn på en tom kartpunkt. Befintliga markörer kan även hanteras från notlagret när markören kan pekas ut.
-
-1. Högerklicka på rätt plats och välj **Create item / place on map…**.
-2. Ange **Name** och använd **Search Icons** för att hitta ikonen. Sök exempelvis **Village**, **City**, en butik eller en fontän. Välj storlek och om spelarna ska se markören.
-3. Klicka **Create on map**. Högerklicka på markören för **Edit**, **Move marker…**, **Show to players**, **Hide from players**, **Resize all markers on this scene…** eller **Delete**. Om markören har en länkad journal kan du öppna den från editorn.
-4. Peka på en markör eller token och tryck **H** för att växla synlighet i det aktiva lagret. GM kan ändra kortkommandot i **Configure Controls**. Håll Shift när du högerklickar för Foundrys vanliga meny.
-
-Håll muspekaren över en token för att se dess namn. På tokenmenyn finns **Open character sheet**, **Conditions**, **Custom Roll**, **Select as opponent** och **Foundry token controls**. På en tom plats kan du också välja **Place existing NPC…**, välja en NPC från världen och placera en token för den befintliga Actorn.
-
-![Dialogen för Create on map med separata fält för namn och ikon samt val för storlek och synlighet](assets/ui/manual/map-marker.png)
-
-### GM Dock och GM Control
-
-**GM Dock** samlar genvägar till verktyg du använder under spel. Håll muspekaren över en ikon för att se dess namn. I Legacy Mixed är sessionens verktyg samlade under **Session**, medan **Other tools** visar fler val. Öppna **Customize quick access…** för att välja genvägarna du använder mest. Dra docken i greppet för att flytta den och välj **Reset GM Dock position** om du vill återställa platsen.
-
-**GM Control** låter dig arbeta med enskilda tokens eller hela urvalet. Markera tokens på kartan och öppna **GM Control**. Kontrollera vilka som står under **Selected Tokens** innan du öppnar ett blad, centrerar kartan, slår eller ändrar något. För en effekt på flera NPC:er samtidigt markerar du gruppen och öppnar **Group Conditions**.
-
-**Group Resource Admin** justerar resurssaldot för flera Actors samtidigt. Kontrollera namnen i urvalet, välj **Fate**, **Persona** eller **Checks** och ange beloppet i **Change**. En positiv ändring lägger till resurser och en negativ drar av. Klicka **Apply**. Varje vald Actor justeras inom profilens gränser. Kontrollera saldona innan ni fortsätter.
-
-### Obstacle Control under spel
-
-**Obstacle Control** låter GM sätta svårigheten för vanliga slag utan att öppna varje karaktärsblad. Öppna verktyget i GM Dock.
-
-- **Baseline Obstacle** styr startvärdet för kommande vanliga Skill- och Ability-slag. En ny värld börjar normalt på Ob 2. Läs panelens aktuella värde innan ni börjar.
-- **Change Open Rolls Live** ändrar Ob i redan öppna slag som fortfarande följer Baseline. **Reset** återställer dessa öppna slag till Baseline. När spelaren själv redigerar Ob kan det enskilda slaget sluta följa liveändringar.
-- **Ordinary Roll Workflow** växlar mellan vanlig Baseline, GM-godkännande per vanligt slag och manuell Ob i varje slag. Med GM-godkännande kan GM granska eller justera värdet medan spelaren gör andra val.
-
-Versus, Resources, Circles och andra regelstyrda test har sina egna förutsättningar. Svårighetsguiden hjälper när bordet behöver välja en rimlig nivå. GM avgör vilka faktorer som gäller i den konkreta situationen.
-
-Exempel. Om flera vanliga slag ska utgå från Ob 3, ställ in **Baseline Obstacle** inför scenen. Om spelarna redan har öppnat sina slag använder du **Change Open Rolls Live** för de dialoger som fortfarande följer Baseline. Be spelarna kontrollera sitt Ob innan de slår.
-
-### Starter Compendiums och egna bibliotek
-
-**Starter Compendiums** ger världen återanvändbara Skills, Traits, Wises, Conditions, Gear, Tokens of Power, Talents och NPC Templates. Om en standardpost saknas, öppna **Starter Compendiums** som GM, välj biblioteket du vill fylla på och använd **Add Missing Entries**. Kontrollera resultatet under **Compendium Packs**. Egna eller redigerade dokument blir kvar.
-
-När du organiserar befintliga dokument i Foundry kan du skapa ett eget compendium av motsvarande typ och dra in dokument dit. För en hel mapp öppnar du mappens meny och väljer **Export to Compendium**. Välj ett upplåst compendium. Läs särskilt valen om uppdatering efter namn och ID, eftersom de kan skriva över poster i ett befintligt pack. Ett arkiv skapat med **Archive NPCs** har sitt eget flöde för verifiering och valfri borttagning av original.
+To make a custom library, create a compatible compendium and drag documents into it. For a folder, use **Export to Compendium** and select an unlocked destination. Review matching by name or ID because it may update entries already present. For NPCs, use **Archive NPCs** when you want verified copies and optional removal of originals.
 
 ### Content Studio
 
-**Content Studio** hjälper GM att skapa kampanjinnehåll och bestämma var det ska sparas. Du kan exempelvis göra en variantskada från en befintlig Condition eller skapa egen utrustning till ett bibliotek.
+As GM open **Content Studio** and choose what to create. **Duplicate & Modify** uses an existing item as a starting point for a new document. Select the world, an Actor, or an eligible unlocked compendium as the destination. Read **Review Before Create** to verify the content and destination and check for similar entries before confirming. Use **Create Ranger** for ordinary recruitment.
 
-1. Öppna **Content Studio** som GM och välj typen du vill skapa. Använd **Duplicate & Modify** om du vill starta från en befintlig post.
-2. Fyll i fälten och välj destination. Möjliga destinationer beror på vilken typ du valt och kan vara världen, en Actor eller ett upplåst kompatibelt compendium.
-3. Granska **Review Before Create**. Kontrollera innehåll och destination och läs eventuella meddelanden om liknande poster. Bekräfta och öppna det skapade dokumentet från destinationen.
+### World Health Audit and diagnostics
 
-Spelarkaraktärer som ska följa rekryteringsreglerna skapas via **Create Ranger**.
+Open **World Health Audit** from the manual or **Settings, Libraries & Diagnostics**. The read-only report checks world and version data, starter libraries, common duplicates, resource caps, gear placement, and discovered progression or effect anomalies. Compare warnings with the relevant sheet or library and rerun after corrections. **World Impact Snapshot** in Profile Management reviews possible rules changes.
 
-### World Health Audit och andra diagnostikverktyg
 
-**World Health Audit** gör en skrivskyddad genomgång av världen. Använd den till exempel efter en uppdatering eller om ett blad visar oväntade värden.
+## Settings and troubleshooting
 
-1. Öppna **World Health Audit** från manualen eller GM:s **Settings, Libraries & Diagnostics**.
-2. Kontrollera version, världsdata och starterbibliotek. Läs sedan eventuella avvikelser för berörd karaktär, exempelvis dubbletter, resursgränser, utrustningsplacering, progression eller effekter.
-3. Öppna det berörda bladet eller biblioteket och jämför med rapporten innan du ändrar något. Kör genomgången igen för att följa upp.
+### Settings used at the table
 
-Administrationsmenyn innehåller kompletterande statusvyer för regelprofil, testflöden, effekter, inventarie och progression där de är tillgängliga. **World Impact Snapshot** hör till profilhanteringen och hjälper GM att bedöma ett eventuellt regelbyte.
+Open **Game Settings → Configure Settings → Realm Guard / Torchbearer**.
 
-## Inställningar och felsökning
-
-### Inställningar som används vid bordet
-
-Öppna **Game Settings → Configure Settings → Realm Guard / Torchbearer**.
-
-| Inställning | Vad den ändrar |
+| Setting | Effect |
 | --- | --- |
-| **Rules Profile Management** | Förhandsgranska profil och världens omfattning, välj regler för världen och ladda om enligt instruktionen. |
-| **Use GM Turn / Players' Turn Manager** | Aktivera GM Turn, Players’ Turn och automatiserade Check-kostnader eller använd Free Play. |
-| **Legacy Mixed · Default player sheet** | Bestämmer layouten för karaktärer som följer världens standard. |
-| **Legacy Mixed · Apply default to all player sheets** | Använder den valda standarden tillfälligt för alla spelarblad. |
-| **Show Macro Hotbar** | Visar Foundrys numrerade makrorutor för den inloggade användaren. De är dolda som standard. Ljud och meny ligger vid spelarlistan och anpassas när makroraden tar plats på en smal skärm. |
-| **Default Realm Guard Actor & Token Art** | Väljer systemets standardbilder där en ny Actor använder en standardbild. |
-| **Settings, Libraries & Diagnostics** | Öppnar GM:s bibliotek, diagnostik, Obstacle Control och dockinställningar. |
+| **Rules Profile Management** | Preview and choose the rules profile, then reload as instructed. |
+| **Use GM Turn / Players' Turn Manager** | Use managed turns and automated Check spending or switch to Free Play. |
+| **Legacy Mixed · Default player sheet** | Apply a layout to characters that follow the world default. |
+| **Legacy Mixed · Apply default to all player sheets** | Temporarily apply the world layout to every player sheet. |
+| **Show Macro Hotbar** | Show Foundry's numbered macro slots for the current user. They are hidden by default. Audio and menu controls sit beside the player list. |
+| **Default Realm Guard Actor & Token Art** | Select default artwork where a new Actor uses it. |
+| **Settings, Libraries & Diagnostics** | Open the GM's library, diagnostics, Obstacle Control, and dock options. |
 
-För att visa världens egen text på inloggningssidan, fyll i **Edit World → World Description** och använd **Default** för Foundrys **Join Page Theme**.
+To show a world description at login, enter text in **Edit World → World Description** and select **Default** for **Join Page Theme**.
 
-### Regelreferensen och bordets beslut
+### The rules reference and table decisions
 
-Öppna **System Manual & Rules Reference** när ni vill förstå varför systemet erbjuder ett val eller räknar ut något på ett visst sätt. Sök på regeln och använd **Open Active Profile Rules** när den kan skilja sig mellan profilerna.
+Use **System Manual & Rules Reference** to look up rules and workflows. **RULE** describes a rule, **AUTOMATED** marks bookkeeping performed by Foundry, **GM CALL** needs a table judgement, and **RG/TB FOUNDRY** marks a system addition.
 
-Markörerna i den inbyggda referensen betyder **RULE** för en regel som systemet använder, **AUTOMATED** för bokföring i Foundry, **GM CALL** för bordets bedömning och **RG/TB FOUNDRY** för ett tillägg i systemet. Använd den aktiva profilens regler vid skillnader mellan Legacy Mixed, Strict, MG1E och MG2E.
+Foundry handles rolls, resource changes, Learning, equipment placement, Conditions, concealed conflict choices, and stored advancement. The table decides when a test matters, what happens in the fiction, which actions suit Nature, and what a compromise means. The persistent **Realm Guard / Torchbearer - Rules Reference** journal contains Legacy Mixed rules. A world can retain an older journal text. For current mechanics, consult the help dialog and the active profile reference. [Rules reference](RULES_REFERENCE.md)
 
-Foundry räknar tärningar, bokför resurser och Learning, hanterar inventarieplatser, Conditions, både öppna och dolda konfliktval och sparad progression. Spelarna och GM avgör om test behövs, vad som står på spel, vad som följer Nature och vad en kompromiss betyder i berättelsen.
+### Back up and move a world
 
-Den permanenta **Realm Guard / Torchbearer - Rules Reference**-journalen innehåller Legacy Mixed-regler och kan läsas av spelare. Realm Guard skapar den om den saknas. Ett redan sparat världsexemplar kan ha äldre text eftersom världsladdningen lämnar befintligt journalinnehåll kvar. Läs då den aktuella hjälpdialogen och den aktiva regelprofilen. [Öppna den medföljande regelreferensen](RULES_REFERENCE.md).
+1. Back up world data and assets before a major update, profile change, or server move. Include custom artwork, audio, and uploaded NPC and token images stored outside the world folder.
+2. Install a compatible Realm Guard version and the modules your world uses on the destination.
+3. Restore the world using your host's supported procedure. Actors, scenes, journals, world compendia, and progression belong to the world. The system supplies code and bundled content.
+4. Launch the restored world and check the version, profile, Actors, scenes, and a compendium. Run **World Health Audit** and check permissions and asset paths.
 
-### Säkerhetskopiera och flytta en värld
+### Troubleshoot step by step
 
-En säkerhetskopia låter dig återställa kampanjens Actors, scener, bibliotek, inställningar och bilder vid en serverflytt eller ett problem efter en uppdatering.
-
-1. Säkerhetskopiera Foundry-världen och dess tillgångar före en större uppdatering, ett profilbyte eller en serverflytt. Inkludera egna bilder och ljud som ligger utanför själva världsmappen. Till exempel kan uppladdade NPC-bilder och äldre tokens ligga i separata mappar.
-2. Installera en kompatibel Realm Guard-version på destinationen. Installera och aktivera även de moduler världen använder.
-3. Återställ den faktiska världsdatan enligt din server eller värdtjänst. Actors, NPC:er, Scenes, Journals, Items, egna compendia, progression och inställningar ligger med världen. Systempaketet har intern identitet **realm-guard** och innehåller systemkod och medföljande material.
-4. Starta den återställda världen. Kontrollera systemversion, profil, några Actors, en scen och ett eget compendium. Kör **World Health Audit** och kontrollera bildsökvägar och behörigheter innan spelarna ansluter.
-
-### Felsökning steg för steg
-
-| Symtom | Kontrollera först |
+| Symptom | First check |
 | --- | --- |
-| En knapp som guiden nämner saknas | Kontrollera systemversion, aktiv profil, GM-roll och Actor-ägarskap. **Archive NPCs** och **Apply Stats Template** finns från 1.13.10. |
-| Token Builder saknas | Kontrollera att en Tome-version med Token Builder är installerad och aktiv. Kontrollera behörighet till Actor och Foundrys rätt att ladda upp filer. |
-| Bild saknas efter import | Kontrollera filformat och dialogens status. Se om bildfilen finns på Foundry-värden och att bilden går att hämta från klienten. |
-| Slaget väntar | Läs kortets status. Se om **Respond**, efterval, tiebreaker eller GM:s Ob-godkännande återstår och om rätt person har Actor-ägarskap. |
-| Arkivet låter inte ett original tas bort | Statusraden visar om kopian verifierats, om NPC:n används av en token eller stridsdeltagare eller om originalet eller kopian har ändrats. |
-| Foundry fryser | Anteckna vem som påverkas, tidpunkt, scen, vilket blad som var öppet och om hela fönstret eller bara kartan stannade. Fråga om andra spelare märkte samma sak. |
+| A button or menu is missing | Verify system version, profile, GM role, and Actor ownership. **Create Character** requires Legacy Mixed. |
+| Token Builder is missing | Verify the enabled Tome version has the feature and the user can edit the Actor and upload images. |
+| An imported image is missing | Read the import row status and check whether the client can load the asset from Foundry. |
+| A roll is waiting | Look for **Respond**, pending choices, a tiebreaker, or GM Ob approval. Check Actor ownership. |
+| An archive cannot remove an original | Check whether its copy is verified, whether the Actor is used by a token or combatant, and whether either document changed. |
+| Foundry freezes | Note who was affected, at what time, in which scene, and whether the whole window or only the map stalled. Ask what other players saw. |
 
-Om ett fel kvarstår, skriv ned exakt steg, systemversion, Foundry-version och regelprofil. Ta med den första relevanta raden i webbläsarens **F12 → Console** och eventuell Audit-rapport. Använd en kopia av världen för felsökning som ändrar data.
+If the problem remains, record the exact actions, system and Foundry versions, and Rules Profile. Include the first relevant **F12 → Console** message and any relevant Audit output. Use a test copy for diagnostics that change data.
+
+## Advanced examples
+
+### Choose the right kind of test for the action
+
+A Ranger wants to get past a gate without being spotted. A predictable patrol may be a fixed **Obstacle**. An active lookout opposing the Ranger may call for **Versus**. A pursuit with a team and multiple actions may call for **Conflict Engine**.
+
+1. State what the character does and what is at stake, then choose the Skill or Ability that fits.
+2. Verify Ob or the opponent before selecting Help or spending resources.
+3. Read **Final Successes** after all choices. In Versus, settle any **TIE** before applying the margin. Decide fictional consequences at the table.
+
+### Nature in play and when Tax applies
+
+Borin can use **Steadfastness** to hold his post under pressure. Reinforcing it might be **Stonemason**, and persuading others to stay might be **Persuader**. The table checks whether the description fits how the character acts.
+
+Open **Nature** for a direct test or choose **Tap Nature** in an eligible Skill dialog. Check Current and Maximum before rolling. Afterward, read any **Nature Tax** and follow up on the sheet. A lower Current means fewer Nature dice next time.
+
+### Use relationships when the party needs help
+
+If Borin needs help near Erebor, open **Character → Relationships** and read where to find Rúna and what ties them together. Describe what he asks her to do. A contact's occupation, location, and connection make the request easier to play.
+
+If the party needs a test to find her, use **Circles**. Where offered, use **Known Person** for an existing contact or **Find New Person** for someone new. Check Ob and the result. The GM decides what the contact can and will do.
+
+### Resolve a roll or conflict that is waiting
+
+1. Read the latest chat card and identify who needs to act. In Versus, the next action may be **Respond** or a named roll on the tiebreaker card.
+2. Resolve or skip any offered Fate, Wise, Talent, or Help choices. GM approval of Ob has its own pending request.
+3. In **Conflict Engine**, confirm both goals and plan locks. Use **Exchange History** to locate the last resolved pair and complete its after-roll decisions before advancing.

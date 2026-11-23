@@ -517,6 +517,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
       untrainedRoleCount: untrainedRoles.length,
       stationOptions: Object.fromEntries(Object.entries(RG_STATIONS).map(([key, value]) => [key, value.label])),
       stationSelected: String(actor.system.rank ?? "").toLowerCase(),
+      communityBackground: legacyMixedPolishEnabled() ? actor.getFlag?.("realm-guard", "communityBackground") ?? "" : "",
       station: RG_STATIONS[String(actor.system.rank ?? "").toLowerCase()] ?? null,
       traits: actor.traits,
       wises: actor.wises,
@@ -1135,7 +1136,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const canDoubleTapNature = family.nature.doubleTapNature && conflictContext?.allowTapNature !== false;
     const natureExcluded = new Set(family.nature.tapExcludedAbilities.map(value => String(value).toLowerCase()));
     const canTapNature = family.nature.tapNature && conflictContext?.allowTapNature !== false && !isNatureRoll && !natureExcluded.has(String(abilityKey).toLowerCase()) && natureCurrent > 0;
-    const natureDescriptors = natureDescriptorText(family);
+    const natureDescriptors = natureDescriptorText(family, this.actor);
     const natureLabel = natureProfileLabel(family);
     const noPersona = personaValue < 1 ? ` <b class="rg-disabled-reason">Unavailable — requires 1 Persona.</b>` : "";
     const natureBlock = isNatureRoll
@@ -1500,7 +1501,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
   static async _manageNature() {
     const n=this.actor.system.attributes?.nature??{}, current=Math.max(0,Number(n.value??0)), maximum=Math.max(current,Number(n.maximum??current)), tax=Math.max(0,maximum-current);
-    const family=getActiveM10BFamilyRulePolicy(), descriptors=natureDescriptorText(family), natureLabel=natureProfileLabel(family);
+    const family=getActiveM10BFamilyRulePolicy(), descriptors=natureDescriptorText(family,this.actor), natureLabel=natureProfileLabel(family);
     const result=await foundry.applications.api.DialogV2.wait({window: { title: `Realm Guard · Manage ${natureLabel}`, resizable: true },content:`<div class="rg-nature-manage"><h3>${foundry.utils.escapeHTML(natureLabel)} ${current}/${maximum}</h3><p><b>Tax:</b> ${tax}</p><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(descriptors || "Profile-defined")}</p><p><small>Recover +1 only when the rules allow recovery. Deplete Maximum trades one point of maximum Nature to recover one point of tax.</small></p></div>`,modal:false,rejectClose:false,buttons:[{action:"recover",label:"Recover +1",icon:"fa-solid fa-leaf",callback:()=>"recover"},{action:"deplete",label:"Deplete Maximum",icon:"fa-solid fa-arrow-down",callback:()=>"deplete"},{action:"close",label:"Close",default:true,callback:()=>"close"}]});
     if(result==="recover"&&tax>0)await this.actor.update({"system.attributes.nature.value":Math.min(maximum,current+1)});
     if(result==="deplete"&&tax>0&&maximum>0){const nm=Math.max(0,maximum-1),nc=Math.min(nm,current+1);await this.actor.update({"system.attributes.nature.maximum":nm,"system.attributes.nature.value":nc});if(nm===0)ui.notifications.warn("Realm Guard: Maximum Nature is 0. The character must retire at the end of the mission.");}

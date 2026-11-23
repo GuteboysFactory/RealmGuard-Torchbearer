@@ -7,15 +7,17 @@
       {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard source artwork"><i class="fa-solid fa-palette"></i></button>{{/if}}
     </div>
     <div class="rg-identity">
-      <div class="rg-brand-lockup"><span class="rg-brand-crest" aria-hidden="true"><i class="fa-solid fa-tree"></i></span><span><div class="rg-brand">REALM GUARD / TORCHBEARER</div><div class="rg-brand-subtitle">RANGERS OF THE NORTH</div></span></div>
-      <input class="rg-name" name="name" type="text" value="{{actor.name}}" placeholder="Ranger name" />
+      <div class="rg-brand-lockup"><span class="rg-brand-crest" aria-hidden="true"><i class="fa-solid fa-tree"></i></span><span><div class="rg-brand">REALM GUARD / TORCHBEARER</div><div class="rg-brand-subtitle">{{#if communityBackground}}PEOPLES OF MIDDLE-EARTH{{else}}RANGERS OF THE NORTH{{/if}}</div></span></div>
+      <input class="rg-name" name="name" type="text" value="{{actor.name}}" placeholder="{{#if communityBackground}}Character name{{else}}Ranger name{{/if}}" />
       <div class="rg-grid-4 compact">
+        {{#if communityBackground}}<label>Background<input type="text" value="{{communityBackground}}" readonly></label>{{else}}
         <label>Station / Rank
           <select data-rg-station-select>
             <option value="">Select station…</option>
             {{selectOptions stationOptions selected=stationSelected}}
           </select>
         </label>
+        {{/if}}
         <label>Homeland<input name="system.homeland" value="{{system.homeland}}" /></label>
         <label>Age<input type="number" name="system.age" value="{{system.age}}" {{#if station}}min="{{station.ageMin}}" max="{{station.ageMax}}" placeholder="{{station.ageMin}}–{{station.ageMax}}"{{/if}} />{{#if station}}<small class="rg-age-range">{{station.ageMin}}–{{station.ageMax}}</small>{{/if}}</label>
         <label>Concept<input name="system.concept" value="{{system.concept}}" /></label>

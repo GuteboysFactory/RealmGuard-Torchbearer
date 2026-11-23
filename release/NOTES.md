@@ -1,5 +1,7 @@
-# 1.13.12 – Ranger Recruitment for standard Foundry players
+# 1.13.13 – Character creation, guided manual, and token Conditions
 
-- **Recruit Ranger** and **Create Ranger** are available to standard Player accounts. An active GM client automatically validates the draft and creates the player-owned character in **Actors → PC**. Submissions made while the GM is offline are processed when a GM connects. The player's first Ranger is assigned to their account if they have no assigned character.
-- **Homeland** now updates the available Skill and Trait choices as soon as a homeland is selected.
-- Verified both workflows in Foundry VTT 13.351 with unchanged world permissions, including a submission made while the GM was offline.
+- In **Legacy Mixed**, use **Actors → Create Character** to create a Human, Dwarf, Hobbit, or Elf through eleven steps. The guide includes ancestry-specific Nature questions, professions, homeland, experience, Wises, Traits, relationships, and gear. Standard players receive ownership when a GM client processes the request.
+- The **System Manual & Rules Reference** has searchable guidance, optional walkthroughs, and a remembered **English / Svenska** language choice. The manual includes steps for character creation, reading the sheet, and making a first roll.
+- The **Actors** header groups the character creation buttons and places the recruitment guide beside **Create Folder** in the GM view.
+- Active **Conditions** use larger, colored round icons on the map with transparent space around them. Every three icons, the next column starts to the left of the token. The token's Conditions window keeps icons, text, and controls aligned when resized.
+- Tested in Foundry VTT 13.351 with GM and standard Player accounts.

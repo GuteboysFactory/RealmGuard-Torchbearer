@@ -3,11 +3,16 @@ import { openSystemAudit } from "./system-audit.mjs";
 import { RG_SYSTEM_NAME, rulesReferenceDetailsHtml, openRulesReferenceJournal, installRulesReferenceJournal } from "./rules-reference.mjs";
 import { openProfileRulesReference } from "./m10b-rules-reference.mjs";
 import { fitWindowToViewport } from "./window-position-service.mjs";
+import { MANUAL_GUIDE_TOPICS, manualGuideTitle, openManualGuide } from "./manual-guides.mjs";
+import { legacyPeopleCreationEnabled } from "./legacy-character-creation.mjs";
+import { openCharacterCreation } from "./recruitment.mjs";
 
 const SIDEBAR_HELP_ID = "rg-sidebar-manual";
+const MANUAL_LANGUAGE = "manualLanguage";
+const manualLanguage = () => game.settings.get("realm-guard", MANUAL_LANGUAGE) === "sv" ? "sv" : "en";
 let referenceControlsInstalled = false;
 
-function referenceToolbar(placeholder = "Search manual & rules…") {
+function referenceToolbar(placeholder = "Search manual & rules…", language = null) {
   return `<div class="rg-reference-toolbar">
     <label class="rg-reference-search">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -15,6 +20,7 @@ function referenceToolbar(placeholder = "Search manual & rules…") {
       <button type="button" data-rg-reference-clear title="Clear search" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
     </label>
     <div class="rg-reference-toolbar-actions">
+      ${language ? `<select data-rg-reference-language aria-label="Manual language"><option value="en" ${language === "en" ? "selected" : ""}>English</option><option value="sv" ${language === "sv" ? "selected" : ""}>Svenska</option></select>` : ""}
       <span class="rg-reference-search-count" data-rg-reference-search-count>All sections</span>
       <button type="button" data-rg-reference-expand><i class="fa-solid fa-angles-down"></i><span>Expand All</span></button>
       <button type="button" data-rg-reference-collapse><i class="fa-solid fa-angles-up"></i><span>Collapse All</span></button>
@@ -98,6 +104,16 @@ function installReferenceControls() {
   });
 
   document.addEventListener("click", event => {
+    const lesson = event.target?.closest?.("[data-rg-manual-guide]");
+    if (lesson) {
+      void openManualGuide(lesson.dataset.rgManualGuide, lesson.dataset.language);
+      return;
+    }
+    const people = event.target?.closest?.("[data-rg-manual-people]");
+    if (people) {
+      void openCharacterCreation();
+      return;
+    }
     const clear = event.target?.closest?.("[data-rg-reference-clear]");
     if (clear) {
       const root = clear.closest("[data-rg-reference-root]");
@@ -118,10 +134,34 @@ function installReferenceControls() {
       if (!detail.hidden) detail.open = shouldOpen;
     }
   });
+
+  document.addEventListener("change", async event => {
+    const control = event.target?.closest?.("[data-rg-reference-language]");
+    if (!control) return;
+    const root = control.closest("[data-rg-reference-root]");
+    const topics = root.querySelector("[data-rg-manual-topics]");
+    const language = control.value === "sv" ? "sv" : "en";
+    const previous = topics.lang;
+    control.disabled = true;
+    try {
+      const html = await loadUserGuide(language);
+      await game.settings.set("realm-guard", MANUAL_LANGUAGE, language);
+      topics.innerHTML = html;
+      topics.lang = language;
+      filterReference(root, root.querySelector("[data-rg-reference-search]").value);
+    } catch (error) {
+      console.warn("Realm Guard | Could not change manual language", error);
+      control.value = previous;
+      ui.notifications.warn("Realm Guard: The selected manual language could not be loaded.");
+    } finally {
+      control.disabled = false;
+    }
+  });
 }
 
-async function loadUserGuide() {
-  const response = await fetch(foundry.utils.getRoute("systems/realm-guard/SYSTEM_MANUAL.md"));
+async function loadUserGuide(language = "en") {
+  const file = language === "sv" ? "SYSTEM_MANUAL.sv.md" : "SYSTEM_MANUAL.md";
+  const response = await fetch(foundry.utils.getRoute(`systems/realm-guard/${file}`));
   if (!response.ok) throw new Error(`Manual request returned ${response.status}.`);
   const converter = new globalThis.showdown.Converter({ tables: true, ghCompatibleHeaderId: true });
   const source = new DOMParser().parseFromString(converter.makeHtml(await response.text()), "text/html");
@@ -133,7 +173,7 @@ async function loadUserGuide() {
   for (const node of source.body.children) {
     if (node.tagName === "H1") continue;
     if (node.tagName === "H2") {
-      contents = node.textContent === "Innehåll";
+      contents = ["Contents", "Innehåll"].includes(node.textContent);
       if (contents) continue;
       sectionTitle = document.createElement("section");
       sectionTitle.className = "rg-manual-section-title";
@@ -152,6 +192,22 @@ async function loadUserGuide() {
       summary.textContent = node.textContent;
       currentBody = document.createElement("div");
       currentBody.className = "rg-manual-body rg-user-guide-body";
+      const topic = node.textContent;
+      const people = ["Create a Human, Dwarf, Hobbit, or Elf", "Skapa en karaktär från ett annat folkslag"].includes(topic);
+      if (legacyPeopleCreationEnabled() && (Object.hasOwn(MANUAL_GUIDE_TOPICS, topic) || people)) {
+        const button = document.createElement("button");
+        button.type = "button";
+        if (Object.hasOwn(MANUAL_GUIDE_TOPICS, topic)) {
+          const key = MANUAL_GUIDE_TOPICS[topic];
+          button.dataset.rgManualGuide = key;
+          button.dataset.language = language;
+          button.textContent = `Start Guide · ${manualGuideTitle(key, language)}`;
+        } else {
+          button.dataset.rgManualPeople = "true";
+          button.textContent = "Start Guide";
+        }
+        currentBody.append(button);
+      }
       details.append(summary, currentBody);
       details.open = first;
       first = false;
@@ -172,7 +228,7 @@ async function loadUserGuide() {
   return guide.innerHTML;
 }
 
-function manualContent(guideHtml) {
+function manualContent(guideHtml, language) {
   const active = globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.();
   const systemVersion = String(globalThis.game?.system?.version ?? "unknown");
   const activeName = String(active?.name ?? "Realm Guard — Legacy Mixed");
@@ -180,12 +236,12 @@ function manualContent(guideHtml) {
   const activeVersion = String(active?.version ?? "1");
   const sourceProfileActive = activeId !== "realm-guard-legacy-mixed";
   return `<div class="realm-guard rg-reference-shell" data-rg-reference-root>
-    ${referenceToolbar("Search manual & rules…")}
+    ${referenceToolbar("Search manual & rules…", language)}
     <div class="rg-reference-scroll">
     <div class="rg-system-manual">
     <header class="rg-manual-hero"><div><div class="rg-brand">REALM GUARD / TORCHBEARER</div><h2>System Manual & Rules Reference</h2><p>Foundry VTT 13.351 · system ${systemVersion} · player and GM reference</p></div><i class="fa-solid fa-book-open-reader"></i></header>
 
-    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. ${sourceProfileActive ? "A source-owned Rules Profile is active. Use its profile Rules Reference for current mechanics." : "Legacy Mixed är aktiv. Avsnitt märkta Legacy Mixed beskriver särskilda regler och arbetsflöden för den profilen."}</span></div></div>
+    <div class="rg-manual-callout"><i class="fa-solid fa-scale-balanced"></i><div><b>Active Rules Profile</b><span>${activeName} · ${activeId} · profile v${activeVersion}. ${sourceProfileActive ? "A source-owned Rules Profile is active. Use its profile Rules Reference for current mechanics." : "Sections marked Legacy Mixed describe workflows and rules for this profile."}</span></div></div>
 
     <div class="rg-manual-legend">
       <span class="rg-rule-badge rule">RULE</span><small>tabletop rule used by the system</small>
@@ -194,7 +250,7 @@ function manualContent(guideHtml) {
       <span class="rg-rule-badge rg-tb-foundry">RG/TB FOUNDRY</span><small>project-specific expansion or convenience layer</small>
     </div>
 
-    ${guideHtml}
+    <div data-rg-manual-topics lang="${language}">${guideHtml}</div>
 
     <section class="rg-manual-section-title"><i class="fa-solid fa-scale-balanced"></i><div><h3>Rules Reference</h3><p>A practical summary of the tabletop rules and project expansions the system actually implements.</p></div></section>
     ${rulesReferenceDetailsHtml()}
@@ -204,6 +260,7 @@ function manualContent(guideHtml) {
 }
 
 export async function openRealmGuardManual() {
+  const language = manualLanguage();
   const activeId = String(globalThis.game?.realmGuard?.core?.getActiveRulesProfile?.()?.id ?? "realm-guard-legacy-mixed");
   const buttons = [
     { action: "profile-reference", label: activeId !== "realm-guard-legacy-mixed" ? "Open Active Profile Rules" : "Preview Strict Rules", icon: "fa-solid fa-scale-balanced", callback: () => "profile-reference" },
@@ -214,16 +271,16 @@ export async function openRealmGuardManual() {
   buttons.push({ action: "close", label: "Close", default: true, callback: () => "close" });
   let guideHtml;
   try {
-    guideHtml = await loadUserGuide();
+    guideHtml = await loadUserGuide(language);
   } catch (error) {
     console.warn("Realm Guard | Could not load the user manual", error);
-    guideHtml = `<p>Användarmanualen kunde inte hämtas. Öppna <a href="${foundry.utils.getRoute("systems/realm-guard/SYSTEM_MANUAL.md")}" target="_blank" rel="noopener">SYSTEM_MANUAL.md</a> eller försök igen.</p>`;
+    guideHtml = `<p>The user manual could not be loaded. Open <a href="${foundry.utils.getRoute("systems/realm-guard/SYSTEM_MANUAL.md")}" target="_blank" rel="noopener">SYSTEM_MANUAL.md</a> or try again.</p>`;
   }
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `${RG_SYSTEM_NAME} · Manual & Rules Reference`, resizable: true },
     classes: ["rg-manual-dialog"],
     position: fitWindowToViewport(900, 840),
-    content: manualContent(guideHtml),
+    content: manualContent(guideHtml, language),
     modal: false,
     rejectClose: false,
     buttons
@@ -307,6 +364,7 @@ function ensureSidebarHelpButton(html) {
 }
 
 export function installRealmGuardManual() {
+  game.settings.register("realm-guard", MANUAL_LANGUAGE, { scope: "client", config: false, type: String, default: "en" });
   installReferenceControls();
   registerGmDockTool({ id: "system-manual", icon: "fa-solid fa-book-open-reader", tooltip: `Open ${RG_SYSTEM_NAME} Manual`, order: 7, onClick: openRealmGuardManual });
   Hooks.on("renderChatLog", (_app, html) => injectManualTool(html));

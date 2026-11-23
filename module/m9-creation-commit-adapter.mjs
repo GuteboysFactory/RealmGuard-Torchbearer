@@ -96,6 +96,8 @@ function materializeActorData(plan, folder, { isGM = true, userId = "", requestI
   return {
     name: String(plan.actor?.name ?? ""),
     type: String(plan.actor?.type ?? "character"),
+    ...(plan.actor?.img ? { img: plan.actor.img } : {}),
+    ...(plan.actor?.prototypeToken ? { prototypeToken: clone(plan.actor.prototypeToken) } : {}),
     system,
     flags,
     folder: folder?.id ?? folder ?? null,

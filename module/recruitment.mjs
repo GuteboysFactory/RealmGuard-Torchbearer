@@ -3,10 +3,13 @@ import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS } from "./conditions.mjs
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
+import { HOMELANDS, NATURAL_TALENT, TRADE_SKILLS, APPRENTICESHIP_SKILLS, CONVINCING_SKILLS, INNATE_TRAITS, WISE_EXAMPLES, WEAPONS, RELATIONSHIP_LOCATIONS, normalizeWise, learningForRating, gearDocument } from "./recruitment-catalog.mjs";
 import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions, commitM9Recruitment, shouldUseLegacyM9Commit } from "./m9-creation-shadow.mjs";
 import { getActiveM10BCharacterCreationPolicy } from "./m10b-character-creation.mjs";
 import { installRecruitmentAuthority, submitRangerRecruitment } from "./recruitment-authority.mjs";
 import { primaryActiveGm } from "./turn-authority-bridge.mjs";
+import { commitLegacyPeople, legacyPeopleCreationEnabled, openLegacyPeopleCreation, PEOPLE_CREATION } from "./legacy-character-creation.mjs";
+import { fitWindowToViewport } from "./window-position-service.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -16,23 +19,6 @@ const STATIONS = Object.freeze({
   lord: { label: "Lord", ageMin: 80, ageMax: 150, will: 6, health: 3, resources: 5, circles: 4, natural: 2, service: 12, wises: 6 }
 });
 
-const HOMELANDS = Object.freeze({
-  rhudaur: { label: "Rhudaur", text: "Formerly the eastern nation of Arnor, including Rivendell and villages between Bree and the Misty Mountains.", skills: ["Archivist", "Animal Handler", "Carpenter"], traits: ["Calm", "Natural Bearings"] },
-  bree: { label: "Bree-land", text: "A quiet area whose populace keeps to their own business.", skills: ["Miller", "Farmer", "Brewer"], traits: ["Short", "Independent"] },
-  esgaroth: { label: "Esgaroth & Dale", text: "The folk of this region ply the lake and river.", skills: ["Boatcrafter", "Carpenter", "Haggler"], traits: ["Sharp-Eyed", "Driven"] },
-  gondor: { label: "Gondor", text: "Includes the capital, Lebennin and Lamedon.", skills: ["Archivist", "Stonemason", "Alchemist"], traits: ["Brave", "Wise"] },
-  doren: { label: "Dor-en-Ernil", text: "Includes Dol Amroth, Belfalas and Anfalas.", skills: ["Rider", "Boatcrafter", "Orator"], traits: ["Graceful", "Tall"] },
-  tharbad: { label: "Tharbad", text: "A trade town on the Bruinen and Greenway.", skills: ["Haggler", "Glazier", "Laborer"], traits: ["Rational", "Hard Worker"] },
-  sarn: { label: "Sarn Ford", text: "A quiet, self-sufficient town named for the ford it straddles.", skills: ["Farmer", "Stonemason", "Miller"], traits: ["Steady Hand", "Quick-Witted"] },
-  rhovanion: { label: "Rhovanion", text: "Villages and communities on the western border of Mirkwood.", skills: ["Baker", "Animal Handler", "Herdsman"], traits: ["Stoic", "Tough"] }
-});
-
-const NATURAL_TALENT = Object.freeze([
-  "Administrator", "Alchemist", "Animal Handler", "Archivist", "Armorer", "Baker", "Boatcrafter", "Brewer", "Carpenter", "Cartographer", "Cook", "Deceiver", "Farmer", "Fighter", "Glazier", "Haggler", "Healer", "Herdsman", "Hunter", "Instructor", "Laborer", "Militarist", "Miller", "Orator", "Pathfinder", "Persuader", "Potter", "Rider", "Scout", "Smith", "Stonemason", "Survivalist", "Weather Watcher", "Weaver"
-]);
-const TRADE_SKILLS = Object.freeze(["Animal Handler", "Archivist", "Armorer", "Baker", "Boatcrafter", "Brewer", "Carpenter", "Cartographer", "Farmer", "Glazier", "Herdsman", "Miller", "Potter", "Smith", "Stonemason", "Weaver"]);
-const APPRENTICESHIP_SKILLS = Object.freeze(["Animal Handler", "Archivist", "Armorer", "Baker", "Brewer", "Carpenter", "Cartographer", "Farmer", "Glazier", "Herdsman", "Miller", "Potter", "Smith", "Stonemason", "Weaver"]);
-const CONVINCING_SKILLS = Object.freeze(["Deceiver", "Orator", "Persuader"]);
 const MENTOR_SKILLS = Object.freeze(["Fighter", "Healer", "Hunter", "Instructor", "Pathfinder", "Scout", "Survivalist", "Weather Watcher"]);
 const SPECIALTY_SKILLS = MENTOR_SKILLS;
 
@@ -75,22 +61,11 @@ function creationEnemyPeopleOptions() {
   });
 }
 
-const INNATE_TRAITS = Object.freeze([
-  "Bitter", "Bodyguard", "Bold", "Brave", "Calm", "Clever", "Compassionate", "Cunning", "Curious", "Defender", "Determined", "Driven", "Early Riser", "Extrovert", "Fat", "Fearful", "Fearless", "Fiery", "Generous", "Graceful", "Greybeard", "Innocent", "Jaded", "Keen-Eared", "Leader", "Lost", "Natural Bearings", "Nimble", "Nocturnal", "Quick-Witted", "Quiet", "Realm's Honor", "Rough Hands", "Sharp-Eyed", "Short", "Skeptical", "Skinny", "Stern", "Stoic", "Stubborn", "Suspicious", "Tall", "Thoughtful", "Tough", "Weather Sense", "Wise", "Young"
-]);
 const RECRUIT_TRAITS = Object.freeze([
   "Brave", "Calm", "Clever", "Compassionate", "Curious", "Defender", "Determined", "Early Riser", "Extrovert", "Fearful", "Fearless", "Fiery", "Generous", "Graceful", "Keen-Eared", "Lost", "Natural Bearings", "Nimble", "Quick-Witted", "Rough Hands", "Scarred", "Short", "Skeptical", "Skinny", "Stern", "Stubborn", "Suspicious", "Tall", "Tough"
 ]);
 const ROAD_TRAITS = Object.freeze([
   "Bitter", "Bodyguard", "Brave", "Calm", "Clever", "Compassionate", "Cunning", "Curious", "Defender", "Driven", "Early Riser", "Fearful", "Fearless", "Greybeard", "Jaded", "Leader", "Natural Bearings", "Nocturnal", "Quiet", "Scarred", "Sharp-Eyed", "Skeptical", "Skinny", "Stern", "Stoic", "Thoughtful", "Tough", "Weather Sense", "Wise"
-]);
-
-const WISE_EXAMPLES = Object.freeze([
-  "Anduin-wise", "Angmar-wise", "Armor-wise", "Arnor-wise", "Bandit-wise", "Bat-wise", "Barrow-wise", "Beer-wise", "Blizzard-wise", "Bree-land-wise", "Captain-wise", "Celebrations-wise", "Coast-wise", "Cold-wise", "Craft-wise", "Crop-wise", "Crow-wise", "Deadman's Dike-wise", "Drought-wise", "Dwarf-wise", "Dwarven rune-wise", "Eagle-wise", "Elf-wise", "Elven sanctuary-wise", "Epidemic-wise", "Erebor-wise", "Esgaroth-wise", "Escort-wise", "Famine-wise", "Fireworks-wise", "First Age-wise", "Flood-wise", "Forest-wise", "Funeral rites-wise", "Gondor-wise", "Governing-wise", "Heat-wise", "Herb-wise", "Herd-wise", "Hobbit-wise", "Horse-wise", "Inn-wise", "Ithilien-wise", "Lake-wise", "Lord-wise", "Lothlorien-wise", "Medicine-wise", "Minerals-wise", "Mirkwood-wise", "Mordor-wise", "Moria-wise", "Morgul-wise", "Mountain-wise", "Night-wise", "Open ground-wise", "Orc-wise", "Orthanc-wise", "Palantir-wise", "Path-wise", "Pipeweed-wise", "Poems-wise", "Poison-wise", "Rain-wise", "Rebellion-wise", "Recipe-wise", "Refuge-wise", "Reunited Realms-wise", "Rhovanion-wise", "River-wise", "Road-wise", "Rohan-wise", "Rumor-wise", "Sea-wise", "Second Age-wise", "Shield-wise", "Ship-wise", "Shire-wise", "Shore-wise", "Snow-wise", "Song-wise", "Spider-wise", "Star-wise", "Stream-wise", "Swamp-wise", "Tale-wise", "Third Age-wise", "Thunderstorm-wise", "Tide-wise", "Tokens of Power-wise", "Tradesman-wise", "Trail-wise", "Trap-wise", "Troll-wise", "Tunnel-wise", "War-wise", "Warg-wise", "Watchtower-wise", "Wight-wise", "Wilds-wise", "Wine-wise", "Wizard-wise"
-]);
-
-const WEAPONS = Object.freeze([
-  { name: "Shield", hands: 1 }, { name: "Knife", hands: 1 }, { name: "Sword", hands: 1 }, { name: "Staff", hands: 2 }, { name: "Spear", hands: 2 }, { name: "Whip", hands: 1 }, { name: "Halberd", hands: 2 }, { name: "Sling", hands: 1 }, { name: "Bow", hands: 2 }
 ]);
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
@@ -99,12 +74,6 @@ const value = (form, name, fallback = "") => String(form?.elements?.[name]?.valu
 const numberValue = (form, name, fallback = 0) => Number(form?.elements?.[name]?.value ?? fallback) || 0;
 const station = state => STATIONS[state.rank] ?? STATIONS.scout;
 const modeHelp = (state, html) => state.mode === "quick" ? "" : `<div class="rg-recruit-guide">${html}</div>`;
-
-function normalizeWise(name) {
-  const clean = String(name ?? "").trim().replace(/\s+/g, " ");
-  if (!clean) return "";
-  return /-wise$/i.test(clean) ? clean : `${clean}-wise`;
-}
 
 function options(list, selected = "", { placeholder = "Choose...", disabled = new Map() } = {}) {
   const out = [`<option value="">${esc(placeholder)}</option>`];
@@ -116,12 +85,6 @@ function options(list, selected = "", { placeholder = "Choose...", disabled = ne
   }
   return out.join("");
 }
-
-const RELATIONSHIP_LOCATIONS = Object.freeze([
-  "Bree", "Bree-land", "Arnor", "Rhudaur", "Fornost", "Deadman's Dike", "Tharbad", "Sarn Ford",
-  "Rivendell", "Esgaroth", "Dale", "Rhovanion", "Mirkwood", "Gondor", "Dor-en-Ernil", "Dol Amroth",
-  "Rohan", "The Shire", "Dunland", "Harad", "The East", "Angmar"
-]);
 
 function quickNpcProfessions() {
   return [...new Set(QUICK_NPC_TEMPLATE_SPECS
@@ -186,7 +149,8 @@ async function showStep(state, { current, total = 11, title, subtitle, body, com
 
     const result = await foundry.applications.api.DialogV2.wait({
       window: { title: `Realm Guard · Recruitment · ${title}`, resizable: true },
-      position: { width: 860 },
+      position: fitWindowToViewport(860, 720),
+      classes: ["rg-scrollable-wizard"],
       content: `<div class="realm-guard rg-recruitment">${stepHeader(state, current, total, title, subtitle)}${body()}</div>`,
       modal: false,
       rejectClose: false,
@@ -320,6 +284,8 @@ async function commitPlayerRecruitment(request, creator, requestId) {
   if (request.profileHash !== activeCreationPolicy().rulesSnapshotHash) {
     throw new Error("The active Rules Profile changed after this Recruitment was submitted.");
   }
+  if (request.kind === PEOPLE_CREATION) return commitLegacyPeople(request.draft, creator, requestId);
+  if (request.kind && request.kind !== "ranger") throw new Error("Unknown character creation request.");
   const state = requestDraft(request.draft);
   const { actor } = await commitM9Recruitment(state, { creator, requestId });
   try { await createRecruitmentSuccessChat(actor, state); }
@@ -892,26 +858,6 @@ async function reviewStep(state) {
   });
 }
 
-function learningForRating(rating) {
-  const r = Number(rating ?? 0);
-  if (r <= 0) return { passed: 0, failed: 0, passNeeded: 1, failNeeded: 1 };
-  if (r === 1) return { passed: 0, failed: 0, passNeeded: 1, failNeeded: 0 };
-  return { passed: 0, failed: 0, passNeeded: r, failNeeded: r - 1 };
-}
-
-function gearDocument(name, { hands = 0, location = "", mode = "unassigned", description = "Created during Realm Guard Recruitment." } = {}) {
-  return {
-    name,
-    type: "gear",
-    flags: { "realm-guard": { recruitmentGear: true } },
-    system: {
-      quantity: 1,
-      description,
-      inventory: { mode, location, containerId: "", slots: 1, bundle: 1, wieldHands: hands, containerType: "none", capacity: 0 }
-    }
-  };
-}
-
 const PC_FOLDER_NAME = "PC";
 
 async function ensurePcActorFolder() {
@@ -953,8 +899,8 @@ function recruitmentCultureHint(value = "") {
 function recruitmentNpcSearchForEntry(entry, state) {
   const slot = String(entry?.slot ?? "");
   const person = entry?.person ?? {};
-  const home = HOMELANDS[state.homelandKey]?.label ?? "";
-  const culture = recruitmentCultureHint(`${person.people ?? ""} ${person.location ?? ""} ${home}`);
+  const home = state.homeland ?? HOMELANDS[state.homelandKey]?.label ?? "";
+  const culture = recruitmentCultureHint(`${person.people ?? ""} ${person.location ?? ""} ${home} ${state.people ?? ""}`);
   let role = String(person.profession ?? "").trim();
 
   if (slot === "parent-mother" || slot === "parent-father") role = String(person.profession || state.parentsResourceProfession || role).trim();
@@ -1538,19 +1484,31 @@ function canCreateActors() {
   catch { return true; }
 }
 
+export function openCharacterCreation() {
+  return openLegacyPeopleCreation({ reviewRelationships: reviewRecruitmentRelationshipNpcs });
+}
+
 function actorDirectoryRoot(html) {
   return html instanceof HTMLElement ? html : html?.[0] ?? null;
 }
 
 function injectActorDirectoryRecruitmentTools(html) {
   const root = actorDirectoryRoot(html);
-  if (!root || root.querySelector?.("[data-rg-actor-recruitment-tools]")) return;
+  if (!root) return;
+  const showPeople = legacyPeopleCreationEnabled() && game.user.hasRole("PLAYER");
+  const existing = root.querySelector("[data-rg-actor-recruitment-tools]");
+  if (existing && existing.classList.contains("has-create-character") === showPeople) return;
+  if (existing) {
+    for (const button of existing.querySelectorAll("[data-rg-native-directory-action]")) existing.before(button);
+    existing.remove();
+  }
   const header = root.querySelector?.(".directory-header .header-actions")
     ?? root.querySelector?.(".directory-header")
     ?? root.querySelector?.("header.directory-header")
     ?? root;
   const bar = document.createElement("div");
   bar.className = "rg-actor-recruitment-tools";
+  bar.classList.toggle("has-create-character", showPeople);
   bar.dataset.rgActorRecruitmentTools = "true";
   const tb2e = activeCreationPolicy().rulesProfileId === "torchbearer2e";
 
@@ -1572,6 +1530,18 @@ function injectActorDirectoryRecruitmentTools(html) {
     bar.append(quick);
   }
 
+  if (showPeople) {
+    const people = document.createElement("button");
+    people.type = "button";
+    people.className = "rg-actor-recruit primary rg-directory-create-character";
+    people.innerHTML = `<i class="fa-solid fa-user-plus"></i><span>Create Character</span>`;
+    people.title = "Create a Human, Dwarf, Hobbit, or Elf";
+    people.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); void openCharacterCreation(); });
+    const recruit = bar.querySelector(".primary");
+    if (recruit) recruit.after(people);
+    else bar.append(people);
+  }
+
   const guide = document.createElement("button");
   guide.type = "button";
   guide.className = "rg-actor-recruit icon-only";
@@ -1579,7 +1549,28 @@ function injectActorDirectoryRecruitmentTools(html) {
   guide.setAttribute("aria-label", "Recruitment Guide");
   guide.innerHTML = `<i class="fa-solid fa-book-open"></i>`;
   guide.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); void openRecruitmentGuide(); });
-  bar.append(guide);
+  if (showPeople) {
+    const nativeActor = header.querySelector(':scope > button:is([data-action="createEntry"], [data-action="createDocument"], .create-document)');
+    const nativeFolder = header.querySelector(':scope > button[data-action="createFolder"]');
+    const secondRow = bar.querySelector(".rg-directory-create-character");
+    if (nativeActor && game.user.isGM) {
+      nativeActor.dataset.rgNativeDirectoryAction = "actor";
+      secondRow.before(nativeActor);
+    }
+    if (nativeFolder) {
+      nativeFolder.dataset.rgNativeDirectoryAction = "folder";
+      const folderRow = document.createElement("div");
+      folderRow.className = "rg-directory-folder-row";
+      folderRow.append(nativeFolder, guide);
+      bar.append(folderRow);
+    } else if (!nativeActor || !game.user.isGM) {
+      secondRow.before(guide);
+    } else {
+      bar.append(guide);
+    }
+  } else {
+    bar.append(guide);
+  }
   header.prepend(bar);
 
   // Players should use the rules-driven Ranger buttons, not Foundry's generic Actor creator.
