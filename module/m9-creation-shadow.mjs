@@ -304,7 +304,7 @@ function validateDraftForLiveCommit(draft, context) {
   return freeze({ valid: unique.length === 0, errors: unique });
 }
 
-export async function commitM9Recruitment(state) {
+export async function commitM9Recruitment(state, { creator = globalThis.game?.user, requestId = "" } = {}) {
   if (shouldUseLegacyM9Commit()) throw new Error("CORE M9 commit was called while the QA Legacy commit override is active.");
 
   const draft = syncM9RecruitmentDraft(state, { stepId: "review", reason: "live-commit-preflight" });
@@ -324,8 +324,9 @@ export async function commitM9Recruitment(state) {
 
   try {
     const result = await commitAdapter.execute(plan, {
-      isGM: Boolean(globalThis.game?.user?.isGM),
-      userId: String(globalThis.game?.user?.id ?? ""),
+      isGM: Boolean(creator?.isGM),
+      userId: String(creator?.id ?? ""),
+      requestId,
       rulesSnapshot,
       faultPhase
     });

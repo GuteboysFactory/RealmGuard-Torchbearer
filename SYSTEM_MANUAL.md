@@ -1,6 +1,6 @@
 # Realm Guard / Torchbearer – användarmanual
 
-Manualen beskriver **Realm Guard 1.13.11** i Foundry VTT 13.351. Knapparna anges med sina namn i Foundry. Exemplen gäller Legacy Mixed där en annan regelprofil inte anges.
+Manualen beskriver **Realm Guard 1.13.12** i Foundry VTT 13.351. Knapparna anges med sina namn i Foundry. Exemplen gäller Legacy Mixed där en annan regelprofil inte anges.
 
 ## Innehåll
 
@@ -74,7 +74,7 @@ Regelprofilen avgör vilka regelval, uträkningar och arbetsflöden världen anv
 4. Fyll i Wises, Resources, Circles, Traits och relationer. Granska föreslagna NPC:er för exempelvis Parents, Senior Artisan, Mentor, Friend och Enemy. Den särskilda husregeln **Allow Servants of the Enemy as personal Enemies** lägger till sådana fiendeval där Realm Guard normalt föreslår de fria folken.
 5. Skriv Belief, Goal och Instinct och granska startutrustningen. Bekräfta sammanfattningen så skapas karaktären i **Actors → PC**, med mappen skapad vid behov.
 
-Om spelaren saknar rätt att skapa eller redigera en Actor behöver GM justera behörigheten eller skapa karaktären åt spelaren. Tilldela ägarskap innan ni använder karaktären för Help, Checks eller Versus.
+Som spelare hittar du **Recruit Ranger** och **Create Ranger** under **Actors** med Foundrys vanliga spelarroll. Om en GM är ansluten skapar Realm Guard rollpersonen automatiskt och ger dig ägarskap. Om GM är offline sparas ansökan i chatten och behandlas automatiskt när en GM ansluter. Din första rollperson väljs också för ditt konto om du saknar en tilldelad karaktär.
 
 ### Spelarbladet och dess layouter
 

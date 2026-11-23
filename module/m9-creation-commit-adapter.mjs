@@ -81,7 +81,7 @@ async function defaultCreateActor(data, options) {
   return actor;
 }
 
-function materializeActorData(plan, folder, { isGM = true, userId = "" } = {}) {
+function materializeActorData(plan, folder, { isGM = true, userId = "", requestId = "" } = {}) {
   const system = clone(plan.actor?.system ?? {});
   const biographySource = String(system.biographySource ?? "");
   delete system.biographySource;
@@ -90,12 +90,14 @@ function materializeActorData(plan, folder, { isGM = true, userId = "" } = {}) {
   const none = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.NONE ?? 0;
   const owner = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
   const ownership = !isGM && userId ? { default: none, [String(userId)]: owner } : undefined;
+  const flags = clone(plan.actor?.flags ?? {});
+  if (requestId) (flags["realm-guard"] ??= {}).recruitmentRequestId = requestId;
 
   return {
     name: String(plan.actor?.name ?? ""),
     type: String(plan.actor?.type ?? "character"),
     system,
-    flags: clone(plan.actor?.flags ?? {}),
+    flags,
     folder: folder?.id ?? folder ?? null,
     ...(ownership ? { ownership } : {})
   };
@@ -295,7 +297,7 @@ export class FoundryCreationCommitAdapter {
     return this._executeLive(plan, options);
   }
 
-  async _executeLive(plan, { isGM = true, userId = "", rulesSnapshot = null, faultPhase = "" } = {}) {
+  async _executeLive(plan, { isGM = true, userId = "", requestId = "", rulesSnapshot = null, faultPhase = "" } = {}) {
     const validation = this.validatePlan(plan);
     if (!validation.valid) throw new Error(`Invalid CreationCommitPlan: ${validation.errors.join(" ")}`);
     if (!rulesSnapshot?.profileId || !rulesSnapshot?.profileVersion || !rulesSnapshot?.rulesSnapshotHash) {
@@ -317,7 +319,7 @@ export class FoundryCreationCommitAdapter {
 
       phase = "CREATE_ACTOR";
       fault(faultPhase, phase);
-      const actorData = materializeActorData(plan, folder, { isGM, userId });
+      const actorData = materializeActorData(plan, folder, { isGM, userId, requestId });
       actor = await this.runtime.createActor(actorData, clone(plan.actor?.createOptions ?? {}));
       completedPhases.push(phase);
 

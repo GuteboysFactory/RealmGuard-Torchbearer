@@ -5,6 +5,8 @@ import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-net
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
 import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions, commitM9Recruitment, shouldUseLegacyM9Commit } from "./m9-creation-shadow.mjs";
 import { getActiveM10BCharacterCreationPolicy } from "./m10b-character-creation.mjs";
+import { installRecruitmentAuthority, submitRangerRecruitment } from "./recruitment-authority.mjs";
+import { primaryActiveGm } from "./turn-authority-bridge.mjs";
 
 const STATIONS = Object.freeze({
   recruit: { label: "Recruit", ageMin: 20, ageMax: 25, will: 2, health: 6, resources: 1, circles: 1, natural: 2, service: 3, wises: 1 },
@@ -185,7 +187,7 @@ async function showStep(state, { current, total = 11, title, subtitle, body, com
     const result = await foundry.applications.api.DialogV2.wait({
       window: { title: `Realm Guard · Recruitment · ${title}`, resizable: true },
       position: { width: 860 },
-      content: `<form class="realm-guard rg-recruitment">${stepHeader(state, current, total, title, subtitle)}${body()}</form>`,
+      content: `<div class="realm-guard rg-recruitment">${stepHeader(state, current, total, title, subtitle)}${body()}</div>`,
       modal: false,
       rejectClose: false,
       render: (event, dialog) => onRender?.(event, dialog),
@@ -286,6 +288,43 @@ function blankState() {
     distinctiveGear: "",
     openSheet: true
   };
+}
+
+function requestDraft(draft) {
+  if (!draft || typeof draft !== "object" || Array.isArray(draft) || JSON.stringify(draft).length > 32000) {
+    throw new Error("Invalid Ranger Recruitment draft.");
+  }
+  const state = blankState();
+  for (const [key, standard] of Object.entries(state)) {
+    const value = draft[key];
+    if (Array.isArray(standard)) {
+      if (Array.isArray(value) && value.length <= 24 && value.every(entry => typeof entry === "string")) state[key] = [...value];
+    } else if (typeof standard === "object") {
+      for (const field of Object.keys(standard)) {
+        if (typeof value?.[field] === "boolean") standard[field] = value[field];
+      }
+    } else if (typeof value === typeof standard && (typeof value !== "number" || Number.isFinite(value))) {
+      state[key] = value;
+    }
+  }
+  if (Object.hasOwn(STATIONS, state.rank)) {
+    state.serviceAlloc = Object.fromEntries(serviceSkills(state.rank).flatMap(skill => {
+      const count = draft.serviceAlloc?.[skill];
+      return Number.isInteger(count) && count >= 0 && count <= station(state).service ? [[skill, count]] : [];
+    }));
+  }
+  return state;
+}
+
+async function commitPlayerRecruitment(request, creator, requestId) {
+  if (request.profileHash !== activeCreationPolicy().rulesSnapshotHash) {
+    throw new Error("The active Rules Profile changed after this Recruitment was submitted.");
+  }
+  const state = requestDraft(request.draft);
+  const { actor } = await commitM9Recruitment(state, { creator, requestId });
+  try { await createRecruitmentSuccessChat(actor, state); }
+  catch (error) { console.warn("Realm Guard | Ranger created but Recruitment chat publication failed", error); }
+  return actor;
 }
 
 function computeNature(state) {
@@ -480,13 +519,12 @@ async function homelandStep(state) {
       }
     },
     onRender: (_event, dialog) => {
-      const root = dialog.element;
-      const form = root?.querySelector?.("form.rg-recruitment");
-      const homelandSelect = form?.elements?.homelandKey;
-      const detail = form?.querySelector?.("[data-rg-homeland-detail]");
-      if (!form || !homelandSelect || !detail) return;
+      const root = dialog.element?.querySelector(".rg-recruitment");
+      const homelandSelect = root?.querySelector('[name="homelandKey"]');
+      const detail = root?.querySelector("[data-rg-homeland-detail]");
+      if (!homelandSelect || !detail) return;
       homelandSelect.addEventListener("change", () => {
-        state.homelandKey = value(form, "homelandKey");
+        state.homelandKey = homelandSelect.value;
         state.homelandSkill = "";
         state.homelandTrait = "";
         detail.innerHTML = homelandDetailHtml(state, traitDisabled);
@@ -1380,7 +1418,8 @@ async function createRanger(state) {
 const STEPS = [identityStep, natureStep, homelandStep, lifeExperienceStep, serviceStep, wisesStep, resourcesCirclesStep, traitsStep, relationshipsStep, bgiGearStep, reviewStep];
 
 export async function openRecruitmentWizard({ mode = null } = {}) {
-  if (activeCreationPolicy().rulesProfileId === "torchbearer2e") {
+  const policy = activeCreationPolicy();
+  if (policy.rulesProfileId === "torchbearer2e") {
     const { openTb2eRecruitmentWizard } = await import("./tb2e-recruitment.mjs");
     return openTb2eRecruitmentWizard({ mode });
   }
@@ -1394,6 +1433,20 @@ export async function openRecruitmentWizard({ mode = null } = {}) {
     index += 1;
   }
   if (index !== STEPS.length) return null;
+
+  const pcFolder = game.folders.find(folder => folder.type === "Actor" && folder.name.trim().toLowerCase() === PC_FOLDER_NAME.toLowerCase());
+  if (!game.user.isGM && (!canCreateActors() || !pcFolder)) {
+    try {
+      await submitRangerRecruitment(requestDraft(state), policy.rulesSnapshotHash);
+      ui.notifications.info(primaryActiveGm()
+        ? "Realm Guard: Recruitment submitted. Your Ranger is being created."
+        : "Realm Guard: Recruitment saved. Your Ranger will be created when a GM connects.");
+    } catch (error) {
+      console.error("Realm Guard | Could not submit Recruitment", error);
+      ui.notifications.error("Realm Guard: Your Recruitment could not be submitted.");
+    }
+    return null;
+  }
 
   const legacyOverride = shouldUseLegacyM9Commit();
   let parityEvent = null;
@@ -1472,7 +1525,7 @@ export async function openRecruitmentGuide() {
     position: { width: 700, height: 720 },
     content: guideContent(),
     buttons: [
-      ...(canCreateActors() ? [{ action: "start", label: "Create Ranger", icon: "fa-solid fa-user-shield", callback: () => { setTimeout(() => void openRecruitmentWizard(), 0); } }] : []),
+      ...(game.user.hasRole("PLAYER") ? [{ action: "start", label: "Create Ranger", icon: "fa-solid fa-user-shield", callback: () => { setTimeout(() => void openRecruitmentWizard(), 0); } }] : []),
       { action: "close", label: "Close", default: true }
     ],
     submit: () => null
@@ -1501,7 +1554,7 @@ function injectActorDirectoryRecruitmentTools(html) {
   bar.dataset.rgActorRecruitmentTools = "true";
   const tb2e = activeCreationPolicy().rulesProfileId === "torchbearer2e";
 
-  if (canCreateActors()) {
+  if (tb2e ? canCreateActors() : game.user.hasRole("PLAYER")) {
     const recruit = document.createElement("button");
     recruit.type = "button";
     recruit.className = "rg-actor-recruit primary";
@@ -1556,6 +1609,7 @@ async function migrateRecruitmentAbilityCaps() {
 }
 
 export function installRecruitment() {
+  installRecruitmentAuthority(commitPlayerRecruitment);
   Hooks.on("renderActorDirectory", (_app, html) => injectActorDirectoryRecruitmentTools(html));
   Hooks.once("ready", () => {
     const actors = ui?.actors?.element ?? document.querySelector("#actors");

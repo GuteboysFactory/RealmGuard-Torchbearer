@@ -1,6 +1,5 @@
-# 1.13.11 – Restore Sick
+# 1.13.12 – Ranger Recruitment for standard Foundry players
 
-- Existing and new player and NPC Actors in Legacy Mixed and Mouse Guard receive Sick where missing. Existing Sick entries keep their current active state.
-- Sick applies −1D to Skills, Nature, Will and Health. Resources, Circles and Will or Health recovery tests are exempt.
-- Self-recovery is Will Ob 4 without Help. On failure, the recovery card gives the profile's Healer difficulty. It is Ob 4 in Legacy Mixed and Mouse Guard 2E, and Ob 3 in Mouse Guard 1E. GM adjudicates treatment and any permanent reduction.
-- Strict Realm Guard uses Strained. The manual and in-system rule reference document the applicable routes.
+- **Recruit Ranger** and **Create Ranger** are available to standard Player accounts. An active GM client automatically validates the draft and creates the player-owned character in **Actors → PC**. Submissions made while the GM is offline are processed when a GM connects. The player's first Ranger is assigned to their account if they have no assigned character.
+- **Homeland** now updates the available Skill and Trait choices as soon as a homeland is selected.
+- Verified both workflows in Foundry VTT 13.351 with unchanged world permissions, including a submission made while the GM was offline.
