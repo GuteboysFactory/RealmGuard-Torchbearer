@@ -1,5 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
-import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { activeDefaultSkills } from "./default-skills.mjs";
 
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 const stripHtml = value => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -22,7 +22,7 @@ const typeDef = key => CONTENT_TYPES.find(entry => entry.key === key) ?? null;
 const abilityOptions = selected => ["will", "health", "nature", "resources", "circles"].map(value => `<option value="${value}" ${value === String(selected ?? "") ? "selected" : ""}>${value[0].toUpperCase()}${value.slice(1)}</option>`).join("");
 const skillOptions = selected => {
   const current = String(selected ?? "").toLowerCase();
-  return `<option value="">-- choose Skill --</option>${RG_DEFAULT_SKILLS.map(name => `<option value="${esc(name)}" ${name.toLowerCase() === current ? "selected" : ""}>${esc(name)}</option>`).join("")}`;
+  return `<option value="">-- choose Skill --</option>${activeDefaultSkills().map(name => `<option value="${esc(name)}" ${name.toLowerCase() === current ? "selected" : ""}>${esc(name)}</option>`).join("")}`;
 };
 
 function selectedRealmGuardActors() {

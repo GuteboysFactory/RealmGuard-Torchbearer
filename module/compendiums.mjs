@@ -1,5 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
-import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { activeDefaultSkills, isAvailableSkill, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { STARTER_TALENTS, talentCatalogForProfile, talentCatalogDescription } from "./talents.mjs";
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
@@ -441,14 +441,16 @@ async function seedPack(pack, documents) {
 export async function ensureStarterCompendiums({ syncMissing = false, notify = false } = {}) {
   if (!game.user?.isGM) return { packs: 0, createdPacks: 0, added: 0 };
   const mapping = [
-    [PACKS.skills, RG_STARTER_LIBRARY.skills],
+    [PACKS.skills, activeDefaultSkills().map(skillDoc)],
     [PACKS.traits, legacyMixedPolishEnabled()?LEGACY_TRAITS.map(suppliedTraitDocument):RG_STARTER_LIBRARY.traits],
     [PACKS.wises, RG_STARTER_LIBRARY.wises],
     [PACKS.conditions, RG_STARTER_LIBRARY.conditions],
     [PACKS.gear, RG_STARTER_LIBRARY.gear],
     [PACKS.powers, RG_STARTER_LIBRARY.powers],
     [PACKS.talents, legacyMixedPolishEnabled() ? talentCatalogForProfile().map(talentDoc) : RG_STARTER_LIBRARY.talents],
-    [PACKS.npcs, RG_STARTER_LIBRARY.npcs]
+    [PACKS.npcs, legacyMixedPolishEnabled() ? RG_STARTER_LIBRARY.npcs.map(npc => ({
+      ...npc, items: npc.items.filter(item => item.type !== "role" || isAvailableSkill(item.name))
+    })) : RG_STARTER_LIBRARY.npcs]
   ];
   let packs = 0;
   let createdPacks = 0;
@@ -508,7 +510,7 @@ async function openStarterLibraryDialog() {
 async function initialSeed() {
   if (!isPrimaryActiveGm()) return;
   const seededVersion = String(game.settings.get("realm-guard", SETTING_KEY) ?? "");
-  const targetVersion = legacyMixedPolishEnabled() ? `${STARTER_VERSION}-legacy-talents-${LEGACY_TALENT_CATALOG_VERSION}-traits-${LEGACY_TRAIT_CATALOG_VERSION}` : STARTER_VERSION;
+  const targetVersion = legacyMixedPolishEnabled() ? `${STARTER_VERSION}-legacy-talents-${LEGACY_TALENT_CATALOG_VERSION}-traits-${LEGACY_TRAIT_CATALOG_VERSION}-skills-2` : STARTER_VERSION;
   const syncMissing = seededVersion !== targetVersion;
   const result = await ensureStarterCompendiums({ syncMissing, notify: syncMissing });
   if (syncMissing && result.packs === Object.keys(PACKS).length && !result.failed) await game.settings.set("realm-guard", SETTING_KEY, targetVersion);

@@ -2667,9 +2667,9 @@ body:has(#join-game) {
 .rg-teamwork-source-help { padding:.45rem .55rem; border-left:3px solid rgba(201,151,76,.7); background:rgba(201,151,76,.07); font-size:12px; opacity:.9; }
 .rg-teamwork-request-synergy { grid-template-columns:auto 1fr !important; align-items:start !important; gap:.55rem !important; padding:.5rem .6rem; border:1px solid rgba(255,255,255,.08); border-radius:6px; background:rgba(255,255,255,.025); }
 .rg-teamwork-request-synergy small { display:block; margin-top:.15rem; opacity:.72; }
-.rg-teamwork-request-actions { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
-.rg-teamwork-request-actions button { min-height:38px; }
-.rg-teamwork-request-actions [data-helper-accept] { border-color:rgba(201,151,76,.7); }
+.rg-teamwork-helper-dialog .form-footer { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+.rg-teamwork-helper-dialog .form-footer button { min-height:38px; }
+.rg-teamwork-helper-dialog [data-action="acceptHelp"] { border-color:rgba(201,151,76,.7); }
 .rg-roll-dialog input[data-rg-help-dice][readonly] { cursor:default; opacity:.9; }
 @media(max-width:760px){
   .rg-obstacle-panel .rg-roll-dialog-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -2678,7 +2678,7 @@ body:has(#join-game) {
 }
 @media(max-width:620px){
   .rg-obstacle-panel .rg-roll-dialog-grid{grid-template-columns:1fr;}
-  .rg-teamwork-request-actions{grid-template-columns:1fr;}
+  .rg-teamwork-helper-dialog .form-footer{grid-template-columns:1fr;}
 }
 
 /* v1.0.6 Conflict Action Guide: concise at-a-glance card meaning, strengths and drawbacks. */
@@ -3650,6 +3650,55 @@ body:has(#join-game) {
   pointer-events:none;
   user-select:none;
 }
+.realm-guard .rg-sheet.character .rg-header .rg-portrait-stage {
+  background: transparent;
+  border: 0;
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+.realm-guard .rg-sheet.character .rg-header .rg-portrait-stage:focus-visible {
+  outline: 2px solid var(--rg-accent);
+  outline-offset: 2px;
+}
+.realm-guard .rg-portrait-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 2% 98%, transparent),
+    linear-gradient(to bottom, transparent, #000 2% 98%, transparent);
+  mask-composite: intersect;
+}
+.realm-guard .rg-portrait-art:has(.at-tb-display-art) {
+  mask-image: none;
+}
+.realm-guard .rg-portrait-art .rg-portrait {
+  background: transparent;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+  --rg-portrait-side-tail: calc(var(--rg-portrait-side-fade, 4%) / 2);
+  --rg-portrait-bottom-tail: calc(var(--rg-portrait-bottom-fade, 5%) / 2);
+  mask-image:
+    linear-gradient(to right, transparent, #0005 var(--rg-portrait-side-tail),
+      #000 var(--rg-portrait-side-fade, 4%) calc(100% - var(--rg-portrait-side-fade, 4%)),
+      #0005 calc(100% - var(--rg-portrait-side-tail)), transparent),
+    linear-gradient(to bottom, transparent, #0005 1.5%, #000 3% calc(100% - var(--rg-portrait-bottom-fade, 5%)),
+      #0005 calc(100% - var(--rg-portrait-bottom-tail)), transparent);
+  mask-composite: intersect;
+}
+.realm-guard .rg-portrait-wrap:has(.at-tb-portrait-controls select option[value="full"]:checked) .rg-portrait-art {
+  --rg-portrait-side-fade: 5%;
+  --rg-portrait-bottom-fade: 12%;
+}
+/* Tome's contained preview must fade at the image edges, including with narrow full-body artwork. */
+.realm-guard .rg-portrait-stage .rg-portrait-art img.at-tb-display-art {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  inset: 50% auto auto 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
 @media(max-width:760px){
   .realm-guard .rg-portrait-stage{width:88px;height:88px}
 }
@@ -4040,6 +4089,27 @@ body:has(#join-game) {
 .realm-guard.chat-roll .rg-roll-faces-rows { display:grid; gap:5px; }
 .realm-guard.chat-roll .rg-roll-faces-rows > div { display:grid; gap:4px; padding:5px 6px; border:1px solid rgba(255,255,255,.08); border-radius:5px; background:rgba(0,0,0,.1); }
 .realm-guard.chat-roll .rg-roll-faces-rows b { color:#c6b38a; font-size:10px; text-transform:uppercase; }
+.realm-guard.chat-roll .rg-wise-dice-timeline > div > .rg-dice-faces {
+  display:grid;
+  grid-template-columns:repeat(var(--rg-dice-columns), minmax(0, 1fr));
+  gap:.22rem;
+  margin:0;
+}
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-face { min-width:0; padding:0; }
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-face.six { padding-right:.35rem; }
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-crossed { background:#292b29; color:#b5b4ab; border:1px dashed #797c76; }
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-crossed::before,
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-crossed::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(to bottom right, transparent calc(50% - .65px), #abaa9d calc(50% - .65px) calc(50% + .65px), transparent calc(50% + .65px));
+  opacity:.65;
+  pointer-events:none;
+}
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-crossed::after { transform:scaleX(-1); }
+.realm-guard.chat-roll .rg-wise-dice-timeline .rg-die-slot { background:transparent; color:#81837b; border:1px dashed #616456; }
 .realm-guard.chat-roll .rg-roll-final-count { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
 .realm-guard.chat-roll .rg-roll-final-count > span { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 7px; border:1px solid rgba(201,151,76,.18); border-radius:5px; background:rgba(0,0,0,.12); }
 .realm-guard.chat-roll .rg-roll-final-count b { color:#b8ad96; font-size:10px; text-transform:uppercase; }
@@ -4455,7 +4525,9 @@ body:has(#join-game) {
 .rg-chat-question-buttons .rg-chat-skip { flex:0 0 28px; width:28px; min-width:28px; padding:0; font-size:20px; }
 .rg-first-roll { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px; border-bottom:1px solid #98744a; }
 .rg-first-roll > b { flex-basis:100%; }
-.rg-roll-decisions { font-size:12px; padding-left:20px; }
+.rg-roll-decisions { display:flex; flex-wrap:wrap; gap:4px 10px; margin:0; padding:6px 8px; list-style:none; font-size:12px; }
+.rg-help-availability > span { flex:1; }
+.rg-help-availability > button[data-rg-dismiss-help] { width:1.7rem; min-width:1.7rem; min-height:1.6rem; padding:0; line-height:1; }
 .rg-individual-disposition { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; padding:8px; border:1px solid #98744a; }
 .rg-individual-disposition > b,.rg-individual-disposition > strong { flex-basis:100%; }
 .rg-individual-disposition .is-out { opacity:.7; text-decoration:line-through; }
@@ -4498,4 +4570,29 @@ body:has(#join-game) {
   left: var(--rg-hotbar-controls-left);
   bottom: var(--rg-hotbar-controls-bottom);
   height: auto;
+}
+
+.rg-party-characters {
+  width: 100%;
+}
+
+.rg-party-list {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.rg-party-list button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: start;
+}
+
+.rg-party-list img {
+  width: 2rem;
+  height: 2rem;
+  object-fit: cover;
 }

@@ -1,59 +1,147 @@
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
-import { abilityLabel } from './advancement.mjs';
-const esc=v=>foundry.utils.escapeHTML(String(v??''));
-export function sceneRollOpponents(actor){
- return (globalThis.canvas?.tokens?.placeables??[]).filter(t=>t.actor&&t.actor.id!==actor.id&&['character','npc'].includes(t.actor.type)&&(game.user.isGM||t.visible!==false&&t.document?.hidden!==true)).map(t=>({tokenId:t.id??t.document?.id,actor:t.actor,name:t.name??t.document?.name??t.actor.name})).sort((a,b)=>a.name.localeCompare(b.name));
-}
-export function visibleRollOpponents(actor){return [...new Map(sceneRollOpponents(actor).map(r=>[r.actor.id,r.actor])).values()];}
-export function legacyOpponentActor(options){return (globalThis.canvas?.tokens?.placeables??[]).find(t=>t.id===options.opponentTokenId)?.actor??game.actors.get(options.opponentActorId);}
-export function legacyRollTargetControls(actor,versus=false,target=null){
- const row=sceneRollOpponents(actor).find(r=>r.actor.id===target?.id);
- return '<fieldset class="rg-roll-target-picker"><legend>Test type & opponent</legend><label>Test type<select name="rollMode"><option value="standard" '+(!versus?'selected':'')+'>Standard test</option><option value="versus" '+(versus?'selected':'')+'>Versus</option></select></label><div data-rg-versus-fields '+(!versus?'hidden':'')+'><label>Search opponents on this map<input type="search" data-rg-opponent-search placeholder="Search and click an opponent…" autocomplete="off" aria-label="Search opponents" value="'+esc(row?.name??'')+'"></label><input type="hidden" name="opponentActorId" value="'+esc(row?.actor.id??'')+'"><input type="hidden" name="opponentTokenId" value="'+esc(row?.tokenId??'')+'"><div data-rg-opponent-results role="listbox" aria-label="Opponents on this map"></div><label>Resolution<select name="versusResolution"><option value="manual">GM already rolled · enter Obstacle</option><option value="automatic">Roll opponent automatically</option></select></label><label data-rg-auto-opposition>Opponent rolls<select name="oppositionId"></select></label><p data-rg-opponent-status role="status"></p></div></fieldset>';
-}
-export function legacyOppositionChoices(role, target, SheetClass) {
-  const preferred = SheetClass._availableVersusOpposition(role.name, target);
-  const abilities = ["nature", "health", "will", "circles", "resources"]
-    .map(key => ({id:`ability:${key}`, name:abilityLabel(key), rating:Number(target.system.attributes?.[key]?.value ?? 0), basis:"Ability"}));
-  const skills = target.items.filter(item => item.type === "role")
-    .sort((a,b) => a.name.localeCompare(b.name))
-    .map(item => ({id:`role:${item.id}`, name:item.name, rating:Number(item.system.rating ?? 0), basis:"Trained Skill"}));
-  const byId = new Map();
-  for (const choice of [...preferred, ...abilities, ...skills]) if (choice.rating > 0 && !byId.has(choice.id)) byId.set(choice.id, choice);
-  return [...byId.values()];
+
+const esc = value => foundry.utils.escapeHTML(String(value ?? ''));
+
+export function sceneRollOpponents(actor) {
+  return (globalThis.canvas?.tokens?.placeables ?? [])
+    .filter(token => token.actor && token.actor.id !== actor.id && ['character', 'npc'].includes(token.actor.type)
+      && (game.user.isGM || (token.visible !== false && token.document?.hidden !== true)))
+    .map(token => ({ tokenId: token.id ?? token.document?.id, actor: token.actor, name: token.name ?? token.actor.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function bindLegacyRollTargets(dialog,actor,role,SheetClass,onOpponentChange){
- const root=dialog.element,picker=root?.querySelector('.rg-roll-target-picker');if(!picker)return;
- const mode=picker.querySelector('[name="rollMode"]'),opponent=picker.querySelector('[name="opponentActorId"]'),token=picker.querySelector('[name="opponentTokenId"]'),opposition=picker.querySelector('[name="oppositionId"]'),search=picker.querySelector('[data-rg-opponent-search]'),results=picker.querySelector('[data-rg-opponent-results]');
- let chosenName=search.value;
- const refresh=()=>{
-  const selected=sceneRollOpponents(actor).find(r=>r.tokenId===token.value),target=selected?.actor,isVersus=mode.value==='versus',automatic=isVersus&&picker.querySelector('[name="versusResolution"]').value==='automatic';
-  picker.querySelector('[data-rg-auto-opposition]').hidden=!automatic;picker.querySelector('[data-rg-versus-fields]').hidden=!isVersus;
-  onOpponentChange?.(isVersus ? target?.id : undefined);
-  const choices=automatic&&target?legacyOppositionChoices(role,target,SheetClass):[];
-  const previous=opposition.value;
-  opposition.innerHTML=choices.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+' '+c.rating+'D · '+esc(c.basis)+'</option>').join('');
-  if(choices.some(choice=>choice.id===previous))opposition.value=previous;
-  opposition.disabled=!choices.length;
-  picker.querySelector('[data-rg-opponent-status]').textContent=isVersus?(!target?'Search and click an opponent on the active map.':selected.name+' · '+(!automatic?'Enter the GM’s rolled successes as Obstacle.':choices.length?'Choose the Skill or Ability the opponent should roll.':'No trained Skill or Ability. Use manual opposition.')):'';
-  const field=root.querySelector('[name="obstacle"]');if(field)field.disabled=automatic;const panel=root.querySelector('.rg-obstacle-panel');if(panel)panel.hidden=automatic;
-  const summary=root.querySelector('.rg-roll-dialog-head > span');if(summary)summary.textContent=isVersus?'VERSUS · '+(selected?.name??'Choose opponent'):'Standard test';
-  const trait=root.querySelector('[name="traitMode"]');let hurt=trait?.querySelector('[value="hurt"]');if(automatic&&trait&&!hurt){hurt=document.createElement('option');hurt.value='hurt';hurt.textContent='Against yourself in Versus (+2D opponent)';trait.append(hurt);}if(!automatic&&hurt){if(trait.value==='hurt')trait.value='help';hurt.remove();}
- };
- const list=()=>{const query=search.value.trim().toLowerCase(),rows=sceneRollOpponents(actor).filter(r=>r.name.toLowerCase().includes(query)).slice(0,30);results.replaceChildren();for(const row of rows){const button=document.createElement('button');button.type='button';button.role='option';button.dataset.rgOpponentToken=row.tokenId;button.textContent=row.name;button.onclick=()=>{opponent.value=row.actor.id;token.value=row.tokenId;chosenName=row.name;search.value=row.name;results.replaceChildren();refresh();};results.append(button);}if(!rows.length)results.textContent='No matching opponents on this map.';};
- search.addEventListener('input',()=>{if(search.value!==chosenName){opponent.value='';token.value='';}list();refresh();});search.addEventListener('focus',list);
- search.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();results.querySelector('button')?.focus();}if(e.key==='Enter'&&results.querySelectorAll('button').length===1){e.preventDefault();results.querySelector('button').click();}});
- results.addEventListener('keydown',e=>{if(e.key==='Escape'){results.replaceChildren();search.focus();}if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const rows=[...results.querySelectorAll('button')],i=rows.indexOf(document.activeElement);rows[(i+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length]?.focus();}});
- mode.addEventListener('change',refresh);picker.querySelector('[name="versusResolution"]').addEventListener('change',refresh);refresh();
+export function visibleRollOpponents(actor) {
+  return [...new Map(sceneRollOpponents(actor).map(row => [row.actor.id, row.actor])).values()];
 }
-export function resolveLegacyRollTarget(actor,role,elements,SheetClass){
- if(!legacyMixedPolishEnabled())return null;
- if(elements.rollMode?.value!=='versus')return {versus:false,opponentActorId:null,oppositionId:null};
- const row=sceneRollOpponents(actor).find(r=>elements.opponentTokenId?.value?r.tokenId===elements.opponentTokenId.value:r.actor.id===elements.opponentActorId?.value);
- if(!row){ui.notifications.warn('Choose an opponent on the active map.');return null;}
- const result={versus:true,opponentActorId:row.actor.id,opponentTokenId:row.tokenId};
- if(elements.versusResolution?.value!=='automatic')return {...result,manualVersus:true,oppositionId:null};
- const choice=legacyOppositionChoices(role,row.actor,SheetClass).find(r=>r.id===elements.oppositionId?.value);
- if(!choice){ui.notifications.warn('Choose a valid opposing Skill or Ability.');return null;}
- return {...result,oppositionId:choice.id};
+
+function rollOpponents(actor) {
+  const rows = sceneRollOpponents(actor);
+  const ids = new Set(rows.map(row => row.actor.id));
+  for (const candidate of game.actors) {
+    if (candidate.id === actor.id || ids.has(candidate.id)) continue;
+    const playerCharacter = candidate.type === 'character' && candidate.hasPlayerOwner;
+    if (['npc', 'character'].includes(candidate.type)
+      && (game.user.isGM || playerCharacter || candidate.testUserPermission?.(game.user, 'LIMITED'))) {
+      rows.push({ tokenId: '', actor: candidate, name: candidate.name });
+    }
+  }
+  return rows.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function selectedOpponent(actor, elements) {
+  const actorId = elements.opponentActorId?.value;
+  const tokenId = elements.opponentTokenId?.value ?? '';
+  return rollOpponents(actor).find(row => row.actor.id === actorId && (row.tokenId ?? '') === tokenId);
+}
+
+export function legacyRollTargetControls(actor, versus = false, target = null) {
+  const row = target && rollOpponents(actor).find(candidate => candidate.actor.id === target.id);
+  return `<fieldset class="rg-roll-target-picker"><legend>Test type & opponent</legend>
+    <label>Test type<select name="rollMode">
+      <option value="standard" ${versus ? '' : 'selected'}>Standard test</option>
+      <option value="versus" ${versus ? 'selected' : ''}>Versus</option>
+    </select></label>
+    <div data-rg-versus-fields ${versus ? '' : 'hidden'}>
+      <label>Search opponents<input type="search" data-rg-opponent-search placeholder="Search and choose an opponent…" autocomplete="off" value="${esc(row?.name)}"></label>
+      <input type="hidden" name="opponentActorId" value="${esc(row?.actor.id)}">
+      <input type="hidden" name="opponentTokenId" value="${esc(row?.tokenId)}">
+      <div data-rg-opponent-results role="listbox" aria-label="Opponents"></div>
+      <p data-rg-opponent-status role="status"></p>
+    </div>
+  </fieldset>`;
+}
+
+export function bindLegacyRollTargets(dialog, actor, onOpponentChange) {
+  const root = dialog.element;
+  const picker = root?.querySelector('.rg-roll-target-picker');
+  if (!picker) return;
+  const mode = picker.querySelector('[name="rollMode"]');
+  const opponentActorId = picker.querySelector('[name="opponentActorId"]');
+  const opponentTokenId = picker.querySelector('[name="opponentTokenId"]');
+  const search = picker.querySelector('[data-rg-opponent-search]');
+  const results = picker.querySelector('[data-rg-opponent-results]');
+  const field = root.querySelector('[name="obstacle"]');
+  const obstacleField = field?.closest('.rg-roll-field-obstacle');
+  const liveObstacle = field?.closest('[data-rg-obstacle-live-linked="true"]');
+  const submitLabel = root.querySelector('button[data-action="roll"] > span');
+  const standardLabel = submitLabel?.textContent;
+  let chosenName = search.value;
+
+  const refresh = () => {
+    const isVersus = mode.value === 'versus';
+    const target = selectedOpponent(actor, { opponentActorId, opponentTokenId });
+    picker.querySelector('[data-rg-versus-fields]').hidden = !isVersus;
+    onOpponentChange?.(isVersus ? target?.actor.id : undefined);
+    if (field) field.disabled = isVersus;
+    if (obstacleField) obstacleField.hidden = isVersus;
+    if (liveObstacle) liveObstacle.dataset.rgObstacleLiveLinked = String(!isVersus);
+    if (submitLabel) submitLabel.textContent = isVersus ? 'Roll & Send Challenge' : standardLabel;
+    const summary = root.querySelector('.rg-roll-dialog-head > span');
+    if (summary) summary.textContent = isVersus ? `VERSUS · ${target?.name ?? 'Choose opponent'}` : 'Standard test';
+    const responder = target?.actor.type === 'character' ? `${target.name}'s owner or the GM` : 'The GM';
+    picker.querySelector('[data-rg-opponent-status]').textContent = target
+      ? `${responder} can choose Respond in chat.`
+      : 'Choose a visible token or search for an opponent.';
+  };
+
+  const list = () => {
+    const query = search.value.trim().toLowerCase();
+    const rows = rollOpponents(actor).filter(row => row.name.toLowerCase().includes(query)).slice(0, 30);
+    results.replaceChildren();
+    for (const row of rows) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.role = 'option';
+      button.textContent = row.name;
+      button.onclick = () => {
+        opponentActorId.value = row.actor.id;
+        opponentTokenId.value = row.tokenId ?? '';
+        search.value = chosenName = row.name;
+        results.replaceChildren();
+        refresh();
+      };
+      results.append(button);
+    }
+    if (!rows.length) results.textContent = 'No matching opponents.';
+  };
+  search.addEventListener('input', () => {
+    if (search.value !== chosenName) opponentActorId.value = opponentTokenId.value = '';
+    list();
+    refresh();
+  });
+  search.addEventListener('focus', list);
+  search.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      results.querySelector('button')?.focus();
+    }
+    if (event.key === 'Enter' && results.querySelectorAll('button').length === 1) {
+      event.preventDefault();
+      results.querySelector('button').click();
+    }
+  });
+  results.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      search.focus();
+      results.replaceChildren();
+    }
+    if (['ArrowDown','ArrowUp'].includes(event.key)) {
+      event.preventDefault();
+      const rows = [...results.querySelectorAll('button')];
+      if (rows.length) rows[(rows.indexOf(document.activeElement) + (event.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length]?.focus();
+    }
+  });
+  mode.addEventListener('change', refresh);
+  refresh();
+}
+
+export function resolveLegacyRollTarget(actor, elements) {
+  if (!legacyMixedPolishEnabled()) return null;
+  if (elements.rollMode?.value !== 'versus') return {};
+  const row = selectedOpponent(actor, elements);
+  if (!row) {
+    ui.notifications.warn('Choose an opponent for the Versus challenge.');
+    return null;
+  }
+  return { challengeTarget: { id: row.actor.id, uuid: row.actor.uuid, name: row.name } };
 }

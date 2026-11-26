@@ -1,3 +1,4 @@
+import { isAvailableSkill } from "./default-skills.mjs";
 import { fitWindowToViewport } from "./window-position-service.mjs";
 
 const abilities = { nature: "Nature", will: "Will", health: "Health", resources: "Resources", circles: "Circles" };
@@ -22,8 +23,8 @@ function planStats(actor, template) {
     update[`system.attributes.${key}.${limit}`] = next[limit];
     changes.push({ label, before: `${current.value}/${current[limit]}`, after: `${next.value}/${next[limit]}` });
   }
-  const incoming = new Map(template.items.filter(item => item.type === "role").map(item => [skillKey(item.name), item]));
-  const existing = actor.items.filter(item => item.type === "role");
+  const incoming = new Map(template.items.filter(item => item.type === "role" && isAvailableSkill(item.name)).map(item => [skillKey(item.name), item]));
+  const existing = actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name));
   const existingNames = new Set(existing.map(item => skillKey(item.name)));
   const ratings = new Map();
   const additions = [];

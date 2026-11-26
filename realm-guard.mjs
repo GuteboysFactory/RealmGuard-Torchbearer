@@ -25,6 +25,7 @@ import { installInventoryQaTools } from "./module/qa-tools.mjs";
 import { installInventoryMigration } from "./module/inventory.mjs";
 import { installEquipmentSilhouette } from "./module/equipment-silhouette.mjs";
 import { installRecruitment } from "./module/recruitment.mjs";
+import { installPartyCharacterView } from "./module/party-character-view.mjs";
 import { installConflictEngine } from "./module/conflicts.mjs";
 import { installGmTools } from "./module/gm-tools.mjs";
 import { installProgression } from "./module/progression.mjs";
@@ -142,6 +143,7 @@ Hooks.once("init", () => {
   installInventoryQaTools();
   installInventoryMigration();
   installRecruitment();
+  installPartyCharacterView();
   installObstacleWorkflow();
   installTeamworkWorkflow();
   installNpcBuilder();
@@ -170,21 +172,22 @@ Hooks.once("init", () => {
   DocumentSheetConfig.registerSheet(Item, "realm-guard", RealmGuardItemSheet, { types: ["role", "trait", "wise", "gear", "condition", "tokenOfPower", "talent"], makeDefault: true, label: "Realm Guard / Torchbearer Item Sheet" });
 });
 
-Hooks.on("updateItem", async (item, changes, options) => {
-  if (options?.realmGuardSkipConditionSync) return;
+Hooks.on("updateItem", async (item, changes, options, userId) => {
+  if (userId !== game.user.id || options?.realmGuardSkipConditionSync) return;
   if (item.type !== "condition" || !item.parent) return;
   const flat = foundry.utils.flattenObject(changes);
   const relevant = ["name", "system.active", "system.icon"].some(k => k in flat);
   if (relevant) await syncConditionEffect(item.parent, item);
 });
 
-Hooks.on("deleteItem", async item => {
-  if (item.type !== "condition" || !item.parent) return;
+Hooks.on("deleteItem", async (item, _options, userId) => {
+  if (userId !== game.user.id || item.type !== "condition" || !item.parent) return;
   const effect = item.parent.effects.find(e => e.getFlag("realm-guard", "conditionItemId") === item.id);
   if (effect) await effect.delete();
 });
 
-Hooks.on("deleteActiveEffect", async effect => {
+Hooks.on("deleteActiveEffect", async (effect, _options, userId) => {
+  if (userId !== game.user.id) return;
   const itemId = effect.getFlag("realm-guard", "conditionItemId");
   const actor = effect.parent;
   if (!itemId || !(actor instanceof Actor)) return;

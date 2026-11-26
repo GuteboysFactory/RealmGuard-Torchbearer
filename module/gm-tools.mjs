@@ -1,7 +1,7 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import {legacyMixedPolishEnabled,resourceStorageMaximum} from './legacy-mixed-scope.mjs';
 import { ensureDefaultConditions, openConditionMenu, openGmMassConditionMenu } from "./conditions.mjs";
-import { RG_DEFAULT_SKILLS, ensureDefaultSkills } from "./default-skills.mjs";
+import { activeDefaultSkills, ensureDefaultSkills } from "./default-skills.mjs";
 import { openTurnManager } from "./turns.mjs";
 import { openConflictWindow } from "./conflicts.mjs";
 import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
@@ -74,7 +74,7 @@ function selectedSummary(actors) {
 
 function skillOptions(selected = "") {
   const current = String(selected ?? "").toLowerCase();
-  return `<option value="">-- none --</option>${RG_DEFAULT_SKILLS.map(name => `<option value="${esc(name)}" ${name.toLowerCase() === current ? "selected" : ""}>${esc(name)}</option>`).join("")}`;
+  return `<option value="">-- none --</option>${activeDefaultSkills().map(name => `<option value="${esc(name)}" ${name.toLowerCase() === current ? "selected" : ""}>${esc(name)}</option>`).join("")}`;
 }
 
 async function setNpcSkillRatings(actor, skills) {

@@ -2,7 +2,9 @@
   <header class="rg-header">
     <div class="rg-portrait-wrap {{#if portrait.tokenMode}}is-token-portrait{{/if}}">
       <button type="button" class="rg-portrait-stage {{#if portrait.tokenMode}}is-token{{/if}}" data-action="portraitSettings" data-rg-portrait-stage data-rg-portrait-fit="{{portrait.framing.fit}}" data-rg-portrait-zoom="{{portrait.framing.zoom}}" data-rg-portrait-x="{{portrait.framing.offsetX}}" data-rg-portrait-y="{{portrait.framing.offsetY}}" title="Adjust Character Portrait">
-        <img class="rg-portrait" src="{{portrait.src}}" data-rg-portrait-image alt="{{actor.name}} portrait" />
+        <span class="rg-portrait-art">
+          <img class="rg-portrait" src="{{portrait.src}}" data-rg-portrait-image alt="{{actor.name}} portrait" />
+        </span>
       </button>
       {{#if editable}}<button type="button" class="rg-art-button" data-action="chooseArt" title="Choose Realm Guard source artwork"><i class="fa-solid fa-palette"></i></button>{{/if}}
     </div>
@@ -97,7 +99,9 @@
         <button type="button" class="rg-character-tab-button active" data-rg-character-tab="overview"><i class="fa-solid fa-id-card"></i><span>OVERVIEW</span></button>
         <button type="button" class="rg-character-tab-button" data-rg-character-tab="background"><i class="fa-solid fa-scroll"></i><span>BACKGROUND</span></button>
         <button type="button" class="rg-character-tab-button" data-rg-character-tab="relationships"><i class="fa-solid fa-people-group"></i><span>RELATIONSHIPS</span></button>
-        <button type="button" class="rg-character-tab-button" data-rg-character-tab="notes"><i class="fa-solid fa-feather-pointed"></i><span>NOTES</span></button>
+        {{#if canViewCharacterNotes}}
+          <button type="button" class="rg-character-tab-button" data-rg-character-tab="notes"><i class="fa-solid fa-feather-pointed"></i><span>NOTES</span></button>
+        {{/if}}
       </nav>
 
       <div class="rg-character-subpages">
@@ -145,7 +149,7 @@
           <main class="rg-character-grid rg-character-section-grid">
             <section class="rg-panel rg-ranger-details">
               <div class="rg-panel-title"><div><h2>Ranger Details</h2><small>Background, lineage and house identity</small></div></div>
-              <label class="rg-detail-biography">Biography / Background<textarea name="system.biography" placeholder="Who is this Ranger? Where did they come from, what shaped them, and how are they known?">{{system.biography}}</textarea></label>
+              <label class="rg-detail-biography">Biography / Background<textarea name="system.biography" placeholder="Who is this Ranger? Where did they come from, what shaped them, and how are they known?">{{characterBiography}}</textarea></label>
               <div class="rg-detail-fields">
                 <label>Lineage / House<input name="system.lineage" value="{{system.lineage}}" placeholder="e.g. House of Ruor" /></label>
                 <label>House Insignia<input name="system.insignia" value="{{system.insignia}}" placeholder="e.g. Standard of Ruor" /></label>
@@ -228,11 +232,13 @@
           </main>
         </section>
 
-        <section class="rg-character-subpage" data-rg-character-page="notes">
-          <main class="rg-character-grid rg-character-section-grid">
-            <section class="rg-panel rg-notes"><div class="rg-panel-title"><div><h2>Character Notes</h2><small>Private reminders and personal details</small></div></div><textarea class="rg-notes-field" name="system.notes" placeholder="Private notes, reminders and details that do not belong elsewhere...">{{system.notes}}</textarea></section>
-          </main>
-        </section>
+        {{#if canViewCharacterNotes}}
+          <section class="rg-character-subpage" data-rg-character-page="notes">
+            <main class="rg-character-grid rg-character-section-grid">
+              <section class="rg-panel rg-notes"><div class="rg-panel-title"><div><h2>Character Notes</h2><small>Private reminders and personal details</small></div></div><textarea class="rg-notes-field" name="system.notes" placeholder="Private notes, reminders and details that do not belong elsewhere...">{{system.notes}}</textarea></section>
+            </main>
+          </section>
+        {{/if}}
       </div>
     </section>
     <section class="rg-tab-page" data-rg-page="skills">

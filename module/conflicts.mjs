@@ -3,6 +3,7 @@ import { reconcileDisposition } from './conflict-playtest.mjs';
 import { chooseConflictRoster, CONFLICT_ROSTER_KEY } from "./conflict-roster.mjs";
 import { RealmGuardActorSheet } from "../sheets/actor-sheet.mjs";
 import { RealmGuardActor } from "./documents.mjs";
+import { isAvailableSkill } from "./default-skills.mjs";
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { installConflictEngine as baselineInstall, openConflictWindow as baselineOpen, validateRangerSequence as baselineSequence } from "./baseline-1.13.1/conflicts.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
@@ -84,7 +85,7 @@ export const CONFLICT_TYPES = {
 export const CONFLICT_ACTION_SKILLS = {
   argument: {
     attack: ["Persuader"], defend: ["Persuader"],
-    feint: ["Persuader", "Deceiver"], maneuver: ["Persuader", "Deceiver"]
+    feint: ["Persuader", "Manipulator"], maneuver: ["Persuader", "Manipulator"]
   },
   chase: { attack: ["Scout"], defend: ["Pathfinder"], feint: ["Pathfinder"], maneuver: ["Scout"] },
   fight: { attack: ["Fighter"], defend: ["Fighter"], feint: ["Fighter"], maneuver: ["Fighter"] },
@@ -92,12 +93,12 @@ export const CONFLICT_ACTION_SKILLS = {
     attack: ["Hunter", "Fighter"], defend: ["Hunter", "Animal Handler"],
     feint: ["Hunter"], maneuver: ["Animal Handler", "Lore Master"]
   },
-  negotiation: { attack: ["Haggler"], defend: ["Haggler"], feint: ["Deceiver"], maneuver: ["Deceiver"] },
+  negotiation: { attack: ["Haggler"], defend: ["Haggler"], feint: ["Manipulator"], maneuver: ["Manipulator"] },
   journey: {
     attack: ["Pathfinder"], defend: ["Survivalist", "Weather Watcher"],
     feint: ["Pathfinder"], maneuver: ["Survivalist", "Weather Watcher"]
   },
-  speech: { attack: ["Orator"], defend: ["Orator"], feint: ["Orator", "Deceiver"], maneuver: ["Orator", "Deceiver"] },
+  speech: { attack: ["Orator"], defend: ["Orator"], feint: ["Orator", "Manipulator"], maneuver: ["Orator", "Manipulator"] },
   war: {
     attack: ["Militarist", "Lore Master"], defend: ["Militarist", "Orator", "Administrator"],
     feint: ["Militarist", "Administrator"], maneuver: ["Militarist", "Lore Master"]
@@ -117,7 +118,7 @@ const weaponDrafts = new Map();
 const lockedPlanCache = new Map();
 const CONFLICT_WEAPON_NAMES = new Set(["axe", "bow", "halberd", "whip", "hook and line", "knife", "shield", "sling", "spear", "staff", "sword"]);
 const PHYSICAL_BEGINNER_SKILLS = new Set(["armorer","animal handler","boatcrafter","brewer","carpenter","fighter","glazier","harvester","hunter","laborer","miller","potter","rider","scout","smith","stonemason","survivalist"]);
-const MENTAL_BEGINNER_SKILLS = new Set(["administrator","alchemist","apiarist","archivist","baker","cartographer","cook","deceiver","haggler","healer","herdsman","instructor","lore master","militarist","orator","pathfinder","persuader","scientist","weather watcher","weaver"]);
+const MENTAL_BEGINNER_SKILLS = new Set(["administrator","alchemist","apiarist","archivist","baker","cartographer","cook","manipulator","manipulater","haggler","healer","herdsman","instructor","lore master","militarist","orator","pathfinder","persuader","scientist","weather watcher","weaver"]);
 let dismissedConflictId = null;
 let dragOffset = null;
 let conflictWriteQueue = Promise.resolve();
@@ -229,11 +230,11 @@ function conditionActive(actor, name) {
 }
 function findRole(actor, names = []) {
   const wanted = names.map(n => String(n).toLowerCase());
-  return actor?.items?.filter(i => i.type === "role" && wanted.includes(String(i.name).toLowerCase()))
+  return actor?.items?.filter(i => i.type === "role" && isAvailableSkill(i.name) && wanted.includes(String(i.name).toLowerCase()))
     .sort((a, b) => Number(b.system.rating ?? 0) - Number(a.system.rating ?? 0))[0] ?? null;
 }
 function allTrainedRoles(actor) {
-  return actor?.items?.filter(i => i.type === "role" && Number(i.system.rating ?? 0) > 0)
+  return actor?.items?.filter(i => i.type === "role" && isAvailableSkill(i.name) && Number(i.system.rating ?? 0) > 0)
     .sort((a, b) => a.name.localeCompare(b.name)) ?? [];
 }
 
@@ -508,7 +509,7 @@ async function editConflictSkillOverride(side, state) {
   if (!game.user?.isGM || state.stage !== "action" || !["gm", "ranger"].includes(side) || state.rolls?.[side]) return;
   const actor = actorById(side === "gm" ? gmActingId(state) : currentPair(state)?.rangerActorId);
   if (!actor) return;
-  const options = actor.items.filter(item => item.type === "role").map(item => `<option value="${item.id}">${esc(item.name)} · ${Number(item.system.rating ?? 0)}D</option>`).join("");
+  const options = actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name)).map(item => `<option value="${item.id}">${esc(item.name)} · ${Number(item.system.rating ?? 0)}D</option>`).join("");
   const selected = await foundry.applications.api.DialogV2.wait({ window: { title: "GM Skill Exception · current action", resizable: true }, content: `<p>Allow a Skill outside the normal conflict list for this action only. The normal rating and Beginner's Luck rules still apply.</p><label>Skill<select name="skillId"><option value="">Use profile defaults</option>${options}</select></label>`, modal: false, rejectClose: false,
     buttons: [{ action: "save", label: "Apply Exception", default: true, callback: (_e,b) => b.form.elements.skillId.value }, { action: "cancel", label: "Cancel", callback: () => null }]
   });
@@ -1137,11 +1138,11 @@ function gearActionModifiers(actor, action, state, side, weaponId = null) {
 }
 
 function eligibleActionRoles(actor, state, side, action) {
-  if (side === "ranger") return actor.items.filter(item => item.type === "role").map(item => ({ id: item.id, name: item.name, kind: "role", rating: Number(item.system.rating ?? 0), beginnerAbility: item.system.beginnerAbility })).sort((a,b)=>a.name.localeCompare(b.name));
+  if (side === "ranger") return actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name)).map(item => ({ id: item.id, name: item.name, kind: "role", rating: Number(item.system.rating ?? 0), beginnerAbility: item.system.beginnerAbility })).sort((a,b)=>a.name.localeCompare(b.name));
   if (actor?.temporaryOpposition) return [{ id: "@opposition", key: "nature", name: "Opposition pool", kind: "ability", rating: actor.system.attributes.nature.value, allowDoubleTap: false }];
   const overrideId = state.skillOverrides?.[storyModifierKey(state, side)];
   const override = overrideId ? actor?.items?.get(overrideId) : null;
-  if (override?.type === "role") return [{ id: override.id, name: override.name, rating: Number(override.system.rating ?? 0), kind: "role", label: `${override.name} · GM exception` }];
+  if (override?.type === "role" && isAvailableSkill(override.name)) return [{ id: override.id, name: override.name, rating: Number(override.system.rating ?? 0), kind: "role", label: `${override.name} · GM exception` }];
   const lockedLoreAction = String(state?.loreMasterActions?.[actor?.id] ?? "");
   const roleAllowed = role => String(role?.name ?? "").toLowerCase() !== "lore master" || !lockedLoreAction || lockedLoreAction === action;
   let choices = [];
@@ -1372,7 +1373,7 @@ async function rollDispositionNow(side, state, options = null) {
     }
     choices = dedupeRoleChoices(choices);
   }
-  if (side === "ranger") choices = actor.items.filter(item => item.type === "role").map(item => ({ id: item.id, name: item.name, kind: "role", rating: Number(item.system.rating ?? 0), beginnerAbility: item.system.beginnerAbility })).sort((a,b)=>a.name.localeCompare(b.name));
+  if (side === "ranger") choices = actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name)).map(item => ({ id: item.id, name: item.name, kind: "role", rating: Number(item.system.rating ?? 0), beginnerAbility: item.system.beginnerAbility })).sort((a,b)=>a.name.localeCompare(b.name));
   if (actor.temporaryOpposition && method === "calculated") choices = [{ id: "@opposition", key: baseKey, name: "Opposition pool", kind: "ability", rating: actor.system.attributes[baseKey].value }];
   if (!choices.length) return ui.notifications.warn(`Realm Guard: ${actor.name} has no matching Conflict Skill. Add the canonical Skill to the NPC or use Manual/Fixed opposition Disposition.`);
   const fullBase = Number(actor.system.attributes?.[baseKey]?.value ?? 0);

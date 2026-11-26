@@ -1,4 +1,4 @@
-import { ensureDefaultSkills, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { ensureDefaultSkills, activeDefaultSkills, isAvailableSkill } from "./default-skills.mjs";
 import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS, isDefaultCondition } from "./conditions.mjs";
 import { ensureM8RecruitmentNetwork } from "./m8-social-network-service.mjs";
 
@@ -44,7 +44,7 @@ function escapeHtml(value = "") {
 function plannedSkillNames(plan) {
   const ratings = plan.provisioning?.canonicalSkills?.ratings ?? {};
   const explicit = Array.isArray(plan.provisioning?.canonicalSkills?.names) ? plan.provisioning.canonicalSkills.names : [];
-  return [...new Set([...(explicit.length ? explicit : RG_DEFAULT_SKILLS), ...Object.keys(ratings)].map(name => String(name ?? "").trim()).filter(Boolean))];
+  return [...new Set([...(explicit.length ? explicit : activeDefaultSkills()), ...Object.keys(ratings)].map(name => String(name ?? "").trim()).filter(name => name && isAvailableSkill(name)))];
 }
 
 function skillProjection(plan) {

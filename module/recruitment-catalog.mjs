@@ -13,11 +13,16 @@ export const NATURAL_TALENT = Object.freeze([
   "Administrator", "Alchemist", "Animal Handler", "Archivist", "Armorer", "Baker", "Boatcrafter", "Brewer", "Carpenter", "Cartographer", "Cook", "Deceiver", "Farmer", "Fighter", "Glazier", "Haggler", "Healer", "Herdsman", "Hunter", "Instructor", "Laborer", "Militarist", "Miller", "Orator", "Pathfinder", "Persuader", "Potter", "Rider", "Scout", "Smith", "Stonemason", "Survivalist", "Weather Watcher", "Weaver"
 ]);
 
+export const LEGACY_MIXED_NATURAL_TALENT = Object.freeze(
+  NATURAL_TALENT.map(name => name === "Deceiver" ? "Manipulator" : name).sort((a, b) => a.localeCompare(b))
+);
+
 export const TRADE_SKILLS = Object.freeze(["Animal Handler", "Archivist", "Armorer", "Baker", "Boatcrafter", "Brewer", "Carpenter", "Cartographer", "Farmer", "Glazier", "Herdsman", "Miller", "Potter", "Smith", "Stonemason", "Weaver"]);
 
 export const APPRENTICESHIP_SKILLS = Object.freeze(["Animal Handler", "Archivist", "Armorer", "Baker", "Brewer", "Carpenter", "Cartographer", "Farmer", "Glazier", "Herdsman", "Miller", "Potter", "Smith", "Stonemason", "Weaver"]);
 
 export const CONVINCING_SKILLS = Object.freeze(["Deceiver", "Orator", "Persuader"]);
+export const LEGACY_MIXED_CONVINCING_SKILLS = Object.freeze(["Manipulator", "Orator", "Persuader"]);
 
 export const INNATE_TRAITS = Object.freeze([
   "Bitter", "Bodyguard", "Bold", "Brave", "Calm", "Clever", "Compassionate", "Cunning", "Curious", "Defender", "Determined", "Driven", "Early Riser", "Extrovert", "Fat", "Fearful", "Fearless", "Fiery", "Generous", "Graceful", "Greybeard", "Innocent", "Jaded", "Keen-Eared", "Leader", "Lost", "Natural Bearings", "Nimble", "Nocturnal", "Quick-Witted", "Quiet", "Realm's Honor", "Rough Hands", "Sharp-Eyed", "Short", "Skeptical", "Skinny", "Stern", "Stoic", "Stubborn", "Suspicious", "Tall", "Thoughtful", "Tough", "Weather Sense", "Wise", "Young"

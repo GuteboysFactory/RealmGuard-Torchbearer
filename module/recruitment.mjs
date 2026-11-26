@@ -1,9 +1,10 @@
-import { ensureDefaultSkills, RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { ensureDefaultSkills, activeDefaultSkills } from "./default-skills.mjs";
 import { ensureDefaultConditions, RG_DEFAULT_CONDITIONS } from "./conditions.mjs";
 import { createNpcFromTemplate, openNpcTemplateLibrary, resolveBestQuickNpcTemplate } from "./npc-builder.mjs";
 import { buildM8RelationshipSheetView, linkM8PersonActor } from "./m8-social-network-service.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
-import { HOMELANDS, NATURAL_TALENT, TRADE_SKILLS, APPRENTICESHIP_SKILLS, CONVINCING_SKILLS, INNATE_TRAITS, WISE_EXAMPLES, WEAPONS, RELATIONSHIP_LOCATIONS, normalizeWise, learningForRating, gearDocument } from "./recruitment-catalog.mjs";
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { HOMELANDS, NATURAL_TALENT, LEGACY_MIXED_NATURAL_TALENT, TRADE_SKILLS, APPRENTICESHIP_SKILLS, CONVINCING_SKILLS, LEGACY_MIXED_CONVINCING_SKILLS, INNATE_TRAITS, WISE_EXAMPLES, WEAPONS, RELATIONSHIP_LOCATIONS, normalizeWise, learningForRating, gearDocument } from "./recruitment-catalog.mjs";
 import { observeM9RecruitmentDraft, syncM9RecruitmentDraft, validateM9RecruitmentStep, getM9RecruitmentDraft, getM9RecruitmentRestrictions, commitM9Recruitment, shouldUseLegacyM9Commit } from "./m9-creation-shadow.mjs";
 import { getActiveM10BCharacterCreationPolicy } from "./m10b-character-creation.mjs";
 import { installRecruitmentAuthority, submitRangerRecruitment } from "./recruitment-authority.mjs";
@@ -519,9 +520,9 @@ async function lifeExperienceStep(state) {
     current: 4, title: "Life Experience", subtitle: "Talent, family, apprenticeship and mentor training",
     body: () => `${modeHelp(state, `<p>Every selection adds a <b>check</b> to that Skill. Checks may stack on the same Skill. At the end, starting Skill rating is <b>checks + 1</b>, maximum 6.</p>`)}
       <div class="rg-recruit-columns">
-        ${repeatedSelects("natural", s.natural, NATURAL_TALENT, state.naturalTalent, "Area of Natural Talent")}
+        ${repeatedSelects("natural", s.natural, legacyMixedPolishEnabled() ? LEGACY_MIXED_NATURAL_TALENT : NATURAL_TALENT, state.naturalTalent, "Area of Natural Talent")}
         ${repeatedSelects("parent", parentCount, TRADE_SKILLS, state.parentsTrade, "Parents' Trade")}
-        ${repeatedSelects("convince", convincingCount, CONVINCING_SKILLS, state.convincing, "Convincing Others")}
+        ${repeatedSelects("convince", convincingCount, legacyMixedPolishEnabled() ? LEGACY_MIXED_CONVINCING_SKILLS : CONVINCING_SKILLS, state.convincing, "Convincing Others")}
         <div class="rg-recruit-select-stack"><h4>Apprenticeship <span>1 check</span></h4><label>Senior Artisan's trade<select name="apprenticeship">${options(APPRENTICESHIP_SKILLS, state.apprenticeship)}</select></label></div>
         <div class="rg-recruit-select-stack"><h4>Mentor Training <span>1 check</span></h4><label>Training Skill<select name="mentorTraining">${options(MENTOR_SKILLS, state.mentorTraining)}</select></label></div>
       </div>`,
@@ -1153,7 +1154,7 @@ export function buildLegacyRecruitmentCommitProjection(state) {
   const traitChecks = computeTraitChecks(state);
   const wiseChecks = wiseCheckMap(state);
   const weapon = WEAPONS.find(w => w.name === state.weapon) ?? WEAPONS.find(w => w.name === "Sword");
-  const skillRatings = RG_DEFAULT_SKILLS.map(name => {
+  const skillRatings = activeDefaultSkills().map(name => {
     const checks = Number(skillChecks.get(name) ?? 0);
     const rating = checks > 0 ? Math.min(6, checks + 1) : 0;
     return { name, rating, learning: learningForRating(rating), beginnerAttempts: 0 };

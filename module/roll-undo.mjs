@@ -65,9 +65,27 @@ export async function undoSkillMessage(message,{requester=game.user}={}){
     if(!requester.isGM&&author!==requester.id)throw Error('Only the rolling player or GM may undo this roll.');
     if(!requester.isGM&&!game.actors.get(undo.actorId)?.testUserPermission(requester,CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER))throw Error('You no longer control this character.');
     if(undo.sessionCycle!==undefined&&undo.sessionCycle!==Number(game.settings.get(NS,'endSessionCycle')??1))throw Error('This roll belongs to an earlier session. Ask the GM for a manual correction.');
-    if(!game.user.isGM&&((undo.settings??[]).length||undo.changes.some(row=>!game.actors.get(row.actorId)?.isOwner))){if(!game.users.some(u=>u.isGM&&u.active))throw Error('An active GM is needed to restore shared changes.');game.socket.emit(`system.${NS}`,{type:'legacy-undo-roll',messageId:message.id,senderId:game.user.id});ui.notifications.info('Restoring your roll…');return;}
+    if (message.flags?.[NS]?.challenge?.target &&
+        (message.flags[NS].directedResponseClaim?.expires > Date.now() || game.messages.some(reply =>
+          reply.flags?.[NS]?.challengeResponse?.messageId === message.id && !reply.flags?.[NS]?.rollUndo?.undone))) {
+      throw Error('Finish or undo the Versus response before undoing the challenge.');
+    }
+    const changes = undo.changes.map(row => ({...row, paths: [...row.paths]}));
+    for (const row of undo.settlement ?? []) {
+      const existing = changes.find(change => change.actorId === row.actorId && change.itemId === row.itemId);
+      if (!existing) {
+        changes.push(row);
+        continue;
+      }
+      for (const path of row.paths) {
+        const index = existing.paths.findIndex(change => change.path === path.path);
+        if (index < 0) existing.paths.push(path);
+        else existing.paths[index] = {...path, before: existing.paths[index].before, hadBefore: existing.paths[index].hadBefore};
+      }
+    }
+    if(!game.user.isGM&&((undo.settings??[]).length||changes.some(row=>!game.actors.get(row.actorId)?.isOwner))){if(!game.users.some(u=>u.isGM&&u.active))throw Error('An active GM is needed to restore shared changes.');game.socket.emit(`system.${NS}`,{type:'legacy-undo-roll',messageId:message.id,senderId:game.user.id});ui.notifications.info('Restoring your roll…');return;}
     for(const row of undo.settings??[])if(!equal(game.settings.get(NS,row.key),row.after))throw Error('A later turn depends on this roll. Undo it first.');
-    await restoreChanges(undo.changes);
+    await restoreChanges(changes);
     for(const row of undo.settings??[])await game.settings.set(NS,row.key,row.before);
     await message.update({'flags.realm-guard.rollUndo.undone':true,content:`<div class="realm-guard rg-roll-undone"><h3>Roll undone</h3><p>Result and tracked character changes were restored.</p><details><summary>Previous result · no longer applies</summary>${message.content}</details></div>`});
     for(const id of undo.messageIds??[]){if(id===message.id)continue;const other=game.messages.get(id);if(other)await other.update({'flags.realm-guard.superseded':true,content:`<div class="realm-guard rg-roll-undone"><b>Result undone with its Skill roll</b><details><summary>Previous result</summary>${other.content}</details></div>`});}

@@ -58,10 +58,26 @@ try{
  await page.evaluate(()=>{game.user=fx.player;game.user.character=null;window.canvas={tokens:{controlled:[]}};window.before=JSON.stringify(actor.system);fx.dice.push([4,4,1]);});
  await page.locator('[data-rg-custom-chat]').dblclick();assert.equal(await page.locator('.rg-standalone-custom-roll').count(),1);assert.equal(await page.locator('#test-dialog [name="actorId"]').count(),0);await page.locator('[data-dialog-action="roll"]').click();await page.waitForFunction(()=>game.messages.at(-1)?.flags?.['realm-guard']?.standaloneCustomRoll);
  assert.equal(await page.evaluate(()=>game.messages.at(-1).speaker.actor),null);assert.equal(await page.evaluate(()=>JSON.stringify(actor.system)),await page.evaluate(()=>before));
+ const d6 = page.getByRole('button', {name:'D6s', exact:true});
+ for (const [user, faces, passed, failed] of [['player',[1,3,4,6],2,2], ['gm',[6],1,0]]) {
+   await page.evaluate(({user,faces})=>{game.user=game.users.get(user);fx.dice.push(faces);},{user,faces});
+   await d6.click();
+   assert.equal(await page.locator('[name="d6Count"]').inputValue(),'1');
+   await page.locator('[name="d6Count"]').fill(String(faces.length));
+   await page.locator('[data-dialog-action="roll"]').click();
+   await page.waitForFunction(user=>game.messages.at(-1)?.flags?.['realm-guard']?.standaloneD6 && game.messages.at(-1)?.author.id===user,user);
+   const card = page.locator('.rg-standalone-roll-chat').last();
+   assert.equal(await card.locator('.rg-die-face.success').count(),passed);
+   assert.equal(await card.locator('.rg-die-face.failure').count(),failed);
+   assert.equal(await card.locator('.rg-die-face.six').count(),0);
+   assert.match(await card.innerText(),new RegExp(`Pass ${passed} · Fail ${failed}`));
+ }
+ assert.equal(await page.evaluate(()=>JSON.stringify(actor.system)),await page.evaluate(()=>before));
  // Actual ordinary result: keep outer frame and boxes, remove only inner result
  // sides/bottom and run the divider across the outer roll frame.
  await page.evaluate(async()=>{game.user=fx.gm;fx.settings.set('turnPhase','gm');actor.system.resources.persona.value=0;actor.system.resources.fate.value=0;actor.items.splice(actor.items.findIndex(i=>i.type==='wise'),1);fx.dice.push([4,4,1]);await actor.rollRole(actor.items.get('fighter'),{obstacle:1});});
  const final=page.locator('.rg-chat-roll-pipeline>.realm-guard.chat-roll').last();
+ assert.deepEqual(await final.locator('.rg-roll-faces-rows > div > b').allTextContents(),['Result']);
  assert.deepEqual(await final.evaluate(e=>{const s=getComputedStyle(e);return [s.borderLeftWidth,s.borderRightWidth,s.borderBottomWidth,s.borderTopWidth];}),['0px','0px','0px','1px']);
  assert.ok(await final.evaluate(e=>{const p=e.parentElement.getBoundingClientRect(),r=e.getBoundingClientRect();return Math.abs(r.left-(p.left+1))<2&&Math.abs(r.right-(p.right-1))<2;}));assert.equal(await final.locator('.rg-roll-breakdown').evaluate(e=>getComputedStyle(e).borderLeftWidth),'1px');await page.locator('#messages').screenshot({path:'output/cleanup-review/roll-divider.png'});
  // Real pending roll choice: conspicuous animation only for the rolling user,
@@ -70,6 +86,29 @@ try{
  await page.locator('.rg-choice-needs-attention .rg-chat-question').waitFor();assert.equal(await page.locator('.rg-choice-needs-attention .rg-chat-question').evaluate(e=>getComputedStyle(e).animationName),'rg-clear-choice-pulse');
  await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.rg-choice-needs-attention .rg-chat-question').evaluate(e=>getComputedStyle(e).animationName),'none');await page.emulateMedia({reducedMotion:'no-preference'});
  await page.locator('.rg-choice-needs-attention').screenshot({path:'output/cleanup-review/attention.png'});await page.locator('[data-rg-chat-choice="0"]').click();assert.equal(await page.evaluate(()=>answer),'yes');await page.evaluate(()=>choice.finish('<p>Finished.</p>'));assert.equal(await page.locator('.rg-choice-needs-attention').count(),0);
+ await page.evaluate(async()=>{
+   await actor.createEmbeddedDocuments('Item',[{name:'Angmar-wise',type:'wise'}]);
+   actor.system.resources.persona.value=1;
+   actor.system.resources.fate.value=1;
+   fx.dice.push([3,6,3,3,1,3],[2,5,2,1,5]);
+   window.wiseRoll=actor.rollRole(actor.items.get('fighter'),{obstacle:1,extraDice:3});
+ });
+ const wiseQuestion = page.locator('.rg-chat-question').last();
+ await wiseQuestion.getByRole('button',{name:'Angmar-wise · 1 Persona',exact:true}).click();
+ await wiseQuestion.getByRole('button',{name:'Spend 1 Fate',exact:true}).waitFor();
+ await wiseQuestion.getByRole('button',{name:'Decline this option',exact:true}).click();
+ await page.evaluate(()=>wiseRoll);
+ const wiseCard = page.locator('.rg-wise-dice-timeline').last();
+ assert.deepEqual(await wiseCard.locator(':scope > div > b').allTextContents(),['Initial roll','Wise reroll','Result']);
+ assert.equal(await wiseCard.locator('.rg-die-crossed').count(),5);
+ assert.equal(await wiseCard.locator('.rg-die-slot').count(),1);
+ const positions = await wiseCard.locator(':scope > div').evaluateAll(rows=>rows.map(row=>Array.from(row.querySelectorAll('.rg-die-face'),die=>die.getBoundingClientRect().left)));
+ assert.deepEqual(positions[0],positions[1]);
+ assert.deepEqual(positions[0],positions[2]);
+ const finished = wiseCard.locator('xpath=ancestor::*[contains(@class,"rg-chat-roll-pipeline")]');
+ assert.deepEqual(await finished.locator('.rg-roll-decisions li').allTextContents(),['Angmar-wise · 1 Persona']);
+ assert.equal(await finished.locator('.rg-first-roll').count(),0);
+ assert.doesNotMatch(await finished.innerText(),/Declined|Spend 1 Fate|Use a relevant Wise/);
  // An actual OB challenge gets a red/green response button with a motion fallback.
  await page.evaluate(async()=>{const chat=await import('/module/legacy-chat-actions.mjs');await chat.publishChallenge(actor,'Persuader',1);});
  const response=page.locator('[data-rg-respond]').last();assert.equal(await response.evaluate(e=>getComputedStyle(e).animationName),'rg-ob-response-pulse');

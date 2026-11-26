@@ -36,10 +36,9 @@ game.user=fx.observer;assert.equal(await saveProgress(sheet,{roleId:role.id},{pa
 const opponent=new RealmGuardActor(actorData('opponent'));game.actors.push(opponent);
 globalThis.canvas={tokens:{placeables:[{id:'opponent-token',actor:opponent,visible:true}]}};
 assert.equal(visibleRollOpponents(actor).length,1);
-const choice=RealmGuardActorSheet._availableVersusOpposition('Fighter',opponent)[0];assert.ok(choice);
-assert.equal(resolveLegacyRollTarget(actor,role,{rollMode:{value:'versus'},opponentActorId:{value:opponent.id},oppositionId:{value:choice.id}},RealmGuardActorSheet).opponentActorId,opponent.id);
-assert.equal(resolveLegacyRollTarget(actor,role,{rollMode:{value:'versus'},opponentActorId:{value:'missing'}},RealmGuardActorSheet),null);
-assert.deepEqual(resolveLegacyRollTarget(actor,role,{rollMode:{value:'standard'}},RealmGuardActorSheet),{versus:false,opponentActorId:null,oppositionId:null});
+assert.equal(resolveLegacyRollTarget(actor,{rollMode:{value:'versus'},opponentActorId:{value:opponent.id},opponentTokenId:{value:'opponent-token'}}).challengeTarget.id,opponent.id);
+assert.equal(resolveLegacyRollTarget(actor,{rollMode:{value:'versus'},opponentActorId:{value:'missing'}}),null);
+assert.deepEqual(resolveLegacyRollTarget(actor,{rollMode:{value:'standard'}}),{});
 assert.ok(sceneMenuEntries({position:{x:0,y:0},SheetClass:RealmGuardActorSheet}).some(row=>row.label==='Place existing NPC…'));
 game.user=fx.player;assert.equal(sceneMenuEntries({position:{x:0,y:0},SheetClass:RealmGuardActorSheet}).length,0);
 for(const profile of ['realm-guard-strict','mouse-guard-1e','mouse-guard-2e','torchbearer-2e']) {fx.settings.set('activeRulesProfileId',profile);game.user=fx.gm;assert.equal(sceneMenuEntries({position:{x:0,y:0},SheetClass:RealmGuardActorSheet}).length,0);assert.equal(await saveProgress(sheet,{roleId:role.id},{passed:0,failed:0},{}),false);}
@@ -64,4 +63,67 @@ await learner.createEmbeddedDocuments('Item',[{name:'Brave',type:'trait',system:
 fx.dice.push([4,4,1,1]);const traitResult=await learner.rollBeginnerLuck(learningRole,{abilityKey:'health',traitId:trait.id});
 assert.equal(traitResult.roll.dice[0].results.length,4,'ceil(5/2) + 1 Trait = 4D');
 assert.match(fx.messages.at(-1).content,/Trait after half/);
+
+// Drive the real Ability dialog callback and roll pipeline with deterministic dice.
+game.user.targets = new Set();
+actor.system.resources.persona.value = 0;
+for (const key of ["health", "will", "nature", "resources", "circles"]) {
+ const ability = key[0].toUpperCase() + key.slice(1);
+ if (key === "circles") fx.dialogs.push("standard");
+ fx.dialogs.push(async dialog => {
+   assert.match(dialog.content, /name="rollMode"/, `${ability} offers Versus`);
+   return dialog.buttons.find(button => button.action === "roll").callback(null, { form: { elements: {
+     rollMode: { value: "versus" }, opponentTokenId: { value: "opponent-token" }, opponentActorId:{value:opponent.id},
+     obstacle: { value: "1" }, countLearning: { checked: true }
+   } } });
+ });
+ const before = JSON.stringify(actor.getFlag("realm-guard", "abilityLearning"));
+ fx.dice.push([4, ...Array(actor.system.attributes[key].value - 1).fill(1)]);
+ await RealmGuardActorSheet._rollAbility.call(sheet, null, { dataset: { ability: key } });
+ const message = fx.messages.at(-1);
+ assert.match(message.content, /VERSUS/i);
+ assert.match(message.content, /Waiting for response/);
+ assert.equal(message.flags["realm-guard"].testSource.name, ability);
+ assert.equal(message.flags["realm-guard"].challenge.target.id, opponent.id);
+ assert.equal(message.flags["realm-guard"].versusTie, undefined);
+ assert.equal(JSON.stringify(actor.getFlag("realm-guard", "abilityLearning")), before, "A pending challenge earns no Learning mark");
+}
+
+fx.dialogs.push(dialog => dialog.buttons.find(button => button.action === "roll").callback(null, { form: { elements: {
+ rollMode: { value: "standard" }, obstacle: { value: "1" }
+} } }));
+fx.dice.push([4, 1, 1, 1]);
+await RealmGuardActorSheet._rollAbility.call(sheet, null, { dataset: { ability: "health" } });
+assert.match(fx.messages.at(-1).content, /PASS/);
+assert.doesNotMatch(fx.messages.at(-1).content, /rg-roll-final-count|Final Successes|<b>6s<\/b>/);
+assert.match(fx.messages.at(-1).content, /<b>Result<\/b>.*<b>Successes<\/b><strong>1<\/strong>.*<b>Obstacle<\/b><strong>1<\/strong>.*>PASS</s);
+assert.equal(fx.messages.at(-1).flags["realm-guard"].versusTie, undefined);
+
+const { ensureDefaultSkills } = await import("../module/default-skills.mjs");
+const keeper = new RealmGuardActor(actorData("skill-retirement"));
+keeper.items.push(
+ { id:"active-manipulator", name:"Manipulator", type:"role", system:{rating:4, learning:{passed:2, failed:1}} },
+ { id:"retired-deceiver", name:"Deceiver", type:"role", system:{rating:3, learning:{passed:1, failed:1}} }
+);
+await ensureDefaultSkills(keeper);
+await ensureDefaultSkills(keeper);
+assert.equal(keeper.items.filter(item => item.name === "Manipulator").length, 1);
+assert.equal(keeper.items.get("active-manipulator").system.rating, 4);
+assert.deepEqual(keeper.items.get("active-manipulator").system.learning, {passed:3, failed:2, passNeeded:4, failNeeded:3});
+assert.equal(keeper.items.get("retired-deceiver").system.rating, 3);
+assert.ok(!keeper.roles.some(item => item.name === "Deceiver"));
+const newcomer = new RealmGuardActor(actorData("new-legacy-actor"));
+await ensureDefaultSkills(newcomer);
+assert.equal(newcomer.items.find(item => item.name === "Manipulator").system.rating, 0);
+assert.ok(!newcomer.items.some(item => item.name === "Deceiver"));
+const legacyActor = new RealmGuardActor(actorData("deceiver-only"));
+legacyActor.items.push({ id:"trained-deceiver", name:"Deceiver", type:"role", system:{rating:3, learning:{passed:2, failed:1}} });
+await ensureDefaultSkills(legacyActor);
+await ensureDefaultSkills(legacyActor);
+const transferred = legacyActor.roles.filter(item => item.name === "Manipulator");
+assert.equal(transferred.length, 1);
+assert.equal(transferred[0].system.rating, 3);
+assert.deepEqual(transferred[0].system.learning, {passed:2, failed:1, passNeeded:3, failNeeded:2});
+fx.settings.set("activeRulesProfileId", "mouse-guard-1e");
+assert.ok(keeper.roles.some(item => item.name === "Deceiver"));
 console.log('PASS legacy-character-workspace-smoke · eight assets, human default, Nature learning, atomic/stale edits, Versus target, GM/profile gates');

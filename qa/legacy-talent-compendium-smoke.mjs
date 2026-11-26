@@ -14,7 +14,10 @@ let result=await ensureStarterCompendiums({syncMissing:true});assert.equal(resul
 const talents=game.packs.get('world.realm-guard-starter-talents');assert.equal(talents.docs.length,12,'Other profiles still seed the original library');
 fx.settings.set('activeRulesProfileId','realm-guard-legacy-mixed');refreshRulesProfileRuntime();
 const {LEGACY_TRAITS}=await import('../module/legacy-trait-catalog.mjs');const traitPack=game.packs.get('world.realm-guard-starter-traits');const missingTraits=LEGACY_TRAITS.filter(t=>!traitPack.docs.some(d=>d.flags['realm-guard'].starterKey===t.key)).length;
-result=await ensureStarterCompendiums({syncMissing:true});assert.equal(result.failed,0);assert.equal(result.added,124+missingTraits);assert.equal(talents.docs.length,136,'Migration preserves existing starter items');
+result=await ensureStarterCompendiums({syncMissing:true});assert.equal(result.failed,0);assert.equal(result.added,124+missingTraits+1);assert.equal(talents.docs.length,136,'Migration preserves existing starter items');
+const skills=game.packs.get('world.realm-guard-starter-skills');
+assert.equal(skills.docs.filter(item=>item.name==='Manipulator').length,1);
+assert.ok(skills.docs.some(item=>item.name==='Deceiver'),'Existing compendium entries remain available to the profiles that use them');
 assert.ok(LEGACY_TRAITS.every(t=>traitPack.docs.some(d=>d.name===t.name&&d.system.description===t.description)));assert.equal(traitPack.folders.length,1);
 const gifted=talents.docs.find(t=>t.name==='Blood of the Fae');assert.equal(gifted.type,'talent');assert.equal(gifted.system.effectMode,'manual');assert.equal(gifted.flags['realm-guard'].talentSource.page,115);
 assert.equal(talents.folders.length,11);assert.equal(talents.folders.find(f=>f.id===gifted.folder).name,'Level 2');assert.equal(talents.config.ownership.PLAYER,'OBSERVER');

@@ -1,13 +1,83 @@
+import { isAvailableSkill } from './default-skills.mjs';
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
-import { withRollUndo, enlistRollActors } from './roll-undo.mjs';
-import {openStandaloneCustomRoll} from './legacy-free-roll.mjs';
+import { withRollUndo, enlistRollActors, snapshotActors, actorChanges } from './roll-undo.mjs';
+import {openStandaloneCustomRoll, rollStandaloneD6} from './legacy-free-roll.mjs';
 import { registerGmDockTool } from './gm-dock.mjs';
 import { baselineObstacle } from './obstacles.mjs';
 import { abilityLabel, recordAbilityTest } from './advancement.mjs';
+import { installTurnAuthorityBridge, requestTurnAuthority } from './turn-authority-bridge.mjs';
 const NS='realm-guard',esc=v=>foundry.utils.escapeHTML(String(v??''));
+const DIRECTED_VERSUS = 'DIRECTED_VERSUS_RESPONSE';
+let responseQueue = Promise.resolve();
+
+function targetActor(challenge) {
+  return (challenge.target.uuid ? globalThis.fromUuidSync?.(challenge.target.uuid) : null) ?? game.actors.get(challenge.target.id);
+}
+
+function canRespondToTarget(challenge, user) {
+  const target = targetActor(challenge);
+  return Boolean(target && (user?.isGM || (target.type === 'character' && target.testUserPermission(user, 'OWNER'))));
+}
+
+function recordedResponses(message) {
+  return game.messages.filter(reply => reply.flags?.[NS]?.challengeResponse?.messageId === message.id && !reply.flags?.[NS]?.rollUndo?.undone);
+}
+
+async function commitDirectedResponse(SheetClass, { messageId, claim, action, replyId }, requester) {
+  const message = game.messages.get(messageId);
+  const challenge = message?.flags?.[NS]?.challenge;
+  if (!challenge?.target || message.flags?.[NS]?.rollUndo?.undone || !canRespondToTarget(challenge, requester)) {
+    return {ok:false, reason:'This Versus is assigned to another character or is no longer available.'};
+  }
+  const existing = message.flags[NS].directedResponseClaim;
+  if (action === 'claim') {
+    if (recordedResponses(message).length || existing?.expires > Date.now()) return {ok:false, reason:'This Versus already has a response in progress or recorded.'};
+    await message.update({'flags.realm-guard.directedResponseClaim':{ id:claim, userId:requester.id, expires:Date.now()+15*60_000 }});
+    return {ok:true};
+  }
+  if (!existing || existing.id !== claim || existing.userId !== requester.id) return {ok:false, reason:'This response is no longer reserved.'};
+  if (action === 'finish') {
+    const reply = game.messages.get(replyId);
+    const response = reply?.flags?.[NS]?.challengeResponse;
+    if (!response || response.messageId !== messageId || reply.author?.id !== requester.id || response.actorId !== challenge.target.id) {
+      return {ok:false, reason:'The response could not be matched to the Versus challenge.'};
+    }
+    const initiator = (challenge.actorUuid ? globalThis.fromUuidSync?.(challenge.actorUuid) : null) ?? game.actors.get(challenge.actorId);
+    if (initiator && !response.tied) {
+      const trackedIds = [...new Set([initiator.id, ...(challenge.help ?? []).map(entry => entry.actorId)])];
+      const before = snapshotActors(trackedIds);
+      const passed = !response.passed;
+      const margin = Math.abs(challenge.obstacle - response.successes);
+      const sheet = {actor: initiator, render: async () => {}};
+      const role = initiator.items.get(challenge.source?.itemId);
+      const outcome = {passed, tied:false, margin};
+      const direct = challenge.source?.key === 'nature';
+      let tax = initiator._natureTax(outcome, direct ? {direct:true,scope:challenge.natureUse} : {tapped:challenge.tapNature,scope:challenge.natureScope});
+      if (direct && challenge.doubleTapNature && !passed) tax = Math.max(tax, margin);
+      if (tax) await initiator._applyNatureTax(tax, 'Directed Versus');
+      if (challenge.countLearning) {
+        if (challenge.source?.kind === 'ability') await recordAbilityTest(initiator, challenge.source.key, passed);
+        else if (role && !challenge.source?.beginner) await SheetClass._recordLearning.call(sheet, role, passed);
+        else if (role && !Number(role.system.rating ?? 0)) {
+          const needed = Math.max(1, Number(initiator.system.attributes.nature.maximum ?? initiator.system.attributes.nature.value ?? 1));
+          const attempts = Math.min(needed, Number(role.system.beginnerAttempts ?? 0) + 1);
+          await role.update({'system.beginnerAttempts':attempts});
+          if (attempts >= needed) await SheetClass._autoLearnSkill.call(sheet, role, {render:false});
+        }
+      }
+      await SheetClass._commitSynergy.call(sheet, challenge.help ?? [], outcome, `${challenge.label} Help`);
+      const settlement = actorChanges(before, snapshotActors(trackedIds));
+      if (reply.flags[NS].rollUndo && settlement.length) {
+        await reply.update({'flags.realm-guard.rollUndo.settlement': settlement});
+      }
+    }
+  } else if (action !== 'release') return {ok:false, reason:'Unknown response action.'};
+  await message.update({'flags.realm-guard.-=directedResponseClaim':null});
+  return {ok:true};
+}
 
 export function challengeTestChoices(actor) {
-  const skills = actor.items.filter(item => item.type === "role").sort((a,b) => a.name.localeCompare(b.name));
+  const skills = actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name)).sort((a,b) => a.name.localeCompare(b.name));
   const abilities = ["nature", "health", "will", "circles", "resources"]
     .filter(key => actor.system.attributes?.[key])
     .map(key => ({id: `ability:${key}`, key, type: "ability", name: abilityLabel(key), system: {rating: Number(actor.system.attributes[key].value ?? 0)}}));
@@ -16,7 +86,28 @@ export function challengeTestChoices(actor) {
 
 export async function respondToRoll(SheetClass,message){
   const challenge=message.flags?.[NS]?.challenge;if(!challenge||message.flags?.[NS]?.rollUndo?.undone)return;
-  const actors=game.actors.filter(a=>a.type==='character'&&a.isOwner);
+  const target = challenge.target && targetActor(challenge);
+  if (challenge.target && (!canRespondToTarget(challenge, game.user) || recordedResponses(message).length)) return;
+  const actors=target ? [target] : game.actors.filter(a=>a.type==='character'&&a.isOwner);
+  if (!target) return rollResponse(SheetClass, message, challenge, actors);
+
+  const claim = foundry.utils.randomID();
+  const request = (action, replyId) => requestTurnAuthority(DIRECTED_VERSUS, {action, messageId:message.id, claim, replyId}, {primaryOnly:true});
+  const reservation = await request('claim');
+  if (!reservation.ok) return ui.notifications.warn(reservation.reason);
+  try {
+    const response = await rollResponse(SheetClass, message, challenge, actors);
+    if (response?.replyId) {
+      const completed = await request('finish', response.replyId);
+      if (!completed.ok) ui.notifications.warn(completed.reason);
+    }
+    return response?.result;
+  } finally {
+    await request('release');
+  }
+}
+
+async function rollResponse(SheetClass, message, challenge, actors) {
   let actor=actors.includes(game.user.character)?game.user.character:actors[0];
   if(!actor)return ui.notifications.warn("Choose a character you own.");
   let role=challengeTestChoices(actor)[0];
@@ -30,22 +121,26 @@ export async function respondToRoll(SheetClass,message){
     options=await SheetClass._openRollDialog.call(sheet,role,{obstacle:challenge.obstacle,fixedObstacle:true,isSkill,abilityKey:role.key??"",beginnerLuck:beginner,beginnerAbility:abilityKey,replyContext:{label:challenge.label,opponentId:challenge.actorId,actorIds:actors.map(a=>a.id)}});
     if(!options)return;
     if(!options.replySelection)break;
-    actor=game.actors.get(options.replySelection.actorId);
-    if(!actor?.isOwner||actor.type!=="character")return;
+    actor=actors.find(candidate=>candidate.id===options.replySelection.actorId);
+    if(!actor?.isOwner)return;
     role=challengeTestChoices(actor).find(choice=>choice.id===options.replySelection.skillId);
     if(!role)return;
   }
   if (challenge.versus) {
-    options.tieOpponent = (challenge.actorUuid ? fromUuidSync(challenge.actorUuid) : null) ?? game.actors.get(challenge.actorId);
+    options.tieOpponent = (challenge.actorUuid ? globalThis.fromUuidSync?.(challenge.actorUuid) : null) ?? game.actors.get(challenge.actorId);
     options.tieOpposition = challenge.source;
+    options.directedReply = Boolean(challenge.target);
   }
   const result=role.type==="ability"
     ? await rollChallengeAbility(SheetClass,sheet,role,options,challenge)
     : await rollSkillWithOptions(SheetClass,sheet,role,options,{obstacle:challenge.obstacle,versus:challenge.versus,abilityKey});
   if(result){
     const reply=game.messages.get(actor.getFlag(NS,'lastUndoRoll'));
-    if(reply)await reply.update({'flags.realm-guard.challengeResponse':{messageId:message.id,actorId:actor.id}});
+    if(reply)await reply.update({'flags.realm-guard.challengeResponse':{
+      messageId:message.id, actorId:actor.id, successes:result.successes, passed:result.passed, tied:result.tied
+    }});
     refreshResponseButtons();
+    if (challenge.target) return {result, replyId:reply?.id};
   }
   return result;
 }
@@ -88,11 +183,22 @@ export async function rollSkillWithOptions(SheetClass,sheet,role,options,{obstac
   });
 }
 function responseNames(message){
-  return [...new Set(game.messages.filter(m=>m.flags?.[NS]?.challengeResponse?.messageId===message.id&&!m.flags?.[NS]?.rollUndo?.undone).map(m=>game.actors.get(m.flags[NS].challengeResponse.actorId)?.name).filter(Boolean))];
+  return [...new Set(recordedResponses(message).map(m=>game.actors.get(m.flags[NS].challengeResponse.actorId)?.name).filter(Boolean))];
 }
 function paintResponseButtons(message,root){
   const names=responseNames(message),challenge=message.flags?.[NS]?.challenge;
   for(const b of root.querySelectorAll('[data-rg-respond]')){
+    if (challenge.target) {
+      const response = recordedResponses(message)[0]?.flags?.[NS]?.challengeResponse;
+      b.hidden = !canRespondToTarget(challenge, game.user);
+      b.disabled = Boolean(response || message.flags[NS].directedResponseClaim?.expires > Date.now());
+      b.classList.toggle('rg-responded',Boolean(response));
+      b.textContent = response ? `${challenge.target.name} responded` : `Respond · ${challenge.target.name}`;
+      const status = root.querySelector('.rg-result-final small');
+      if (status && response) status.textContent = response.tied ? 'Tie · see response' : response.passed ? `${challenge.target.name} wins` : 'Challenger wins';
+      else if (status) status.textContent = 'Waiting for response';
+      continue;
+    }
     b.classList.toggle('rg-responded',names.length>0);
     b.textContent=names.length?`${names.join(', ')} Responded`:`Respond · choose Skill or Ability · ${challenge.versus?'Vs.':'Ob'} ${challenge.obstacle}`;
   }
@@ -110,12 +216,42 @@ export async function publishChallenge(actor,label,obstacle,{versus=false,source
 }
 export function installLegacyChatActions(SheetClass){
   if(!legacyMixedPolishEnabled())return;
+  installTurnAuthorityBridge({[DIRECTED_VERSUS]:(payload,{requester})=>{
+    const next = responseQueue.then(()=>commitDirectedResponse(SheetClass,payload,requester));
+    responseQueue = next.catch(()=>{});
+    return next;
+  }});
   for(const hook of ['createChatMessage','updateChatMessage','deleteChatMessage'])Hooks.on(hook,refreshResponseButtons);
   registerGmDockTool({id:'post-obstacle',icon:'fa-solid fa-bullseye',tooltip:'Post Obstacle to chat',order:12,onClick:async()=>{const value=await foundry.applications.api.DialogV2.wait({window:{title:'Post Obstacle'},content:`<label>Test / challenge<input name="label" value="GM challenge"></label><label>Obstacle<input name="ob" type="number" min="0" step="1" value="${baselineObstacle()}"></label>`,modal:false,rejectClose:false,buttons:[{action:'post',label:'Post to chat',callback:(_e,b)=>({label:b.form.elements.label.value,ob:Number(b.form.elements.ob.value)})},{action:'cancel',label:'Cancel',callback:()=>null}]});if(value)await publishChallenge(null,value.label,value.ob);}});
-  const chatButton=()=>{const bar=document.querySelector('#chat-controls, .chat-controls');if(!bar||bar.querySelector('[data-rg-custom-chat]'))return;const b=document.createElement('button');b.type='button';b.dataset.rgCustomChat='';b.title='Custom Roll';b.setAttribute('aria-label','Custom Roll');b.innerHTML='<i class="fa-solid fa-dice"></i>';b.onclick=()=>void openStandaloneCustomRoll();bar.append(b);};
+  const chatButton = () => {
+    const bar = document.querySelector('#chat-controls, .chat-controls');
+    if (!bar || bar.querySelector('[data-rg-custom-chat]')) return;
+    const custom = document.createElement('button');
+    custom.type = 'button';
+    custom.dataset.rgCustomChat = '';
+    custom.title = 'Custom Roll';
+    custom.setAttribute('aria-label', 'Custom Roll');
+    custom.innerHTML = '<i class="fa-solid fa-dice" aria-hidden="true"></i>';
+    custom.onclick = () => void openStandaloneCustomRoll();
+
+    const d6 = document.createElement('button');
+    d6.type = 'button';
+    d6.dataset.rgD6Chat = '';
+    d6.title = 'Roll d6s · 4–6 Pass, 1–3 Fail';
+    d6.textContent = 'D6s';
+    d6.onclick = async () => {
+      try {
+        await rollStandaloneD6();
+      } catch (error) {
+        console.error('Realm Guard | D6s roll failed', error);
+        ui.notifications.error('Realm Guard: Could not roll d6s.');
+      }
+    };
+    bar.append(custom, d6);
+  };
   Hooks.on('renderChatLog',chatButton);Hooks.on('renderChatInput',chatButton);Hooks.once('ready',chatButton);
   Hooks.on('renderChatMessageHTML',(message,html)=>{const root=html instanceof HTMLElement?html:html?.[0];if(!root)return;if(root.querySelector('.realm-guard'))root.classList.add('rg-separated-message');
-    const challenge=message.flags?.[NS]?.challenge;if(challenge&&!message.flags?.[NS]?.rollUndo?.undone){root.classList.add('rg-separated-message');if(!root.querySelector("[data-rg-respond]")){const button=document.createElement("button");button.type="button";button.dataset.rgRespond="";button.textContent=`Respond · choose Skill · Ob ${challenge.obstacle}`;root.append(button);}for(const b of root.querySelectorAll('[data-rg-respond]'))b.addEventListener('click',()=>void respondToRoll(SheetClass,message));paintResponseButtons(message,root);}
+    const challenge=message.flags?.[NS]?.challenge;if(challenge&&!message.flags?.[NS]?.rollUndo?.undone){root.classList.add('rg-separated-message');if(!root.querySelector("[data-rg-respond]")){const button=document.createElement("button");button.type="button";button.dataset.rgRespond="";button.textContent=`Respond · choose Skill · Ob ${challenge.obstacle}`;root.append(button);}for(const b of root.querySelectorAll('[data-rg-respond]'))b.onclick=()=>respondToRoll(SheetClass,message).catch(error=>ui.notifications.error(error.message));paintResponseButtons(message,root);}
     if(game.user.isGM&&!challenge&&root.querySelector('.rg-chat-roll-pipeline')&&!message.flags?.[NS]?.rollDecisionPending&&!message.flags?.[NS]?.versusTie&&!message.flags?.[NS]?.conflictRoll){const b=document.createElement('button');b.type='button';b.textContent='Ask players to respond…';b.onclick=async()=>{const values=await foundry.applications.api.DialogV2.wait({window:{title:'Player response target'},content:'<label>Obstacle / rolled successes<input name="ob" type="number" min="0" step="1" value="1"></label><label><input type="checkbox" name="versus" checked> Versus</label>',modal:false,rejectClose:false,buttons:[{action:'post',label:'Post challenge',callback:(_e,btn)=>({ob:Number(btn.form.elements.ob.value),versus:btn.form.elements.versus.checked})},{action:'cancel',label:'Cancel',callback:()=>null}]});if(values)await publishChallenge(game.actors.get(message.speaker?.actor),message.speaker?.alias??'GM challenge',values.ob,{versus:values.versus,source:message.flags?.[NS]?.testSource});};root.append(b);}
   });
   game.realmGuard??={};game.realmGuard.publishChallenge=publishChallenge;

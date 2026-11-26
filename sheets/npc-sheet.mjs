@@ -2,7 +2,7 @@ import { RealmGuardActorSheet } from "./actor-sheet.mjs";
 import { installNpcObstacleTools } from '../module/legacy-npc-obstacle.mjs';
 import { legacyMixedPolishEnabled } from "../module/legacy-mixed-scope.mjs";
 import { makeSheetLayoutControl, npcSheetLayout } from "../module/legacy-sheet-layouts.mjs";
-import { isDefaultSkill } from "../module/default-skills.mjs";
+import { isDefaultSkill, isAvailableSkill } from "../module/default-skills.mjs";
 import { openNpcTemplateLibrary } from "../module/npc-builder.mjs";
 import { reviewNpcStatsTemplate, statsTemplateTarget } from "../module/npc-stat-template.mjs";
 
@@ -94,6 +94,7 @@ export class RealmGuardNpcSheet extends RealmGuardActorSheet {
       try {
         const item = await resolveItem(data);
         if (!item || !allowed.has(item.type)) return;
+      if (item.type === "role" && !isAvailableSkill(item.name)) return ui.notifications.warn("Realm Guard: This Skill is unavailable in the active rules profile.");
 
         root.classList.remove("rg-npc-drop-active");
         const targetSection = root.querySelector(sectionFor(item.type));

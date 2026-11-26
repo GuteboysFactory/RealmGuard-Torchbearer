@@ -33,7 +33,7 @@ export async function beginRollChat(actor, label, faces) {
   const history = [];
   let current = [...faces];
   const initialHtml = () => `<section class="rg-first-roll"><b>First roll · ${esc(label)}</b>${diceFacesHtml(initial)}<span>${initial.filter(face => face >= 4).length} initial successes</span></section>`;
-  const historyHtml = () => history.length ? `<ol class="rg-roll-decisions">${history.map(row => `<li>${esc(row)}</li>`).join("")}</ol>` : "";
+  const historyHtml = () => history.length ? `<ul class="rg-roll-decisions" aria-label="Selected roll options">${history.map(row => `<li>${esc(row)}</li>`).join("")}</ul>` : "";
   const message = await ChatMessage.create({ speaker: actor.temporaryOpposition ? { alias: actor.name } : ChatMessage.getSpeaker({ actor }), content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}<p>Resolving roll…</p></div>`, flags: { "realm-guard": { rollDecisionPending: true } } });
   registerRollMessage(actor,message);
   const context = {
@@ -50,14 +50,18 @@ export async function beginRollChat(actor, label, faces) {
         await message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}<div class="rg-roll-current"><b>Current dice</b>${diceFacesHtml(current)}</div><section class="rg-chat-question" role="status"><span class="rg-decision-alert">Your choice is required</span><strong>${esc(question)}</strong><div class="rg-chat-question-buttons">${buttons}<button type="button" class="rg-chat-skip" data-rg-chat-choice="skip" data-message-id="${message.id}" data-decision-nonce="${nonce}" title="Decline · keep current dice" aria-label="Decline this option">×</button></div></section></div>` });
       } catch (error) { pending.delete(message.id); throw error; }
       const choice = await result;
-      history.push(`${question} — ${choices.find(row => row.value === choice)?.label ?? "Declined"}`);
+      if (choice?.label) history.push(choice.label);
       await message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}<p>Resolving roll…</p></div>` });
-      return choice;
+      return choice ? choice.value : null;
     },
-    async finish(content, {versusTie = null, testSource = null} = {}) {
+    async finish(content, {versusTie = null, testSource = null, includeInitialRoll = true, directedVersus = null} = {}) {
       pending.delete(message.id); active.delete(message.id);
-      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}${content}</div>`, "flags.realm-guard.rollDecisionPending": false,
+      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${includeInitialRoll ? initialHtml() : ""}${historyHtml()}${content}</div>`, "flags.realm-guard.rollDecisionPending": false,
         ...(versusTie ? {"flags.realm-guard.versusTie":versusTie} : {}),
+        ...(directedVersus ? {"flags.realm-guard.challenge":{
+          ...directedVersus, label, versus: true, actorId: actor.id, actorUuid: actor.uuid,
+          source: testSource
+        }} : {}),
         ...(testSource ? {"flags.realm-guard.testSource":{...testSource,actorUuid:actor.uuid??null}} : {}) });
     },
     async interrupt() {
@@ -76,7 +80,7 @@ export function resolveRollChatChoice(messageId, nonce, choiceId, user = game.us
   const choice = skip ? null : row.choices[Number(choiceId)];
   if (!skip && (!Number.isInteger(Number(choiceId)) || !choice)) return false;
   pending.delete(messageId); // First accepted click wins, before any asynchronous spending.
-  row.answer(skip ? row.skip : choice.value);
+  row.answer(skip ? { value: row.skip } : choice);
   return true;
 }
 

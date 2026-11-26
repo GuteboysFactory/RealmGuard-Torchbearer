@@ -1,8 +1,9 @@
+import { isAvailableSkill } from './default-skills.mjs';
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
 import { rollSkillWithOptions } from './legacy-chat-actions.mjs';
 export async function rollNpcObstacle(sheet,SheetClass,role=null){
   if(!legacyMixedPolishEnabled()||!game.user?.isGM||!sheet.actor?.isOwner)return;
-  role??=sheet.actor.items.filter(i=>i.type==='role'&&Number(i.system.rating)>0).sort((a,b)=>Number(b.system.rating)-Number(a.system.rating))[0];
+  role??=sheet.actor.items.filter(i=>i.type==='role'&&isAvailableSkill(i.name)&&Number(i.system.rating)>0).sort((a,b)=>Number(b.system.rating)-Number(a.system.rating))[0];
   if(!role)return SheetClass._customRoll.call(sheet);
   while(true){
     const beginner=Number(role.system.rating??0)<=0;

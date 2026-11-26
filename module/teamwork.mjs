@@ -1,3 +1,4 @@
+import { isAvailableSkill } from "./default-skills.mjs";
 import { hasActiveCondition } from "./conditions.mjs";
 import { getActiveM10BFamilyRulePolicy, allowedHelperKindsForTest, helperSourceAllowedForTest } from "./m10b-family-rules.mjs";
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
@@ -42,7 +43,7 @@ function helperSources(actor, testKind = "") {
   const attributes = actor.system?.attributes ?? {};
   return [
     ...actor.items
-      .filter(item => item.type === "role" && Number(item.system?.rating ?? 0) > 0)
+      .filter(item => item.type === "role" && isAvailableSkill(item.name) && Number(item.system?.rating ?? 0) > 0)
       .map(item => ({ id: item.id, kind: "Skill", name: item.name, rating: Number(item.system?.rating ?? 0) })),
     ...ABILITIES
       .map(key => ({
@@ -69,34 +70,28 @@ export function helperEligibility(actor, { excludedActorIds = [], allowedActorId
   return { ok:true, reason:"Available" };
 }
 
-function ownedCandidateActors(user, excludedActorIds = [], allowedActorIds = []) {
-  const allowed = new Set((allowedActorIds ?? []).filter(Boolean));
-  return game.actors.contents.filter(actor => actor.type === "character" && userOwnsActor(actor,user) && (!allowed.size || allowed.has(actor.id)) && !(excludedActorIds ?? []).includes(actor.id));
-}
-
-function validHelperActorsForUser(user, excludedActorIds = [], allowedActorIds = [], testKind = "") {
-  return ownedCandidateActors(user, excludedActorIds, allowedActorIds).filter(actor => helperEligibility(actor,{excludedActorIds,allowedActorIds,testKind}).ok);
+function assignedHelper(user, session) {
+  const actor = user?.character;
+  if (!user?.active || user.isGM || user.id === session.requesterUserId
+    || !actor || !userOwnsActor(actor, user) || !helperEligibility(actor, session).ok) return null;
+  return actor;
 }
 
 export function teamworkAvailability(sessionId) {
-  const session=sessions.get(sessionId); if(!session) return [];
+  const session = sessions.get(sessionId);
+  if (!session) return [];
+  const seenActors = new Set();
   return game.users.contents.flatMap(user => {
-    if(!user.active || user.id===game.user.id || user.isGM) return [];
-    return ownedCandidateActors(user,session.excludedActorIds,session.allowedActorIds).map(actor => {
-      const eligibility=helperEligibility(actor,{excludedActorIds:session.excludedActorIds,allowedActorIds:session.allowedActorIds,testKind:session.testKind});
-      return { userId:user.id, userName:user.name, actorId:actor.id, actorName:actor.name, ...eligibility };
-    });
+    const actor = assignedHelper(user, session);
+    if (!actor || seenActors.has(actor.id)) return [];
+    seenActors.add(actor.id);
+    return [{ user, actor }];
   });
 }
 
-function activeHelperTargets(session) {
-  return game.users.contents.flatMap(user => {
-    if (!user.active || user.id === game.user.id || user.isGM) return [];
-    if (session.acceptedByUser.has(user.id)) return [];
-    const actors = validHelperActorsForUser(user, session.excludedActorIds, session.allowedActorIds, session.testKind);
-    if (!actors.length) return [];
-    return [{ user, actorIds: actors.map(actor => actor.id) }];
-  });
+export function teamworkWaiting(sessionId) {
+  const session = sessions.get(sessionId);
+  return Boolean(session && [...session.requests.values()].some(row => ["waiting", "review"].includes(row.status)));
 }
 
 function sourceStillValid(entry) {
@@ -106,7 +101,7 @@ function sourceStillValid(entry) {
   if (!helperSourceAllowedForTest(entry.sourceKind, entry.testKind ?? "", policy)) return false;
   if (entry.sourceKind === "Skill") {
     const item = actor.items.get(entry.sourceId);
-    return Boolean(item?.type === "role" && Number(item.system?.rating ?? 0) > 0);
+    return Boolean(item?.type === "role" && isAvailableSkill(item.name) && Number(item.system?.rating ?? 0) > 0);
   }
   if (entry.sourceKind === "Ability") {
     const key = String(entry.sourceId ?? "").replace("ability:", "");
@@ -133,14 +128,22 @@ function renderRequesterSession(sessionId) {
       ? accepted.map(entry => `<div class="rg-teamwork-accepted"><i class="fa-solid fa-handshake"></i><span><b>${esc(entry.actorName)}</b> - ${entry.sourceKind === "Wise" ? (getActiveM10BFamilyRulePolicy().ratedWises ? "Teamwork Wise: " : "I Am Wise: ") : ""}${esc(entry.sourceName)}</span><strong>+1D</strong>${entry.synergy ? `<span class="rg-teamwork-synergy-tag">Synergy</span>` : ""}</div>`).join("")
       : `<span class="rg-muted">No Help accepted yet.</span>`;
   }
+  const waiting = teamworkWaiting(sessionId);
+  const requests = [...session.requests.values()].filter(row => row.status !== "removed");
   const status = root.querySelector("[data-rg-help-request-status]");
-  if (status) {
-    if (accepted.length) status.textContent = `Teamwork bonus: +${accepted.length}D. You can roll now or ask more Rangers.`;
-    else if (session.requestedUsers.size) status.textContent = "Help request sent. Keep preparing the roll while Rangers answer.";
-    else status.textContent = "Help is optional. Ask active Rangers only when you want it.";
-  }
+  if (status) status.textContent = waiting ? "Waiting for Help replies."
+    : accepted.length ? `Teamwork bonus: +${accepted.length}D. Ready to roll.`
+      : requests.length ? "All Help requests answered. Ready to roll." : "Help is optional.";
+  const labels = { waiting: "Waiting for reply", review: "Waiting for GM approval", accepted: "Helping", declined: "Declined" };
+  const requestList = root.querySelector("[data-rg-help-availability]");
+  if (requestList) requestList.innerHTML = requests.map(row => `<div class="rg-help-availability">
+    <span><b>${esc(row.actorName)}</b> · ${esc(labels[row.status])}</span>
+    ${["waiting", "review"].includes(row.status) ? `<button type="button" data-rg-dismiss-help="${esc(row.userId)}" aria-label="Stop waiting for ${esc(row.actorName)}">×</button>` : ""}
+  </div>`).join("");
+  const rollButton = root.closest("form")?.querySelector('[data-action="roll"],[data-dialog-action="roll"]');
+  if (rollButton) rollButton.disabled = waiting;
   const button = root.querySelector("[data-rg-teamwork-ask]");
-  if (button) button.innerHTML = accepted.length ? `<i class="fa-solid fa-handshake-angle"></i> Ask for more Help` : `<i class="fa-solid fa-handshake-angle"></i> Ask for Help`;
+  if (button) button.disabled = waiting;
   const wise = root.querySelector('[name="wiseId"]');
   if (wise && legacyMixedPolishEnabled()) {
     wise.disabled = accepted.some(entry => entry.sourceKind === "Wise");
@@ -161,9 +164,7 @@ export function createTeamworkSession({ requesterActorId, testName = "Test", tes
     allowedActorIds: [...new Set((allowedActorIds ?? []).filter(Boolean))],
     accepted: new Map(),
     pending: new Map(),
-    acceptedByUser: new Set(),
-    declinedUsers: new Set(),
-    requestedUsers: new Set()
+    requests: new Map()
   });
   return sessionId;
 }
@@ -174,12 +175,10 @@ export function setTeamworkOpponent(sessionId, opponentId) {
   session.excludedActorIds = session.excludedActorIds.filter(id => id !== session.opponentId);
   session.opponentId = opponentId;
   if (opponentId) session.excludedActorIds.push(opponentId);
-  const excluded = session.accepted.get(opponentId);
-  if (excluded) {
-    session.accepted.delete(opponentId);
-    session.acceptedByUser.delete(excluded.helperUserId);
+  session.accepted.delete(opponentId);
+  for (const row of session.requests.values()) {
+    if (row.actorId === opponentId && row.status !== "removed") dismissHelp(session, row.userId);
   }
-  session.pending.delete(opponentId);
   renderRequesterSession(sessionId);
 }
 
@@ -206,38 +205,33 @@ export function askForTeamwork(sessionId) {
   const session = sessions.get(sessionId);
   if (!session) return false;
   const requesterActor = game.actors.get(session.requesterActorId);
-  const availability = teamworkAvailability(sessionId);
-  const targets = activeHelperTargets(session);
-  const blocked = availability.filter(row => !row.ok);
-  const availabilityNode = requesterRoot(sessionId)?.querySelector?.("[data-rg-help-availability]");
-  if (availabilityNode) availabilityNode.innerHTML = availability.length
-    ? availability.map(row => `<div class="rg-help-availability ${row.ok ? "is-available" : "is-blocked"}"><i class="fa-solid ${row.ok ? "fa-circle-check" : "fa-circle-xmark"}"></i><span><b>${esc(row.actorName)}</b> · ${esc(row.reason)}</span></div>`).join("")
-    : `<span class="rg-muted">No other online Conflict participants are available.</span>`;
+  const targets = teamworkAvailability(sessionId).filter(({user, actor}) => !session.requests.has(user.id)
+    && ![...session.requests.values()].some(row => row.actorId === actor.id && row.status !== "removed"));
   if (!targets.length) {
-    const detail = blocked.length ? ` ${blocked.map(row => `${row.actorName}: ${row.reason}`).join(" · ")}` : "";
-    ui.notifications.info(`Realm Guard: No Ranger can currently answer this Help request.${detail}`);
-    renderRequesterSession(sessionId);
+    ui.notifications.info("No eligible online players with an assigned character are available to ask.");
     return false;
   }
-  for (const target of targets) {
-    session.requestedUsers.add(target.user.id);
+  for (const {user, actor} of targets) {
+    session.requests.set(user.id, { userId: user.id, actorId: actor.id, actorName: actor.name, status: "waiting" });
     game.socket.emit(CHANNEL, {
-      type: "teamwork-request",
-      requestId: sessionId,
-      requesterUserId: session.requesterUserId,
-      requesterActorId: session.requesterActorId,
-      requesterActorName: requesterActor?.name ?? "Ranger",
-      testName: session.testName,
-      testKind: session.testKind,
-      targetUserId: target.user.id,
-      helperActorIds: target.actorIds,
-      excludedActorIds: session.excludedActorIds,
-      allowedActorIds: session.allowedActorIds,
-      senderId: game.user.id
+      type: "teamwork-request", requestId: sessionId, requesterUserId: session.requesterUserId,
+      requesterActorId: session.requesterActorId, requesterActorName: requesterActor?.name ?? "Ranger",
+      testName: session.testName, testKind: session.testKind, targetUserId: user.id, helperActorIds: [actor.id],
+      excludedActorIds: session.excludedActorIds, allowedActorIds: session.allowedActorIds, senderId: game.user.id
     });
   }
   renderRequesterSession(sessionId);
   return true;
+}
+
+function dismissHelp(session, userId) {
+  const row = session?.requests.get(userId);
+  if (!row) return;
+  row.status = "removed";
+  session.pending.delete(row.actorId);
+  game.socket.emit(CHANNEL, { type: "teamwork-close", requestId: session.sessionId, targetUserId: userId,
+    requesterUserId: session.requesterUserId, senderId: game.user.id });
+  renderRequesterSession(session.sessionId);
 }
 
 export function finishTeamworkSession(sessionId) {
@@ -277,8 +271,9 @@ async function openHelperRequest(message) {
   if (message.targetUserId !== game.user.id) return;
   if (helperDialogs.has(message.requestId)) return;
   const allowed = new Set(message.helperActorIds ?? []);
-  const actors = validHelperActorsForUser(game.user, message.excludedActorIds ?? [], message.allowedActorIds ?? [], message.testKind ?? "").filter(actor => allowed.has(actor.id));
-  if (!actors.length) return;
+  const assigned = assignedHelper(game.user, message);
+  if (!assigned || !allowed.has(assigned.id)) return;
+  const actors = [assigned];
 
   const sourceMap = new Map(actors.map(actor => [actor.id, helperSources(actor, message.testKind ?? "")]));
   const actorOptions = actors.map(actor => `<option value="${actor.id}">${esc(actor.name)}</option>`).join("");
@@ -300,18 +295,24 @@ async function openHelperRequest(message) {
     <div class="rg-teamwork-source-help" data-helper-source-help>${getActiveM10BFamilyRulePolicy().helperSourcePolicy === "MG1E_TYPED" ? (String(message.testKind)==="Ability" ? "Ability tests are helped by an appropriate Ability. I Am Wise remains the acting character\'s own Wise." : "Skill/Wise tests are helped by an appropriate Skill or rated Wise. I Am Wise remains the acting character\'s own Wise.") : "Choose an appropriate trained Skill or Ability for normal Help, or a relevant Wise for I Am Wise."}</div>
     <label>How do you help? <textarea rows="3" data-helper-note placeholder="Optional — describe what your Ranger does, especially useful without voice chat."></textarea></label>
     ${getActiveM10BFamilyRulePolicy().synergyEnabled ? `<label class="rg-teamwork-request-synergy"><input type="checkbox" data-helper-synergy> <span><b>Use Synergy - spend 1 Fate</b><small data-helper-synergy-note></small></span></label>` : ""}
-    <div class="rg-teamwork-request-actions"><button type="button" data-helper-accept><i class="fa-solid fa-handshake"></i> Help +1D</button><button type="button" data-helper-decline><i class="fa-solid fa-xmark"></i> Decline</button></div>
     <small>You can answer while ${esc(message.requesterActorName)} continues preparing the roll. Helper Traits are not used for Teamwork.</small>
   </div>`;
 
   const dialog = new foundry.applications.api.DialogV2({
+    classes: ["rg-teamwork-helper-dialog"],
     window: { title: `Realm Guard - Help ${message.requesterActorName}`, resizable: true },
     content,
     modal: false,
-    buttons: []
+    form: { closeOnSubmit: false },
+    buttons: [
+      { action: "acceptHelp", label: "Help +1D", icon: "fa-solid fa-handshake", callback: () => acceptHelp() },
+      { action: "declineHelp", label: "Decline", icon: "fa-solid fa-xmark", default: true, callback: () => declineHelp() }
+    ]
   });
   helperDialogs.set(message.requestId, dialog);
-  dialog.addEventListener?.("close", () => helperDialogs.delete(message.requestId), {once:true});
+  dialog.addEventListener?.("close", () => {
+    if (helperDialogs.get(message.requestId) === dialog) helperDialogs.delete(message.requestId);
+  }, { once: true });
   try {
     await dialog.render(true);
   } catch (error) {
@@ -355,7 +356,7 @@ async function openHelperRequest(message) {
   sourceSelect?.addEventListener("change", refreshSynergy);
   refreshSynergy();
 
-  root.querySelector("[data-helper-accept]")?.addEventListener("click", async () => {
+  async function acceptHelp() {
     const actor = currentActor();
     const source = currentSource();
     if (!source) return ui.notifications.warn("Realm Guard: Choose how this Ranger is helping first.");
@@ -378,13 +379,13 @@ async function openHelperRequest(message) {
     ui.notifications.info(`Realm Guard: ${actor.name} is helping ${message.requesterActorName} with ${source.name}.`);
     helperDialogs.delete(message.requestId);
     await dialog.close();
-  });
+  }
 
-  root.querySelector("[data-helper-decline]")?.addEventListener("click", async () => {
+  async function declineHelp() {
     sendDecline(message);
     helperDialogs.delete(message.requestId);
     await dialog.close();
-  });
+  }
 }
 
 function activeReviewGmId(){ return game.users.contents.filter(u=>u.active&&u.isGM).sort((a,b)=>String(a.id).localeCompare(String(b.id)))[0]?.id ?? null; }
@@ -393,13 +394,13 @@ function acceptEntry(session, entry){
   session.pending.delete(entry.actorId);
   if (legacyMixedPolishEnabled() && entry.sourceKind === "Wise"
     && [...session.accepted.values()].some(current => current.actorId !== entry.actorId && current.sourceKind === "Wise" && sourceStillValid(current))) {
+    session.requests.get(entry.helperUserId).status = "declined";
     renderRequesterSession(session.sessionId);
     ui.notifications.info("This test already has Wise Help. Ask for Help with a Skill or Ability instead.");
     return;
   }
   session.accepted.set(entry.actorId,entry);
-  session.acceptedByUser.add(entry.helperUserId);
-  session.declinedUsers.delete(entry.helperUserId);
+  session.requests.get(entry.helperUserId).status = "accepted";
   renderRequesterSession(session.sessionId);
   ui.notifications.info(`${entry.actorName} joined the roll with ${entry.sourceName} (+1D).`);
 }
@@ -417,15 +418,21 @@ function receiveReviewResponse(message){
   const session=sessions.get(message.requestId); if(!session) return;
   const entry=session.pending.get(message.actorId); if(!entry) return;
   if(message.approved){ entry.approvedByGm=true; acceptEntry(session,entry); }
-  else { session.pending.delete(message.actorId); session.declinedUsers.add(entry.helperUserId); renderRequesterSession(message.requestId); ui.notifications.warn(`${entry.actorName}'s Help was not approved by the GM.`); }
+  else { session.pending.delete(message.actorId); session.requests.get(entry.helperUserId).status = "declined"; renderRequesterSession(message.requestId); ui.notifications.warn(`${entry.actorName}'s Help was not approved by the GM.`); }
 }
 
 function receiveResponse(message) {
   if (message.requesterUserId !== game.user.id) return;
   const session = sessions.get(message.requestId);
   if (!session) return;
-  const actor = game.actors.get(message.actorId);
-  if (!actor || session.excludedActorIds.includes(actor.id) || (getActiveM10BFamilyRulePolicy().afraidBlocksHelp && hasActiveCondition(actor, "Afraid"))) return;
+  const request = session.requests.get(message.helperUserId);
+  if (request?.status !== "waiting" || request.actorId !== message.actorId) return;
+  const actor = assignedHelper(game.users.get(message.helperUserId), session);
+  if (!actor || actor.id !== request.actorId) {
+    request.status = "declined";
+    renderRequesterSession(message.requestId);
+    return;
+  }
   const entry = {
     actorId: message.actorId,
     actorName: message.actorName ?? actor.name,
@@ -439,12 +446,13 @@ function receiveResponse(message) {
     helperUserId: message.helperUserId,
     approvedByGm: Boolean(game.user?.isGM)
   };
-  if (!sourceStillValid(entry)) return;
+  if (!sourceStillValid(entry)) { request.status = "declined"; renderRequesterSession(message.requestId); return; }
   const needsReview=Boolean(message.needsReview);
   if(!needsReview || game.user?.isGM){ acceptEntry(session,entry); return; }
   const targetGmId=activeReviewGmId();
-  if(!targetGmId){ ui.notifications.warn("Realm Guard: Help requires GM review, but no GM is online."); return; }
+  if(!targetGmId){ request.status = "declined"; renderRequesterSession(message.requestId); ui.notifications.warn("Realm Guard: Help requires GM review, but no GM is online."); return; }
   session.pending.set(entry.actorId,entry);
+  request.status = "review";
   renderRequesterSession(message.requestId);
   game.socket.emit(CHANNEL,{type:"teamwork-review-request",requestId:message.requestId,requesterUserId:message.requesterUserId,targetGmId,entry,senderId:game.user.id});
   ui.notifications.info(`${entry.actorName}'s Help is waiting for GM approval.`);
@@ -454,11 +462,14 @@ function receiveDecline(message) {
   if (message.requesterUserId !== game.user.id) return;
   const session = sessions.get(message.requestId);
   if (!session) return;
-  session.declinedUsers.add(message.helperUserId);
+  const request = session.requests.get(message.helperUserId);
+  if (request?.status !== "waiting") return;
+  request.status = "declined";
   renderRequesterSession(message.requestId);
 }
 
 async function closeHelperRequest(message) {
+  if (message.targetUserId && message.targetUserId !== game.user.id) return;
   const dialog = helperDialogs.get(message.requestId);
   if (!dialog) return;
   helperDialogs.delete(message.requestId);
@@ -477,6 +488,12 @@ export function installTeamworkWorkflow() {
       if (message.type === "teamwork-close") return closeHelperRequest(message);
     });
     document.addEventListener("click", event => {
+      const dismiss = event.target?.closest?.("[data-rg-dismiss-help]");
+      if (dismiss) {
+        const id = dismiss.closest("[data-rg-teamwork-session]")?.dataset.rgTeamworkSession;
+        dismissHelp(sessions.get(id), dismiss.dataset.rgDismissHelp);
+        return;
+      }
       const button = event.target?.closest?.("[data-rg-teamwork-ask]");
       if (!button) return;
       event.preventDefault();

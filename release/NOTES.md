@@ -1,7 +1,8 @@
-# 1.13.13 – Character creation, guided manual, and token Conditions
+# 1.13.14 – Read-only character sheets and clearer rolls
 
-- In **Legacy Mixed**, use **Actors → Create Character** to create a Human, Dwarf, Hobbit, or Elf through eleven steps. The guide includes ancestry-specific Nature questions, professions, homeland, experience, Wises, Traits, relationships, and gear. Standard players receive ownership when a GM client processes the request.
-- The **System Manual & Rules Reference** has searchable guidance, optional walkthroughs, and a remembered **English / Svenska** language choice. The manual includes steps for character creation, reading the sheet, and making a first roll.
-- The **Actors** header groups the character creation buttons and places the recruitment guide beside **Create Folder** in the GM view.
-- Active **Conditions** use larger, colored round icons on the map with transparent space around them. Every three icons, the next column starts to the left of the token. The token's Conditions window keeps icons, text, and controls aligned when resized.
-- Tested in Foundry VTT 13.351 with GM and standard Player accounts.
+- Double-click the visible token of an online teammate or open their assigned player character through **Actors → Party Characters**. The regular character sheet opens in read-only mode, with working tabs, Conditions, and inventory search. Character Notes are hidden from the sheet.
+- In Legacy Mixed, directed Versus challenges let each side roll from chat. A player character's owner or the GM can respond. The GM responds for NPCs. Standard Skills and Abilities support Versus and manual Extra Dice.
+- **Ask for Help** contacts eligible, online players using their assigned characters. The roll dialog shows replies live and lets you stop waiting for a particular player.
+- Roll cards clearly show which dice a Wise replaces, list the new dice below them, and show the result at the bottom. Session-limited Trait benefits show **USED this session** and are disabled under **Help yourself** after use.
+- Roll a chosen number of **D6s** from the chat controls. In Legacy Mixed, trained Deceiver progress carries over to Manipulator without creating a duplicate skill.
+- Character portraits support the updated framing. Verified in Foundry VTT 13.351.

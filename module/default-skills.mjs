@@ -1,4 +1,6 @@
 import { isTb2eWizardActor } from "./tb2e-wizard-qa.mjs";
+import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
+import { learningForRating } from "./recruitment-catalog.mjs";
 
 export const RG_DEFAULT_SKILLS = [
   "Administrator",
@@ -39,19 +41,49 @@ export const RG_DEFAULT_SKILLS = [
 ];
 
 const normalizeSkillName = value => String(value ?? "").trim().toLowerCase();
+const legacySkillKey = name => normalizeSkillName(name).replace(/^manipulater$/, "manipulator");
+
+export const isLegacyMixedSkill = name => normalizeSkillName(name) !== "deceiver";
+export const LEGACY_MIXED_DEFAULT_SKILLS = Object.freeze(
+  [...RG_DEFAULT_SKILLS.filter(isLegacyMixedSkill), "Manipulator"].sort((a, b) => a.localeCompare(b))
+);
+export const activeDefaultSkills = () => legacyMixedPolishEnabled() ? LEGACY_MIXED_DEFAULT_SKILLS : RG_DEFAULT_SKILLS;
+export const isAvailableSkill = name => !legacyMixedPolishEnabled() || isLegacyMixedSkill(name);
 
 export const isDefaultSkill = item => Boolean(item?.getFlag?.("realm-guard", "defaultSkill"));
+
+async function transferDeceiverLearning(roles, manipulator) {
+  if (!manipulator) return;
+  const copiedIds = new Set(manipulator.getFlag("realm-guard", "deceiverLearningSources") ?? []);
+  const sources = roles.filter(item => normalizeSkillName(item.name) === "deceiver"
+    && Number(item.system.rating ?? 0) > 0 && !copiedIds.has(item.id));
+  if (!sources.length) return;
+
+  const rating = Math.max(Number(manipulator.system.rating ?? 0), ...sources.map(item => Number(item.system.rating)));
+  const learning = learningForRating(rating);
+  for (const field of ["passed", "failed"]) {
+    learning[field] = [manipulator, ...sources].reduce((total, item) => total + Number(item.system.learning?.[field] ?? 0), 0);
+  }
+  // Store progress and the source IDs in the same update so retrying cannot add it twice.
+  await manipulator.update({
+    "system.rating": rating,
+    "system.learning": learning,
+    "flags.realm-guard.deceiverLearningSources": [...copiedIds, ...sources.map(item => item.id)]
+  });
+}
 
 export async function ensureDefaultSkills(actor) {
   if (!actor || !["character", "npc"].includes(actor.type)) return [];
   if (isTb2eWizardActor(actor)) return [];
 
+  const legacy = legacyMixedPolishEnabled();
+  const key = legacy ? legacySkillKey : normalizeSkillName;
   const roles = actor.items.filter(i => i.type === "role");
-  const existing = new Map(roles.map(r => [normalizeSkillName(r.name), r]));
+  const existing = new Map(roles.map(r => [key(r.name), r]));
   const create = [];
 
-  for (const name of RG_DEFAULT_SKILLS) {
-    const found = existing.get(normalizeSkillName(name));
+  for (const name of activeDefaultSkills()) {
+    const found = existing.get(key(name));
     if (found) {
       // Adopt an already-existing canonical skill without changing its rating or learning data.
       if (!isDefaultSkill(found)) await found.setFlag("realm-guard", "defaultSkill", true);
@@ -71,7 +103,12 @@ export async function ensureDefaultSkills(actor) {
     });
   }
 
-  return create.length ? actor.createEmbeddedDocuments("Item", create) : [];
+  const created = create.length ? await actor.createEmbeddedDocuments("Item", create) : [];
+  if (legacy) {
+    const manipulator = existing.get("manipulator") ?? created.find(item => key(item.name) === "manipulator");
+    await transferDeceiverLearning(roles, manipulator);
+  }
+  return created;
 }
 
 let rgDefaultSkillsMigrationRunning = false;

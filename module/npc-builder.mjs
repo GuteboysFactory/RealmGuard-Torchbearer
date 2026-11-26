@@ -1,4 +1,5 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
+import { isAvailableSkill } from "./default-skills.mjs";
 import { fitWindowToViewport } from "./window-position-service.mjs";
 import { openNpcFolderImport } from "./npc-folder-import.mjs";
 import { openNpcArchive } from "./npc-archive.mjs";
@@ -115,6 +116,7 @@ async function uploadNpcImage(file, { uniqueName = false } = {}) {
 
 function buildNpcSource(template, { packId, actorName, imageFile, imagePath, folderId = null }) {
   const source = packId === PACK_ID ? template.toObject() : game.actors.fromCompendium(template);
+  if (source.items) source.items = source.items.filter(item => item.type !== "role" || isAvailableSkill(item.name));
   delete source._id;
   source.folder = folderId;
   source.name = String(actorName || "").trim() || cleanFileName(imageFile?.name) || template.name;

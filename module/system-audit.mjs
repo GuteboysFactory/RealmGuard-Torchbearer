@@ -1,6 +1,6 @@
 import { registerGmDockTool } from "./gm-dock.mjs";
 import {resourceStorageMaximum} from './legacy-mixed-scope.mjs';
-import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { activeDefaultSkills, isAvailableSkill } from "./default-skills.mjs";
 import { progressionLevelFor } from "./progression.mjs";
 import { getCoreBaselineStatus, CORE_SCHEMA_VERSION, CORE_ARCHITECTURE_VERSION, LEGACY_PROFILE_ID } from "./core-baseline.mjs";
 
@@ -24,7 +24,7 @@ function issue(severity, area, message, actor = null) {
 
 function auditActor(actor) {
   const issues = [];
-  const roles = actor.items.filter(item => item.type === "role");
+  const roles = actor.items.filter(item => item.type === "role" && isAvailableSkill(item.name));
   const byName = new Map();
   for (const role of roles) {
     const key = normalize(role.name);
@@ -32,9 +32,10 @@ function auditActor(actor) {
     byName.set(key, [...(byName.get(key) ?? []), role]);
   }
 
-  const missingSkills = RG_DEFAULT_SKILLS.filter(name => !byName.has(normalize(name)));
+  const defaultSkills = activeDefaultSkills();
+  const missingSkills = defaultSkills.filter(name => !byName.has(normalize(name)));
   if (missingSkills.length) issues.push(issue("warn", "Skills", `Missing ${missingSkills.length} canonical Skill entr${missingSkills.length === 1 ? "y" : "ies"}.`, actor));
-  const duplicateSkills = [...byName.entries()].filter(([, items]) => items.length > 1 && RG_DEFAULT_SKILLS.some(name => normalize(name) === normalize(items[0].name)));
+  const duplicateSkills = [...byName.entries()].filter(([, items]) => items.length > 1 && defaultSkills.some(name => normalize(name) === normalize(items[0].name)));
   if (duplicateSkills.length) issues.push(issue("error", "Skills", `Duplicate canonical Skills: ${duplicateSkills.map(([, items]) => items[0].name).join(", ")}.`, actor));
 
   const conditions = actor.items.filter(item => item.type === "condition");

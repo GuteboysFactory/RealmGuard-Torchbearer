@@ -3,6 +3,7 @@ import { fitWindowToViewport } from "../module/window-position-service.mjs";
 import { createCustomTalent } from '../module/legacy-talent-library.mjs';
 import { challengeTestChoices } from '../module/legacy-chat-actions.mjs';
 import { enlistRollActors } from '../module/roll-undo.mjs';
+import { isAvailableSkill } from "../module/default-skills.mjs";
 import { legacyMixedPolishEnabled, scopeLegacyMixedClass, resourceStorageMaximum } from "../module/legacy-mixed-scope.mjs";
 import { RealmGuardActorSheet as BaselineClass } from "../module/baseline-1.13.1/actor-sheet.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "../module/roll-chat.mjs";
@@ -11,7 +12,7 @@ import { modernFilePickerImplementation } from "../module/foundry-compat.mjs";
 import { toggleConditionActive, ensureDefaultConditions, isDefaultCondition, setConditionActive, conditionRollData, hasActiveCondition, validateRecoveryAttempt, recoveryMethods, beginRecoveryAttempt, finishRecoveryAttempt, conditionRecoveryPolicy } from "../module/conditions.mjs";
 import { playerTurnStatus, openDonateDialog, confirmFinishPlayer, currentTurnPhase, turnLabel, turnManagerEnabled, refundRecoveryChecks } from "../module/turns.mjs";
 import { buildInventoryView, placeGearInZone, placeGearInContainer, unassignGear, detachContainedGear } from "../module/inventory.mjs";
-import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget, legacyOpponentActor } from "../module/legacy-roll-targets.mjs";
+import { legacyRollTargetControls, bindLegacyRollTargets, resolveLegacyRollTarget } from "../module/legacy-roll-targets.mjs";
 import { compactLegacyRollDialog } from "../module/legacy-roll-layout.mjs";
 import { createInventoryTestGear } from "../module/qa-tools.mjs";
 import { chooseRealmGuardArt } from "../module/theme-art.mjs";
@@ -22,7 +23,7 @@ import { progressionView, setProgressionTotals, spendTrackedResource } from "../
 import { abilityLearning, adjustAbilityLearning, recordAbilityTest, recordHelperSkillTest, abilityLabel } from "../module/advancement.mjs";
 import { baselineObstacle, obstacleMode, obstacleDifficultyText, beginObstacleReview, obstacleReviewValue, finishObstacleReview } from "../module/obstacles.mjs";
 import { diceFacesHtml } from "../module/dice-ui.mjs";
-import { createTeamworkSession, teamworkEntries, finishTeamworkSession, setTeamworkOpponent } from "../module/teamwork.mjs";
+import { createTeamworkSession, teamworkEntries, finishTeamworkSession, setTeamworkOpponent, teamworkWaiting } from "../module/teamwork.mjs";
 import { chooseTalentForActor, talentEffectSummary, talentLinkSummary, talentOptionViews, talentStateLabel, resolveTalentUse, commitTalentUse, postTalentUseChat } from "../module/talents.mjs";
 import { getActiveM10BFamilyRulePolicy, natureDescriptorText, natureProfileLabel } from "../module/m10b-family-rules.mjs";
 import { getActiveM10BConditionRecoveryPolicy, familyRecoveryState } from "../module/m10b-conditions-recovery.mjs";
@@ -187,6 +188,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
   async _preparePartContext(partId, context, options) {
     const part = await super._preparePartContext(partId, context, options);
+    part.canViewCharacterNotes = this.actor.isOwner;
+    part.characterBiography = this.actor.system.biography;
     // Both profile implementations render the same Checks control.
     part.showPassChecks = this.actor?.type === "character";
     part.canPassChecks = part.showPassChecks && this.isEditable && this.actor.isOwner
@@ -702,9 +705,11 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
 
   static _availableVersusOpposition(skillName, opponent) {
     if (!opponent) return [];
+    if (!isAvailableSkill(skillName)) return [];
     const configured = RealmGuardActorSheet._versusRuleOptions(skillName);
     const candidates = [];
     for (const option of configured) {
+      if (option.kind === "role" && !isAvailableSkill(option.name)) continue;
       if (option.kind === "ability") {
         const stat = opponent.system.attributes?.[option.key];
         const rating = Number(stat?.value ?? 0);
@@ -736,7 +741,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
     if (raw.startsWith("role:")) {
       const item = opponent?.items.get(raw.slice(5));
-      if (!item || item.type !== "role") return null;
+      if (!item || item.type !== "role" || !isAvailableSkill(item.name)) return null;
       return { kind: "role", item, name: item.name, rating: Number(item.system.rating ?? 0) };
     }
     return null;
@@ -768,29 +773,22 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const ability = this.actor.system.attributes?.[abilityKey];
     const abilityValue = Number(ability?.value ?? 0);
     if (abilityValue <= 0) return ui.notifications.warn(`Realm Guard: ${abilityKey === "health" ? "Health" : "Will"} is 0. Beginner's Luck cannot be used; recover first or use Nature.`);
-    let versus = legacyMixedPolishEnabled() ? false : Boolean(role.system.versus);
+    const versus = false;
     const defaults = { obstacle: 1, modifier: 0 };
     const options = await RealmGuardActorSheet._openRollDialog.call(this, role, { versus, ...defaults, beginnerLuck: true, beginnerAbility: abilityKey });
     if (!options) return;
-    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
-    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, oppositionId, tapNature, natureScope } = options;
+    const challengeTarget = options.challengeTarget;
+    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, role.name, { isSkill: true });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Skill.");
     const extraDice = Math.max(0, Number(rawExtraDice ?? 0)) + Number(talentUse?.diceBonus ?? 0);
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost > Number(this.actor.system.resources.persona.value ?? 0)) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
-    let opposition = null, opponent = null;
-    if (versus && !options.manualVersus && (options.opponentActorId || game.user.targets.size === 1)) {
-      opponent = options.opponentActorId ? legacyOpponentActor(options) : [...game.user.targets][0]?.actor ?? null;
-      opposition = opponent ? RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId) : null;
-      if (!opposition || opposition.rating <= 0) return ui.notifications.warn("Realm Guard: Choose a valid Versus opposition.");
-    }
-    const tieOpponent = options.manualVersus ? legacyOpponentActor(options) : null;
-    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, opponent, opposition, countLearning, tapNature, natureScope, tieOpponent });
+    const result = await this.actor.rollBeginnerLuck(role, { talentUse, abilityKey, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, countLearning, tapNature, natureScope, challengeTarget });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, `${role.name} · Beginner's Luck`);
-    await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} · Beginner's Luck`);
-    if (countLearning && !result.tied) {
+    if (!challengeTarget) await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} · Beginner's Luck`);
+    if (!challengeTarget && countLearning && !result.tied) {
       const current = this.actor.items.get(role.id);
       const needed = Math.max(1, Number(this.actor.system.attributes?.nature?.maximum ?? this.actor.system.attributes?.nature?.value ?? 1));
       const attempts = Math.min(needed, Number(current.system.beginnerAttempts ?? 0) + 1);
@@ -856,41 +854,27 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static async _rollRole(event, target) {
     const id = target.closest("[data-item-id]")?.dataset.itemId;
     const role = this.actor.items.get(id);
-    if (!role) return;
+    if (!role || !isAvailableSkill(role.name)) return;
     if (Number(role.system.rating ?? 0) <= 0) {
       return RealmGuardActorSheet._rollUntrained.call(this, event, target);
     }
-    let versus = legacyMixedPolishEnabled() ? false : Boolean(role.system.versus);
+    const versus = false;
     const defaults = { obstacle: 1, modifier: 0 };
     const options = await RealmGuardActorSheet._openRollDialog.call(this, role, { versus, ...defaults });
     if (!options) return;
-    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
-    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, oppositionId, tapNature, natureScope } = options;
+    const challengeTarget = options.challengeTarget;
+    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, role.name, { isSkill: true });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Skill.");
     const extraDice = Math.max(0, Number(rawExtraDice ?? 0)) + Number(talentUse?.diceBonus ?? 0);
     const personaCost = Number(persona || 0) + (tapNature ? 1 : 0);
     if (personaCost && Number(this.actor.system.resources.persona.value ?? 0) < personaCost) return ui.notifications.warn(`Realm Guard: This roll requires ${personaCost} Persona.`);
-    let result;
-    if (versus && !options.manualVersus && (options.opponentActorId || game.user.targets.size === 1)) {
-      const targetToken = [...game.user.targets][0];
-      const opponent = options.opponentActorId ? legacyOpponentActor(options) : targetToken?.actor;
-      if (!opponent) return ui.notifications.warn("Realm Guard: Target has no Actor.");
-      const opposition = RealmGuardActorSheet._resolveVersusOpposition(opponent, oppositionId);
-      if (!opposition || opposition.rating <= 0) {
-        return ui.notifications.warn(`Realm Guard: Choose a valid Versus opposition for ${opponent.name}.`);
-      }
-      result = await this.actor.rollAutomaticVersus(role, opponent, opposition, { talentUse, modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope });
-    } else {
-      if (versus && game.user.targets.size > 1) ui.notifications.warn("Realm Guard: Automatic Versus needs exactly one target; using manual Obstacle instead.");
-      const tieOpponent = options.manualVersus ? legacyOpponentActor(options) : null;
-      result = await this.actor.rollRole(role, { talentUse, modifier, extraDice, help, obstacle, versus, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, tieOpponent });
-    }
+    const result = await this.actor.rollRole(role, { talentUse, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, challengeTarget, countLearning });
     if (result) {
       await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, role.name);
-      await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} Help`);
+      if (!challengeTarget) await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${role.name} Help`);
       const learningResult = Object.prototype.hasOwnProperty.call(result, "learningResult") ? result.learningResult : result.passed;
-      if (countLearning && !result.tied && learningResult !== null && learningResult !== undefined) {
+      if (!challengeTarget && countLearning && !result.tied && learningResult !== null && learningResult !== undefined) {
         await RealmGuardActorSheet._recordLearning.call(this, role, Boolean(learningResult));
       }
     }
@@ -899,7 +883,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
   static async _rollAbility(event, target) {
     const key = String(target.dataset.ability || "").toLowerCase();
     if (!key || !this.actor.system.attributes?.[key]) return;
-    const ability = { name: abilityLabel(key), system: { rating: Number(this.actor.system.attributes[key].value ?? 0) } };
+    const ability = { type: "ability", key, name: abilityLabel(key), system: { rating: Number(this.actor.system.attributes[key].value ?? 0) } };
     const defaults = { obstacle: 1, modifier: 0 };
     const targets = Array.from(game.user.targets ?? []);
     const natureTarget = key === "nature" && targets.length === 1 ? targets[0].actor : null;
@@ -916,8 +900,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const profileModifier = Number(defaults.modifier ?? 0) + Number(contactPlan?.futureCirclesDice ?? 0);
     const options = await RealmGuardActorSheet._openRollDialog.call(this, ability, { versus: false, ...defaults, modifier: profileModifier, isSkill: false, abilityKey: key, natureTarget, circlesContext });
     if (!options) return;
-    if (legacyMixedPolishEnabled() && options.versus !== undefined) versus = options.versus;
-    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope, natureUse, doubleTapNature, natureVersus } = options;
+    const { obstacle, modifier, extraDice: rawExtraDice, help, persona, countLearning, traitId, traitMode, wiseId, tokenPowerId, talentId, tapNature, natureScope, natureUse, doubleTapNature, natureVersus, challengeTarget } = options;
     const talentUse = RealmGuardActorSheet._talentUse.call(this, talentId, ability.name, { isSkill: false });
     if (talentId && !talentUse) return ui.notifications.warn("Realm Guard: That Talent is used, unavailable, or does not match this Ability.");
     const extraDice = Math.max(0, Number(rawExtraDice ?? 0)) + Number(talentUse?.diceBonus ?? 0);
@@ -926,14 +909,14 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     if (doubleTapNature && natureUse !== "within") return ui.notifications.warn("Realm Guard: Double-Tapping Nature is only available while acting within Nature.");
     const result = key === "nature" && natureVersus && natureTarget
       ? await this.actor.rollNatureVersus(natureTarget, { talentUse, modifier, extraDice, help, persona, traitId, traitMode, wiseId, tokenPowerId, natureUse, doubleTapNature })
-      : await this.actor.rollAbility(key, { talentUse, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, natureUse, doubleTapNature });
+      : await this.actor.rollAbility(key, { talentUse, modifier, extraDice, help, obstacle, persona, traitId, traitMode, wiseId, tokenPowerId, tapNature, natureScope, natureUse, doubleTapNature, challengeTarget, countLearning });
     if (!result) return;
     await RealmGuardActorSheet._commitTalentAfterRoll.call(this, talentUse, ability.name);
-    await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${ability.name} Help`);
-    if (countLearning && !result.tied && result.passed !== null && result.passed !== undefined) {
+    if (!challengeTarget) await RealmGuardActorSheet._commitSynergy.call(this, help, result, `${ability.name} Help`);
+    if (!challengeTarget && countLearning && !result.tied && result.passed !== null && result.passed !== undefined) {
       await recordAbilityTest(this.actor, key, Boolean(result.passed));
     }
-    if (key === "circles") {
+    if (key === "circles" && !challengeTarget) {
       await RealmGuardActorSheet._commitCirclesSocialContext.call(this, circlesContext, result);
     }
     if (countLearning || key === "circles") await this.render({ force: true });
@@ -1097,7 +1080,8 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const targetText = versus
       ? (opponent ? `Target: ${foundry.utils.escapeHTML(opponent.name)}` : "No single target selected — manual Obstacle will be used.")
       : "Standard test";
-    const legacyTargets = legacyMixedPolishEnabled() && isSkill && !conflictContext && !fixedObstacle;
+    const versusAbility = abilityKey && (!circlesContext || circlesContext.mode === "standard");
+    const legacyTargets = legacyMixedPolishEnabled() && (isSkill || versusAbility) && !conflictContext && !fixedObstacle && !replyContext;
     const versusChoice = legacyTargets ? legacyRollTargetControls(this.actor, versus, opponent) : versus && opponent
       ? (oppositionOptions.length
         ? `<fieldset class="rg-versus-opposition"><legend>Versus Opposition <span class="rg-help-tip" title="Versus tests use the opponent's roll instead of a normal Obstacle.">?</span></legend><label>Target rolls
@@ -1140,7 +1124,7 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const natureLabel = natureProfileLabel(family);
     const noPersona = personaValue < 1 ? ` <b class="rg-disabled-reason">Unavailable — requires 1 Persona.</b>` : "";
     const natureBlock = isNatureRoll
-      ? `<fieldset class="rg-nature-roll"><legend>${foundry.utils.escapeHTML(natureLabel)} · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Nature is special: acting against its descriptors can Tax it. Advancement uses Maximum Nature.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label>Test is <select name="natureUse"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label>${natureTarget ? `<label><input type="checkbox" name="natureVersus"> Versus target: ${foundry.utils.escapeHTML(natureTarget.name)} · Nature</label>` : ""}${canDoubleTapNature ? `<label><input type="checkbox" name="doubleTapNature" ${personaValue < 1 ? "disabled" : ""}> Double-Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label>` : ""}<small>${family.nature.doubleTapNature ? "Double-Tap is within Nature only. " : ""}Against Nature failures tax by Margin of Failure.</small></fieldset>`
+      ? `<fieldset class="rg-nature-roll"><legend>${foundry.utils.escapeHTML(natureLabel)} · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Nature is special: acting against its descriptors can Tax it. Advancement uses Maximum Nature.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label>Test is <select name="natureUse"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label>${natureTarget && !legacyTargets ? `<label><input type="checkbox" name="natureVersus"> Versus target: ${foundry.utils.escapeHTML(natureTarget.name)} · Nature</label>` : ""}${canDoubleTapNature ? `<label><input type="checkbox" name="doubleTapNature" ${personaValue < 1 ? "disabled" : ""}> Double-Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label>` : ""}<small>${family.nature.doubleTapNature ? "Double-Tap is within Nature only. " : ""}Against Nature failures tax by Margin of Failure.</small></fieldset>`
       : (canTapNature ? `<fieldset class="rg-nature-roll"><legend>Tap Nature · ${natureCurrent}/${natureMaximum} <span class="rg-help-tip" title="Spend 1 Persona to add current Nature to this test. Acting against Nature can Tax it.">?</span></legend><p><b>Descriptors:</b> ${foundry.utils.escapeHTML(natureDescriptors || "Profile-defined")}</p><label><input type="checkbox" name="tapNature" ${personaValue < 1 ? "disabled" : ""}> Tap Nature (+${natureCurrent}D, costs 1 Persona)${noPersona}</label><label>Test is <select name="natureScope"><option value="within">Within Nature descriptors</option><option value="against">Against Nature descriptors</option></select></label><small>${beginnerLuck ? `Beginner's Luck: Tap Nature dice are added after halving. ` : ""}Within + PASS: no tax. Against + PASS: tax 1. Failed tapped test: tax by Margin of Failure. Not available for ${family.nature.tapExcludedAbilities.join("/") || "profile-excluded abilities"}.</small></fieldset>` : "");
     const tokenRollIsSkill = tokenSourceIsSkill === null || tokenSourceIsSkill === undefined ? isSkill : Boolean(tokenSourceIsSkill);
     const tokenOptions = tokenPowerOptionViews(this.actor, role.name, { isSkill: tokenRollIsSkill });
@@ -1196,9 +1180,10 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
             ? "+1D · every applicable test"
             : status.available ? "+1D · 1/session" : "+1D · USED")
         : (level === 3 ? "+1s · always when relevant" : level === 2 && status.limit === null ? "+1D · every applicable test" : status.available ? `+1D · ${status.remaining}/${status.limit} left` : "+1D · USED this session");
-      return `<option value="${trait.id}">${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
+      const spent = legacyMixedPolishEnabled() && status.limit > 0 && !status.available;
+      return `<option value="${trait.id}"${spent ? " disabled" : ""}>${foundry.utils.escapeHTML(trait.name)} (L${level} · ${state})</option>`;
     }).join("");
-    const replySelectors=replyContext&&legacyMixedPolishEnabled()?`<fieldset class="rg-reply-selectors"><legend>Reply · ${foundry.utils.escapeHTML(replyContext.label)} · Ob ${initialObstacle}</legend><label>Character<select name="replyActorId">${replyContext.actorIds.map(id=>game.actors.get(id)).filter(a=>a?.isOwner).map(a=>`<option value="${a.id}" ${a.id===this.actor.id?'selected':''}>${foundry.utils.escapeHTML(a.name)}</option>`).join('')}</select></label><label>Skill or Ability<select name="replySkillId">${challengeTestChoices(this.actor).map(i=>`<option value="${i.id}" ${i.id===role.id?'selected':''}>${foundry.utils.escapeHTML(i.name)} · ${Number(i.system.rating)>0||i.type==='ability'?`${Number(i.system.rating)}D`:"Beginner's Luck"}</option>`).join('')}</select></label></fieldset>`:'';
+    const replySelectors=replyContext&&legacyMixedPolishEnabled()?`<fieldset class="rg-reply-selectors"><legend>Reply · ${foundry.utils.escapeHTML(replyContext.label)} · Ob ${initialObstacle}</legend><label>Character<select name="replyActorId">${replyContext.actorIds.map(id=>id===this.actor.id ? this.actor : game.actors.get(id)).filter(a=>a?.isOwner).map(a=>`<option value="${a.id}" ${a.id===this.actor.id?'selected':''}>${foundry.utils.escapeHTML(a.name)}</option>`).join('')}</select></label><label>Skill or Ability<select name="replySkillId">${challengeTestChoices(this.actor).map(i=>`<option value="${i.id}" ${i.id===role.id?'selected':''}>${foundry.utils.escapeHTML(i.name)} · ${Number(i.system.rating)>0||i.type==='ability'?`${Number(i.system.rating)}D`:"Beginner's Luck"}</option>`).join('')}</select></label></fieldset>`:'';
     const content = `<div class="rg-roll-dialog${conflictContext ? " rg-conflict-standard-roll" : ""}"${requestAttr}${liveAttr} data-rg-teamwork-session="${teamworkSessionId}">
         <div class="rg-roll-dialog-head"><strong>${foundry.utils.escapeHTML(role.name)}</strong><span>${beginnerLuck ? `BEGINNER'S LUCK · ${String(beginnerAbility).toUpperCase()}` : (versus ? "VERSUS" : "TEST")} · ${targetText}</span></div>
         ${replySelectors}
@@ -1224,26 +1209,47 @@ export class RealmGuardActorSheet extends HandlebarsApplicationMixin(ActorSheetV
     const result = await DialogV2.wait({
       window: { title: `Realm Guard · Roll ${role.name}`, resizable: true }, content, modal: false, rejectClose: false,
       ...(legacyMixedPolishEnabled() ? { position: { width: Math.min(640, (globalThis.innerWidth ?? 680)-32) } } : {}),
-      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, role, RealmGuardActorSheet, id => setTeamworkOpponent(teamworkSessionId, id)); compactLegacyRollDialog(dialog);
-        const picker=dialog.element?.querySelector('.rg-reply-selectors');if(picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('change',()=>{const actorId=picker.querySelector('[name="replyActorId"]').value;const actor=game.actors.get(actorId);const skillId=actorId===this.actor.id?picker.querySelector('[name="replySkillId"]').value:actor && challengeTestChoices(actor)[0]?.id;if(actorId===this.actor.id&&skillId===role.id)return;replySelection={actorId,skillId};void dialog.close();});}
+      render: (_event, dialog) => { if (legacyTargets) bindLegacyRollTargets(dialog, this.actor, id => setTeamworkOpponent(teamworkSessionId, id)); compactLegacyRollDialog(dialog);
+        if (legacyMixedPolishEnabled()) {
+          const traitSelect = dialog.element?.querySelector('[name="traitId"]');
+          const traitMode = dialog.element?.querySelector('[name="traitMode"]');
+          if (traitSelect && traitMode) {
+            const syncTraitOptions = () => {
+              for (const option of traitSelect.options) {
+                if (!option.value) continue;
+                const status = traitPositiveStatus(this.actor, this.actor.items.get(option.value));
+                option.disabled = traitMode.value === "help" && status.limit > 0 && !status.available;
+              }
+              if (traitSelect.selectedOptions[0]?.disabled) {
+                traitSelect.value = "";
+                traitSelect.dispatchEvent(new Event("change", {bubbles: true}));
+              }
+            };
+            traitMode.onchange = syncTraitOptions;
+            traitSelect.closest("label")?.addEventListener("focusin", syncTraitOptions);
+            syncTraitOptions();
+          }
+        }
+        const picker=dialog.element?.querySelector('.rg-reply-selectors');if(picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('change',()=>{const actorId=picker.querySelector('[name="replyActorId"]').value;const actor=actorId===this.actor.id?this.actor:game.actors.get(actorId);const skillId=actorId===this.actor.id?picker.querySelector('[name="replySkillId"]').value:actor && challengeTestChoices(actor)[0]?.id;if(actorId===this.actor.id&&skillId===role.id)return;replySelection={actorId,skillId};void dialog.close();});}
       },
       buttons: [{ action: "roll", label: review ? "Roll when Ob is approved" : "Roll", icon: "fa-solid fa-dice", default: true, callback: async (_event, button) => {
         const form = button.form; if (!form) return null;
         const elements = form.elements;
-        const targetSelection = legacyTargets ? resolveLegacyRollTarget(this.actor, role, elements, RealmGuardActorSheet) : {};
+        const targetSelection = legacyTargets ? resolveLegacyRollTarget(this.actor, elements) : {};
         if (legacyTargets && !targetSelection) return null;
-        if (review && !targetSelection.versus) await review.promise;
+        if (teamworkWaiting(teamworkSessionId)) return null;
+        if (review && !targetSelection.challengeTarget) await review.promise;
         const acceptedHelp = allowHelp && teamworkSessionId ? teamworkEntries(teamworkSessionId) : [];
         const help = Number.isFinite(conflictContext?.maxHelpers) ? acceptedHelp.slice(0, conflictContext.maxHelpers) : acceptedHelp;
         enlistRollActors(this.actor, help.map(entry=>entry.actorId));
         return {
           ...targetSelection,
-          obstacle: review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
-          modifier: Number(elements.modifier?.value ?? 0), extraDice: Math.max(0, Number(elements.extraDice?.value ?? 0)), help: targetSelection.opponentActorId ? help.filter(entry => entry.actorId !== targetSelection.opponentActorId) : help,
+          obstacle: targetSelection.challengeTarget ? 0 : review ? obstacleReviewValue(review.requestId, initialObstacle) : Math.max(0, Number(elements.obstacle?.value ?? initialObstacle)),
+          modifier: Number(elements.modifier?.value ?? 0), extraDice: Math.max(0, Number(elements.extraDice?.value ?? 0)), help: targetSelection.challengeTarget ? help.filter(entry => entry.actorId !== targetSelection.challengeTarget.id) : help,
           persona: Math.max(0, Math.min(3, Number(elements.persona?.value ?? 0))), countLearning: canCountLearning ? Boolean(elements.countLearning?.checked) : false,
           lockSword: Boolean(elements.lockSword?.checked), weaponRequirementMet: !elements.weaponRequirementMet || Boolean(elements.weaponRequirementMet.checked),
           traitId: elements.traitId?.value || null, traitMode: elements.traitMode?.value || "help", wiseId: elements.wiseId?.value || null,
-          tokenPowerId: elements.tokenPowerId?.value || null, talentId: elements.talentId?.value || null, oppositionId: targetSelection.oppositionId ?? elements.oppositionId?.value ?? null,
+          tokenPowerId: elements.tokenPowerId?.value || null, talentId: elements.talentId?.value || null, oppositionId: elements.oppositionId?.value ?? null,
           tapNature: Boolean(elements.tapNature?.checked), natureScope: elements.natureScope?.value || "within", natureUse: elements.natureUse?.value || "within",
           doubleTapNature: Boolean(elements.doubleTapNature?.checked), natureVersus: Boolean(elements.natureVersus?.checked)
         };

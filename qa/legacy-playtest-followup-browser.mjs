@@ -146,11 +146,21 @@ try{
  // render resolves used to leave the rendered Accept button without a handler.
  await b.evaluate(()=>{
    foundry.applications.api.DialogV2=class {
-     constructor(options){this.options=options;}
+     constructor(options){
+       if (!options.buttons?.length) throw new Error('Foundry DialogV2 requires at least one button');
+       this.options=options;
+     }
      async render(){
        await new Promise(resolve=>setTimeout(resolve,150));
        this.element=document.createElement('section');
        this.element.innerHTML=this.options.content;
+       for (const action of this.options.buttons) {
+         const button = document.createElement('button');
+         button.dataset.action = action.action;
+         button.textContent = action.label;
+         button.addEventListener('click', event => action.callback?.(event, button, this));
+         this.element.append(button);
+       }
        document.body.append(this.element);
      }
      async close(){this.element?.remove();}
@@ -165,7 +175,7 @@ try{
  assert.equal(await a.locator('[name="obstacle"]').isEditable(),false);
  await a.locator('[data-rg-teamwork-ask]').click();
  await b.locator('[data-helper-source]').selectOption('Skill|fighter');
- await b.locator('[data-helper-accept]').click();
+ await b.getByRole('button', { name:'Help +1D', exact:true }).click();
  await a.locator('[data-rg-help-summary] .rg-teamwork-accepted').waitFor();
  await a.evaluate(()=>fx.dice.push([4,4,1]));
  await a.locator('[data-action="roll"]').click();

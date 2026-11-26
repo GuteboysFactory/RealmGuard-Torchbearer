@@ -1,6 +1,6 @@
-import { RG_DEFAULT_SKILLS } from "./default-skills.mjs";
+import { LEGACY_MIXED_DEFAULT_SKILLS } from "./default-skills.mjs";
 import { QUICK_NPC_TEMPLATE_SPECS } from "./quick-npc-library.mjs";
-import { HOMELANDS, TRADE_SKILLS, APPRENTICESHIP_SKILLS, CONVINCING_SKILLS, INNATE_TRAITS, RELATIONSHIP_LOCATIONS } from "./recruitment-catalog.mjs";
+import { HOMELANDS, TRADE_SKILLS, APPRENTICESHIP_SKILLS, LEGACY_MIXED_CONVINCING_SKILLS, INNATE_TRAITS, RELATIONSHIP_LOCATIONS } from "./recruitment-catalog.mjs";
 import { LEGACY_BACKGROUNDS, LEGACY_PEOPLES } from "./legacy-people.mjs";
 
 const sorted = values => [...new Set(values)].sort((a, b) => a.localeCompare(b));
@@ -15,12 +15,12 @@ for (const template of QUICK_NPC_TEMPLATE_SPECS) {
 }
 
 const established = new Map(Object.values(LEGACY_BACKGROUNDS).map(background => [background.label, background]));
-export const BACKGROUNDS = sorted([...established.keys(), ...templatesByOccupation.keys(), ...RG_DEFAULT_SKILLS]);
+export const BACKGROUNDS = sorted([...established.keys(), ...templatesByOccupation.keys(), ...LEGACY_MIXED_DEFAULT_SKILLS]);
 export const OCCUPATIONS = BACKGROUNDS;
 export const RELATION_PEOPLES = sorted(QUICK_NPC_TEMPLATE_SPECS.map(template => template.metadata.people).filter(Boolean).concat(["Human", "Dúnadan", "Dwarf", "Hobbit", "Elf"]));
 export const PLACES = sorted([...RELATIONSHIP_LOCATIONS, ...Object.values(HOMELANDS).map(home => home.label),
   ...Object.values(LEGACY_PEOPLES).flatMap(people => people.homes)]);
-export const CREATION_SKILLS = sorted(RG_DEFAULT_SKILLS);
+export const CREATION_SKILLS = sorted(LEGACY_MIXED_DEFAULT_SKILLS);
 
 export function backgroundFor(occupation) {
   const background = established.get(occupation);
@@ -56,7 +56,7 @@ export const WISE_CHECKS = 2;
 export const EXPERIENCE_FIELDS = [
   ["naturalTalent", "Area of Natural Talent", CREATION_SKILLS],
   ["familyTrade", "Family Trade", TRADE_SKILLS],
-  ["convincing", "Convincing Others", CONVINCING_SKILLS],
+  ["convincing", "Convincing Others", LEGACY_MIXED_CONVINCING_SKILLS],
   ["apprenticeship", "Apprenticeship", APPRENTICESHIP_SKILLS],
   ["mentorTraining", "Mentor Training", CREATION_SKILLS]
 ];

@@ -1,4 +1,5 @@
 import { legacyMixedPolishEnabled } from './legacy-mixed-scope.mjs';
+import { isLegacyMixedSkill } from './default-skills.mjs';
 import { placeGearInZone,placeGearInContainer } from './inventory.mjs';
 const NS='realm-guard',bound=new WeakSet(),types=new Set(['role','trait','wise','gear','condition','talent','tokenOfPower']);
 const fold=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -32,6 +33,7 @@ export async function importSheetItem(sheet,item,target=null){
   if(!legacyMixedPolishEnabled()||!sheet.isEditable||!sheet.actor.isOwner)return null;
   const panel=target?.closest?.('[data-rg-drop-type]'),zone=target?.closest?.('[data-rg-inventory-zone]'),container=target?.closest?.('[data-rg-inventory-container]');
   const kind=resolveDropKind(item,{type:panel?.dataset.rgDropType??null,category:panel?.dataset.rgDropCategory??''});
+  if (kind.type === 'role' && !isLegacyMixedSkill(item.name)) return ui.notifications.warn('Realm Guard: This Skill is unavailable in Legacy Mixed.');
   const data=foundry.utils.deepClone(item.toObject());const originalType=data.type;delete data._id;delete data.id;delete data.folder;delete data.pack;delete data.ownership;delete data._stats;
   data.type=kind.type;data.flags??={};data.flags[NS]??={};data.system??={};
   if(originalType!==kind.type){data.flags[NS].importOriginal={type:originalType,system:foundry.utils.deepClone(data.system)};const description=data.system.description??'';data.system={description};}
