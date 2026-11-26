@@ -35,7 +35,21 @@ try{
    (await import('/module/teamwork.mjs')).installTeamworkWorkflow();
    window.undo=await import('/module/roll-undo.mjs');undo.installRollUndo(Sheet);
    (await import('/module/legacy-session.mjs')).installLegacySession();
-   const create=ChatMessage.create;ChatMessage.create=async data=>{const m=await create(data),el=document.createElement('article');el.dataset.messageId=m.id;el.innerHTML=m.content;document.querySelector('#messages').append(el);const update=m.update;m.update=async patch=>{await update.call(m,patch);el.innerHTML=m.content;Hooks.callAll('renderChatMessageHTML',m,el);return m;};Hooks.callAll('renderChatMessageHTML',m,el);return m;};
+   const create=ChatMessage.create;
+   ChatMessage.create=async data=>{
+     const message=await create(data), element=document.createElement('article');
+     element.dataset.messageId=message.id;
+     const render=()=>{
+       element.innerHTML='<header class="message-header"><span class="message-metadata"><time class="message-timestamp">Now</time><a class="message-delete" data-action="deleteMessage" aria-label="Delete"></a></span></header><div class="message-content"></div>';
+       element.querySelector('.message-content').innerHTML=message.content;
+       Hooks.callAll('renderChatMessageHTML',message,element);
+     };
+     document.querySelector('#messages').append(element);
+     const update=message.update;
+     message.update=async patch=>{await update.call(message,patch);render();return message;};
+     render();
+     return message;
+   };
    Hooks.callAll('ready');
   },userId);
  }
@@ -65,6 +79,10 @@ try{
  assert.deepEqual(await gm.evaluate(()=>{const s=conflict.currentState();return {stage:s.stage,current:s.ranger.disposition.current,allocated:Object.values(s.ranger.individualDisposition).reduce((n,r)=>n+r.current,0)};}),{stage:'ready',current:6,allocated:6},'Disposition damage stays synchronized and never requests reallocation');
  assert.equal(await gm.locator('.rg-conflict-side-card').first().evaluate(e=>getComputedStyle(e).borderRadius),'0px');
  assert.equal(await gm.locator('.rg-conflict-side-card>header').first().evaluate(e=>e.querySelector('span').getBoundingClientRect().bottom<=e.querySelector('strong').getBoundingClientRect().top+1),true,'Action sits above the full-width character name');
+ const conflictSide = gm.locator('.rg-conflict-side-card.rg-compact-roll-card').first();
+ assert.match(await conflictSide.locator('summary').first().innerText(),/^Teamwork & costs/);
+ assert.ok(await conflictSide.locator('.rg-roll-card-result .rg-die-face').count());
+ assert.equal(await conflictSide.locator('.rg-roll-card-result .rg-conflict-status').isVisible(),true);
  assert.ok(await a.locator('[data-conflict-action="back"]').count(),'A participant can Back without being Captain of both sides');
  await a.locator('[data-conflict-action="back"]').click();await gm.waitForFunction(()=>conflict.currentState().stage==='action');
  assert.equal(await gm.evaluate(()=>conflict.currentState().stage),'action','Back restores resolved action for correction');
@@ -105,9 +123,21 @@ try{
  await gm.evaluate(async()=>{const el=document.createElement('div');el.className='rg-end-session';el.innerHTML='<h3>Session review</h3><label>MVP<select name="mvp"><option value="ranger">Ranger</option></select></label>';await view.publishSessionView(el);});for(const p of [a,b]){assert.equal(await p.locator('#rg-eos-shared').count(),1);assert.equal(await p.locator('#rg-eos-shared select').isDisabled(),true);}
  await a.screenshot({path:path.join(root,'output/playtest-followup/session.png')});
  await gm.evaluate(()=>view.publishSessionView(null,false));
- // A GM roll's actual successes produce a clickable reply with the target.
- await gm.evaluate(async()=>{const actor=game.actors.get('ranger');fx.dice.push([4,4,1]);await actor.rollRole(actor.items.get('fighter'),{obstacle:1});});
- assert.match(await gm.locator('[data-rg-respond]').last().textContent(),/Vs\. 2/);
+ // A finished GM roll keeps Undo in its metadata and cannot solicit a reply.
+ await gm.evaluate(async()=>{
+   const actor=game.actors.get('ranger');
+   fx.dice.push([4,4,1]);
+   await undo.withRollUndo(actor,()=>actor.rollRole(actor.items.get('fighter'),{obstacle:1}));
+ });
+ const finished=gm.locator('#messages article').last();
+ assert.equal(await finished.locator('[data-rg-respond]').count(),0);
+ assert.doesNotMatch(await finished.textContent(),/Ask players to respond/);
+ const undoIcon=finished.locator('.message-metadata > [data-rg-undo-roll]');
+ assert.equal(await undoIcon.getAttribute('data-tooltip'),'Undo roll');
+ assert.equal(await undoIcon.locator('.fa-rotate-left').count(),1);
+ assert.deepEqual(await finished.locator('.message-metadata > *').evaluateAll(items=>items.map(item=>item.tagName)),['TIME','BUTTON','A']);
+ await gm.evaluate(()=>game.messages.at(-1).update({'flags.realm-guard.challenge':{label:'Fighter',versus:true,obstacle:2}}));
+ assert.equal(await finished.locator('[data-rg-respond]').count(),0,'Old implicit challenges are suppressed too');
  // Real DialogV2 form callbacks for chat replies and map creation.
  await a.evaluate(async()=>{
    foundry.applications.api.DialogV2.wait=options=>new Promise(resolve=>{const form=document.createElement('form');form.id='followup-dialog';form.style='position:fixed;top:10px;left:10px;z-index:999;width:620px;max-height:90vh;overflow:auto;background:#e5d5b1;padding:20px';form.innerHTML=options.content;document.body.append(form);for(const button of options.buttons??[]){const el=document.createElement('button');el.type='button';el.dataset.action=button.action;el.textContent=button.label;el.onclick=async()=>{const value=await button.callback?.(null,{form});(window.formResults??=[]).push({title:options.window?.title,value});form.remove();resolve(value);};form.append(el);}options.render?.(null,{element:form,close:async()=>{form.remove();resolve(null);}});Hooks.callAll('renderApplicationV2',{element:form},form);});
@@ -130,6 +160,7 @@ try{
  assert.equal(await a.evaluate(()=>game.actors.get('ranger').system.resources.persona.value),0);
  assert.equal(await a.evaluate(()=>game.actors.get('ranger').items.get('fighter').system.learning.passed),1);
  await a.waitForFunction(()=>document.querySelector('[data-rg-respond].rg-responded'));
+ assert.equal(await a.locator('#messages article').last().locator('[data-rg-respond]').count(),0,'Only the original posted challenge offers replies');
  assert.equal(await a.locator('[data-rg-respond]').last().textContent(),'ranger Responded');
  assert.equal(await a.locator('[data-rg-respond]').last().evaluate(e=>getComputedStyle(e).animationName),'none');
  await a.locator('[data-rg-respond]').last().screenshot({path:'output/playtest-followup/qa10-responded.png'});

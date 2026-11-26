@@ -1,6 +1,7 @@
 import { registerRollMessage } from './roll-undo.mjs';
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
+import { compactStoredRollCards } from "./roll-card.mjs";
 
 const pending = new Map();
 const active = new Map();
@@ -56,7 +57,8 @@ export async function beginRollChat(actor, label, faces) {
     },
     async finish(content, {versusTie = null, testSource = null, includeInitialRoll = true, directedVersus = null} = {}) {
       pending.delete(message.id); active.delete(message.id);
-      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${includeInitialRoll ? initialHtml() : ""}${historyHtml()}${content}</div>`, "flags.realm-guard.rollDecisionPending": false,
+      const finished = typeof content === "function" ? content(historyHtml()) : `${includeInitialRoll ? initialHtml() : ""}${historyHtml()}${content}`;
+      return message.update({ content: `<div class="realm-guard rg-chat-roll-pipeline">${finished}</div>`, "flags.realm-guard.rollDecisionPending": false,
         ...(versusTie ? {"flags.realm-guard.versusTie":versusTie} : {}),
         ...(directedVersus ? {"flags.realm-guard.challenge":{
           ...directedVersus, label, versus: true, actorId: actor.id, actorUuid: actor.uuid,
@@ -85,6 +87,12 @@ export function resolveRollChatChoice(messageId, nonce, choiceId, user = game.us
 }
 
 export function installRollChat() {
+  Hooks.on("renderChatMessageHTML", (message, html) => {
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    if (root && !message.flags?.["realm-guard"]?.rollDecisionPending && !message.flags?.["realm-guard"]?.rollUndo?.undone) {
+      compactStoredRollCards(root);
+    }
+  });
   if (!legacyMixedPolishEnabled()) return;
   Hooks.once("ready", () => {
     document.addEventListener("click", event => {

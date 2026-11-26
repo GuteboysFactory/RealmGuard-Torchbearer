@@ -2,11 +2,10 @@ import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { installCustomRollParityAction as baselineInstall } from "./baseline-1.13.1/custom-roll-parity-ui.mjs";
 import { beginRollChat, claimActorRoll, releaseActorRoll, spendRollResource } from "./roll-chat.mjs";
 import { baselineObstacle } from "./obstacles.mjs";
-import { diceFacesHtml } from "./dice-ui.mjs";
+import { compactRollCard, rollCardDiceHistory, rollCardOutcome } from "./roll-card.mjs";
 import { observeCustomRollParity } from "./test-parity-service.mjs";
 
 async function customRollWithParity() {
-  const esc = foundry.utils.escapeHTML;
   const fate = Number(this.actor.system.resources?.fate?.value ?? 0);
   const persona = Number(this.actor.system.resources?.persona?.value ?? 0);
   const result = await foundry.applications.api.DialogV2.wait({
@@ -52,7 +51,13 @@ async function customRollWithParity() {
     margin: Math.abs(successes - result.obstacle),
     fateSpent: spendFate
   });
-  await rollChat.finish( `<div class="realm-guard chat-roll rg-custom-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL · FREE POOL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D · Base ${result.dice}D${result.extra?` · Extra +${result.extra}D`:""}${result.persona?` · Persona +${result.persona}D`:""}</p><p><b>Roll:</b> ${diceFacesHtml(faces, {label:"Base roll"})}</p>${bonusFaces.length?`<p><b>Fate / Open 6s:</b> ${diceFacesHtml(bonusFaces,{label:"Fate dice"})}</p>`:""}<p><b>Successes:</b> ${successes} · <b>Ob ${result.obstacle}</b></p><div class="rg-result-summary"><span class="rg-result-final"><b>Result</b><strong class="rg-roll-outcome ${passed?"pass":"fail"}">${passed?"PASS":"FAIL"}</strong></span></div><small>No Learning/Advancement is recorded for an unlinked free pool.</small></div>`);
+  await rollChat.finish(choices => compactRollCard({
+    title: result.label, kind: "Custom Roll", pool, classes: "rg-custom-roll-chat",
+    entries: [["Base", `${result.dice}D`], result.extra && ["Extra Dice", `+${result.extra}D`], result.persona && ["Persona", `−${result.persona} · +${result.persona}D`]],
+    support: choices + "<p>Free dice pool. Learning is not recorded.</p>",
+    history: rollCardDiceHistory(faces, {}, {}, bonusFaces),
+    faces: all, outcome: rollCardOutcome(successes, result.obstacle)
+  }));
     } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(this.actor); }
 
 }

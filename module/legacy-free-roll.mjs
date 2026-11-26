@@ -1,7 +1,7 @@
 import {legacyMixedPolishEnabled} from './legacy-mixed-scope.mjs';
 import {baselineObstacle} from './obstacles.mjs';
-import {diceFacesHtml, diceSuccesses} from './dice-ui.mjs';
-const esc=v=>foundry.utils.escapeHTML(String(v??''));
+import {diceSuccesses} from './dice-ui.mjs';
+import {compactRollCard, rollCardOutcome} from './roll-card.mjs';
 let open=false;
 let d6Open = false;
 
@@ -37,11 +37,11 @@ export async function rollStandaloneD6() {
     const roll = await new Roll(`${count}d6`).evaluate();
     const faces = roll.dice.flatMap(die => die.results.map(result => result.result));
     const passed = diceSuccesses(faces);
-    return await postStandaloneRoll(roll, { standaloneD6: true },
-      `<div class="realm-guard chat-roll rg-standalone-roll-chat"><h3>D6s · ${count}d6</h3>
-      ${diceFacesHtml(faces, { label: "D6 results", openSixes: false })}
-      <p><b>Pass</b> ${passed} · <b>Fail</b> ${faces.length - passed}</p></div>`
-    );
+    return await postStandaloneRoll(roll, { standaloneD6: true }, compactRollCard({
+      title: "D6s", pool: count, classes: "rg-standalone-roll-chat", faces,
+      diceOptions: { label: "D6 results", openSixes: false },
+      outcome: `<div class="rg-roll-card-tally"><span><b>Pass</b> ${passed}</span><span><b>Fail</b> ${faces.length - passed}</span></div>`
+    }));
   } finally {
     d6Open = false;
   }
@@ -59,5 +59,9 @@ async function standaloneDialog(){
  if(!result)return;
  if(!Number.isInteger(result.dice)||result.dice<0||result.dice>30||!Number.isInteger(result.extra)||result.extra<0||result.extra>20||!Number.isInteger(result.obstacle)||result.obstacle<0||result.obstacle>20||result.dice+result.extra<1)return ui.notifications.warn('Use whole dice counts and a pool of at least 1D.');
  const pool=result.dice+result.extra,roll=await new Roll(`${pool}d6`).evaluate(),faces=roll.dice.flatMap(d=>d.results.map(r=>r.result)),successes=faces.filter(v=>v>=4).length;
- return postStandaloneRoll(roll, {standaloneCustomRoll:true}, `<div class="realm-guard chat-roll rg-standalone-roll-chat"><div class="rg-custom-chat-tag">CUSTOM ROLL</div><h3>${esc(result.label)}</h3><p><b>Pool:</b> ${pool}D</p>${diceFacesHtml(faces)}<p><b>Successes:</b> ${successes} · <b>Obstacle:</b> ${result.obstacle}</p><strong class="rg-roll-outcome ${successes>=result.obstacle?'pass':'fail'}">${successes>=result.obstacle?'PASS':'FAIL'}</strong></div>`);
+ return postStandaloneRoll(roll, {standaloneCustomRoll:true}, compactRollCard({
+   title: result.label, kind: "Custom Roll", pool, classes: "rg-standalone-roll-chat",
+   entries: [["Base", `${result.dice}D`], result.extra && ["Extra Dice", `+${result.extra}D`]],
+   faces, outcome: rollCardOutcome(successes, result.obstacle)
+ }));
 }

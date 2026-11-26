@@ -139,7 +139,9 @@ function renderTie(message, html) {
       button.disabled = false;
     }
   });
-  (root.querySelector(".rg-chat-roll-pipeline") ?? root).append(panel);
+  const result = root.querySelector(".rg-compact-roll-card > .rg-roll-card-result");
+  if (result) result.before(panel);
+  else (root.querySelector(".rg-chat-roll-pipeline") ?? root).append(panel);
 }
 
 export function installVersusTiebreak() {

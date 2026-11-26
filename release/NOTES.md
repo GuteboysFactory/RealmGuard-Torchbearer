@@ -1,8 +1,7 @@
-# 1.13.14 – Read-only character sheets and clearer rolls
+# 1.13.15 – Compact roll cards and chat controls
 
-- Double-click the visible token of an online teammate or open their assigned player character through **Actors → Party Characters**. The regular character sheet opens in read-only mode, with working tabs, Conditions, and inventory search. Character Notes are hidden from the sheet.
-- In Legacy Mixed, directed Versus challenges let each side roll from chat. A player character's owner or the GM can respond. The GM responds for NPCs. Standard Skills and Abilities support Versus and manual Extra Dice.
-- **Ask for Help** contacts eligible, online players using their assigned characters. The roll dialog shows replies live and lets you stop waiting for a particular player.
-- Roll cards clearly show which dice a Wise replaces, list the new dice below them, and show the result at the bottom. Session-limited Trait benefits show **USED this session** and are disabled under **Help yourself** after use.
-- Roll a chosen number of **D6s** from the chat controls. In Legacy Mixed, trained Deceiver progress carries over to Manipulator without creating a duplicate skill.
-- Character portraits support the updated framing. Verified in Foundry VTT 13.351.
+- Realm Guard roll cards use a more compact, square-cornered layout. **Teamwork & costs** and **Dice history** open independently when the roll has relevant details. **Result** and the outcome stay visible.
+- Wise rerolls retain the crossed-out dice and their aligned replacements. The layout also covers Versus, Conflict, Custom Roll and D6s with the details relevant to each.
+- **Undo roll** is a circular arrow beside Delete. The timestamp stays on one line in a narrow chat column.
+- A finished roll has no reply prompt. Directed Versus keeps **Respond** available to the target and GM until a response is recorded.
+- The outer border is removed from Tome's round chat portraits in Realm Guard. Generated token artwork is cropped to reduce its transparent margin in chat.

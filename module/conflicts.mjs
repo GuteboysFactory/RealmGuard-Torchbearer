@@ -7,6 +7,7 @@ import { isAvailableSkill } from "./default-skills.mjs";
 import { legacyMixedPolishEnabled } from "./legacy-mixed-scope.mjs";
 import { installConflictEngine as baselineInstall, openConflictWindow as baselineOpen, validateRangerSequence as baselineSequence } from "./baseline-1.13.1/conflicts.mjs";
 import { diceFacesHtml } from "./dice-ui.mjs";
+import { compactRollCard, rollCardDiceHistory, rollCardFold, rollCardResult } from "./roll-card.mjs";
 import { registerGmDockTool } from "./gm-dock.mjs";
 import { tokenPowerOptionViews } from "./tokens-of-power.mjs";
 import { talentOptionViews, resolveTalentUse, commitTalentUse, talentEffectSummary } from "./talents.mjs";
@@ -1257,6 +1258,7 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   await actor._commitTokenPowerUse?.(power);
   if (talentUse?.talent && !talentUse.reroll) await commitTalentUse(talentUse);
   let baseFaces = roll.dice.flatMap(d => d.results.map(r => r.result));
+  const initialFaces = [...baseFaces];
   rollChat = await beginRollChat(actor, `${label} · ${source.name}`, baseFaces);
   await rollChat.message.update({"flags.realm-guard.conflictRoll":true,"flags.realm-guard.conflictId":contextKey,"flags.realm-guard.stepRevision":Number(currentState()?.stepRevision??0)});
   assist.chatDecision = rollChat; assist.talentUse = talentUse;
@@ -1276,7 +1278,9 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
   const result = { earnedChecks,
     chatMessageId: rollChat.message.id, actorId: actor.id, sourceId: source.id, roleId: isNature ? null : source.id, abilityKey: isNature ? (source.key ?? "nature") : null, skillName: source.name,
     base: beginnerLuck ? blAbilityBase : trainedBase, pool, faces, beginnerLuck, beginnerAbilityKey: blAbilityKey, preHalf, beginnerDice,
-    rerollFaces: wiseResult.rerollFaces ?? [], tokenPowerRerollFaces: tokenResult.rerollFaces ?? [], fateFaces, fateSpent, personaSpent: totalPersonaCost + Number(wiseResult.personaSpent ?? 0),
+    initialFaces, wiseRerolledIndexes: wiseResult.wiseRerolledIndexes ?? [], wisePersonaSpent: Number(wiseResult.personaSpent ?? 0),
+    rerollFaces: wiseResult.rerollFaces ?? [], talentRerollFaces: wiseResult.talentRerollFaces ?? [], tokenPowerRerollFaces: tokenResult.rerollFaces ?? [],
+    fateFaces, fateSpent, personaSpent: totalPersonaCost + Number(wiseResult.personaSpent ?? 0),
     successes: faces.filter(v => v >= 4).length, conditionalSuccess: Math.max(0, Number(gear.conditionalSuccess ?? 0)), successPenalty: Math.max(0, Number(gear.successPenalty ?? 0)),
     traitSuccessLevel3: !isFamilyConflictProfile() && Number(assist?.traitStatus?.level ?? 0) === 3 && assist?.traitMode === "help", traitName: assist?.trait?.name ?? "",
     tokenPowerId: power?.token?.id ?? null, tokenPowerName: power?.token?.name ?? "", tokenPowerLevel: power?.level ?? 0, tokenPowerManual: Boolean(power?.manual), tokenPowerLink: power?.linkSummary ?? "",
@@ -1284,7 +1288,12 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
     helperIds, helpers: committedHelpers, helpDice, modifier: Number(modifier), extra: Number(extra), temporaryDice: Number(temporaryDice), gearDice: Number(gear.dice ?? 0), gearNotes: gear.notes ?? [], conditionDice: Number(conditionData.dice ?? 0), traitDice: Number(assist.traitDice ?? 0),
     natureTap: Boolean(tapNature), natureTapDice, natureScope: String(natureScope || "within")
   };
-  await rollChat.finish(`<h3>${esc(label)} · ${esc(source.name)}</h3><p><b>Final dice:</b> ${diceFacesHtml(faces)}</p><p><b>${result.successes} successes</b> · ${pool}D</p><small>Conflict outcome is resolved when both sides have completed their choices.</small>`);
+  await rollChat.finish(choices => compactRollCard({
+    title: `${label} · ${source.name}`, kind: "Conflict", pool,
+    support: conflictRollDetailsHtml(result) + choices,
+    history: conflictDiceHistory(result), faces,
+    outcome: `<div class="rg-roll-card-tally"><b>${result.successes} successes</b><small>Conflict resolution pending</small></div>`
+  }));
   return result;
   } catch (error) { await rollChat?.interrupt(); throw error; } finally { releaseActorRoll(actor); }
 
@@ -1621,15 +1630,31 @@ function conflictRollDetails(roll) {
   if (Number(roll.conditionDice ?? 0)) rows.push(["Conditions", `${Number(roll.conditionDice) > 0 ? "+" : ""}${Number(roll.conditionDice)}D`]);
   if (Number(roll.traitDice ?? 0)) rows.push(["Trait", `${Number(roll.traitDice) > 0 ? "+" : ""}${Number(roll.traitDice)}D${roll.traitName ? ` · ${roll.traitName}` : ""}`]);
   if (Number(roll.talentDice ?? 0) || roll.talentName) rows.push(["Talent", `${roll.talentName || "Talent"}${Number(roll.talentDice ?? 0) ? ` · +${Number(roll.talentDice)}D` : ""}`]);
-  const personaDice = Math.max(0, Number(roll.personaSpent ?? 0) - (roll.natureTap ? 1 : 0));
+  const personaDice = Math.max(0, Number(roll.personaSpent ?? 0) - (roll.natureTap ? 1 : 0) - Number(roll.wisePersonaSpent ?? 0));
   if (personaDice) rows.push(["Persona Dice", `+${personaDice}D`]);
   if (roll.natureTap) rows.push(["Tap Nature", `+${Number(roll.natureTapDice ?? 0)}D · ${String(roll.natureScope || "within")}`]);
   if (roll.fateSpent) rows.push(["Fate", "−1 · Open 6s"]);
+  if (roll.wisePersonaSpent) rows.push(["Wise reroll", `−${roll.wisePersonaSpent} Persona`]);
+  for (const helper of roll.helpers ?? []) {
+    rows.push([helper.actorName || actorById(helper.actorId)?.name || "Help", `${helper.sourceName || helper.sourceKind || "Teamwork"} · +1D`]);
+  }
   if (Number(roll.successPenalty ?? 0)) rows.push(["Success penalty", `−${Number(roll.successPenalty)}s`]);
   if (Number(roll.conditionalSuccess ?? 0)) rows.push(["Conditional success", `+${Number(roll.conditionalSuccess)}s if legal`]);
   if (roll.traitSuccessLevel3) rows.push(["Trait success", `${roll.traitName || "Trait"} · +1s if relevant`]);
   if (Array.isArray(roll.gearNotes) && roll.gearNotes.length) rows.push(["Weapon / Tool note", roll.gearNotes.join(" · ")]);
   return rows;
+}
+
+function conflictRollDetailsHtml(roll) {
+  const rows = conflictRollDetails(roll);
+  return rows.length ? `<div class="rg-roll-card-pool">${rows.map(([label, value]) => `<span><b>${esc(label)}</b> ${esc(value)}</span>`).join("")}</div>` : "";
+}
+
+function conflictDiceHistory(roll) {
+  return rollCardDiceHistory(roll.initialFaces, {
+    rerollFaces: roll.rerollFaces, talentRerollFaces: roll.talentRerollFaces,
+    wiseRerolledIndexes: roll.wiseRerolledIndexes, personaSpent: roll.wisePersonaSpent
+  }, { rerollFaces: roll.tokenPowerRerollFaces }, roll.fateFaces);
 }
 
 function conflictSideCard({ actorName, action, roll, passed, margin, mode }) {
@@ -1639,15 +1664,15 @@ function conflictSideCard({ actorName, action, roll, passed, margin, mode }) {
   }
   const rolled = Number(roll?.successes ?? 0);
   const effective = Number(roll?.effectiveSuccesses ?? rolled);
-  const detailRows = conflictRollDetails(roll);
-  const detailHtml = detailRows.length ? `<details class="rg-conflict-roll-details"><summary>Roll details</summary><div>${detailRows.map(([label, value]) => `<span><b>${esc(label)}</b><em>${esc(value)}</em></span>`).join("")}</div></details>` : "";
-  return `<section class="rg-conflict-side-card ${passed ? "is-pass" : "is-fail"}">
+  const history = roll ? conflictDiceHistory(roll) : null;
+  const outcome = `<div class="rg-conflict-side-primary"><span class="rg-conflict-status ${passed ? "pass" : "fail"}">${passed ? "PASS" : "FAIL"}</span><small>${passed ? "Success" : "Failed"}: ${Number(margin ?? 0)}</small>${effective !== rolled ? `<small>${rolled} rolled → ${effective} effective</small>` : ""}</div>`;
+  return `<section class="rg-conflict-side-card rg-compact-roll-card ${passed ? "is-pass" : "is-fail"}">
     <header><span>${esc(actionName)}</span><strong>${esc(actorName)}</strong></header>
     <p class="rg-conflict-source"><b>Skill / Ability:</b> ${esc(roll?.skillName || "—")}</p>
     <div class="rg-conflict-side-numbers"><span><b>Pool</b><strong>${Number(roll?.pool ?? 0)}D</strong></span><span><b>Successes</b><strong>${effective}</strong></span></div>
-    <div class="rg-conflict-side-dice">${diceFacesHtml(roll?.faces ?? [])}</div>
-    <div class="rg-conflict-side-primary"><span class="rg-conflict-status ${passed ? "pass" : "fail"}">${passed ? "PASS" : "FAIL"}</span><small>${passed ? "Success" : "Failed"}: ${Number(margin ?? 0)}</small>${effective !== rolled ? `<small>${rolled} rolled → ${effective} effective</small>` : ""}</div>
-    ${detailHtml}
+    ${rollCardFold("Teamwork & costs", roll?.helpDice ? `+${roll.helpDice}D` : "", conflictRollDetailsHtml(roll))}
+    ${rollCardFold("Dice history", history?.summary, history?.html)}
+    ${rollCardResult(roll?.faces, outcome)}
   </section>`;
 }
 

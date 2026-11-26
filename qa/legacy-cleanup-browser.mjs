@@ -70,16 +70,15 @@ try{
    assert.equal(await card.locator('.rg-die-face.success').count(),passed);
    assert.equal(await card.locator('.rg-die-face.failure').count(),failed);
    assert.equal(await card.locator('.rg-die-face.six').count(),0);
-   assert.match(await card.innerText(),new RegExp(`Pass ${passed} · Fail ${failed}`));
+   assert.equal(await card.locator('.rg-roll-card-tally > span').allTextContents().then(values => values.join(' · ')), `Pass ${passed} · Fail ${failed}`);
  }
  assert.equal(await page.evaluate(()=>JSON.stringify(actor.system)),await page.evaluate(()=>before));
- // Actual ordinary result: keep outer frame and boxes, remove only inner result
- // sides/bottom and run the divider across the outer roll frame.
+ // An ordinary roll shows its result and skips redundant history.
  await page.evaluate(async()=>{game.user=fx.gm;fx.settings.set('turnPhase','gm');actor.system.resources.persona.value=0;actor.system.resources.fate.value=0;actor.items.splice(actor.items.findIndex(i=>i.type==='wise'),1);fx.dice.push([4,4,1]);await actor.rollRole(actor.items.get('fighter'),{obstacle:1});});
  const final=page.locator('.rg-chat-roll-pipeline>.realm-guard.chat-roll').last();
- assert.deepEqual(await final.locator('.rg-roll-faces-rows > div > b').allTextContents(),['Result']);
- assert.deepEqual(await final.evaluate(e=>{const s=getComputedStyle(e);return [s.borderLeftWidth,s.borderRightWidth,s.borderBottomWidth,s.borderTopWidth];}),['0px','0px','0px','1px']);
- assert.ok(await final.evaluate(e=>{const p=e.parentElement.getBoundingClientRect(),r=e.getBoundingClientRect();return Math.abs(r.left-(p.left+1))<2&&Math.abs(r.right-(p.right-1))<2;}));assert.equal(await final.locator('.rg-roll-breakdown').evaluate(e=>getComputedStyle(e).borderLeftWidth),'1px');await page.locator('#messages').screenshot({path:'output/cleanup-review/roll-divider.png'});
+ assert.deepEqual(await final.locator('.rg-roll-card-result > div > b').allTextContents(),['Result']);
+ assert.equal(await final.locator('.rg-roll-card-fold').count(),0);
+ assert.equal(await final.locator('.rg-roll-card-result .rg-die-face').count(),3);
  // Real pending roll choice: conspicuous animation only for the rolling user,
  // reduced-motion fallback, and working choice buttons.
  await page.evaluate(async()=>{window.choice=await rollChat.beginRollChat(actor,'Fighter',[6,1,4]);window.answer=choice.ask('Spend Persona on a Wise or Trait?',[{label:'Spend 1 Persona',value:'yes'}]);});
@@ -99,13 +98,18 @@ try{
  await wiseQuestion.getByRole('button',{name:'Decline this option',exact:true}).click();
  await page.evaluate(()=>wiseRoll);
  const wiseCard = page.locator('.rg-wise-dice-timeline').last();
- assert.deepEqual(await wiseCard.locator(':scope > div > b').allTextContents(),['Initial roll','Wise reroll','Result']);
+ assert.deepEqual(await wiseCard.locator(':scope > div > b').allTextContents(),['Initial roll','Wise reroll']);
  assert.equal(await wiseCard.locator('.rg-die-crossed').count(),5);
  assert.equal(await wiseCard.locator('.rg-die-slot').count(),1);
+ const finished = wiseCard.locator('xpath=ancestor::*[contains(@class,"rg-chat-roll-pipeline")]');
+ const folds = finished.locator('.rg-roll-card-fold');
+ assert.match(await folds.nth(0).locator('summary').innerText(),/^Teamwork & costs/);
+ assert.match(await folds.nth(1).locator('summary').innerText(),/^Dice history/);
+ assert.equal(await finished.locator('details[open]').count(),0);
+ await folds.nth(1).locator('summary').click();
  const positions = await wiseCard.locator(':scope > div').evaluateAll(rows=>rows.map(row=>Array.from(row.querySelectorAll('.rg-die-face'),die=>die.getBoundingClientRect().left)));
  assert.deepEqual(positions[0],positions[1]);
- assert.deepEqual(positions[0],positions[2]);
- const finished = wiseCard.locator('xpath=ancestor::*[contains(@class,"rg-chat-roll-pipeline")]');
+ assert.equal(await finished.locator('.rg-roll-card-result .rg-die-face').count(),6);
  assert.deepEqual(await finished.locator('.rg-roll-decisions li').allTextContents(),['Angmar-wise · 1 Persona']);
  assert.equal(await finished.locator('.rg-first-roll').count(),0);
  assert.doesNotMatch(await finished.innerText(),/Declined|Spend 1 Fate|Use a relevant Wise/);
@@ -117,5 +121,12 @@ try{
  await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await response.evaluate(e=>getComputedStyle(e).animationName),'none');await page.emulateMedia({reducedMotion:'no-preference'});
  // Other profiles retain the original dock and native HUD controls.
  await page.evaluate(()=>{fx.settings.set('activeRulesProfileId','mouse-guard-2e');dock.renderGmDock();Hooks.callAll('renderTokenHUD',{},document.getElementById('token-hud'));});assert.equal(await page.locator('[data-rg-gm-tool="system-audit"]').count(),1);assert.equal(await page.locator('.rg-gm-dock-reset').count(),1);assert.equal(await page.locator('#token-hud [data-action="visibility"]').isVisible(),true);
- assert.deepEqual(errors,[]);console.log('PASS cleanup browser: compact dock, session/tools/provider routes, native Settings menu, status/reset/minimize, GM/player HUD hiding, direct actorless Custom Roll, full-width divider, kept boxes, pending-choice attention/reduced motion and profile isolation');
+ await page.evaluate(async()=>{
+   actor.system.resources.fate.value=0;actor.system.resources.persona.value=0;
+   fx.dice.push([4,4,1]);await actor.rollRole(actor.items.get('fighter'),{obstacle:1});
+ });
+ const compatibilityCard=page.locator('#messages article').last().locator('.rg-compact-roll-card');
+ assert.equal(await compatibilityCard.locator('.rg-roll-card-result .rg-die-face').count(),3);
+ assert.equal(await compatibilityCard.locator('.rg-roll-card-result .rg-roll-outcome').textContent(),'PASS');
+ assert.deepEqual(errors,[]);console.log('PASS cleanup browser: compact dock, native Settings, HUD, D6s, actorless Custom Roll, ordinary and compatibility roll cards, Wise alignment, pending-choice attention and reduced motion');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

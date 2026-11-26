@@ -4596,3 +4596,147 @@ body:has(#join-game) {
   height: 2rem;
   object-fit: cover;
 }
+
+.realm-guard .rg-compact-roll-card,
+.realm-guard.rg-compact-roll-card {
+  --rg-roll-card-border: #544b35;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #f0ead7;
+  border-radius: 0;
+}
+
+.chat-message:has(.rg-compact-roll-card) { border-radius: 0 !important; }
+
+.realm-guard.rg-compact-roll-card .rg-roll-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+}
+
+.realm-guard.rg-compact-roll-card .rg-roll-card-head h3 {
+  margin: 0;
+  background: transparent;
+  padding: 0;
+  color: #efbd78;
+  font-size: 1.2rem;
+}
+
+.rg-compact-roll-card :is(.rg-roll-card-head small, .rg-roll-card-fold summary small) {
+  color: #c9c1ad;
+  font-weight: normal;
+}
+
+.rg-compact-roll-card .rg-roll-card-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: .78rem;
+}
+
+.rg-compact-roll-card :is(.rg-roll-card-fold, .rg-roll-card-result) {
+  border-top: 1px solid var(--rg-roll-card-border);
+  min-width: 0;
+}
+
+.rg-compact-roll-card .rg-roll-card-fold summary {
+  padding: 5px 0;
+  color: #efbd78;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.rg-compact-roll-card .rg-roll-card-fold > div {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.rg-compact-roll-card :is(p, .rg-roll-decisions, .rg-roll-card-result) { margin: 0; }
+.rg-compact-roll-card .rg-roll-card-result { display: grid; gap: 5px; padding-top: 5px; }
+.rg-compact-roll-card .rg-roll-card-result > div:first-child > b { display: block; margin-bottom: 3px; }
+.rg-compact-roll-card .rg-dice-faces { margin: 0; gap: 3px; }
+.rg-compact-roll-card .rg-roll-card-result > div > .rg-dice-faces {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1.45rem));
+}
+.rg-compact-roll-card .rg-die-face {
+  min-width: 0;
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0;
+  border-radius: 0;
+}
+.rg-compact-roll-card .rg-die-face.six { padding-right: .24rem; }
+.rg-compact-roll-card .rg-die-face.six i { right: .07rem; top: .09rem; font-size: .42rem; }
+.realm-guard .rg-compact-roll-card .rg-roll-faces-rows > div,
+.realm-guard.rg-compact-roll-card .rg-roll-faces-rows > div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.rg-compact-roll-card .rg-roll-faces-rows b { font-size: .72rem; color: #c9c1ad; }
+.realm-guard.rg-compact-roll-card .rg-wise-dice-timeline > div > .rg-dice-faces,
+.realm-guard .rg-compact-roll-card .rg-wise-dice-timeline > div > .rg-dice-faces {
+  display: grid;
+  grid-template-columns: repeat(var(--rg-dice-columns), minmax(0, 1.45rem));
+}
+.rg-compact-roll-card .rg-wise-dice-timeline .rg-die-face,
+.rg-compact-roll-card .rg-roll-card-result > div > .rg-dice-faces .rg-die-face { width: 100%; }
+.rg-compact-roll-card .rg-die-crossed { background: #292b29; color: #c9c9bf; border: 1px dashed #8a8c85; }
+.rg-compact-roll-card .rg-die-crossed::before,
+.rg-compact-roll-card .rg-die-crossed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, transparent calc(50% - .5px), #a5a59a calc(50% - .5px), #a5a59a calc(50% + .5px), transparent calc(50% + .5px));
+  opacity: .65;
+  pointer-events: none;
+}
+.rg-compact-roll-card .rg-die-crossed::after { transform: scaleX(-1); }
+.rg-compact-roll-card .rg-die-slot { background: transparent; color: #abae9f; border: 0; box-shadow: none; }
+
+.realm-guard.rg-compact-roll-card .rg-result-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  margin: 0;
+  padding: 5px 0 0;
+  border-top: 1px solid var(--rg-roll-card-border);
+  font-size: .77rem;
+}
+.realm-guard.rg-compact-roll-card .rg-result-summary > span {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.realm-guard.rg-compact-roll-card .rg-result-summary > span > strong:not(.rg-roll-outcome) { font-size: 1em; }
+.realm-guard.rg-compact-roll-card .rg-result-summary .rg-result-final { margin-left: auto; }
+.realm-guard.rg-compact-roll-card .rg-result-summary .rg-roll-outcome { width: auto; min-width: 0; padding: 2px 5px; font-size: .72rem; }
+.rg-compact-roll-card .rg-roll-outcome[data-rg-margin]::after { content: " " attr(data-rg-margin); }
+.rg-compact-roll-card .rg-roll-outcome[data-rg-margin] + .rg-result-margin { display: none; }
+.rg-compact-roll-card .rg-roll-card-tally { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; }
+
+.chat-message .message-header > :is(img, video)[data-tome-chat-portrait="circle"] {
+  border: 0;
+  object-fit: cover;
+}
+
+/* Tome's generated token sheets have a transparent margin around the artwork. */
+.chat-message .message-header > :is(img, video)[data-tome-chat-portrait="circle"][src*="/token-art/"] {
+  scale: 1.62;
+  clip-path: circle(30.86% at center);
+}

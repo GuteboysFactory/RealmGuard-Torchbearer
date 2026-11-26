@@ -35,6 +35,8 @@ assert.equal((paidMessage.content.match(/rg-die-crossed/g) ?? []).length, 1);
 assert.equal((paidMessage.content.match(/rg-die-slot/g) ?? []).length, 2);
 assert.doesNotMatch(paidMessage.content, /rg-first-roll/);
 assert.doesNotMatch(paidMessage.content, /rg-roll-final-count|Final Successes|<b>6s<\/b>/);
+assert.match(paidMessage.content, /<summary>Teamwork &amp; costs<\/summary>.*<summary>Dice history.*<b>Result<\/b>/s);
+assert.doesNotMatch(paidMessage.content, /<details[^>]*\bopen\b/);
 assert.match(paidMessage.content, /<b>Result<\/b>.*<b>Successes<\/b><strong>3<\/strong>.*<b>Obstacle<\/b><strong>2<\/strong>.*>PASS</s);
 await undo.undoSkillMessage(paidMessage);
 assert.deepEqual(undo.snapshotActors([actor.id]),paidBefore);

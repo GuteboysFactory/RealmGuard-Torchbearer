@@ -103,7 +103,26 @@ export function installRollUndo(SheetClass){
   const run=m=>m?.flags?.[NS]?.conflictRoll?game.realmGuard.undoConflictMessage?.(m):undoSkillMessage(m);
   const add=(_html,options)=>options.push({name:'Undo roll',icon:'<i class="fa-solid fa-rotate-left"></i>',condition:li=>canUndoRollMessage(messageFor(li)),callback:li=>run(messageFor(li))});
   Hooks.on('getChatMessageContextOptions',add);
-  Hooks.on('renderChatMessageHTML',(message,html)=>{const root=html instanceof HTMLElement?html:html?.[0];if(!root||!canUndoRollMessage(message)||root.querySelector('[data-rg-undo-roll]'))return;const button=document.createElement('button');button.type='button';button.dataset.rgUndoRoll='';button.textContent=game.user.isGM?'Undo roll':'Undo my roll';button.onclick=()=>void run(message);root.append(button);});
+  Hooks.on('renderChatMessageHTML', (message, html) => {
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    if (!root || !canUndoRollMessage(message) || root.querySelector('[data-rg-undo-roll]')) return;
+    const header = root.querySelector('.message-header');
+    const trash = header?.querySelector('.message-delete, [data-action="deleteMessage"]');
+    const actions = trash?.parentElement ?? header?.querySelector('.message-metadata') ?? header;
+    if (!actions) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.rgUndoRoll = '';
+    button.dataset.tooltip = 'Undo roll';
+    button.setAttribute('aria-label', 'Undo roll');
+    button.innerHTML = '<i class="fa-solid fa-rotate-left" aria-hidden="true"></i>';
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      void run(message);
+    });
+    if (trash) trash.before(button);
+    else actions.append(button);
+  });
   Hooks.on('createChatMessage',message=>{const author=message.author?.id??message.user?.id??message.user;if(author!==game.user.id)return;for(const tx of transactions.values())if(tx.actorIds.has(message.speaker?.actor)&&!tx.messages.some(m=>m.id===message.id))tx.messages.push(message);});
   Hooks.once('ready',()=>game.socket.on(`system.${NS}`,async m=>{if(m?.type!=='legacy-undo-roll'||!game.user.isGM)return;const first=game.users.filter(u=>u.isGM&&u.active).sort((a,b)=>a.id.localeCompare(b.id))[0];if(first?.id!==game.user.id)return;const requester=game.users.get(m.senderId);if(requester)await undoSkillMessage(game.messages.get(m.messageId),{requester});}));
   game.realmGuard??={};game.realmGuard.undoSkillMessage=undoSkillMessage;

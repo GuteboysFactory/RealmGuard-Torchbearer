@@ -23,6 +23,14 @@ function recordedResponses(message) {
   return game.messages.filter(reply => reply.flags?.[NS]?.challengeResponse?.messageId === message.id && !reply.flags?.[NS]?.rollUndo?.undone);
 }
 
+function responseChallenge(message) {
+  const flags = message.flags?.[NS];
+  const challenge = flags?.challenge;
+  if (!challenge || flags.rollUndo?.undone || flags.challengeResponse) return null;
+  // Old releases used to attach an implicit challenge to a completed roll.
+  return challenge.target || !message.content?.includes('rg-chat-roll-pipeline') ? challenge : null;
+}
+
 async function commitDirectedResponse(SheetClass, { messageId, claim, action, replyId }, requester) {
   const message = game.messages.get(messageId);
   const challenge = message?.flags?.[NS]?.challenge;
@@ -85,7 +93,8 @@ export function challengeTestChoices(actor) {
 }
 
 export async function respondToRoll(SheetClass,message){
-  const challenge=message.flags?.[NS]?.challenge;if(!challenge||message.flags?.[NS]?.rollUndo?.undone)return;
+  const challenge = responseChallenge(message);
+  if (!challenge) return;
   const target = challenge.target && targetActor(challenge);
   if (challenge.target && (!canRespondToTarget(challenge, game.user) || recordedResponses(message).length)) return;
   const actors=target ? [target] : game.actors.filter(a=>a.type==='character'&&a.isOwner);
@@ -129,7 +138,6 @@ async function rollResponse(SheetClass, message, challenge, actors) {
   if (challenge.versus) {
     options.tieOpponent = (challenge.actorUuid ? globalThis.fromUuidSync?.(challenge.actorUuid) : null) ?? game.actors.get(challenge.actorId);
     options.tieOpposition = challenge.source;
-    options.directedReply = Boolean(challenge.target);
   }
   const result=role.type==="ability"
     ? await rollChallengeAbility(SheetClass,sheet,role,options,challenge)
@@ -186,14 +194,15 @@ function responseNames(message){
   return [...new Set(recordedResponses(message).map(m=>game.actors.get(m.flags[NS].challengeResponse.actorId)?.name).filter(Boolean))];
 }
 function paintResponseButtons(message,root){
-  const names=responseNames(message),challenge=message.flags?.[NS]?.challenge;
+  const challenge = responseChallenge(message);
+  if (!challenge) return;
+  const names = responseNames(message);
   for(const b of root.querySelectorAll('[data-rg-respond]')){
     if (challenge.target) {
       const response = recordedResponses(message)[0]?.flags?.[NS]?.challengeResponse;
-      b.hidden = !canRespondToTarget(challenge, game.user);
+      b.hidden = Boolean(response) || !canRespondToTarget(challenge, game.user);
       b.disabled = Boolean(response || message.flags[NS].directedResponseClaim?.expires > Date.now());
-      b.classList.toggle('rg-responded',Boolean(response));
-      b.textContent = response ? `${challenge.target.name} responded` : `Respond · ${challenge.target.name}`;
+      b.textContent = `Respond · ${challenge.target.name}`;
       const status = root.querySelector('.rg-result-final small');
       if (status && response) status.textContent = response.tied ? 'Tie · see response' : response.passed ? `${challenge.target.name} wins` : 'Challenger wins';
       else if (status) status.textContent = 'Waiting for response';
@@ -250,9 +259,24 @@ export function installLegacyChatActions(SheetClass){
     bar.append(custom, d6);
   };
   Hooks.on('renderChatLog',chatButton);Hooks.on('renderChatInput',chatButton);Hooks.once('ready',chatButton);
-  Hooks.on('renderChatMessageHTML',(message,html)=>{const root=html instanceof HTMLElement?html:html?.[0];if(!root)return;if(root.querySelector('.realm-guard'))root.classList.add('rg-separated-message');
-    const challenge=message.flags?.[NS]?.challenge;if(challenge&&!message.flags?.[NS]?.rollUndo?.undone){root.classList.add('rg-separated-message');if(!root.querySelector("[data-rg-respond]")){const button=document.createElement("button");button.type="button";button.dataset.rgRespond="";button.textContent=`Respond · choose Skill · Ob ${challenge.obstacle}`;root.append(button);}for(const b of root.querySelectorAll('[data-rg-respond]'))b.onclick=()=>respondToRoll(SheetClass,message).catch(error=>ui.notifications.error(error.message));paintResponseButtons(message,root);}
-    if(game.user.isGM&&!challenge&&root.querySelector('.rg-chat-roll-pipeline')&&!message.flags?.[NS]?.rollDecisionPending&&!message.flags?.[NS]?.versusTie&&!message.flags?.[NS]?.conflictRoll){const b=document.createElement('button');b.type='button';b.textContent='Ask players to respond…';b.onclick=async()=>{const values=await foundry.applications.api.DialogV2.wait({window:{title:'Player response target'},content:'<label>Obstacle / rolled successes<input name="ob" type="number" min="0" step="1" value="1"></label><label><input type="checkbox" name="versus" checked> Versus</label>',modal:false,rejectClose:false,buttons:[{action:'post',label:'Post challenge',callback:(_e,btn)=>({ob:Number(btn.form.elements.ob.value),versus:btn.form.elements.versus.checked})},{action:'cancel',label:'Cancel',callback:()=>null}]});if(values)await publishChallenge(game.actors.get(message.speaker?.actor),message.speaker?.alias??'GM challenge',values.ob,{versus:values.versus,source:message.flags?.[NS]?.testSource});};root.append(b);}
+  Hooks.on('renderChatMessageHTML', (message, html) => {
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    if (!root) return;
+    if (root.querySelector('.realm-guard')) root.classList.add('rg-separated-message');
+    if (!responseChallenge(message)) {
+      root.querySelectorAll('[data-rg-respond]').forEach(button => button.remove());
+      return;
+    }
+    root.classList.add('rg-separated-message');
+    let button = root.querySelector('[data-rg-respond]');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.rgRespond = '';
+      root.append(button);
+    }
+    button.onclick = () => respondToRoll(SheetClass, message).catch(error => ui.notifications.error(error.message));
+    paintResponseButtons(message, root);
   });
   game.realmGuard??={};game.realmGuard.publishChallenge=publishChallenge;
   Hooks.on('renderApplicationV2',app=>{if(app.actor&&app.element){const title=app.element.querySelector('.window-title');if(title){title.textContent=app.actor.name;title.title=app.actor.name;}}});
