@@ -35,6 +35,7 @@ async function customRollWithParity() {
     if (spendFate) { bonusFaces = await this.actor._explodeSixes(faces); await spendRollResource(this.actor, "fate", 1, { reason: `Custom Roll · ${result.label}` }); }
   }
   const all = faces.concat(bonusFaces);
+  if (bonusFaces.length) await rollChat.animate("Fate dice", bonusFaces);
   const successes = all.filter(v=>v>=4).length;
   const passed = successes >= result.obstacle;
   observeCustomRollParity(this.actor, {

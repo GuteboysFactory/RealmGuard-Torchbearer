@@ -192,6 +192,7 @@ export class RealmGuardActor extends Actor {
 
   async _applyWiseReroll(baseFaces, wise, assist = null) {
     const result = await this._applySelectedWiseReroll(baseFaces, wise, assist);
+    if (result.rerollFaces.length) await assist?.chatDecision?.animate("Wise reroll", result.rerollFaces);
     await assist?.chatDecision?.show(result.faces);
     const talentResult = await applyTalentReroll(this, result.faces, assist?.talentUse, { chatDecision: assist?.chatDecision, excludedIndexes: result.rerolledIndexes });
     await assist?.chatDecision?.show(talentResult.faces);
@@ -426,6 +427,7 @@ export class RealmGuardActor extends Actor {
     if (decision.action === "fate") {
       fateFaces = await this._explodeSixes(ownFaces);
       await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
+      await chatDecision?.animate("Fate dice", fateFaces);
       fateSpent = true;
       const fateSuccesses = ownFaces.concat(fateFaces).filter(v => v >= 4).length;
       if (fateSuccesses > initialOpp) {
@@ -571,6 +573,7 @@ export class RealmGuardActor extends Actor {
     const bonusFaces = spendFate ? await this._explodeSixes(baseFaces) : [];
     if (spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
     const faces = baseFaces.concat(bonusFaces);
+    if (bonusFaces.length) await rollChat.animate("Fate dice", bonusFaces);
     const rolledSuccesses = faces.filter(v => v >= 4).length;
     const traitSuccesses = this._traitSuccessBonus(assist, rolledSuccesses, obstacle, {versus});
     const successes = rolledSuccesses + traitSuccesses;
@@ -644,6 +647,8 @@ export class RealmGuardActor extends Actor {
     const wiseResult=await this._applyWiseReroll(faces,assist.wise,assist); faces=wiseResult.faces; const tokenResult=await this._applyTokenPowerReroll(faces,power,wiseResult.rerolledIndexes, rollChat); faces=tokenResult.faces;
     const sixCount=faces.filter(v=>v===6).length; const spendFate=sixCount&&Number(this.system.resources.fate.value??0)>0?await this._askFateAfterSixes({ chatDecision: rollChat, roleName:label,sixCount}):false;
     const bonusFaces=spendFate?await this._explodeSixes(faces):[]; if(spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s" });
+    if (bonusFaces.length) await rollChat.animate("Fate dice", bonusFaces);
+    if (opponentFaces.length) await rollChat.animate("Opponent's dice", opponentFaces);
     const finalFaces=faces.concat(bonusFaces), rolledSuccesses=finalFaces.filter(v=>v>=4).length, traitSuccesses=this._traitSuccessBonus(assist,rolledSuccesses,target,{versus}), successes=rolledSuccesses+traitSuccesses, result=this._resultData(successes,target,{versus});
     const direct=key==="nature"; let tax=challengeTarget ? 0 : direct?this._natureTax(result,{direct:true,scope:natureUse}):this._natureTax(result,{tapped:tapNature,scope:natureScope});
     if(!challengeTarget&&direct&&doubleTapNature&&!result.passed&&!result.tied) tax=Math.max(tax,Math.max(1,Number(result.margin||1)));
@@ -705,6 +710,8 @@ export class RealmGuardActor extends Actor {
     const wr=await this._applyWiseReroll(f1,assist.wise,assist);f1=wr.faces; const tokenResult=await this._applyTokenPowerReroll(f1,power,wr.rerolledIndexes,rollChat); f1=tokenResult.faces; const f2=r2.dice.flatMap(d=>d.results.map(r=>r.result));
     const sixes=f1.filter(v=>v===6).length, spendFate=sixes&&Number(this.system.resources.fate.value??0)>0?await this._askFateAfterSixes({ chatDecision: rollChat, roleName:"Nature Versus",sixCount:sixes}):false, bonus=spendFate?await this._explodeSixes(f1):[];
     if(spendFate)await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s" }); f1=f1.concat(bonus);
+    if (bonus.length) await rollChat.animate("Fate dice", bonus);
+    await rollChat.animate("Opponent's dice", f2);
     let a=f1.filter(v=>v>=4).length; const b=f2.filter(v=>v>=4).length; a+=this._traitSuccessBonus(assist,a,b,{versus:true}); const result=this._resultData(a,b,{versus:true}); let tax=this._natureTax(result,{direct:true,scope:natureUse}); if(doubleTapNature&&!result.passed&&!result.tied)tax=Math.max(tax,Math.max(1,Number(result.margin||1))); const tr=tax?await this._applyNatureTax(tax,`Nature Versus · ${natureUse}`):null;
     const esc=foundry.utils.escapeHTML,taxText=tr?`<p class="rg-nature-tax"><b>Nature Tax:</b> −${tr.tax} → ${tr.current}/${tr.maximum}</p>`:"";
     await rollChat.finish(choices => compactRollCard({
@@ -769,6 +776,7 @@ export class RealmGuardActor extends Actor {
     const bonusFaces = spendFate ? await this._explodeSixes(baseFaces) : [];
     if (spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
     const faces = baseFaces.concat(bonusFaces); let successes = faces.filter(v => v >= 4).length;
+    if (bonusFaces.length) await rollChat.animate("Fate dice", bonusFaces);
     let target = Number(obstacle ?? 1), targetLabel = "Obstacle", result;
     const source = {name:role.name, kind:"role", itemId:role.id, beginner:true};
     let versusTie = null;
@@ -778,6 +786,7 @@ export class RealmGuardActor extends Actor {
       opponentDice = preparedOpponentDice || Math.max(0, Number(opposition.rating ?? 0) + Number(oppConditions.dice ?? 0) + Number(assist.opponentDice ?? 0));
       if (!opponentDice) return ui.notifications.warn("Realm Guard: Opponent pool is 0.");
       const oppRoll = await new Roll(`${opponentDice}d6`).evaluate(); opponentFaces = oppRoll.dice.flatMap(d => d.results.map(r => r.result));
+      await rollChat.animate("Opponent's dice", opponentFaces);
       target = opponentFaces.filter(v => v >= 4).length; targetLabel = opposition.name; successes += this._traitSuccessBonus(assist, successes, target, { versus: true }); result = this._resultData(successes, target, { versus: true });
       if (result.tied) {
         versusTie = versusTieState(this, source, opponent, opposition);
@@ -868,6 +877,8 @@ export class RealmGuardActor extends Actor {
     const bonusFaces = spendFate ? await this._explodeSixes(baseFaces) : [];
     if (spendFate) await spendRollResource(this, "fate", 1, { reason: "Fate / Open 6s or Versus tie" });
     const ownFaces = baseFaces.concat(bonusFaces);
+    if (bonusFaces.length) await rollChat.animate("Fate dice", bonusFaces);
+    await rollChat.animate("Opponent's dice", opponentFaces);
     const rolledSuccesses = ownFaces.filter(v => v >= 4).length;
     const successes = rolledSuccesses + this._traitSuccessBonus(assist, rolledSuccesses, opponentSuccesses, { versus: true });
     const sixes = ownFaces.filter(v => v === 6).length;

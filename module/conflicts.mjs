@@ -1274,6 +1274,7 @@ async function executeActorPool({ actor, source, modifier = 0, extra = 0, person
     if (fateSpent) { fateFaces = await actor._explodeSixes(baseFaces); await spendRollResource(actor, "fate", 1, { reason: `${label} conflict Fate` }); }
   }
   const faces = baseFaces.concat(fateFaces);
+  if (fateFaces.length) await rollChat.animate("Fate dice", fateFaces);
   const earnedChecks = Number(await actor._awardTraitChecks?.(assist) ?? 0);
   const result = { earnedChecks,
     chatMessageId: rollChat.message.id, actorId: actor.id, sourceId: source.id, roleId: isNature ? null : source.id, abilityKey: isNature ? (source.key ?? "nature") : null, skillName: source.name,

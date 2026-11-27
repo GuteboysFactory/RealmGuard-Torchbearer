@@ -5,6 +5,7 @@ import { installTurnAuthorityBridge, requestTurnAuthority } from "./turn-authori
 const NS = "realm-guard";
 const OPERATION = "VERSUS_TIEBREAK";
 const FLAG = `flags.${NS}.versusTie`;
+const TOME = "adventurers-tome";
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
 const label = key => key.charAt(0).toUpperCase() + key.slice(1);
 let queue = Promise.resolve();
@@ -31,6 +32,41 @@ function canAct(actor, user) {
 function tieOf(message) {
   const flags = message?.flags?.[NS];
   return flags?.rollUndo?.undone ? null : flags?.versusTie;
+}
+
+const diceTable = () => game.modules?.get(TOME)?.api?.diceTable;
+
+async function presentTiebreakRoll(message, state) {
+  const api = diceTable();
+  if (!api?.flag || typeof api.prepareChatStage !== "function" || typeof api.isStageActive !== "function"
+    || typeof api.waitForStage !== "function") return false;
+  const dice = state.sides.flatMap(side => side.roll.faces.map(value => ({faces: 6, value})));
+  let stage;
+  try {
+    stage = api.prepareChatStage(dice, {
+      whisper: message.whisper ?? [], blind: message.blind, sceneId: message.speaker?.scene || undefined
+    });
+  } catch (error) {
+    console.warn("Realm Guard | Tome tiebreaker presentation unavailable.", error);
+    return false;
+  }
+  if (!stage) return false;
+
+  const marker = `<div data-rg-tiebreak-stage data-at-dice-stage="${esc(stage.key)}">Rolling tiebreaker…</div>`;
+  const stageFlag = `flags.${TOME}.${api.flag}`;
+  await message.update({[FLAG]: {...state, presentation: stage.key}, [stageFlag]: stage, content: message.content + marker});
+  try {
+    await api.waitForStage(stage);
+  } catch (error) {
+    console.warn("Realm Guard | Tome tiebreaker presentation interrupted.", error);
+  } finally {
+    const current = game.messages.get(message.id);
+    if (tieOf(current)?.presentation === stage.key) {
+      const cleaned = current.content.replace(marker, "");
+      await current.update({[FLAG]: {...state, presentation: null}, [`flags.${TOME}.-=${api.flag}`]: null, content: cleaned});
+    }
+  }
+  return true;
 }
 
 async function commitChoice({messageId, side: index, action, ability}, requester) {
@@ -74,6 +110,7 @@ async function commitChoice({messageId, side: index, action, ability}, requester
     } else return {ok:false, reason:"This step was already taken or is not ready."};
   }
   if (tieOf(game.messages.get(messageId)) !== original) return {ok:false,reason:"The original result changed. Reopen the chat card."};
+  if (action === "roll" && state.sides.every(entry => entry.roll) && await presentTiebreakRoll(message, state)) return {ok:true};
   await message.update({[FLAG]:state});
   return {ok:true};
 }
@@ -81,8 +118,10 @@ async function commitChoice({messageId, side: index, action, ability}, requester
 function renderTie(message, html) {
   const state = tieOf(message);
   const root = html instanceof HTMLElement ? html : html?.[0];
-  if (!state || !root || !legacyMixedPolishEnabled()) return;
+  if (!state || !root || message.visible === false || message.isContentVisible === false || !legacyMixedPolishEnabled()) return;
   root.querySelector(".rg-versus-tiebreak")?.remove();
+  if (diceTable()?.isStageActive?.(message, state.presentation)) return;
+  root.querySelector("[data-rg-tiebreak-stage]")?.remove();
   const bothReady = state.sides.every(side => side.ability);
   const bothRolled = state.sides.every(side => side.roll);
   const panel = document.createElement("section");
@@ -153,4 +192,7 @@ export function installVersusTiebreak() {
     }
   });
   Hooks.on("renderChatMessageHTML", renderTie);
+  Hooks.on("adventurersTomeDiceComplete", (message, key) => {
+    if (tieOf(message)?.presentation === key) ui.chat?.updateMessage?.(message);
+  });
 }

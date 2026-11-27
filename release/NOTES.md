@@ -1,7 +1,6 @@
-# 1.13.15 – Compact roll cards and chat controls
+# 1.13.16 – Adventurer’s Tome dice integration
 
-- Realm Guard roll cards use a more compact, square-cornered layout. **Teamwork & costs** and **Dice history** open independently when the roll has relevant details. **Result** and the outcome stay visible.
-- Wise rerolls retain the crossed-out dice and their aligned replacements. The layout also covers Versus, Conflict, Custom Roll and D6s with the details relevant to each.
-- **Undo roll** is a circular arrow beside Delete. The timestamp stays on one line in a narrow chat column.
-- A finished roll has no reply prompt. Directed Versus keeps **Respond** available to the target and GM until a response is recorded.
-- The outer border is removed from Tome's round chat portraits in Realm Guard. Generated token artwork is cropped to reduce its transparent margin in chat.
+- With Adventurer’s Tome 2.1.13, Realm Guard’s D6 values drive the 3D animation and the compact chat card.
+- Wise rerolls and Fate animate only the new dice. A Versus response animates when the opponent rolls with **Respond**.
+- Deferred Versus tiebreakers animate both sides’ dice together on the original chat card.
+- Chat results display immediately whenever Tome is unavailable, dice animation is disabled, or Tome declines the stage.

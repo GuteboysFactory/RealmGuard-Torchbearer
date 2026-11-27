@@ -8,6 +8,32 @@ const active = new Map();
 const actorRolls = new Set();
 const spendQueues = new Map();
 const esc = value => foundry.utils.escapeHTML(String(value ?? ""));
+const TOME_ID = "adventurers-tome";
+
+function prepareDiceStage(faces) {
+  if (!faces.length) return null;
+  const api = game.modules?.get(TOME_ID)?.api?.diceTable;
+  if (!api?.flag || typeof api.prepareChatStage !== "function" || typeof api.waitForStage !== "function") return null;
+  try {
+    const timing = api.prepareChatStage(faces.map(value => ({faces: 6, value})));
+    return timing ? {flag: api.flag, timing, wait: () => api.waitForStage(timing)} : null;
+  } catch (error) {
+    console.warn("Realm Guard | Tome dice presentation unavailable.", error);
+    return null;
+  }
+}
+
+function diceStageHtml(stage, content) {
+  return stage ? `<div data-at-dice-stage="${esc(stage.timing.key)}">${content}</div>` : content;
+}
+
+async function waitForDiceStage(stage) {
+  try {
+    await stage.wait();
+  } catch (error) {
+    console.warn("Realm Guard | Tome dice presentation interrupted.", error);
+  }
+}
 
 export function claimActorRoll(actor) {
   const key = actor.uuid || actor.id;
@@ -33,13 +59,24 @@ export async function beginRollChat(actor, label, faces) {
   const initial = [...faces];
   const history = [];
   let current = [...faces];
-  const initialHtml = () => `<section class="rg-first-roll"><b>First roll · ${esc(label)}</b>${diceFacesHtml(initial)}<span>${initial.filter(face => face >= 4).length} initial successes</span></section>`;
+  const initialHtml = stage => `<section class="rg-first-roll"><b>First roll · ${esc(label)}</b>${diceStageHtml(stage, `${diceFacesHtml(initial)}<span>${initial.filter(face => face >= 4).length} initial successes</span>`)}</section>`;
   const historyHtml = () => history.length ? `<ul class="rg-roll-decisions" aria-label="Selected roll options">${history.map(row => `<li>${esc(row)}</li>`).join("")}</ul>` : "";
-  const message = await ChatMessage.create({ speaker: actor.temporaryOpposition ? { alias: actor.name } : ChatMessage.getSpeaker({ actor }), content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}<p>Resolving roll…</p></div>`, flags: { "realm-guard": { rollDecisionPending: true } } });
+  const firstStage = prepareDiceStage(initial);
+  const message = await ChatMessage.create({ speaker: actor.temporaryOpposition ? { alias: actor.name } : ChatMessage.getSpeaker({ actor }), content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml(firstStage)}<p>Resolving roll…</p></div>`, flags: { "realm-guard": { rollDecisionPending: true },
+    ...(firstStage ? {[TOME_ID]: {[firstStage.flag]: firstStage.timing}} : {}) } });
   registerRollMessage(actor,message);
   const context = {
     message,
     async show(faces) { current = [...faces]; },
+    async animate(label, faces) {
+      const stage = prepareDiceStage(faces);
+      if (!stage) return;
+      await message.update({
+        content: `<div class="realm-guard rg-chat-roll-pipeline">${initialHtml()}${historyHtml()}<section class="rg-roll-current"><b>${esc(label)}</b>${diceStageHtml(stage, diceFacesHtml(faces))}</section></div>`,
+        [`flags.${TOME_ID}.${stage.flag}`]: stage.timing
+      });
+      await waitForDiceStage(stage);
+    },
     async ask(question, choices, { skip = null } = {}) {
       if (pending.has(message.id)) throw new Error("A roll question is already pending.");
       const nonce = foundry.utils.randomID();
@@ -72,6 +109,7 @@ export async function beginRollChat(actor, label, faces) {
     }
   };
   active.set(message.id, context);
+  if (firstStage) await waitForDiceStage(firstStage);
   return context;
 }
 
